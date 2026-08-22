@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QUANT ALPHA · Admin Console</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <a class="brand" href="./index.html">
+        <div class="logo"></div>
+        <h1>QUANT.ALPHA<span>Admin Console</span></h1>
+      </a>
+      <div class="nav-actions">
+        <a class="btn ghost" href="./marketplace.html">策略廣場</a>
+      </div>
+    </header>
+    <section class="desk">
+      <div class="kicker">ADMIN</div>
+      <h2 class="h2">策略廣場後台</h2>
+      <p class="muted">寫入需 <code>X-Admin-Secret</code>（與 Worker WEBHOOK_SECRET 相同）。密鑰僅存本機 sessionStorage。</p>
+      <input id="secret" type="password" placeholder="Admin secret" />
+      <button class="btn cyan" id="btnSaveSecret">保存密鑰並載入</button>
+      <p class="status" id="st"></p>
+      <table class="data-table" style="margin-top:16px">
+        <thead>
+          <tr><th>ID</th><th>名稱</th><th>幣種</th><th>週期</th><th>標籤</th><th></th></tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <h4 style="margin-top:18px;color:var(--cyan)">新增 / 更新</h4>
+      <input id="id" placeholder="id（如 dual）" />
+      <input id="name" placeholder="名稱" />
+      <input id="symbols" placeholder="幣種，逗號分隔，如 BTCUSDT" />
+      <input id="interval" placeholder="週期 1m/5m/15m/1h/4h/1d/1w" />
+      <input id="tags" placeholder="標籤，逗號分隔" />
+      <input id="engine" placeholder="引擎 id（dual/ribbon/rsi/squeeze/atr）" />
+      <input id="winRate" placeholder="可選 listed 勝率 0-1，空白則前台即時回測" />
+      <input id="sharpe" placeholder="可選 listed 夏普，空白則前台即時回測" />
+      <textarea id="pine" rows="8" style="width:100%;margin-top:8px;background:#070a0f;color:#9dffd0;border:1px solid var(--line);font-family:inherit;padding:10px" placeholder="可選覆蓋 Pine 源碼"></textarea>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn-cta compact" id="btnUpsert">寫入 KV</button>
+        <button class="btn amber" id="btnDel">刪除 ID</button>
+      </div>
+    </section>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script src="./config.js"></script>
+  <script src="./js/admin.js"></script>
+</body>
+</html>

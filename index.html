@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QUANT ALPHA</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <a class="brand" href="./index.html">
+        <div class="logo"></div>
+        <h1>QUANT.ALPHA<span data-i18n="brandSub">機構級量化回測終端</span></h1>
+      </a>
+      <div class="nav-actions">
+        <a class="btn ghost" href="./marketplace.html">策略廣場</a>
+        <a class="btn ghost" href="./backtest.html">回測中心</a>
+        <a class="btn ghost" href="./affiliate.html">裂變分銷</a>
+        <button type="button" class="btn cyan" id="btnAuth" data-i18n="login">登入 / 註冊</button>
+        <a id="btnChannel" class="btn" href="https://t.me/quant_alpha_signals" target="_blank" rel="noopener" data-i18n="btnChannel">免費加入 TG 頻道</a>
+      </div>
+    </header>
+
+    <section class="desk">
+      <div class="desk-head">
+        <div>
+          <div class="kicker">BTCUSDT · 1m</div>
+          <h2 class="h2">比特幣實盤大盤</h2>
+          <p class="muted">鎖定 BTCUSDT 一分鐘 K 線，幣安 WebSocket 秒級跳動。買賣點由 Dual SuperTrend 於本機標定。</p>
+        </div>
+        <div id="wsStatus" class="feed-status warn">↻ 正在重連</div>
+      </div>
+      <div class="chart-shell live">
+        <div id="tvChart" class="tv-chart"></div>
+        <div class="chart-meta">BTCUSDT · <span id="lastPx">—</span></div>
+      </div>
+    </section>
+
+    <footer class="site-foot">
+      <div class="foot-brand">QUANT ALPHA TECHNOLOGIES LTD. © 2026. All Rights Reserved.</div>
+      <nav class="foot-legal">
+        <button type="button" class="foot-link" data-legal="risk" data-i18n="legalRisk">風險披露聲明 (Risk Disclosure)</button>
+        <button type="button" class="foot-link" data-legal="tos" data-i18n="legalTos">服務條款 (Terms of Service)</button>
+        <button type="button" class="foot-link" data-legal="privacy" data-i18n="legalPrivacy">隱私權政策 (Privacy Policy)</button>
+        <button type="button" class="foot-link" data-legal="disclaimer" data-i18n="legalDisc">免責聲明 (Disclaimer)</button>
+      </nav>
+      <div class="foot-official">
+        官方頻道：<a href="https://t.me/quant_alpha_signals" target="_blank" rel="noopener">@quant_alpha_signals</a>
+        <span class="sep">|</span>
+        調度機器人：<a href="https://t.me/grid_quant_bot" target="_blank" rel="noopener">@grid_quant_bot</a>
+        <span class="sep">|</span>
+        Charts by <a href="https://www.tradingview.com/" target="_blank" rel="noopener">TradingView</a>
+      </div>
+    </footer>
+  </div>
+
+  <div class="modal-bg" id="loginModal">
+    <div class="modal">
+      <h3 data-i18n="loginTitle">登入 / 註冊</h3>
+      <p class="muted" data-i18n="loginLead">輸入 Telegram 數字 ID，或貼上機器人給你的 4 位綁定碼，即可一鍵登入。</p>
+      <a id="btnOpenBot" class="btn cyan" href="https://t.me/grid_quant_bot?start=bind" target="_blank" rel="noopener" data-i18n="openBot">先打開 Telegram 取得 4 位綁定碼</a>
+      <input id="loginCode" maxlength="4" inputmode="numeric" placeholder="4 位綁定碼，例如 8821" />
+      <input id="loginTg" placeholder="或輸入 Telegram ID" />
+      <button class="btn-cta compact" id="btnDoLogin" style="margin-top:12px;width:100%" data-i18n="doLogin">一鍵登入</button>
+      <p class="status" id="loginStatus"></p>
+      <button class="btn ghost" data-close="loginModal" data-i18n="close">關閉</button>
+    </div>
+  </div>
+
+  <div class="modal-bg" id="dashModal">
+    <div class="modal wide">
+      <h3 data-i18n="dashTitle">會員中心</h3>
+      <div class="dash-status">
+        <span class="dot"></span>
+        <div>
+          <b id="nodeName">基礎免費節點</b>
+          <p class="muted" id="dashUser"></p>
+          <p class="muted" id="dashLevel"></p>
+        </div>
+      </div>
+      <div class="dash-block">
+        <h4 data-i18n="refHead">裂變與佣金</h4>
+        <p class="muted" data-i18n="refLead">邀請 2 人綁定即可解鎖基礎推送席位。佣金按成功推薦記入賬本。</p>
+        <div class="addr" id="inviteLink">—</div>
+        <button class="btn" id="btnCopyInvite" data-i18n="copyInvite">一鍵複製邀請連結</button>
+        <a class="btn ghost" href="./affiliate.html">開啟裂變分銷頁</a>
+        <div class="stats-row">
+          <div class="stat"><span data-i18n="refCount">累計推薦</span><b id="refCount">0 / 2 人解鎖</b></div>
+          <div class="stat"><span data-i18n="refAvail">可提現返佣</span><b id="refAvail">0.00 USDT</b></div>
+          <div class="stat"><span data-i18n="refPend">待結算返佣</span><b id="refPend">0.00 USDT</b></div>
+        </div>
+      </div>
+      <div class="dash-pay" id="payBox">
+        <h4 data-i18n="payHead">升級通道（選配）</h4>
+        <p class="muted" data-i18n="payLead">僅在確認升級後顯示付款資訊。</p>
+        <button class="btn cyan" id="btnPayIntent" data-i18n="loadPay">升級 50ms 獨享 Webhook 通道</button>
+        <div id="payDetail" hidden>
+          <div class="amount" id="payAmount">--.-- USDT</div>
+          <p class="muted" id="payMeta" style="text-align:center"></p>
+          <img class="qr" src="./usdt-qr.png" alt="USDT QR" />
+          <div class="addr" id="wallet"></div>
+          <button class="btn" id="btnCopyAddr" data-i18n="copyAddr">複製收款地址</button>
+          <input id="txid" placeholder="貼上轉帳流水號" />
+          <button class="btn amber" id="payBtn" style="margin-top:10px" data-i18n="submitPay">提交校驗</button>
+        </div>
+        <p class="status" id="payStatus"></p>
+      </div>
+      <button class="btn ghost" id="btnLogout" data-i18n="logout">登出</button>
+      <button class="btn ghost" data-close="dashModal" data-i18n="close">關閉</button>
+    </div>
+  </div>
+
+  <div class="modal-bg" id="legalModal">
+    <div class="modal wide">
+      <h3 id="legalTitle">Disclaimer</h3>
+      <div class="legal-body muted" id="legalBody"></div>
+      <button class="btn ghost" data-close="legalModal" data-i18n="close">關閉</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="./config.js"></script>
+  <script src="./i18n.js"></script>
+  <script src="./js/indicators.js"></script>
+  <script src="./js/strategy-catalog.js"></script>
+  <script src="./js/binance-feed.js"></script>
+  <script src="./js/lightweight-charts.standalone.production.js"></script>
+  <script src="./js/live-chart.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

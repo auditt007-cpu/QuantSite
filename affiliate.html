@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QUANT ALPHA · 裂變分銷</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <a class="brand" href="./index.html">
+        <div class="logo"></div>
+        <h1>QUANT.ALPHA<span>機構級量化回測終端</span></h1>
+      </a>
+      <div class="nav-actions">
+        <a class="btn ghost" href="./marketplace.html">策略廣場</a>
+        <a class="btn ghost" href="./backtest.html">回測中心</a>
+        <a class="btn cyan" href="./affiliate.html">裂變分銷</a>
+        <a class="btn" href="https://t.me/quant_alpha_signals" target="_blank" rel="noopener">免費加入 TG 頻道</a>
+      </div>
+    </header>
+
+    <section class="page-grid">
+      <div class="panel">
+        <div class="kicker">AFFILIATE LEDGER</div>
+        <h2>佣金制度</h2>
+        <div class="rules">
+          <div class="rule-card">
+            <span>免費用戶</span>
+            <b>直推 2 人</b>
+            <p class="muted">免費激活基礎訊號推送席位。不產生 USDT 返傭。</p>
+          </div>
+          <div class="rule-card">
+            <span>機構 VIP（$99）</span>
+            <b>L1 35% + L2 15%</b>
+            <p class="muted">直推返傭 34.65 USDT；間推返傭 14.85 USDT。僅在下級完成 $99 實付後入帳。</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" id="gate" hidden>
+        <div class="gate">
+          <p class="muted">請先於首頁完成 Telegram 身份驗證，才能讀取真實裂變樹與佣金賬本。</p>
+          <a class="btn-cta" href="./index.html">前往登入</a>
+        </div>
+      </div>
+
+      <div class="panel" id="desk">
+        <div class="kicker">NETWORK TREE</div>
+        <h2>動態上下級關係樹</h2>
+        <p class="muted" id="meLine">我的節點：—</p>
+        <div class="tree-wrap" id="tree"></div>
+      </div>
+
+      <div class="panel" id="listPanel">
+        <div class="kicker">DOWNLINE</div>
+        <h2>下級清單（TG ID 脫敏）</h2>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>層級</th>
+              <th>TG ID</th>
+              <th>註冊時間</th>
+              <th>激活狀態</th>
+              <th>貢獻佣金</th>
+            </tr>
+          </thead>
+          <tbody id="rows">
+            <tr><td colspan="5" class="muted">尚無下級節點（不虛構用戶）</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel" id="wdPanel">
+        <div class="kicker">WITHDRAW</div>
+        <h2>佣金提現</h2>
+        <div class="stats-row">
+          <div class="stat"><span>可提現餘額</span><b id="avail">0.00 USDT</b></div>
+          <div class="stat"><span>待結算</span><b id="pend">0.00 USDT</b></div>
+          <div class="stat"><span>邀請進度</span><b id="prog">0 / 2</b></div>
+        </div>
+        <input id="trc20" placeholder="綁定 USDT TRC20 提現地址" />
+        <input id="amt" placeholder="申請提現金額（USDT）" inputmode="decimal" />
+        <button class="btn-cta compact" id="btnWd" style="margin-top:12px">申請提現</button>
+        <p class="status" id="wdStatus"></p>
+      </div>
+    </section>
+
+    <footer class="site-foot">
+      <div class="foot-brand">QUANT ALPHA TECHNOLOGIES LTD. © 2026. All Rights Reserved.</div>
+      <div class="foot-official">
+        官方頻道：<a href="https://t.me/quant_alpha_signals" target="_blank" rel="noopener">@quant_alpha_signals</a>
+        <span class="sep">|</span>
+        調度機器人：<a href="https://t.me/grid_quant_bot" target="_blank" rel="noopener">@grid_quant_bot</a>
+      </div>
+    </footer>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script src="./config.js"></script>
+  <script src="./affiliate.js"></script>
+</body>
+</html>

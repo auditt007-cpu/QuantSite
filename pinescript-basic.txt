@@ -1,0 +1,31 @@
+//@version=5
+indicator("TV Quant Basic v1.0", overlay=true, max_labels_count=50)
+
+fastLen = input.int(9, "Fast EMA")
+slowLen = input.int(21, "Slow EMA")
+rsiLen  = input.int(14, "RSI")
+riskPct = input.float(1.0, "Risk %", step=0.1)
+
+emaFast = ta.ema(close, fastLen)
+emaSlow = ta.ema(close, slowLen)
+rsi     = ta.rsi(close, rsiLen)
+atr     = ta.atr(14)
+
+bull = ta.crossover(emaFast, emaSlow) and rsi > 50
+bear = ta.crossunder(emaFast, emaSlow) and rsi < 50
+
+plot(emaFast, "EMA Fast", color=color.new(#39ff88, 0), linewidth=2)
+plot(emaSlow, "EMA Slow", color=color.new(#3ecbff, 0), linewidth=2)
+
+plotshape(bull, title="Long", style=shape.triangleup, location=location.belowbar, color=color.new(#39ff88, 0), size=size.small)
+plotshape(bear, title="Short", style=shape.triangledown, location=location.abovebar, color=color.new(#ff4d6d, 0), size=size.small)
+
+if bull
+    label.new(bar_index, low, "L", style=label.style_label_up, color=color.new(#39ff88, 70), textcolor=color.white)
+if bear
+    label.new(bar_index, high, "S", style=label.style_label_down, color=color.new(#ff4d6d, 70), textcolor=color.white)
+
+alertcondition(bull, title="Quant Long", message="TVQ LONG {{ticker}} @ {{close}}")
+alertcondition(bear, title="Quant Short", message="TVQ SHORT {{ticker}} @ {{close}}")
+
+bgcolor(bull ? color.new(#39ff88, 92) : bear ? color.new(#ff4d6d, 92) : na)

@@ -1,0 +1,19 @@
+name = "quant-saas-api"
+main = "src/index.ts"
+compatibility_date = "2026-08-22"
+account_id = "YOUR_CLOUDFLARE_ACCOUNT_ID"
+workers_dev = true
+
+# Copy to wrangler.toml locally. Put secrets via `wrangler secret put`, never commit tokens.
+[vars]
+USDT_WALLET = "YOUR_TRC20_WALLET"
+ADMIN_TG_ID = ""
+TG_CHANNEL_USERNAME = "@quant_alpha_signals"
+TG_CHANNEL_ID = ""
+TG_BOT_USERNAME = "grid_quant_bot"
+PUBLIC_CHANNEL_ENABLED = "true"
+
+[[kv_namespaces]]
+binding = "QUANT_USERS"
+id = "YOUR_KV_NAMESPACE_ID"
+preview_id = "YOUR_KV_NAMESPACE_ID"

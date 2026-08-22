@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QUANT ALPHA · 策略廣場</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <a class="brand" href="./index.html">
+        <div class="logo"></div>
+        <h1>QUANT.ALPHA<span>機構級量化回測終端</span></h1>
+      </a>
+      <div class="nav-actions">
+        <a class="btn cyan" href="./marketplace.html">策略廣場</a>
+        <a class="btn ghost" href="./backtest.html">回測中心</a>
+        <a class="btn ghost" href="./affiliate.html">裂變分銷</a>
+        <a class="btn ghost" href="./admin.html">Admin Console</a>
+      </div>
+    </header>
+    <section class="desk">
+      <div class="kicker">STRATEGY MARKETPLACE</div>
+      <h2 class="h2">策略廣場</h2>
+      <p class="muted">卡片來自 Cloudflare KV <code>/api/strategies</code>。勝率與夏普若後台未填，則用幣安最近 500 根 K 線在瀏覽器即時回測，不虛構數字。</p>
+      <div class="market-grid" id="grid"></div>
+    </section>
+    <footer class="site-foot">
+      <div class="foot-brand">QUANT ALPHA TECHNOLOGIES LTD. © 2026. All Rights Reserved.</div>
+    </footer>
+  </div>
+  <script src="./config.js"></script>
+  <script src="./js/indicators.js"></script>
+  <script src="./js/strategy-catalog.js"></script>
+  <script src="./js/binance-feed.js"></script>
+  <script src="./js/marketplace.js"></script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+//@version=5
+strategy("QA BTC 20/55 EMA + Donchian Breakout", overlay=true, initial_capital=10000, commission_value=0.04)
+
+donLen = input.int(20, "Donchian")
+fastLen = input.int(20, "EMA Fast")
+slowLen = input.int(55, "EMA Slow")
+volMul = input.float(1.5, "Volume spike")
+
+emaF = ta.ema(close, fastLen)
+emaS = ta.ema(close, slowLen)
+donHi = ta.highest(high, donLen)[1]
+volMa = ta.sma(volume, donLen)
+trendUp = emaF > emaS
+breakout = close > donHi and volume > volMa * volMul and trendUp
+stopOut = close < emaF
+
+if breakout and strategy.position_size == 0
+    strategy.entry("突破多", strategy.long)
+if stopOut and strategy.position_size > 0
+    strategy.close("突破多")
+
+plot(emaF, "EMA 20", color=color.new(#2ee59d, 0))
+plot(emaS, "EMA 55", color=color.new(#5cc8ff, 0))
+plot(donHi, "Donchian High", color=color.new(#8a97a6, 40))
