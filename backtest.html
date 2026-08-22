@@ -13,7 +13,8 @@
         <div class="logo"></div>
         <h1>QUANT.ALPHA<span>機構級量化回測終端</span></h1>
       </a>
-      <div class="nav-actions">
+      <button type="button" class="nav-toggle" id="navToggle" aria-label="選單">☰</button>
+      <div class="nav-actions" id="navActions">
         <a class="btn ghost" href="./marketplace.html">策略廣場</a>
         <a class="btn cyan" href="./backtest.html">回測中心</a>
         <a class="btn ghost" href="./affiliate.html">裂變分銷</a>
@@ -43,30 +44,39 @@
         <select id="stratSelect"></select>
         <div class="lab-actions">
           <button class="btn-cta" id="btnRun">開始回測</button>
-          <button class="btn" id="btnCopyPine">一鍵複製 PineScript 代碼</button>
         </div>
         <details class="pine-box">
           <summary>PineScript v5 策略源代碼</summary>
+          <div class="pine-toolbar">
+            <button type="button" class="btn" id="btnCopyPine">一鍵複製 PineScript 代碼</button>
+          </div>
           <pre id="pineSrc" class="pine-pre"></pre>
         </details>
       </div>
-      <h2 id="btTitle">尚未執行</h2>
+      <h2 id="btTitle">淨值動態曲線 · 起始資金 $10,000 USDT</h2>
+      <div class="nav-kpis">
+        <span id="navNow">當前淨值: $10,000.00 USDT</span>
+        <span id="navPnl" class="nav-chip">累計淨利: 0.0%</span>
+        <span id="navDd" class="nav-chip">最大淨值回撤: 0.0%</span>
+      </div>
       <p class="muted" id="sampleHint">近 1000 根 K 線累積信號</p>
       <div id="equityChart" class="lc-chart"></div>
       <div class="bt-meta">
-        <div class="stat"><span>累計收益率</span><b id="mRet">—</b></div>
         <div class="stat"><span>勝率</span><b id="mWr">—</b></div>
         <div class="stat"><span>盈虧比</span><b id="mPf">—</b></div>
-        <div class="stat"><span>最大回撤</span><b id="mDd">—</b></div>
+        <div class="stat"><span>交易筆數</span><b id="mTrades">—</b></div>
+        <div class="stat"><span>樣本</span><b id="mBars">—</b></div>
       </div>
-      <table class="data-table">
-        <thead>
-          <tr><th>#</th><th>方向</th><th>進場</th><th>出場</th><th>損益 %</th></tr>
-        </thead>
-        <tbody id="tradeRows">
-          <tr><td colspan="5" class="muted">點擊「開始回測」後顯示明細</td></tr>
-        </tbody>
-      </table>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr><th>#</th><th>方向</th><th>進場</th><th>出場</th><th>損益 %</th></tr>
+          </thead>
+          <tbody id="tradeRows">
+            <tr><td colspan="5" class="muted">點擊「開始回測」後顯示明細</td></tr>
+          </tbody>
+        </table>
+      </div>
       <p class="muted" style="margin-top:12px">TradingView Lightweight Charts™ · <a href="https://www.tradingview.com/" target="_blank" rel="noopener">tradingview.com</a></p>
     </section>
 
@@ -75,6 +85,7 @@
     </footer>
   </div>
   <div class="toast" id="toast"></div>
+  <script src="./js/nav.js"></script>
   <script src="./config.js"></script>
   <script src="./js/indicators.js"></script>
   <script src="./js/strategy-catalog.js"></script>

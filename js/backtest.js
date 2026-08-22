@@ -53,11 +53,33 @@ function addLine(chart, color) {
     : chart.addSeries(LC.LineSeries, { color, lineWidth: 2 });
 }
 
+const START_EQ = 10000;
+
+function fmtUsd(n) {
+  return Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function fmtSignedPct(x) {
+  const n = Number(x) * 100;
+  const sign = n > 0 ? "+" : "";
+  return sign + n.toFixed(1) + "%";
+}
+
 function paintPine() {
   $("pineSrc").textContent = spec().pine;
-  $("btTitle").textContent = spec().name + " · " + SYMBOL + " " + interval.toUpperCase();
+  $("btTitle").textContent = "淨值動態曲線 · 起始資金 $10,000 USDT";
   $("stratSelect").value = engineId;
-  $("sampleHint").textContent = "近 " + bars.length + " 根 K 線累積信號";
+  $("sampleHint").textContent = "近 " + (bars.length || 1000) + " 根 K 線累積信號";
+}
+
+function paintNav(eq, st) {
+  const now = eq && eq.length ? eq[eq.length - 1] : START_EQ;
+  $("btTitle").textContent = "淨值動態曲線 · 起始資金 $10,000 USDT";
+  $("navNow").textContent = "當前淨值: $" + fmtUsd(now) + " USDT";
+  $("navPnl").textContent = "累計淨利: " + fmtSignedPct(st ? st.ret : 0);
+  $("navPnl").className = "nav-chip " + (st && st.ret < 0 ? "down" : "up");
+  const dd = st ? st.mdd : 0;
+  $("navDd").textContent = "最大淨值回撤: " + (dd * 100).toFixed(1) + "%";
 }
 
 function upsert(bar) {
@@ -79,7 +101,7 @@ function mountCandles() {
     candleChart.remove();
     candleChart = null;
   }
-  candleChart = LC.createChart(el, feed.chartOptions(el, el.clientHeight || 480));
+  candleChart = LC.createChart(el, feed.chartOptions(el, el.clientHeight || (window.matchMedia("(max-width: 768px)").matches ? 400 : 480)));
   candleSeries = addCandle(candleChart);
   volSeries = addHist(candleChart);
   candleSeries.setData(bars.map((b) => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close })));
@@ -111,6 +133,7 @@ async function load(iv) {
     },
     onKline: upsert,
   });
+  run();
 }
 
 function fmtPf(pf) {
@@ -128,10 +151,11 @@ function run() {
   const eq = catalog.equityFrom(bars, trades);
   const st = catalog.performanceOf(trades, eq, catalog.barsPerYear(interval));
   $("sampleHint").textContent = "近 " + bars.length + " 根 K 線累積信號";
-  $("mRet").textContent = (st.ret * 100).toFixed(2) + "%";
+  paintNav(eq, st);
   $("mWr").textContent = (st.wr * 100).toFixed(1) + "%";
   $("mPf").textContent = fmtPf(st.pf);
-  $("mDd").textContent = (st.mdd * 100).toFixed(2) + "%";
+  $("mTrades").textContent = String(st.trades);
+  $("mBars").textContent = String(bars.length);
   $("tradeRows").innerHTML = trades.length
     ? trades
         .map(
@@ -165,6 +189,7 @@ $("stratSelect").innerHTML = catalog.list.map((s) => `<option value="${s.id}">${
 $("stratSelect").addEventListener("change", () => {
   engineId = $("stratSelect").value;
   paintPine();
+  run();
 });
 document.querySelectorAll("[data-tf]").forEach((b) => {
   b.addEventListener("click", () => load(b.getAttribute("data-tf")).catch((e) => toast(e.message)));

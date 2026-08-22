@@ -196,8 +196,8 @@ input {
 .toast.show { display: block; }
 
 @media (max-width: 900px) {
-  .topbar { flex-direction: column; align-items: stretch; }
-  .chart-shell { height: 340px; }
+  .nav-actions { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .chart-shell { height: 400px; }
 }
 
 .page-grid { display: grid; gap: 16px; margin-top: 16px; }
@@ -227,6 +227,66 @@ input {
 .bt-meta { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0; }
 .bt-meta.five { grid-template-columns: repeat(5, 1fr); }
 .gate { border: 1px dashed #1c4a62; padding: 24px; text-align: center; }
-@media (max-width: 800px) {
-  .rules, .bt-meta, .bt-meta.five { grid-template-columns: 1fr; }
+.nav-toggle {
+  display: none;
+  font-family: inherit; font-size: 18px; color: var(--neon);
+  background: #0b121a; border: 1px solid var(--line); padding: 8px 12px; cursor: pointer;
+}
+.nav-kpis { display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 8px 0 12px; font-size: 13px; }
+.nav-chip { color: var(--muted); }
+.nav-chip.up { color: var(--neon); }
+.nav-chip.down { color: var(--red); }
+.pine-toolbar {
+  position: sticky; top: 0; z-index: 2;
+  background: #070a0f; padding: 8px 0; margin-top: 6px;
+}
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }
+.data-table { min-width: 520px; font-size: 12px; }
+
+@media (max-width: 768px) {
+  .wrap { padding: 10px 10px 56px; }
+  .topbar {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    top: 6px;
+    padding: 10px;
+  }
+  .brand h1 { font-size: 12px; letter-spacing: 0.12em; }
+  .brand span { display: none; }
+  .nav-toggle { display: inline-flex; }
+  .nav-actions {
+    display: none;
+    grid-column: 1 / -1;
+    flex-direction: column;
+    align-items: stretch;
+    flex-wrap: nowrap;
+    max-height: 70vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  .topbar.nav-open .nav-actions { display: flex; }
+  .nav-actions .btn, .nav-actions .btn-cta, .nav-actions button {
+    width: 100%; text-align: center;
+  }
+  .seg { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
+  .seg-btn { flex: 0 0 auto; }
+  .chart-shell, .chart-shell.live, .lab-top {
+    height: 400px; min-height: 380px; max-height: 420px;
+  }
+  .lab-canvas, .tv-chart, .lc-chart { min-height: 280px; }
+  .lc-chart { height: 220px; }
+  .h2 { font-size: 18px; }
+  .engine-box select,
+  .lab-actions .btn,
+  .lab-actions .btn-cta,
+  .pine-toolbar .btn {
+    width: 100%; min-height: 44px;
+  }
+  .lab-actions { flex-direction: column; }
+  .bt-meta { grid-template-columns: 1fr 1fr; }
+  .stats-row { grid-template-columns: 1fr; }
+  .rules { grid-template-columns: 1fr; }
+  .modal, .modal.wide { width: 100%; }
+  .toast { left: 12px; right: 12px; }
 }

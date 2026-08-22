@@ -206,6 +206,7 @@
   }
 
   function chartOptions(el, height) {
+    const mobile = typeof window !== "undefined" && window.matchMedia("(max-width: 768px)").matches;
     return {
       width: el.clientWidth,
       height,
@@ -213,20 +214,34 @@
         background: { color: "#080b10" },
         backgroundColor: "#080b10",
         textColor: "#7d8b9a",
+        fontSize: mobile ? 10 : 12,
       },
-      grid: { vertLines: { color: "#141c28" }, horzLines: { color: "#141c28" } },
+      grid: {
+        vertLines: { visible: !mobile, color: "#141c28" },
+        horzLines: { visible: true, color: mobile ? "#10151c" : "#141c28" },
+      },
       rightPriceScale: { borderColor: "#1a2330", autoScale: true },
       timeScale: {
         borderColor: "#1a2330",
-        timeVisible: true,
+        timeVisible: !mobile,
         secondsVisible: false,
         fixLeftEdge: true,
         fixRightEdge: true,
         rightBarStaysOnScroll: true,
         lockVisibleTimeRangeOnResize: true,
       },
-      handleScroll: { vertTouchDrag: false },
-      attributionLogo: true,
+      handleScroll: {
+        mouseWheel: true,
+        pressedMouseMove: true,
+        horzTouchDrag: true,
+        vertTouchDrag: false,
+      },
+      handleScale: {
+        axisPressedMouseMove: true,
+        pinch: true,
+      },
+      kineticScroll: { touch: true, mouse: false },
+      attributionLogo: !mobile,
     };
   }
 

@@ -71,7 +71,7 @@
         chart.remove();
         chart = null;
       }
-      chart = root.LightweightCharts.createChart(el, feed.chartOptions(el, el.clientHeight || 520));
+      chart = root.LightweightCharts.createChart(el, feed.chartOptions(el, el.clientHeight || (window.matchMedia("(max-width: 768px)").matches ? 400 : 520)));
       candle = addCandle(chart);
       vol = addHist(chart);
       candle.setData(bars.map((b) => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close })));
