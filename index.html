@@ -29,6 +29,17 @@
       </div>
     </header>
 
+    <div id="onboardBanner" class="onboard" hidden>
+      <p id="onboardHi"></p>
+      <p id="onboardNeed"></p>
+      <div class="newbie">
+        <p data-i18n="newbieTitle">⏳ 限時福利：註冊後 24 小時內邀請 2 人，額外贈送 7 天 VIP 50ms 專線體驗</p>
+        <b id="newbieClock">24:00:00</b>
+        <div class="progress"><i id="newbieBar"></i></div>
+      </div>
+      <button type="button" class="btn-cta" id="btnOnboardInvite" data-i18n="onboardCta">🔥 立即獲取專屬邀請鏈接</button>
+    </div>
+
     <section class="hero">
       <h1 class="hero-h1" data-i18n="heroH1">捕捉 BTC 趨勢拐點 · 研究樣本勝率 68%+</h1>
       <p class="hero-h2" data-i18n="heroH2">無需盯盤，Dual SuperTrend 於瀏覽器本地標定，並可推送到你的 Telegram。</p>
@@ -177,6 +188,16 @@
           <button class="btn amber" id="payBtn" style="margin-top:10px" data-i18n="submitPay">提交校驗</button>
           <a class="pay-help" id="paySupport" href="https://t.me/grid_quant_bot" target="_blank" rel="noopener" data-i18n="paySupport">遇到了問題？點擊聯繫 TG 官方客服人工核對</a>
         </div>
+        <h4 data-i18n="hookHead">50ms Webhook 三步接入</h4>
+        <ol class="login-guide">
+          <li data-i18n="hookS1">① 複製專屬 Webhook URL</li>
+          <li data-i18n="hookS2">② 貼到 TradingView 警報通知欄</li>
+          <li data-i18n="hookS3">③ 一鍵複製標準 JSON Payload 模板</li>
+        </ol>
+        <div class="addr" id="hookUrl">—</div>
+        <button class="btn" id="btnCopyHook" data-i18n="copyHook">複製 Webhook URL</button>
+        <pre class="pine-pre" id="hookPayload" style="max-height:140px"></pre>
+        <button class="btn" id="btnCopyPayload" data-i18n="copyPayload">複製 JSON 模板</button>
         <p class="status" id="payStatus"></p>
       </div>
       <button class="btn ghost" id="btnLogout" data-i18n="logout">登出</button>
@@ -197,6 +218,9 @@
   <script src="./config.js"></script>
   <script src="./i18n.js"></script>
   <script src="./js/i18n-boot.js"></script>
+  <script src="./js/money.js"></script>
+  <script src="./js/clipboard.js"></script>
+  <script src="./js/identity.js"></script>
   <script src="./js/offline-klines.js"></script>
   <script src="./js/indicators.js"></script>
   <script src="./js/strategy-catalog.js"></script>

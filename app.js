@@ -26,8 +26,24 @@ function applyAuthUi() {
   $("dashUser").textContent = tg ? "Telegram ID  " + tg : "";
   const vip = localStorage.getItem("quant_paid") === "1";
   $("nodeName").textContent = vip ? t("nodePro") : t("nodeBasic");
-  $("dashLevel").textContent = vip ? "Pro" : (lang === "en" ? "Free node" : lang === "zh-CN" ? "等级：免费节点" : "等級：免費節點");
+  $("dashLevel").textContent = vip ? t("seatVip") : t("seatFree");
+  if (loggedIn() && !localStorage.getItem("quant_join_at")) {
+    localStorage.setItem("quant_join_at", String(Date.now()));
+  }
+  const hook = $("hookUrl");
+  if (hook && cfg.apiBase) {
+    const url = cfg.apiBase.replace(/\/$/, "") + "/api/webhook-relay";
+    hook.textContent = url;
+    const tgId = localStorage.getItem("quant_tg") || "";
+    const payload = JSON.stringify(
+      { symbol: "{{ticker}}", action: "{{strategy.order.action}}", price: "{{close}}", tg_id: tgId },
+      null,
+      2,
+    );
+    if ($("hookPayload")) $("hookPayload").textContent = payload;
+  }
   refreshInviteUi();
+  window.dispatchEvent(new Event("quant-auth"));
 }
 
 function applyI18n() {
@@ -55,13 +71,13 @@ function toast(msg, kind) {
   setTimeout(() => el.classList.remove("show"), 2400);
 }
 
-async function copyText(text) {
-  try {
-    await navigator.clipboard.writeText(text);
-    toast(t("copied"));
-  } catch {
-    toast(t("copyFail"));
+async function copyText(text, doneKey) {
+  const fn = window.copyToClipboard;
+  if (fn) {
+    await fn(text, () => toast(t(doneKey || "copied"), "ok"));
+    return;
   }
+  toast(t("copyFail"), "err");
 }
 
 function uid() {
@@ -184,6 +200,7 @@ async function doLogin() {
     localStorage.removeItem("quant_login_fails");
     localStorage.removeItem("quant_login_lock");
     localStorage.setItem("quant_tg", String(data.tg_id));
+    if (!localStorage.getItem("quant_join_at")) localStorage.setItem("quant_join_at", String(Date.now()));
     if (data.invite_code) localStorage.setItem("quant_invite", data.invite_code);
     if (data.invite_count != null) localStorage.setItem("quant_invites", String(data.invite_count));
     st.className = "status";
@@ -227,6 +244,8 @@ async function refreshInviteUi() {
       avail = Number(data.withdrawable || 0);
       pend = Number(data.pending || 0);
       if (data.me?.paid) localStorage.setItem("quant_paid", "1");
+      if (data.me?.unlocked || (data.me?.invite_count || 0) >= 2) localStorage.setItem("quant_unlocked", "1");
+      else localStorage.removeItem("quant_unlocked");
       localStorage.setItem("quant_invite", code);
       localStorage.setItem("quant_invites", String(count));
       const bar = $("refBar");
@@ -238,8 +257,9 @@ async function refreshInviteUi() {
   $("inviteLink").textContent = code ? `${origin}?ref=${code}` : "—";
   const unit = lang === "en" ? " / 2 binds" : " / 2 人";
   $("refCount").textContent = `${count}${unit}`;
-  $("refAvail").textContent = avail.toFixed(2) + " USDT";
-  $("refPend").textContent = pend.toFixed(2) + " USDT";
+  const money = window.QAMoney;
+  $("refAvail").textContent = money ? money.fmtUsdt(avail) : avail.toFixed(2) + " USDT";
+  $("refPend").textContent = money ? money.fmtUsdt(pend) : pend.toFixed(2) + " USDT";
 }
 
 const LEGAL = {
@@ -282,7 +302,7 @@ async function loadPay(plan) {
   try {
     const q = "/api/pay-intent?user_id=" + encodeURIComponent(userId) + "&plan=" + encodeURIComponent(plan || "vip");
     const data = await api(q);
-    $("payAmount").textContent = data.amount + " USDT";
+    $("payAmount").textContent = window.QAMoney ? window.QAMoney.fmtUsdt(data.amount) : data.amount + " USDT";
     $("payMeta").textContent = t("lockMeta").replace("{t}", new Date(data.expires_at).toLocaleString());
     $("payStatus").textContent = t("payHint");
     $("wallet").textContent = cfg.usdtWallet;
@@ -296,39 +316,50 @@ async function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+let payLock = 0;
+let payTimer = null;
+
 async function verifyTx() {
-  const txid = $("txid").value.trim();
+  if (payLock > 0) return;
+  const raw = $("txid").value.trim();
   const userId = localStorage.getItem("quant_tg") || uid();
-  if (txid.length < 16) {
+  if (window.QAMoney && !window.QAMoney.isTxHash(raw)) {
+    $("payStatus").className = "status err";
+    $("payStatus").textContent = t("badTx");
+    return;
+  }
+  if (raw.length < 16) {
     $("payStatus").className = "status err";
     $("payStatus").textContent = t("txShort");
     return;
   }
+  payLock = 10;
   $("payBtn").disabled = true;
-  $("payStatus").className = "status";
-  let lastErr = t("verifying");
-  try {
-    for (let n = 1; n <= 12; n++) {
-      $("payStatus").textContent = t("chainSync").replace("{n}", String(n));
-      try {
-        const data = await api("/api/verify-usdt", {
-          method: "POST",
-          body: JSON.stringify({ txid, user_id: userId }),
-        });
-        localStorage.setItem("quant_paid", "1");
-        applyAuthUi();
-        $("payStatus").textContent = data.message || t("paidOk");
-        toast(t("paidOk"), "ok");
-        return;
-      } catch (e) {
-        lastErr = e.message;
-        await sleep(2500);
-      }
+  $("payBtn").textContent = t("payBusy").replace("{n}", "10");
+  payTimer = setInterval(() => {
+    payLock -= 1;
+    if (payLock <= 0) {
+      clearInterval(payTimer);
+      payTimer = null;
+      $("payBtn").disabled = false;
+      $("payBtn").textContent = t("submitPay");
+      return;
     }
+    $("payBtn").textContent = t("payBusy").replace("{n}", String(payLock));
+  }, 1000);
+  $("payStatus").className = "status";
+  try {
+    const data = await api("/api/verify-usdt", {
+      method: "POST",
+      body: JSON.stringify({ txid: raw, user_id: userId }),
+    });
+    localStorage.setItem("quant_paid", "1");
+    applyAuthUi();
+    $("payStatus").textContent = data.message || t("paidOk");
+    toast(t("paidOk"), "ok");
+  } catch (e) {
     $("payStatus").className = "status err";
-    $("payStatus").textContent = lastErr;
-  } finally {
-    $("payBtn").disabled = false;
+    $("payStatus").textContent = e.message;
   }
 }
 
@@ -344,6 +375,23 @@ function wire() {
   if ($("tgFab")) $("tgFab").href = cfg.tgChannelUrl;
   wireOtp();
   if (location.hash === "#login") openModal("loginModal");
+  if (location.hash === "#dash" && loggedIn()) openModal("dashModal");
+  if ($("btnOnboardInvite")) {
+    $("btnOnboardInvite").addEventListener("click", () => {
+      openModal("dashModal");
+      const link = $("inviteLink");
+      if (link) link.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }
+  if (window.QACopy) {
+    window.QACopy.bindCopyButton($("btnCopyInvite"), () => $("inviteLink").textContent, "copyInviteOk");
+    window.QACopy.bindCopyButton($("btnCopyAddr"), () => cfg.usdtWallet, "copyAddrOk");
+    window.QACopy.bindCopyButton($("btnCopyHook"), () => $("hookUrl").textContent, "copyHookOk");
+    window.QACopy.bindCopyButton($("btnCopyPayload"), () => $("hookPayload").textContent, "copyPayloadOk");
+  } else {
+    $("btnCopyInvite").addEventListener("click", () => copyText($("inviteLink").textContent, "copyInviteOk"));
+    $("btnCopyAddr").addEventListener("click", () => copyText(cfg.usdtWallet, "copyAddrOk"));
+  }
   const tick = $("signalTicker");
   if (tick) {
     const spin = () => {
@@ -362,16 +410,6 @@ function wire() {
   $("btnLogout").addEventListener("click", logout);
   $("btnPayIntent").addEventListener("click", () => loadPay("vip"));
   if ($("btnPayTrial")) $("btnPayTrial").addEventListener("click", () => loadPay("trial"));
-  $("btnCopyInvite").addEventListener("click", async () => {
-    const btn = $("btnCopyInvite");
-    const prev = btn.textContent;
-    await copyText($("inviteLink").textContent);
-    btn.textContent = t("copyDone");
-    setTimeout(() => {
-      btn.textContent = t("copyInvite");
-    }, 2000);
-  });
-  $("btnCopyAddr").addEventListener("click", () => copyText(cfg.usdtWallet));
   $("payBtn").addEventListener("click", verifyTx);
   document.querySelectorAll("[data-legal]").forEach((b) => {
     b.addEventListener("click", () => openLegal(b.getAttribute("data-legal")));

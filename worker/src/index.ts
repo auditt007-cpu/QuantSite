@@ -368,10 +368,11 @@ app.post("/api/withdraw", async (c) => {
   if (!/^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(address)) {
     return c.json({ error: "請填入有效的 USDT TRC20 地址" }, 400);
   }
+  if (!(amount >= 50)) return c.json({ error: "最低提現 50 USDT" }, 400);
   const user = await getUserByTg(c.env, tgId);
   if (!user) return c.json({ error: "not found" }, 404);
   const avail = Number(user.withdrawable || 0);
-  if (!(amount > 0) || amount > avail + 1e-9) {
+  if (amount > avail + 1e-9) {
     return c.json({ error: "可提現餘額不足" }, 400);
   }
   user.withdraw_address = address;

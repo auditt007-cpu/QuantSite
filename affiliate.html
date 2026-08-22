@@ -65,7 +65,13 @@
         </div>
       </div>
 
-      <div class="panel" id="desk">
+      <div class="kpi-row aff-kpi" id="affKpis" hidden>
+        <div class="kpi"><span data-i18n="dashRef">累計推薦人數 (直接 / 間接)</span><b id="kpiRef">0 / 0</b></div>
+        <div class="kpi"><span data-i18n="dashShare">累計產生分潤</span><b id="kpiShare">$0.00 USDT</b></div>
+        <div class="kpi"><span data-i18n="dashCash">可提現餘額</span><b id="kpiCash">$0.00 USDT</b>
+          <button type="button" class="btn-cta compact" id="btnWdTop" data-i18n="wdAsk" style="margin-top:10px">申請提現</button>
+        </div>
+      </div>
         <div class="kicker">REFERRAL OVERVIEW</div>
         <h2>推廣概覽</h2>
         <p class="muted" id="meLine">我的節點：—</p>
@@ -103,6 +109,7 @@
         <input id="amt" placeholder="申請提現金額（USDT）" inputmode="decimal" />
         <button class="btn-cta compact" id="btnWd" style="margin-top:12px">申請提現</button>
         <p class="status" id="wdStatus"></p>
+        <p class="muted" id="wdRules" data-i18n="wdRules">最低提現 50 USDT，每週五統一鏈上清算。TRC20 Gas 由鏈上自理。系統部署機器人防刷，虛假或同 IP 批量刷號將自動凍結分潤資格。</p>
       </div>
     </section>
 
@@ -120,6 +127,9 @@
   <script src="./config.js"></script>
   <script src="./i18n.js"></script>
   <script src="./js/i18n-boot.js"></script>
+  <script src="./js/money.js"></script>
+  <script src="./js/clipboard.js"></script>
+  <script src="./js/identity.js"></script>
   <script src="./affiliate.js"></script>
 </body>
 </html>

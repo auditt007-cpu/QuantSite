@@ -144,7 +144,8 @@
         load();
       };
       if (node) node.onclick = () => {
-        feed.preferRest = true;
+        feed.nextNode();
+        feed.preferRest = false;
         load();
       };
     }

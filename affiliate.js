@@ -16,7 +16,7 @@ function bindDemo() {
   const paint = () => {
     const n = Number(range.value);
     nEl.textContent = String(n);
-    est.textContent = "$" + (n * 34.65).toFixed(2) + " USDT";
+    est.textContent = window.QAMoney ? window.QAMoney.fmtUsdt(n * 34.65) : "$" + (Math.round(n * 3465) / 100).toFixed(2) + " USDT";
   };
   range.addEventListener("input", paint);
   paint();
@@ -94,7 +94,7 @@ function renderRows(data) {
         <td>${r.tg_masked}</td>
         <td>${fmtTime(r.created_at)}</td>
         <td>${r.status}</td>
-        <td>${Number(r.commission || 0).toFixed(2)} USDT</td>
+        <td>${window.QAMoney ? window.QAMoney.fmtUsdt(r.commission || 0) : Number(r.commission || 0).toFixed(2)}</td>
       </tr>`,
     )
     .join("");
@@ -104,6 +104,7 @@ async function load() {
   const tg = localStorage.getItem("quant_tg");
   if (!tg) {
     if ($("gate")) $("gate").hidden = true;
+    if ($("affKpis")) $("affKpis").hidden = true;
     $("desk").hidden = true;
     $("listPanel").hidden = true;
     $("wdPanel").hidden = true;
@@ -118,37 +119,73 @@ async function load() {
       `我的節點：${data.me.masked} · 邀請碼 ${data.me.invite_code} · ${data.me.paid ? "Pro" : "免費節點"}`;
     renderTree(data);
     renderRows(data);
-    $("avail").textContent = Number(data.withdrawable || 0).toFixed(2) + " USDT";
-    $("pend").textContent = Number(data.pending || 0).toFixed(2) + " USDT";
+    if ($("affKpis")) $("affKpis").hidden = false;
+    const money = window.QAMoney;
+    const l1n = (data.l1 || []).length;
+    const l2n = (data.l2 || []).length;
+    if ($("kpiRef")) $("kpiRef").textContent = l1n + " / " + l2n;
+    const earned = [...(data.l1 || []), ...(data.l2 || [])].reduce((s, r) => s + Number(r.commission || 0), 0);
+    if ($("kpiShare")) $("kpiShare").textContent = money ? money.fmtUsdt(earned) : earned.toFixed(2);
+    const avail = Number(data.withdrawable || 0);
+    const pend = Number(data.pending || 0);
+    if ($("kpiCash")) $("kpiCash").textContent = money ? money.fmtUsdt(avail) : avail.toFixed(2);
+    $("avail").textContent = money ? money.fmtUsdt(avail) : avail.toFixed(2) + " USDT";
+    $("pend").textContent = money ? money.fmtUsdt(pend) : pend.toFixed(2) + " USDT";
     $("prog").textContent = `${data.me.invite_count || 0} / 2`;
+    localStorage.setItem("quant_invites", String(data.me.invite_count || 0));
+    if (data.me.unlocked || (data.me.invite_count || 0) >= 2) localStorage.setItem("quant_unlocked", "1");
+    if (data.me.paid) localStorage.setItem("quant_paid", "1");
+    const can = avail >= 50 - 1e-9;
+    $("btnWd").disabled = !can;
+    if ($("btnWdTop")) $("btnWdTop").disabled = !can;
     if (data.withdraw_address) $("trc20").value = data.withdraw_address;
     window.__aff = data;
+    window.dispatchEvent(new Event("quant-auth"));
   } catch (e) {
     $("meLine").textContent = e.message;
     renderTree({ parent: null, me: { masked: tg }, l1: [], l2: [] });
   }
 }
 
-$("btnWd").addEventListener("click", async () => {
+function doWithdraw() {
   const tg = localStorage.getItem("quant_tg");
   const address = $("trc20").value.trim();
   const amount = Number($("amt").value);
-  $("wdStatus").textContent = "送出中…";
-  try {
-    const res = await fetch(cfg.apiBase + "/api/withdraw", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ tg_id: tg, address, amount }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "提現失敗");
-    $("wdStatus").textContent = data.message;
-    toast(data.message);
-    $("avail").textContent = Number(data.withdrawable || 0).toFixed(2) + " USDT";
-    $("pend").textContent = Number(data.pending || 0).toFixed(2) + " USDT";
-  } catch (e) {
-    $("wdStatus").textContent = e.message;
+  const money = window.QAMoney;
+  if (money && !money.isTrc20(address)) {
+    $("wdStatus").textContent = window.QACopy ? window.QACopy.t("badTrc") : "TRC20";
+    return;
   }
-});
+  if (!(amount >= 50)) {
+    $("wdStatus").textContent = window.QACopy ? window.QACopy.t("wdMin") : "min 50";
+    return;
+  }
+  $("wdStatus").textContent = "…";
+  fetch(cfg.apiBase + "/api/withdraw", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ tg_id: tg, address, amount }),
+  })
+    .then((res) => res.json().then((data) => ({ res, data })))
+    .then(({ res, data }) => {
+      if (!res.ok) throw new Error(data.error || "提現失敗");
+      $("wdStatus").textContent = data.message;
+      toast(data.message, "ok");
+      const money2 = window.QAMoney;
+      $("avail").textContent = money2 ? money2.fmtUsdt(data.withdrawable) : data.withdrawable;
+      $("pend").textContent = money2 ? money2.fmtUsdt(data.pending) : data.pending;
+      if ($("kpiCash")) $("kpiCash").textContent = money2 ? money2.fmtUsdt(data.withdrawable) : data.withdrawable;
+    })
+    .catch((e) => {
+      $("wdStatus").textContent = e.message;
+    });
+}
+
+$("btnWd").addEventListener("click", doWithdraw);
+if ($("btnWdTop")) {
+  $("btnWdTop").addEventListener("click", () => {
+    $("wdPanel").scrollIntoView({ behavior: "smooth" });
+  });
+}
 
 load();

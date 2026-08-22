@@ -261,7 +261,7 @@ function run(silent) {
   addLine(equityChart, "#2ee59d").setData(bars.map((b, i) => ({ time: b.time, value: eq[i] })));
   equityChart.timeScale().fitContent();
   scheduleFit();
-  if (!silent) toast("回測完成 " + (performance.now() - t0).toFixed(1) + " ms · " + bars.length + " 根");
+  if (!silent) toast(t("btDone").replace("{ms}", (performance.now() - t0).toFixed(1)).replace("{n}", String(bars.length)), "ok");
 }
 
 $("stratSelect").innerHTML = catalog.list.map((s) => `<option value="${s.id}">${s.name}</option>`).join("");
@@ -277,11 +277,22 @@ $("btnRun").addEventListener("click", () => run(false));
 $("btnCopyPine").addEventListener("click", async (e) => {
   e.preventDefault();
   e.stopPropagation();
+  const btn = $("btnCopyPine");
+  const prev = btn.textContent;
   try {
-    await navigator.clipboard.writeText(spec().pine);
-    toast("已成功複製至剪貼簿");
+    if (window.copyToClipboard) {
+      await window.copyToClipboard(spec().pine, () => {
+        btn.textContent = t("copiedBang");
+        toast(t("copyPineOk"), "ok");
+        setTimeout(() => {
+          btn.textContent = prev;
+        }, 2000);
+      });
+    } else {
+      toast(t("copyFail"), "err");
+    }
   } catch {
-    toast("複製失敗");
+    toast(t("copyFail"), "err");
   }
 });
 window.addEventListener("resize", resizeCharts);
@@ -290,6 +301,14 @@ window.addEventListener("quant-lang", () => {
 });
 function boot() {
   scheduleFit();
+  const q = new URLSearchParams(location.search);
+  const qIv = q.get("interval");
+  const qSt = q.get("strategy") || q.get("engine");
+  if (qSt && catalog.get(qSt)) {
+    engineId = qSt;
+    $("stratSelect").value = engineId;
+  }
+  const startIv = INTERVALS_OK(qIv) ? qIv : "1m";
   const retry = $("btnFeedRetry");
   const node = $("btnFeedNode");
   if (retry) retry.onclick = () => {
@@ -297,10 +316,14 @@ function boot() {
     load(interval).catch((e) => toast(e.message, "warn"));
   };
   if (node) node.onclick = () => {
-    feed.preferRest = true;
+    feed.nextNode();
+    feed.preferRest = false;
     load(interval).catch((e) => toast(e.message, "warn"));
   };
-  load("1m").catch((e) => toast(e.message, "warn"));
+  load(startIv).catch((e) => toast(e.message, "warn"));
+}
+function INTERVALS_OK(iv) {
+  return ["1s", "1m", "5m", "15m", "1h", "4h", "1d", "1w"].includes(iv);
 }
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
 else boot();

@@ -44,7 +44,7 @@
           <div class="stat"><span>勝率</span><b data-wr>—</b></div>
           <div class="stat"><span>夏普</span><b data-sh>—</b></div>
         </div>
-        <a class="btn cyan" href="./index.html?engine=${encodeURIComponent(s.engine || s.id)}&interval=${encodeURIComponent(s.interval || "1m")}">打開終端</a>
+        <a class="btn cyan" href="./backtest.html?strategy=${encodeURIComponent(s.engine || s.id)}&interval=${encodeURIComponent(s.interval || "1m")}">打開回測</a>
       </article>`,
     )
     .join("");
