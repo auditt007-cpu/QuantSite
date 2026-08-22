@@ -100,25 +100,10 @@ app.post("/api/register", async (c) => {
   }
 
   const existing = await getUserByTg(c.env, tgId);
-  let user = existing;
-  if (!user) {
-    user = {
-      tg_id: tgId,
-      invite_code: await allocInviteCode(c.env),
-      parent_invite: parentInvite,
-      invite_count: 0,
-      invited: [],
-      created_at: Date.now(),
-      unlocked: false,
-      paid: false,
-      withdraw_address: "",
-      withdrawable: 0,
-      pending: 0,
-      commissions: [],
-    };
-    await putUser(c.env, user);
-    await c.env.QUANT_USERS.put(`invite:${user.invite_code}`, tgId);
+  if (!existing) {
+    return c.json({ error: "請使用 Telegram 4 位驗證碼登入" }, 401);
   }
+  let user = existing;
 
   user = await attachReferral(c.env, user, parentInvite);
 
@@ -145,7 +130,7 @@ async function confirmBind(c: { req: { json: () => Promise<unknown>; text: () =>
   const code = String(body.code || body.bind_code || "").trim();
   if (!/^\d{4}$/.test(code)) return c.json({ error: "請輸入 4 位綁定碼" }, 400);
   const rec = await c.env.QUANT_USERS.get(`bind:${code}`, "json") as { tg_id: string; exp: number } | null;
-  if (!rec || rec.exp < Date.now()) return c.json({ error: "綁定碼無效或已過期，請重新在 Telegram 傳送 /bind" }, 410);
+  if (!rec || rec.exp < Date.now()) return c.json({ error: "驗證碼無效或已過期，請重新向 Telegram 機器人獲取" }, 410);
   const parentInvite = String(body.parent_invite || "").trim();
   const tgId = rec.tg_id;
   let user = await getUserByTg(c.env, tgId);

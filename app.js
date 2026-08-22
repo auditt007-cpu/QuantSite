@@ -42,9 +42,6 @@ function applyI18n() {
   document.querySelectorAll("[data-lang]").forEach((b) => {
     b.classList.toggle("active", b.getAttribute("data-lang") === lang);
   });
-  document.querySelectorAll("[data-lang-select]").forEach((sel) => {
-    sel.value = lang;
-  });
   applyAuthUi();
   applyDesk(false);
 }
@@ -98,36 +95,36 @@ function onAuthClick() {
 }
 
 async function doLogin() {
-  const code = $("loginCode").value.trim();
-  const tg = $("loginTg").value.trim();
-  $("loginStatus").textContent = t("logging");
+  const box = $("loginCode");
+  const st = $("loginStatus");
+  const code = String(box.value || "").replace(/\D/g, "").slice(0, 4);
+  box.value = code;
+  st.className = "status";
+  if (!/^\d{4}$/.test(code)) {
+    st.className = "status err";
+    st.textContent = t("needLogin");
+    return;
+  }
+  st.textContent = t("logging");
   try {
-    if (/^\d{4}$/.test(code)) {
-      const data = await api("/api/bind-tg", {
-        method: "POST",
-        body: JSON.stringify({ code, parent_invite: parentInviteFromUrl() }),
-      });
-      localStorage.setItem("quant_tg", data.tg_id);
-      if (data.invite_code) localStorage.setItem("quant_invite", data.invite_code);
-    } else if (/^\d{5,15}$/.test(tg)) {
-      const data = await api("/api/register", {
-        method: "POST",
-        body: JSON.stringify({ tg_id: tg, parent_invite: parentInviteFromUrl() }),
-      });
-      localStorage.setItem("quant_tg", tg);
-      if (data.invite_code) localStorage.setItem("quant_invite", data.invite_code);
-      localStorage.setItem("quant_invites", String(data.invite_count ?? 0));
-    } else {
-      $("loginStatus").textContent = t("needLogin");
-      return;
+    const data = await api("/api/bind-tg", {
+      method: "POST",
+      body: JSON.stringify({ code, parent_invite: parentInviteFromUrl() }),
+    });
+    if (!data || !data.ok || !data.tg_id) {
+      throw new Error(t("badCode"));
     }
-    $("loginStatus").textContent = t("logged");
+    localStorage.setItem("quant_tg", String(data.tg_id));
+    if (data.invite_code) localStorage.setItem("quant_invite", data.invite_code);
+    if (data.invite_count != null) localStorage.setItem("quant_invites", String(data.invite_count));
+    st.textContent = t("logged");
     toast(t("logged"));
     applyAuthUi();
     closeModal("loginModal");
     openModal("dashModal");
   } catch (e) {
-    $("loginStatus").textContent = e.message;
+    st.className = "status err";
+    st.textContent = t("badCode");
   }
 }
 
@@ -148,15 +145,6 @@ async function refreshInviteUi() {
     try {
       let res = await fetch(cfg.apiBase + "/api/affiliate?tg_id=" + encodeURIComponent(tg));
       let data = await res.json();
-      if (res.status === 404) {
-        await fetch(cfg.apiBase + "/api/register", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ tg_id: tg, parent_invite: localStorage.getItem("quant_ref") || "" }),
-        });
-        res = await fetch(cfg.apiBase + "/api/affiliate?tg_id=" + encodeURIComponent(tg));
-        data = await res.json();
-      }
       if (!res.ok) throw new Error(data.error || "載入失敗");
       code = data.me?.invite_code || code;
       count = data.me?.invite_count ?? count;
@@ -257,16 +245,13 @@ function wire() {
   if ($("btnChannel2")) $("btnChannel2").href = cfg.tgChannelUrl;
   $("btnOpenBot").href = cfg.tgBotUrl;
   $("wallet").textContent = cfg.usdtWallet;
-  document.querySelectorAll("[data-lang]").forEach((b) => {
-    b.addEventListener("click", () => {
-      lang = b.getAttribute("data-lang");
-      localStorage.setItem("quant_lang", lang);
-      applyI18n();
+  const codeBox = $("loginCode");
+  if (codeBox) {
+    codeBox.addEventListener("input", () => {
+      codeBox.value = codeBox.value.replace(/\D/g, "").slice(0, 4);
     });
-  });
-  if ($("tgAltToggle") && $("loginTgWrap")) {
-    $("tgAltToggle").addEventListener("click", () => {
-      $("loginTgWrap").classList.toggle("show");
+    codeBox.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") doLogin();
     });
   }
   window.addEventListener("quant-lang", () => {

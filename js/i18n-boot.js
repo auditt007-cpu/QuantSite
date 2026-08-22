@@ -16,13 +16,14 @@
     const lang = currentLang();
     document.documentElement.lang = lang === "en" ? "en" : lang === "zh-CN" ? "zh-CN" : "zh-Hant";
     document.querySelectorAll("[data-i18n]").forEach((el) => {
+      if (el.id === "btnAuth" || el.id === "nodeName" || el.id === "dashLevel") return;
       el.textContent = t(el.getAttribute("data-i18n"));
     });
     document.querySelectorAll("[data-ph]").forEach((el) => {
       el.placeholder = t(el.getAttribute("data-ph"));
     });
-    document.querySelectorAll("[data-lang-select]").forEach((sel) => {
-      sel.value = lang;
+    document.querySelectorAll("[data-lang]").forEach((b) => {
+      b.classList.toggle("active", b.getAttribute("data-lang") === lang);
     });
     const ws = document.getElementById("wsStatus");
     if (ws && root.QAFeed) {
@@ -38,10 +39,10 @@
   }
 
   root.QAApplyI18n = applyI18nDom;
-  root.addEventListener("change", (e) => {
-    const sel = e.target && e.target.closest("[data-lang-select]");
-    if (!sel) return;
-    setLang(sel.value);
+  root.addEventListener("click", (e) => {
+    const btn = e.target && e.target.closest && e.target.closest(".lang-pills [data-lang]");
+    if (!btn) return;
+    setLang(btn.getAttribute("data-lang"));
   });
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", applyI18nDom);

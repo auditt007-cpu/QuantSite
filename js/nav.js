@@ -7,7 +7,7 @@
   });
   document.querySelectorAll(".nav-actions a, .nav-actions button").forEach((el) => {
     el.addEventListener("click", () => {
-      if (el.closest(".lang-wrap")) return;
+      if (el.closest(".lang-pills")) return;
       if (window.matchMedia("(max-width: 768px)").matches) bar.classList.remove("nav-open");
     });
   });

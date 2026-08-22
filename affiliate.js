@@ -96,19 +96,8 @@ async function load() {
   $("gate").hidden = true;
   try {
     const res = await fetch(cfg.apiBase + "/api/affiliate?tg_id=" + encodeURIComponent(tg));
-    let data = await res.json();
-    if (res.status === 404) {
-      await fetch(cfg.apiBase + "/api/register", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ tg_id: tg, parent_invite: localStorage.getItem("quant_ref") || "" }),
-      });
-      const res2 = await fetch(cfg.apiBase + "/api/affiliate?tg_id=" + encodeURIComponent(tg));
-      data = await res2.json();
-      if (!res2.ok) throw new Error(data.error || "載入失敗");
-    } else if (!res.ok) {
-      throw new Error(data.error || "載入失敗");
-    }
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "載入失敗");
     $("meLine").textContent =
       `我的節點：${data.me.masked} · 邀請碼 ${data.me.invite_code} · ${data.me.paid ? "機構 VIP" : "免費節點"}`;
     renderTree(data);
