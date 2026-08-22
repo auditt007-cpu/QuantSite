@@ -419,16 +419,16 @@
       width: Math.max(el.clientWidth || 0, 280),
       height,
       layout: {
-        background: { color: "#080b10" },
-        backgroundColor: "#080b10",
-        textColor: "#7d8b9a",
+        background: { color: "#ffffff" },
+        backgroundColor: "#ffffff",
+        textColor: "#000000",
         fontSize: mobile ? 10 : 12,
       },
       grid: {
-        vertLines: { visible: !mobile, color: "#141c28" },
-        horzLines: { visible: true, color: mobile ? "#10151c" : "#141c28" },
+        vertLines: { visible: !mobile, color: "#e2e8f0" },
+        horzLines: { visible: true, color: "#e2e8f0" },
       },
-      rightPriceScale: { borderColor: "#1a2330", autoScale: true },
+      rightPriceScale: { borderColor: "#000000", autoScale: true },
       localization: {
         dateFormat: "yyyy-MM-dd",
         timeFormatter: (time) => {
@@ -437,7 +437,7 @@
         },
       },
       timeScale: {
-        borderColor: "#1a2330",
+        borderColor: "#000000",
         timeVisible: intra,
         secondsVisible: false,
         fixLeftEdge: true,

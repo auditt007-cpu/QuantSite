@@ -5,11 +5,11 @@
 
   function addCandle(chart) {
     const opts = {
-      upColor: "#2ee59d",
-      downColor: "#ff5a6a",
+      upColor: "#00873c",
+      downColor: "#d0021b",
       borderVisible: false,
-      wickUpColor: "#2ee59d",
-      wickDownColor: "#ff5a6a",
+      wickUpColor: "#00873c",
+      wickDownColor: "#d0021b",
     };
     if (typeof chart.addCandlestickSeries === "function") return chart.addCandlestickSeries(opts);
     return chart.addSeries(root.LightweightCharts.CandlestickSeries, opts);
@@ -43,8 +43,8 @@
       const trades = catalog.get(engineId).run(bars);
       candle.setMarkers(
         trades.flatMap((tr) => [
-          { time: tr.t0, position: "belowBar", color: "#2ee59d", shape: "arrowUp", text: "BUY" },
-          { time: tr.t1, position: "aboveBar", color: "#ff5a6a", shape: "arrowDown", text: "SELL" },
+          { time: tr.t0, position: "belowBar", color: "#00873c", shape: "arrowUp", text: "BUY" },
+          { time: tr.t1, position: "aboveBar", color: "#d0021b", shape: "arrowDown", text: "SELL" },
         ]),
       );
     }
@@ -58,7 +58,7 @@
         vol.update({
           time: bar.time,
           value: bar.volume,
-          color: bar.close >= bar.open ? "rgba(46,229,157,0.45)" : "rgba(255,90,106,0.45)",
+          color: bar.close >= bar.open ? "rgba(0,135,60,0.45)" : "rgba(208,2,27,0.45)",
         });
       }
       if ($("lastPx")) $("lastPx").textContent = bar.close.toLocaleString(undefined, { maximumFractionDigits: 2 });
@@ -81,7 +81,7 @@
         bars.map((b) => ({
           time: b.time,
           value: b.volume,
-          color: b.close >= b.open ? "rgba(16,185,129,0.45)" : "rgba(239,68,68,0.45)",
+          color: b.close >= b.open ? "rgba(0,135,60,0.45)" : "rgba(208,2,27,0.45)",
         })),
       );
       chart.timeScale().fitContent();

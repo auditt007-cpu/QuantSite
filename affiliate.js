@@ -32,20 +32,20 @@ function fmtTime(ts) {
 }
 
 function box(x, y, w, h, title, sub, accent) {
-  const stroke = accent || "#1a2330";
-  const fill = "#090d13";
+  const stroke = accent || "#000000";
+  const fill = "#f8fafc";
   return `
     <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}" stroke="${stroke}" />
-    <text x="${x + w / 2}" y="${y + 28}" fill="#5cc8ff" font-size="11" text-anchor="middle" font-family="Consolas,monospace">${title}</text>
-    <text x="${x + w / 2}" y="${y + 50}" fill="#2ee59d" font-size="13" text-anchor="middle" font-family="Consolas,monospace">${sub}</text>
+    <text x="${x + w / 2}" y="${y + 28}" fill="#000000" font-size="11" text-anchor="middle" font-family="-apple-system,Helvetica Neue,Arial,sans-serif">${title}</text>
+    <text x="${x + w / 2}" y="${y + 50}" fill="#00873c" font-size="13" text-anchor="middle" font-family="-apple-system,Helvetica Neue,Arial,sans-serif">${sub}</text>
   `;
 }
 
 function arrow(x1, y, x2) {
   const mid = (x1 + x2) / 2;
   return `
-    <line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="#5cc8ff" stroke-width="1.2" marker-end="url(#arr)" />
-    <text x="${mid}" y="${y - 8}" fill="#7d8b9a" font-size="10" text-anchor="middle">➔</text>
+    <line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="#000000" stroke-width="1.2" marker-end="url(#arr)" />
+    <text x="${mid}" y="${y - 8}" fill="#64748b" font-size="10" text-anchor="middle">➔</text>
   `;
 }
 
@@ -64,13 +64,13 @@ function renderTree(data) {
     <svg viewBox="0 0 800 140" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-          <path d="M0,0 L6,3 L0,6 Z" fill="#5cc8ff" />
+          <path d="M0,0 L6,3 L0,6 Z" fill="#000000" />
         </marker>
       </defs>
-      ${box(xs[0], y, w, h, "【推薦人節點】", parent, "#1c4a62")}
-      ${box(xs[1], y, w, h, "【我的節點 (TG ID)】", me, "#2ee59d")}
-      ${box(xs[2], y, w, h, "【第一層直推夥伴 (L1)】", l1, "#5cc8ff")}
-      ${box(xs[3], y, w, h, "【第二層夥伴】", l2, "#ffcc66")}
+      ${box(xs[0], y, w, h, "【推薦人節點】", parent, "#000000")}
+      ${box(xs[1], y, w, h, "【我的節點 (TG ID)】", me, "#00873c")}
+      ${box(xs[2], y, w, h, "【第一層直推夥伴 (L1)】", l1, "#000000")}
+      ${box(xs[3], y, w, h, "【第二層夥伴】", l2, "#d0021b")}
       ${arrow(xs[0] + w, y + h / 2, xs[1])}
       ${arrow(xs[1] + w, y + h / 2, xs[2])}
       ${arrow(xs[2] + w, y + h / 2, xs[3])}
