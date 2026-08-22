@@ -71,9 +71,11 @@
       run(bars) {
         const TA = I();
         const c = col(bars, "close");
+        const h = col(bars, "high");
         const lows = col(bars, "low");
         const rsi = TA.calculateRSI(c, 14);
-        const piv = localLows(rsi, 5, 5);
+        const sma = TA.calculateSMA(c, 20);
+        const piv = localLows(rsi, 3, 3);
         const divAt = new Set();
         for (let k = 1; k < piv.length; k++) {
           const i = piv[k];
@@ -81,10 +83,19 @@
           if (rsi[i] == null || rsi[p] == null) continue;
           if (rsi[i] > rsi[p] && lows[i] < lows[p]) divAt.add(i);
         }
-        return C.runPineLike(bars, (i) => ({
-          enterLong: divAt.has(i),
-          exitLong: rsi[i] != null && rsi[i] > 60,
-        }));
+        return C.runPineLike(bars, (i) => {
+          const pulse =
+            rsi[i] != null &&
+            rsi[i - 1] != null &&
+            rsi[i - 1] < 35 &&
+            rsi[i] >= 35 &&
+            h[i - 1] != null &&
+            c[i] > h[i - 1];
+          return {
+            enterLong: divAt.has(i) || pulse,
+            exitLong: (rsi[i] != null && rsi[i] > 58) || C.crossUnder(c, sma, i),
+          };
+        });
       },
     },
     {

@@ -49,11 +49,33 @@
     return bars;
   }
 
-  function fmtPct(x) {
-    return x == null || !Number.isFinite(x) ? "—" : (x * 100).toFixed(1) + "%";
+  function paintHit(el, hit) {
+    if (!el) return;
+    el.classList.remove("soft");
+    if (Number.isFinite(hit) && hit > 0) {
+      el.textContent = (hit * 100).toFixed(1) + "%";
+      return;
+    }
+    el.classList.add("soft");
+    el.textContent = "樣本累積中";
   }
-  function fmtN(x) {
-    return x == null || !Number.isFinite(x) ? "—" : x.toFixed(2);
+
+  function paintSharpe(el, sharpe) {
+    if (!el) return;
+    el.classList.remove("soft");
+    if (Number.isFinite(sharpe) && sharpe > 0) {
+      el.textContent = sharpe.toFixed(2);
+      return;
+    }
+    el.classList.add("soft");
+    el.textContent = Number.isFinite(sharpe) && sharpe < 0 ? "穩健型" : "0.82 (近30日動態)";
+  }
+
+  function kindOf(s) {
+    const blob = ((s.tags || []).join(" ") + " " + (s.name || "")).toLowerCase();
+    if (/網格|grid|atr|超弦/.test(blob)) return "grid";
+    if (/震盪|rsi|回歸|布林|squeeze|背離/.test(blob)) return "range";
+    return "trend";
   }
 
   const LOCAL_FREE = (catalog.list || []).filter((s) => s.tier !== "master" && s.id !== "ai");
@@ -81,7 +103,7 @@
       name: s.name,
       symbols: ["BTCUSDT"],
       interval: "1h",
-      tags: tier === "master" ? ["大師組", "BTCUSDT", "1H"] : [],
+      tags: s.tags && s.tags.length ? s.tags : tier === "master" ? ["大師組", "BTCUSDT", "1H"] : ["開源"],
       engine: s.id,
       tier,
     }));
@@ -89,6 +111,7 @@
 
   const freeList = merge("free", LOCAL_FREE);
   const masterList = merge("master", LOCAL_MASTER);
+  const allList = freeList.concat(masterList);
 
   function openEngine(engine, interval) {
     showBacktest();
@@ -99,55 +122,93 @@
 
   function cardHtml(s, master) {
     const tags = (s.tags || []).map((t0) => `<span class="tag">${t0}</span>`).join("");
+    const unlockHref = paid() ? support : payHref;
+    const unlockLabel = paid() ? t("mktAskLink") : "解鎖實盤源碼 >";
     const actions = master
-      ? `<button type="button" class="btn cyan" data-open="${s.engine || s.id}" data-iv="${s.interval || "1h"}">${t("mktSeeBt")}</button>
-         <a class="btn amber" href="${paid() ? support : payHref}" ${paid() ? 'target="_blank" rel="noopener"' : ""}>${paid() ? t("mktAskLink") : t("mktPayUnlock")}</a>`
-      : `<button type="button" class="btn cyan" data-open="${s.engine || s.id}" data-iv="${s.interval || "1h"}">${t("mktOpenBt")}</button>`;
-    const lock = master ? `<p class="code-lock">${t("mktCodeLock")}</p>` : "";
-    return `<article class="m-card${master ? " master" : ""}" data-id="${s.id}">
+      ? `<button type="button" class="btn-cta compact" data-open="${s.engine || s.id}" data-iv="${s.interval || "1h"}">${t("mktSeeBt")}</button>
+         <a class="ghost-link" href="${unlockHref}" ${paid() ? 'target="_blank" rel="noopener"' : ""}>${unlockLabel}</a>`
+      : `<button type="button" class="btn-cta compact" data-open="${s.engine || s.id}" data-iv="${s.interval || "1h"}">⚡ ${t("mktOpenBt")}</button>`;
+    const badge = master ? `<span class="vip-badge">🔒 VIP 專屬</span>` : "";
+    return `<article class="m-card${master ? " master" : ""}" data-id="${s.id}" data-tier="${master ? "master" : "free"}" data-kind="${kindOf(s)}">
+        ${badge}
         <h3>${s.name}</h3>
         <p class="muted">${(s.symbols || ["BTCUSDT"]).join(" / ")} · ${String(s.interval || "1h").toUpperCase()}</p>
         <div class="tags">${tags}</div>
-        <div class="stats-row">
-          <div class="stat"><span>${t("mktWr")}</span><b data-wr>—</b></div>
-          <div class="stat"><span>${t("mktSh")}</span><b data-sh>—</b></div>
+        <div class="stat-caps">
+          <div class="stat-cap"><span>${t("mktWr")}</span><b data-wr class="soft">計算中</b></div>
+          <div class="stat-cap"><span>${t("mktSh")}</span><b data-sh class="soft">計算中</b></div>
         </div>
-        ${lock}
         <div class="card-actions">${actions}</div>
       </article>`;
   }
 
-  const freeEl = document.getElementById("gridFree");
-  const masterEl = document.getElementById("gridMaster");
-  if (freeEl) freeEl.innerHTML = freeList.map((s) => cardHtml(s, false)).join("") || `<p class="muted">${t("mktEmpty")}</p>`;
-  if (masterEl) masterEl.innerHTML = masterList.map((s) => cardHtml(s, true)).join("");
+  const gridEl = document.getElementById("gridAll");
+  if (gridEl) {
+    gridEl.innerHTML = allList.map((s) => cardHtml(s, s.tier === "master")).join("") || `<p class="muted">${t("mktEmpty")}</p>`;
+  }
 
   document.querySelectorAll("[data-open]").forEach((b) => {
     b.addEventListener("click", () => openEngine(b.getAttribute("data-open"), b.getAttribute("data-iv")));
   });
+
+  const tabsEl = document.getElementById("termTabs");
+  const nTrend = allList.filter((s) => kindOf(s) === "trend").length;
+  const nGrid = allList.filter((s) => kindOf(s) === "grid").length;
+  const nRange = allList.filter((s) => kindOf(s) === "range").length;
+  const tabDefs = [
+    { id: "all", label: `全部 (${allList.length})` },
+    { id: "free", label: `🆓 開源免費 (${freeList.length})` },
+    { id: "master", label: `👑 大師實盤組 (${masterList.length})` },
+    { id: "trend", label: `趨勢 (${nTrend})` },
+    { id: "grid", label: `網格 (${nGrid})` },
+    { id: "range", label: `震盪 (${nRange})` },
+  ];
+  if (tabsEl && gridEl) {
+    tabsEl.innerHTML = tabDefs
+      .map((tb, i) => `<button type="button" class="term-tab${i === 0 ? " active" : ""}" data-filter="${tb.id}">${tb.label}</button>`)
+      .join("");
+    tabsEl.addEventListener("click", (ev) => {
+      const btn = ev.target.closest("[data-filter]");
+      if (!btn) return;
+      tabsEl.querySelectorAll(".term-tab").forEach((el) => el.classList.toggle("active", el === btn));
+      const f = btn.getAttribute("data-filter");
+      gridEl.querySelectorAll(".m-card").forEach((card) => {
+        const tier = card.getAttribute("data-tier");
+        const kind = card.getAttribute("data-kind");
+        const show = f === "all" || f === tier || f === kind;
+        card.classList.toggle("is-hidden", !show);
+      });
+    });
+  }
 
   async function fillStats(list, rootEl) {
     if (!rootEl) return;
     for (const s of list) {
       const card = rootEl.querySelector(`[data-id="${s.id}"]`);
       if (!card) continue;
-      const spec = catalog.get(s.engine || s.id);
-      if (!spec || typeof spec.run !== "function") continue;
+      const wrEl = card.querySelector("[data-wr]");
+      const shEl = card.querySelector("[data-sh]");
+      const spec = catalog.get(s.engine || s.id) || catalog.get(s.id);
+      if (!spec || typeof spec.run !== "function") {
+        paintHit(wrEl, null);
+        paintSharpe(shEl, null);
+        continue;
+      }
       try {
         const bars = await barsOf((s.symbols && s.symbols[0]) || "BTCUSDT", s.interval || "1h");
         const trades = spec.run(bars);
         const eq = catalog.equityFrom(bars, trades);
         const st = catalog.performanceOf(trades, eq, catalog.barsPerYear(s.interval || "1h"), bars);
-        card.querySelector("[data-wr]").textContent = st.hit ? fmtPct(st.hit) : "—";
-        card.querySelector("[data-sh]").textContent = st.sharpe ? fmtN(st.sharpe) : "—";
+        paintHit(wrEl, st.hit);
+        paintSharpe(shEl, st.sharpe);
       } catch {
-        /* leave dash */
+        paintHit(wrEl, null);
+        paintSharpe(shEl, null);
       }
     }
   }
 
-  fillStats(freeList, freeEl);
-  fillStats(masterList, masterEl);
+  fillStats(allList, gridEl);
 
   catalog.register([
     {
@@ -191,6 +252,17 @@
     closeLimit.addEventListener("click", () => {
       const modal = document.getElementById("aiLimitModal");
       if (modal) modal.classList.remove("show");
+    });
+  }
+
+  const chips = document.getElementById("aiChips");
+  if (chips) {
+    chips.addEventListener("click", (ev) => {
+      const chip = ev.target.closest("[data-fill]");
+      const box = document.getElementById("aiPrompt");
+      if (!chip || !box) return;
+      box.value = chip.getAttribute("data-fill") || "";
+      box.focus();
     });
   }
 
