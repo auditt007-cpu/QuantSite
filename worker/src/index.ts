@@ -34,6 +34,11 @@ type UserRecord = {
   withdrawable?: number;
   pending?: number;
   commissions?: CommissionRow[];
+  login_count?: number;
+  last_login_at?: number;
+  last_seen?: number;
+  last_ip?: string;
+  last_country?: string;
 };
 
 type PayIntent = {
@@ -84,6 +89,7 @@ app.get("/", (c) =>
       "POST /api/withdraw",
       "GET /api/klines",
       "GET /api/strategies",
+      "GET /api/admin/members",
       "POST /api/strategies",
       "PUT /api/strategies/:id",
       "DELETE /api/strategies/:id",
@@ -135,6 +141,7 @@ async function confirmBind(c: {
   json: (d: unknown, s?: number) => Response;
 }) {
   const ip = String(c.req.header("CF-Connecting-IP") || c.req.header("x-forwarded-for") || "0").split(",")[0].trim();
+  const country = String(c.req.header("CF-IPCountry") || "").toUpperCase();
   const lockKey = `bindlock:${ip || "0"}`;
   const lock = (await c.env.QUANT_USERS.get(lockKey, "json")) as { fails: number; until?: number } | null;
   if (lock && lock.until && lock.until > Date.now()) {
@@ -170,6 +177,11 @@ async function confirmBind(c: {
       withdrawable: 0,
       pending: 0,
       commissions: [],
+      login_count: 0,
+      last_login_at: 0,
+      last_seen: Date.now(),
+      last_ip: ip,
+      last_country: country && country !== "XX" ? country : "",
     };
     await putUser(c.env, user);
     await c.env.QUANT_USERS.put(`invite:${user.invite_code}`, tgId);
@@ -177,6 +189,8 @@ async function confirmBind(c: {
     user.unlocked = true;
     await putUser(c.env, user);
   }
+  bumpLogin(user, { ip, country });
+  await putUser(c.env, user);
   user = await attachReferral(c.env, user, parentInvite);
   await addSubscriber(c.env, tgId, "free-bind");
   await c.env.QUANT_USERS.delete(`bind:${code}`);
@@ -396,11 +410,21 @@ const STRATEGY_KEY = "STRATEGIES_V1";
 const KLINE_IV = new Set(["1s", "1m", "5m", "15m", "1h", "4h", "1d", "1w"]);
 
 const DEFAULT_STRATEGIES = [
-  { id: "dual", name: "Dual SuperTrend 趨勢追蹤", symbols: ["BTCUSDT"], interval: "1h", tags: ["趨勢", "SuperTrend"], engine: "dual", pine: "" },
-  { id: "ribbon", name: "EMA Ribbon 均線多頭共振", symbols: ["BTCUSDT"], interval: "1h", tags: ["均線", "共振"], engine: "ribbon", pine: "" },
-  { id: "rsi", name: "RSI Divergence 頂底背離", symbols: ["BTCUSDT"], interval: "15m", tags: ["震盪", "RSI"], engine: "rsi", pine: "" },
-  { id: "squeeze", name: "Bollinger Squeeze 突破", symbols: ["BTCUSDT"], interval: "1h", tags: ["突破", "布林"], engine: "squeeze", pine: "" },
-  { id: "atr", name: "Adaptive ATR 動態網格", symbols: ["BTCUSDT"], interval: "5m", tags: ["網格", "ATR"], engine: "atr", pine: "" },
+  { id: "dual", name: "Dual SuperTrend 趨勢追蹤", symbols: ["BTCUSDT"], interval: "1h", tags: ["趨勢", "SuperTrend"], engine: "dual", pine: "", tier: "free" },
+  { id: "ribbon", name: "EMA Ribbon 均線多頭共振", symbols: ["BTCUSDT"], interval: "1h", tags: ["均線", "共振"], engine: "ribbon", pine: "", tier: "free" },
+  { id: "rsi", name: "RSI Divergence 頂底背離", symbols: ["BTCUSDT"], interval: "15m", tags: ["震盪", "RSI"], engine: "rsi", pine: "", tier: "free" },
+  { id: "squeeze", name: "Bollinger Squeeze 突破", symbols: ["BTCUSDT"], interval: "1h", tags: ["突破", "布林"], engine: "squeeze", pine: "", tier: "free" },
+  { id: "atr", name: "Adaptive ATR 動態網格", symbols: ["BTCUSDT"], interval: "5m", tags: ["網格", "ATR"], engine: "atr", pine: "", tier: "free" },
+  { id: "qe", name: "Quantum Entanglement 量子糾纏動量矩陣", symbols: ["BTCUSDT"], interval: "1h", tags: ["大師組", "動量"], engine: "qe", pine: "", tier: "master" },
+  { id: "dm", name: "Dark Matter Fold 暗物質波動率摺疊引擎", symbols: ["BTCUSDT"], interval: "1h", tags: ["大師組", "波動率"], engine: "dm", pine: "", tier: "master" },
+  { id: "sn", name: "Supernova Pulse 超新星脈衝捕獲系統", symbols: ["BTCUSDT"], interval: "1h", tags: ["大師組", "RSI"], engine: "sn", pine: "", tier: "master" },
+  { id: "eh", name: "Event Horizon 黑洞視界均值回歸儀", symbols: ["BTCUSDT"], interval: "1h", tags: ["大師組", "均值回歸"], engine: "eh", pine: "", tier: "master" },
+  { id: "gw", name: "Gravitational Wave 引力波共振諧振器", symbols: ["BTCUSDT"], interval: "1h", tags: ["大師組", "EMA"], engine: "gw", pine: "", tier: "master" },
+  { id: "ns", name: "Neutron Lock 中子星頻率鎖定器", symbols: ["BTCUSDT"], interval: "1h", tags: ["大師組", "SuperTrend"], engine: "ns", pine: "", tier: "master" },
+  { id: "sf", name: "Spin Flip 費米子自旋翻轉探測器", symbols: ["BTCUSDT"], interval: "1h", tags: ["大師組", "MACD"], engine: "sf", pine: "", tier: "master" },
+  { id: "qk", name: "Quark Breakout 夸克禁閉突破加速器", symbols: ["BTCUSDT"], interval: "1h", tags: ["大師組", "唐奇安"], engine: "qk", pine: "", tier: "master" },
+  { id: "hs", name: "Hyperstring Grid 超弦十一維網格收割機", symbols: ["BTCUSDT"], interval: "1h", tags: ["大師組", "網格"], engine: "hs", pine: "", tier: "master" },
+  { id: "hg", name: "Higgs Breach 希格斯場對稱性破缺引擎", symbols: ["BTCUSDT"], interval: "1h", tags: ["大師組", "放量"], engine: "hg", pine: "", tier: "master" },
 ];
 
 function adminOk(c: { req: { header: (n: string) => string | undefined }; env: Bindings }) {
@@ -409,10 +433,25 @@ function adminOk(c: { req: { header: (n: string) => string | undefined }; env: B
 }
 
 async function loadStrategies(env: Bindings) {
-  const hit = (await env.QUANT_USERS.get(STRATEGY_KEY, "json")) as typeof DEFAULT_STRATEGIES | null;
-  if (Array.isArray(hit) && hit.length) return hit;
-  await env.QUANT_USERS.put(STRATEGY_KEY, JSON.stringify(DEFAULT_STRATEGIES));
-  return DEFAULT_STRATEGIES;
+  const hit = (await env.QUANT_USERS.get(STRATEGY_KEY, "json")) as Array<Record<string, unknown>> | null;
+  if (!Array.isArray(hit) || !hit.length) {
+    await env.QUANT_USERS.put(STRATEGY_KEY, JSON.stringify(DEFAULT_STRATEGIES));
+    return DEFAULT_STRATEGIES;
+  }
+  const list = hit.map((row) => ({
+    ...row,
+    tier: String(row.tier || "free") === "master" ? "master" : "free",
+  }));
+  const have = new Set(list.map((s) => String(s.id || "")));
+  let changed = false;
+  for (const d of DEFAULT_STRATEGIES) {
+    if (d.tier === "master" && !have.has(d.id)) {
+      list.push(d);
+      changed = true;
+    }
+  }
+  if (changed) await env.QUANT_USERS.put(STRATEGY_KEY, JSON.stringify(list));
+  return list as typeof DEFAULT_STRATEGIES;
 }
 
 function normalizeStrategy(body: Record<string, unknown>, fallbackId?: string) {
@@ -444,6 +483,7 @@ function normalizeStrategy(body: Record<string, unknown>, fallbackId?: string) {
     pine: String(body.pine || ""),
     winRate: winRate != null && Number.isFinite(winRate) ? winRate : null,
     sharpe: sharpe != null && Number.isFinite(sharpe) ? sharpe : null,
+    tier: String(body.tier || "free") === "master" ? "master" : "free",
   };
 }
 
@@ -464,8 +504,19 @@ app.get("/api/klines", async (c) => {
 });
 
 app.get("/api/strategies", async (c) => {
+  const full = adminOk(c);
   const list = await loadStrategies(c.env);
-  return c.json({ ok: true, strategies: list });
+  return c.json({
+    ok: true,
+    strategies: list.map((s) => {
+      const master = s.tier === "master";
+      return {
+        ...s,
+        pine: full || !master ? s.pine || "" : "",
+        codeLocked: master,
+      };
+    }),
+  });
 });
 
 app.post("/api/strategies", async (c) => {
@@ -509,6 +560,23 @@ app.delete("/api/strategies/:id", async (c) => {
   const next = list.filter((s) => s.id !== id);
   if (next.length === list.length) return c.json({ error: "not found" }, 404);
   await c.env.QUANT_USERS.put(STRATEGY_KEY, JSON.stringify(next));
+  return c.json({ ok: true });
+});
+
+app.get("/api/admin/members", async (c) => {
+  if (!adminOk(c)) return c.json({ error: "unauthorized" }, 401);
+  const members = await listMembers(c.env);
+  return c.json({ ok: true, members, count: members.length });
+});
+
+app.post("/api/presence", async (c) => {
+  const body = await readJson(c);
+  const tgId = String(body.tg_id || "").trim();
+  if (!/^\d{5,15}$/.test(tgId)) return c.json({ error: "invalid tg_id" }, 400);
+  const user = await getUserByTg(c.env, tgId);
+  if (!user) return c.json({ ok: false }, 404);
+  user.last_seen = Date.now();
+  await putUser(c.env, user);
   return c.json({ ok: true });
 });
 
@@ -730,6 +798,41 @@ async function getUserByTg(env: Bindings, tgId: string): Promise<UserRecord | nu
 
 async function putUser(env: Bindings, user: UserRecord) {
   await env.QUANT_USERS.put(userKey(user.tg_id), JSON.stringify(user));
+}
+
+function bumpLogin(user: UserRecord, meta: { ip: string; country: string }) {
+  user.login_count = Number(user.login_count || 0) + 1;
+  user.last_login_at = Date.now();
+  user.last_seen = Date.now();
+  if (meta.ip && meta.ip !== "0") user.last_ip = meta.ip;
+  if (meta.country && meta.country !== "XX") user.last_country = meta.country;
+}
+
+async function listMembers(env: Bindings) {
+  const out: Array<Record<string, unknown>> = [];
+  let cursor: string | undefined;
+  do {
+    const page = await env.QUANT_USERS.list({ prefix: "user:", cursor });
+    for (const k of page.keys) {
+      const u = (await env.QUANT_USERS.get(k.name, "json")) as UserRecord | null;
+      if (!u) continue;
+      out.push({
+        tg_id: u.tg_id,
+        paid: Boolean(u.paid),
+        unlocked: Boolean(u.unlocked),
+        login_count: Number(u.login_count || 0),
+        last_login_at: u.last_login_at || 0,
+        last_seen: u.last_seen || 0,
+        last_ip: u.last_ip || "",
+        last_country: u.last_country || "",
+        invite_count: Number(u.invite_count || 0),
+        created_at: u.created_at || 0,
+      });
+    }
+    cursor = page.list_complete ? undefined : page.cursor;
+  } while (cursor);
+  out.sort((a, b) => Number(b.last_seen || b.created_at || 0) - Number(a.last_seen || a.created_at || 0));
+  return out;
 }
 
 async function allocInviteCode(env: Bindings): Promise<string> {

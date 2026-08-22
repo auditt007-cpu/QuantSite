@@ -21,27 +21,9 @@ function loggedIn() {
 function applyAuthUi() {
   const hint = document.querySelector(".micro-tag");
   if (hint) hint.style.display = "none";
-  const tg = localStorage.getItem("quant_tg") || "";
-  if ($("dashUser")) $("dashUser").textContent = tg ? "Telegram ID  " + tg : "";
-  const vip = localStorage.getItem("quant_paid") === "1";
-  if ($("nodeName")) $("nodeName").textContent = vip ? t("nodePro") : t("nodeBasic");
-  if ($("dashLevel")) $("dashLevel").textContent = vip ? t("seatVip") : t("seatFree");
   if (loggedIn() && !localStorage.getItem("quant_join_at")) {
     localStorage.setItem("quant_join_at", String(Date.now()));
   }
-  const hook = $("hookUrl");
-  if (hook && cfg.apiBase) {
-    const url = cfg.apiBase.replace(/\/$/, "") + "/api/webhook-relay";
-    hook.textContent = url;
-    const tgId = localStorage.getItem("quant_tg") || "";
-    const payload = JSON.stringify(
-      { symbol: "{{ticker}}", action: "{{strategy.order.action}}", price: "{{close}}", tg_id: tgId },
-      null,
-      2,
-    );
-    if ($("hookPayload")) $("hookPayload").textContent = payload;
-  }
-  refreshInviteUi();
   window.dispatchEvent(new Event("quant-auth"));
 }
 
@@ -104,11 +86,8 @@ function openModal(id) { $(id).classList.add("show"); }
 function closeModal(id) { $(id).classList.remove("show"); }
 
 function onAuthClick() {
-  if (loggedIn()) {
-    $("payDetail").hidden = true;
-    applyAuthUi();
-    openModal("dashModal");
-  } else openModal("loginModal");
+  if (loggedIn()) location.href = "./member.html";
+  else openModal("loginModal");
 }
 
 let loginBusy = false;
@@ -212,7 +191,7 @@ async function doLogin() {
     toast(t("logged"), "ok");
     applyAuthUi();
     closeModal("loginModal");
-    openModal("dashModal");
+    location.href = "./member.html";
   } catch (e) {
     const n = bumpLoginFail();
     st.className = "status err";
@@ -229,41 +208,6 @@ function parentInviteFromUrl() {
   const q = new URLSearchParams(location.search).get("ref");
   if (q) localStorage.setItem("quant_ref", q);
   return q || localStorage.getItem("quant_ref") || "";
-}
-
-async function refreshInviteUi() {
-  const origin = location.origin + location.pathname.replace(/index\.html$/, "");
-  const tg = localStorage.getItem("quant_tg");
-  let code = localStorage.getItem("quant_invite") || "";
-  let count = Number(localStorage.getItem("quant_invites") || "0");
-  let avail = 0;
-  let pend = 0;
-  if (tg) {
-    try {
-      let res = await fetch(cfg.apiBase + "/api/affiliate?tg_id=" + encodeURIComponent(tg));
-      let data = await res.json();
-      if (!res.ok) throw new Error(data.error || "載入失敗");
-      code = data.me?.invite_code || code;
-      count = data.me?.invite_count ?? count;
-      avail = Number(data.withdrawable || 0);
-      pend = Number(data.pending || 0);
-      if (data.me?.paid) localStorage.setItem("quant_paid", "1");
-      if (data.me?.unlocked || (data.me?.invite_count || 0) >= 2) localStorage.setItem("quant_unlocked", "1");
-      else localStorage.removeItem("quant_unlocked");
-      localStorage.setItem("quant_invite", code);
-      localStorage.setItem("quant_invites", String(count));
-      const bar = $("refBar");
-      if (bar) bar.style.width = Math.min(100, (count / 2) * 100) + "%";
-    } catch {
-      /* keep cached */
-    }
-  }
-  $("inviteLink").textContent = code ? `${origin}?ref=${code}` : "—";
-  const unit = lang === "en" ? " / 2 binds" : " / 2 人";
-  $("refCount").textContent = `${count}${unit}`;
-  const money = window.QAMoney;
-  $("refAvail").textContent = money ? money.fmtUsdt(avail) : avail.toFixed(2) + " USDT";
-  $("refPend").textContent = money ? money.fmtUsdt(pend) : pend.toFixed(2) + " USDT";
 }
 
 const LEGAL = {
@@ -292,114 +236,22 @@ function openLegal(kind) {
   $("legalBody").textContent = doc.body;
   openModal("legalModal");
 }
-function logout() {
-  if (window.QAAuth) window.QAAuth.clearSession();
-  else {
-    localStorage.removeItem("quant_tg");
-    localStorage.removeItem("quant_token");
-    localStorage.removeItem("login_timestamp");
-    localStorage.removeItem("quant_paid");
-  }
-  applyAuthUi();
-  closeModal("dashModal");
-}
-
-async function loadPay(plan) {
-  const userId = localStorage.getItem("quant_tg") || uid();
-  $("payStatus").textContent = t("locking");
-  $("payDetail").hidden = false;
-  try {
-    const q = "/api/pay-intent?user_id=" + encodeURIComponent(userId) + "&plan=" + encodeURIComponent(plan || "vip");
-    const data = await api(q);
-    $("payAmount").textContent = window.QAMoney ? window.QAMoney.fmtUsdt(data.amount) : data.amount + " USDT";
-    $("payMeta").textContent = t("lockMeta").replace("{t}", new Date(data.expires_at).toLocaleString());
-    $("payStatus").textContent = t("payHint");
-    $("wallet").textContent = cfg.usdtWallet;
-  } catch (e) {
-    $("payStatus").className = "status err";
-    $("payStatus").textContent = e.message;
-  }
-}
-
-async function sleep(ms) {
-  return new Promise((r) => setTimeout(r, ms));
-}
-
-let payLock = 0;
-let payTimer = null;
-
-async function verifyTx() {
-  if (payLock > 0) return;
-  const raw = $("txid").value.trim();
-  const userId = localStorage.getItem("quant_tg") || uid();
-  if (window.QAMoney && !window.QAMoney.isTxHash(raw)) {
-    $("payStatus").className = "status err";
-    $("payStatus").textContent = t("badTx");
-    return;
-  }
-  if (raw.length < 16) {
-    $("payStatus").className = "status err";
-    $("payStatus").textContent = t("txShort");
-    return;
-  }
-  payLock = 10;
-  $("payBtn").disabled = true;
-  $("payBtn").textContent = t("payBusy").replace("{n}", "10");
-  payTimer = setInterval(() => {
-    payLock -= 1;
-    if (payLock <= 0) {
-      clearInterval(payTimer);
-      payTimer = null;
-      $("payBtn").disabled = false;
-      $("payBtn").textContent = t("submitPay");
-      return;
-    }
-    $("payBtn").textContent = t("payBusy").replace("{n}", String(payLock));
-  }, 1000);
-  $("payStatus").className = "status";
-  try {
-    const data = await api("/api/verify-usdt", {
-      method: "POST",
-      body: JSON.stringify({ txid: raw, user_id: userId }),
-    });
-    localStorage.setItem("quant_paid", "1");
-    applyAuthUi();
-    $("payStatus").textContent = data.message || t("paidOk");
-    toast(t("paidOk"), "ok");
-  } catch (e) {
-    $("payStatus").className = "status err";
-    $("payStatus").textContent = e.message;
-  }
-}
 
 function wire() {
   lang = detectLang();
   parentInviteFromUrl();
   applyI18n();
-  $("btnChannel").href = cfg.tgChannelUrl;
+  if ($("btnChannel")) $("btnChannel").href = cfg.tgChannelUrl;
   if ($("btnChannel2")) $("btnChannel2").href = cfg.tgChannelUrl;
-  $("btnOpenBot").href = cfg.tgBotUrl;
-  $("wallet").textContent = cfg.usdtWallet;
-  if ($("paySupport")) $("paySupport").href = cfg.tgSupportUrl || cfg.tgBotUrl;
+  if ($("btnOpenBot")) $("btnOpenBot").href = cfg.tgBotUrl;
   if ($("tgFab")) $("tgFab").href = cfg.tgChannelUrl;
   wireOtp();
   if (location.hash === "#login") openModal("loginModal");
-  if (location.hash === "#dash" && loggedIn()) openModal("dashModal");
+  if (location.hash === "#dash") location.href = "./member.html";
   if ($("btnOnboardInvite")) {
     $("btnOnboardInvite").addEventListener("click", () => {
-      openModal("dashModal");
-      const link = $("inviteLink");
-      if (link) link.scrollIntoView({ behavior: "smooth", block: "center" });
+      location.href = "./member.html";
     });
-  }
-  if (window.QACopy) {
-    window.QACopy.bindCopyButton($("btnCopyInvite"), () => $("inviteLink").textContent, "copyInviteOk");
-    window.QACopy.bindCopyButton($("btnCopyAddr"), () => cfg.usdtWallet, "copyAddrOk");
-    window.QACopy.bindCopyButton($("btnCopyHook"), () => $("hookUrl").textContent, "copyHookOk");
-    window.QACopy.bindCopyButton($("btnCopyPayload"), () => $("hookPayload").textContent, "copyPayloadOk");
-  } else {
-    $("btnCopyInvite").addEventListener("click", () => copyText($("inviteLink").textContent, "copyInviteOk"));
-    $("btnCopyAddr").addEventListener("click", () => copyText(cfg.usdtWallet, "copyAddrOk"));
   }
   const tick = $("signalTicker");
   if (tick) {
@@ -414,18 +266,14 @@ function wire() {
     lang = detectLang();
     applyI18n();
   });
-  $("btnDoLogin").addEventListener("click", doLogin);
-  $("btnLogout").addEventListener("click", logout);
-  $("btnPayIntent").addEventListener("click", () => loadPay("vip"));
-  if ($("btnPayTrial")) $("btnPayTrial").addEventListener("click", () => loadPay("trial"));
-  $("payBtn").addEventListener("click", verifyTx);
+  if ($("btnDoLogin")) $("btnDoLogin").addEventListener("click", doLogin);
   document.querySelectorAll("[data-legal]").forEach((b) => {
     b.addEventListener("click", () => openLegal(b.getAttribute("data-legal")));
   });
   document.querySelectorAll("[data-close]").forEach((b) => {
     b.addEventListener("click", () => closeModal(b.getAttribute("data-close")));
   });
-  window.QALiveDesk.start();
+  if (window.QALiveDesk) window.QALiveDesk.start();
 }
 
 wire();

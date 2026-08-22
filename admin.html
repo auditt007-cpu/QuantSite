@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>QUANT ALPHA · Admin Console</title>
+  <meta name="robots" content="noindex,nofollow" />
+  <title>QUANT ALPHA · Admin</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
@@ -13,31 +14,55 @@
         <div class="logo"></div>
         <div class="brand-text">
           <h1>QUANT.ALPHA</h1>
-          <p class="site-slogan" data-i18n="brandSub">一個沒有感情的量化機器</p>
+          <p class="site-slogan">Admin</p>
         </div>
       </a>
-      <div class="nav-end">
-        <button type="button" class="nav-toggle" id="navToggle" aria-label="選單">☰</button>
-      </div>
-      <div class="nav-actions" id="navActions">
-        <a class="nav-link" href="./marketplace.html" data-i18n="navMarket">策略廣場</a>
-        <div class="lang-pills" role="group" aria-label="Language">
-          <button type="button" data-lang="zh-Hant">繁</button>
-          <button type="button" data-lang="zh-CN">简</button>
-          <button type="button" data-lang="en">EN</button>
-        </div>
-      </div>
     </header>
-    <section class="desk">
+
+    <section class="desk" id="gate">
+      <div class="kicker">ADMIN</div>
+      <h2 class="h2">後台登入</h2>
+      <p class="muted">需輸入 Worker 環境變數 <code>WEBHOOK_SECRET</code>。未設定密鑰則無法進入。此頁不在前台導航中公開。</p>
+      <input id="secret" type="password" autocomplete="current-password" placeholder="Admin 密碼（WEBHOOK_SECRET）" />
+      <button class="btn cyan" id="btnLogin">登入</button>
+      <p class="status" id="st"></p>
+    </section>
+
+    <section class="desk" id="console" hidden>
       <div class="kicker">ADMIN</div>
       <h2 class="h2">策略廣場後台</h2>
-      <p class="muted">寫入需 <code>X-Admin-Secret</code>（與 Worker WEBHOOK_SECRET 相同）。密鑰僅存本機 sessionStorage。</p>
-      <input id="secret" type="password" placeholder="Admin secret" />
-      <button class="btn cyan" id="btnSaveSecret">保存密鑰並載入</button>
-      <p class="status" id="st"></p>
+      <p class="muted">會員資料來自 KV；登入次數在 TG 綁定時累加，最近活躍在網站心跳時更新。</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn cyan" id="btnReload">重新載入</button>
+        <button class="btn ghost" id="btnLogout">登出</button>
+      </div>
+      <p class="status" id="st2"></p>
+
+      <h3 class="zone-title">會員管理</h3>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Telegram</th>
+              <th>付費</th>
+              <th>席位</th>
+              <th>登入次數</th>
+              <th>最近登入</th>
+              <th>最近活躍</th>
+              <th>IP</th>
+              <th>地區</th>
+              <th>邀請</th>
+              <th>註冊時間</th>
+            </tr>
+          </thead>
+          <tbody id="members"></tbody>
+        </table>
+      </div>
+
+      <h3 class="zone-title">策略 KV</h3>
       <table class="data-table" style="margin-top:16px">
         <thead>
-          <tr><th>ID</th><th>名稱</th><th>幣種</th><th>週期</th><th>標籤</th><th></th></tr>
+          <tr><th>ID</th><th>名稱</th><th>分區</th><th>幣種</th><th>週期</th><th>標籤</th><th></th></tr>
         </thead>
         <tbody id="rows"></tbody>
       </table>
@@ -47,10 +72,11 @@
       <input id="symbols" placeholder="幣種，逗號分隔，如 BTCUSDT" />
       <input id="interval" placeholder="週期 1m/5m/15m/1h/4h/1d/1w" />
       <input id="tags" placeholder="標籤，逗號分隔" />
-      <input id="engine" placeholder="引擎 id（dual/ribbon/rsi/squeeze/atr）" />
-      <input id="winRate" placeholder="可選 listed 勝率 0-1，空白則前台即時回測" />
-      <input id="sharpe" placeholder="可選 listed 夏普，空白則前台即時回測" />
-      <textarea id="pine" rows="8" style="width:100%;margin-top:8px;background:#070a0f;color:#9dffd0;border:1px solid var(--line);font-family:inherit;padding:10px" placeholder="可選覆蓋 Pine 源碼"></textarea>
+      <input id="engine" placeholder="引擎 id" />
+      <select id="tier">
+        <option value="free">免費區</option>
+        <option value="master">大師組</option>
+      </select>
       <div style="display:flex;gap:8px;margin-top:10px">
         <button class="btn-cta compact" id="btnUpsert">寫入 KV</button>
         <button class="btn amber" id="btnDel">刪除 ID</button>
@@ -58,13 +84,7 @@
     </section>
   </div>
   <div class="toast" id="toast"></div>
-  <script src="./js/nav.js"></script>
   <script src="./config.js"></script>
-  <script src="./i18n.js"></script>
-  <script src="./js/i18n-boot.js"></script>
-  <script src="./js/money.js"></script>
-  <script src="./js/clipboard.js"></script>
-  <script src="./js/identity.js"></script>
   <script src="./js/admin.js"></script>
 </body>
 </html>

@@ -25,6 +25,7 @@
       <div class="nav-actions" id="navActions">
         <a class="nav-link" href="./marketplace.html" data-i18n="navMarket">策略廣場</a>
         <a class="nav-link" href="./backtest.html" data-i18n="navBacktest">回測中心</a>
+        <a class="nav-link" href="./member.html" data-i18n="navMember">會員中心</a>
         <a class="nav-link" href="./affiliate.html" data-i18n="navAff">推薦計畫</a>
         <a id="btnChannel" class="btn-cta pulse" href="https://t.me/quant_alpha_signals" target="_blank" rel="noopener" data-i18n="btnChannel">🔥 免費加入 TG 信號頻道</a>
         <div class="lang-pills" role="group" aria-label="Language">
@@ -132,76 +133,6 @@
       <button class="btn-cta compact" id="btnDoLogin" style="margin-top:16px;width:100%" data-i18n="doLogin">一鍵登入</button>
       <p class="status" id="loginStatus"></p>
       <button type="button" class="btn-cancel" data-close="loginModal" data-i18n="cancel">取消</button>
-    </div>
-  </div>
-
-  <div class="modal-bg" id="dashModal">
-    <div class="modal wide">
-      <button type="button" class="modal-x" data-close="dashModal" aria-label="關閉">×</button>
-      <h3 data-i18n="dashTitle">會員中心</h3>
-      <div class="dash-status">
-        <span class="dot"></span>
-        <div>
-          <b id="nodeName">免費節點</b>
-          <p class="muted" id="dashUser"></p>
-          <p class="muted" id="dashLevel"></p>
-        </div>
-      </div>
-      <div class="dash-block">
-        <h4 data-i18n="refHead">推薦進度與分成</h4>
-        <p class="muted" data-i18n="refLead">好友透過你的專屬連結完成 TG 驗證碼登入，即計為 1 次有效綁定。</p>
-        <div class="progress"><i id="refBar"></i></div>
-        <div class="addr" id="inviteLink">—</div>
-        <button class="btn" id="btnCopyInvite" data-i18n="copyInvite">複製專屬邀請連結</button>
-        <a class="btn ghost" href="./affiliate.html" data-i18n="navAff">推薦計畫</a>
-        <div class="stats-row">
-          <div class="stat"><span data-i18n="refCount">邀請進度</span><b id="refCount">0 / 2</b></div>
-          <div class="stat"><span data-i18n="refAvail">可提領分成</span><b id="refAvail">0.00 USDT</b></div>
-          <div class="stat"><span data-i18n="refPend">待結算分成</span><b id="refPend">0.00 USDT</b></div>
-        </div>
-      </div>
-      <div class="dash-pay" id="payBox">
-        <h4 data-i18n="payHead">方案對比</h4>
-        <p class="muted" data-i18n="payLead">免費版走公開頻道；Pro 為私聊極速推送與完整 Pine 源碼。</p>
-        <div class="price-grid">
-          <div class="price-card">
-            <b data-i18n="priceFree">免費版</b>
-            <p class="muted" data-i18n="priceFreeD">公開頻道廣播 · 約 30 秒延遲</p>
-          </div>
-          <div class="price-card on">
-            <b data-i18n="pricePro">Pro 通道</b>
-            <p class="muted" data-i18n="priceProD">私聊推送 · 低延遲通道 · 完整 Pine 源碼</p>
-          </div>
-        </div>
-        <div class="lab-actions" style="margin-top:12px">
-          <button class="btn cyan" id="btnPayTrial" data-i18n="loadTrial">7 天體驗（9.9 USDT）</button>
-          <button class="btn-cta compact" id="btnPayIntent" data-i18n="loadPay">開通 Pro（99 USDT）</button>
-        </div>
-        <div id="payDetail" hidden>
-          <div class="trc-warn" data-i18n="trcWarn">⚠️ 僅支持 USDT - TRC20 網絡，充值其他幣種/網絡無法找回。</div>
-          <div class="amount" id="payAmount">--.-- USDT</div>
-          <p class="muted" id="payMeta" style="text-align:center"></p>
-          <img class="qr" src="./usdt-qr.png" alt="USDT TRC20 QR" />
-          <div class="addr" id="wallet"></div>
-          <button class="btn" id="btnCopyAddr" data-i18n="copyAddr">複製收款地址</button>
-          <input id="txid" placeholder="輸入交易哈希 TxHash" data-ph="phTxid" />
-          <button class="btn amber" id="payBtn" style="margin-top:10px" data-i18n="submitPay">提交校驗</button>
-          <a class="pay-help" id="paySupport" href="https://t.me/grid_quant_bot" target="_blank" rel="noopener" data-i18n="paySupport">遇到了問題？點擊聯繫 TG 官方客服人工核對</a>
-        </div>
-        <h4 data-i18n="hookHead">50ms Webhook 三步接入</h4>
-        <ol class="hook-steps">
-          <li data-i18n="hookS1">複製專屬 Webhook URL</li>
-          <li data-i18n="hookS2">貼到 TradingView 警報通知欄</li>
-          <li data-i18n="hookS3">一鍵複製標準 JSON Payload 模板</li>
-        </ol>
-        <div class="addr" id="hookUrl">—</div>
-        <button class="btn" id="btnCopyHook" data-i18n="copyHook">複製 Webhook URL</button>
-        <pre class="pine-pre" id="hookPayload" style="max-height:140px"></pre>
-        <button class="btn" id="btnCopyPayload" data-i18n="copyPayload">複製 JSON 模板</button>
-        <p class="status" id="payStatus"></p>
-      </div>
-      <button class="btn ghost" id="btnLogout" data-i18n="logout">登出</button>
-      <button class="btn ghost" data-close="dashModal" data-i18n="close">關閉</button>
     </div>
   </div>
 

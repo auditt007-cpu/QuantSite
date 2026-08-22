@@ -62,12 +62,12 @@
 
   function openAuth() {
     if (loggedIn()) {
-      const dash = document.getElementById("dashModal");
-      if (dash) {
-        dash.classList.add("show");
+      if (!/member\.html/i.test(location.pathname)) {
+        location.href = "./member.html";
         return;
       }
-      location.href = "./index.html#dash";
+      const dash = document.getElementById("dashPanel");
+      if (dash) dash.hidden = false;
       return;
     }
     const login = document.getElementById("loginModal");
@@ -75,7 +75,7 @@
       login.classList.add("show");
       return;
     }
-    location.href = "./index.html#login";
+    location.href = "./member.html#login";
   }
 
   function bindDock(el) {
@@ -168,8 +168,20 @@
 
   root.QAIdentity = { paint, seat, loggedIn, persistSession, clearSession, openAuth, LOGIN_TTL_MS };
   root.QAAuth = root.QAIdentity;
+  function pingPresence() {
+    const cfg = root.QUANT_CONFIG;
+    const tg = localStorage.getItem("quant_tg");
+    if (!cfg || !cfg.apiBase || !tg || !loggedIn()) return;
+    fetch(cfg.apiBase + "/api/presence", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ tg_id: tg }),
+    }).catch(() => {});
+  }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", paint);
   else paint();
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", pingPresence);
+  else pingPresence();
   window.addEventListener("quant-lang", paint);
   window.addEventListener("quant-auth", paint);
 })(typeof window !== "undefined" ? window : globalThis);

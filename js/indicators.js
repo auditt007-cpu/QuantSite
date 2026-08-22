@@ -214,6 +214,83 @@
     return { supertrend, upper, lower, trend, buySignal, sellSignal, atr };
   }
 
+  function calculateROC(data, period) {
+    if (period == null) period = 12;
+    const n = data.length;
+    const out = alignedNull(n);
+    for (let i = period; i < n; i++) {
+      const prev = data[i - period];
+      if (prev) out[i] = ((data[i] - prev) / prev) * 100;
+    }
+    return out;
+  }
+
+  function calculateStdev(data, period) {
+    if (period == null) period = 20;
+    const n = data.length;
+    const out = alignedNull(n);
+    for (let i = period - 1; i < n; i++) {
+      let sum = 0;
+      for (let j = i - period + 1; j <= i; j++) sum += data[j];
+      const mean = sum / period;
+      let acc = 0;
+      for (let j = i - period + 1; j <= i; j++) acc += (data[j] - mean) ** 2;
+      out[i] = Math.sqrt(acc / Math.max(1, period - 1));
+    }
+    return out;
+  }
+
+  function rollingExtreme(data, period, wantHigh) {
+    const n = data.length;
+    const out = alignedNull(n);
+    if (!period || period < 1) return out;
+    for (let i = period - 1; i < n; i++) {
+      let v = wantHigh ? -Infinity : Infinity;
+      for (let j = i - period + 1; j <= i; j++) {
+        const x = data[j];
+        if (x == null) continue;
+        v = wantHigh ? Math.max(v, x) : Math.min(v, x);
+      }
+      out[i] = Number.isFinite(v) ? v : null;
+    }
+    return out;
+  }
+
+  function calculateDMI(highs, lows, closes, diPeriod, adxPeriod) {
+    if (diPeriod == null) diPeriod = 14;
+    if (adxPeriod == null) adxPeriod = 14;
+    const n = closes.length;
+    const plusDm = alignedNull(n);
+    const minusDm = alignedNull(n);
+    const tr = trueRange(highs, lows, closes);
+    for (let i = 1; i < n; i++) {
+      const up = highs[i] - highs[i - 1];
+      const down = lows[i - 1] - lows[i];
+      plusDm[i] = up > down && up > 0 ? up : 0;
+      minusDm[i] = down > up && down > 0 ? down : 0;
+    }
+    const smTr = calculateWEMA(compactDefined(tr).values, diPeriod);
+    const packedTr = compactDefined(tr);
+    const atr = scatter(n, smTr, packedTr.index);
+    const packedP = compactDefined(plusDm);
+    const packedM = compactDefined(minusDm);
+    const smP = scatter(n, calculateWEMA(packedP.values, diPeriod), packedP.index);
+    const smM = scatter(n, calculateWEMA(packedM.values, diPeriod), packedM.index);
+    const diPlus = alignedNull(n);
+    const diMinus = alignedNull(n);
+    const dx = alignedNull(n);
+    for (let i = 0; i < n; i++) {
+      if (!atr[i]) continue;
+      diPlus[i] = (100 * smP[i]) / atr[i];
+      diMinus[i] = (100 * smM[i]) / atr[i];
+      const den = diPlus[i] + diMinus[i];
+      dx[i] = den ? (100 * Math.abs(diPlus[i] - diMinus[i])) / den : 0;
+    }
+    const packedDx = compactDefined(dx);
+    const adx = scatter(n, calculateWEMA(packedDx.values, adxPeriod), packedDx.index);
+    return { diPlus, diMinus, adx };
+  }
+
   const api = {
     calculateSMA,
     calculateEMA,
@@ -223,6 +300,11 @@
     calculateBollingerBands,
     calculateATR,
     calculateSuperTrend,
+    calculateROC,
+    calculateStdev,
+    calculateDMI,
+    rollingHighest: (data, period) => rollingExtreme(data, period, true),
+    rollingLowest: (data, period) => rollingExtreme(data, period, false),
   };
 
   root.QAIndicators = api;

@@ -28,6 +28,26 @@
     return Number(bar.close);
   }
 
+  const FEE = 0.0005;
+
+  function pushTrade(trades, bars, side, entry, entryI, i) {
+    const px = fillPrice(bars, i);
+    const raw = side === "SHORT" ? entry - px : px - entry;
+    const feeAbs = FEE * (entry + px);
+    trades.push({
+      side,
+      entry,
+      exit: px,
+      pnlPct: (raw / entry) * 100 - FEE * 200,
+      pnlAbs: raw - feeAbs,
+      open: false,
+      i0: entryI,
+      i1: i,
+      t0: bars[entryI].time,
+      t1: bars[i].time,
+    });
+  }
+
   function runTrades(bars, signalAt) {
     const trades = [];
     let currentPosition = 0;
@@ -40,44 +60,58 @@
         entry = fillPrice(bars, i);
         entryI = i;
       } else if (currentPosition === 1 && s === -1) {
-        const px = fillPrice(bars, i);
-        trades.push({
-          side: "LONG",
-          entry,
-          exit: px,
-          pnlPct: ((px - entry) / entry) * 100,
-          pnlAbs: px - entry,
-          i0: entryI,
-          i1: i,
-          t0: bars[entryI].time,
-          t1: bars[i].time,
-        });
+        pushTrade(trades, bars, "LONG", entry, entryI, i);
         currentPosition = 0;
       }
     }
-    if (currentPosition === 1) {
-      const lastI = bars.length - 1;
-      const px = fillPrice(bars, lastI);
-      trades.push({
-        side: "LONG",
-        entry,
-        exit: px,
-        pnlPct: ((px - entry) / entry) * 100,
-        pnlAbs: px - entry,
-        i0: entryI,
-        i1: lastI,
-        t0: bars[entryI].time,
-        t1: bars[lastI].time,
-      });
+    if (currentPosition === 1 && bars.length) {
+      pushTrade(trades, bars, "LONG", entry, entryI, bars.length - 1);
     }
     return trades;
+  }
+
+  function runPineLike(bars, atBar) {
+    const trades = [];
+    let pos = 0;
+    let entry = 0;
+    let entryI = 0;
+    for (let i = 1; i < bars.length; i++) {
+      const sig = atBar(i) || {};
+      if (pos === 1 && (sig.exitLong || sig.enterShort)) {
+        pushTrade(trades, bars, "LONG", entry, entryI, i);
+        pos = 0;
+      } else if (pos === -1 && (sig.exitShort || sig.enterLong)) {
+        pushTrade(trades, bars, "SHORT", entry, entryI, i);
+        pos = 0;
+      }
+      if (pos === 0 && sig.enterLong) {
+        pos = 1;
+        entry = fillPrice(bars, i);
+        entryI = i;
+      } else if (pos === 0 && sig.enterShort) {
+        pos = -1;
+        entry = fillPrice(bars, i);
+        entryI = i;
+      }
+    }
+    if (pos === 1) pushTrade(trades, bars, "LONG", entry, entryI, bars.length - 1);
+    if (pos === -1) pushTrade(trades, bars, "SHORT", entry, entryI, bars.length - 1);
+    return trades;
+  }
+
+  function crossOver(a, b, i) {
+    return a[i] != null && b[i] != null && a[i - 1] != null && b[i - 1] != null && a[i] > b[i] && a[i - 1] <= b[i - 1];
+  }
+  function crossUnder(a, b, i) {
+    return a[i] != null && b[i] != null && a[i - 1] != null && b[i - 1] != null && a[i] < b[i] && a[i - 1] >= b[i - 1];
   }
 
   function equityFrom(bars, trades) {
     const eq = new Array(bars.length).fill(10000);
     let cash = 10000;
     let units = 0;
-    let inPos = false;
+    let side = 0;
+    let entry = 0;
     const inn = new Map();
     const out = new Map();
     trades.forEach((tr) => {
@@ -85,25 +119,71 @@
       out.set(tr.i1, tr);
     });
     for (let i = 0; i < bars.length; i++) {
-      if (inn.has(i) && !inPos) {
+      const open = inn.get(i);
+      if (open && !side) {
         units = cash / bars[i].close;
+        entry = bars[i].close;
+        side = open.side === "SHORT" ? -1 : 1;
         cash = 0;
-        inPos = true;
       }
-      eq[i] = inPos ? units * bars[i].close : cash;
-      if (out.has(i) && inPos) {
-        cash = units * bars[i].close;
+      if (side === 1) eq[i] = units * bars[i].close;
+      else if (side === -1) eq[i] = units * (2 * entry - bars[i].close);
+      else eq[i] = cash;
+      if (out.has(i) && side) {
+        cash = eq[i];
         units = 0;
-        inPos = false;
+        side = 0;
         eq[i] = cash;
       }
     }
     return eq;
   }
 
-  function performanceOf(trades, eq, barsPerYear) {
-    const wins = trades.filter((t) => t.pnlAbs > 0);
-    const losses = trades.filter((t) => t.pnlAbs < 0);
+  function barHitRate(bars, trades) {
+    if (!bars || bars.length < 3 || !trades.length) return 0;
+    const pos = new Array(bars.length).fill(0);
+    trades.forEach((tr) => {
+      const dir = tr.side === "SHORT" ? -1 : 1;
+      const a = Math.max(0, tr.i0);
+      const b = Math.min(bars.length - 1, tr.i1);
+      for (let i = a; i < b; i++) pos[i] = dir;
+    });
+    let ok = 0;
+    let n = 0;
+    for (let i = 1; i < bars.length; i++) {
+      if (!pos[i]) continue;
+      const ch = bars[i].close - bars[i - 1].close;
+      if (ch === 0) continue;
+      n += 1;
+      if ((pos[i] > 0 && ch > 0) || (pos[i] < 0 && ch < 0)) ok += 1;
+    }
+    return n ? ok / n : 0;
+  }
+
+  function dailySharpe(bars, eq) {
+    if (!bars || !eq || bars.length < 10) return 0;
+    const last = new Map();
+    for (let i = 0; i < bars.length; i++) {
+      const d = new Date(Number(bars[i].time) * 1000);
+      const key = d.getUTCFullYear() * 10000 + (d.getUTCMonth() + 1) * 100 + d.getUTCDate();
+      last.set(key, eq[i]);
+    }
+    const vals = [...last.values()];
+    const rets = [];
+    for (let i = 1; i < vals.length; i++) {
+      if (vals[i - 1]) rets.push(vals[i] / vals[i - 1] - 1);
+    }
+    if (rets.length < 5) return 0;
+    const m = rets.reduce((a, b) => a + b, 0) / rets.length;
+    const v = rets.reduce((a, b) => a + (b - m) ** 2, 0) / rets.length;
+    const sd = Math.sqrt(v);
+    return sd === 0 ? 0 : (m / sd) * Math.sqrt(365);
+  }
+
+  function performanceOf(trades, eq, barsPerYear, bars) {
+    const closed = trades.filter((t) => !t.open);
+    const wins = closed.filter((t) => t.pnlAbs > 0);
+    const losses = closed.filter((t) => t.pnlAbs < 0);
     const gp = wins.reduce((s, t) => s + t.pnlAbs, 0);
     const gl = Math.abs(losses.reduce((s, t) => s + t.pnlAbs, 0));
     let peak = eq[0] || 10000;
@@ -118,15 +198,16 @@
     const m = rets.length ? rets.reduce((a, b) => a + b, 0) / rets.length : 0;
     const v = rets.length ? rets.reduce((a, b) => a + (b - m) ** 2, 0) / rets.length : 0;
     const sd = Math.sqrt(v);
-    const sharpe = sd === 0 ? 0 : (m / sd) * Math.sqrt(barsPerYear || 365);
+    const sharpeBar = sd === 0 ? 0 : (m / sd) * Math.sqrt(barsPerYear || 365);
     return {
       ret: eq.length ? eq[eq.length - 1] / eq[0] - 1 : 0,
-      wr: trades.length ? wins.length / trades.length : 0,
+      wr: closed.length ? wins.length / closed.length : 0,
+      hit: bars && bars.length ? barHitRate(bars, trades) : 0,
       pf: gl === 0 ? (gp > 0 ? Infinity : 0) : gp / gl,
       mdd,
-      sharpe,
+      sharpe: bars && bars.length ? dailySharpe(bars, eq) : sharpeBar,
       end: eq[eq.length - 1] || 10000,
-      trades: trades.length,
+      trades: closed.length,
     };
   }
 
@@ -360,15 +441,29 @@ if (ta.crossover(close, gridTakeProfit))
       },
     },
   ];
+  STRATS.forEach((s) => {
+    if (!s.tier) s.tier = "free";
+  });
 
   root.QACatalog = {
     list: STRATS,
     get(id) {
-      return STRATS.find((s) => s.id === id) || STRATS[0];
+      return STRATS.find((s) => s.id === id);
+    },
+    register(items) {
+      (items || []).forEach((s) => {
+        if (!s || !s.id) return;
+        const i = STRATS.findIndex((x) => x.id === s.id);
+        if (i >= 0) STRATS[i] = s;
+        else STRATS.push(s);
+      });
     },
     runTrades,
+    runPineLike,
     equityFrom,
     performanceOf,
+    crossOver,
+    crossUnder,
     barsPerYear(interval) {
       const map = { "1s": 365 * 24 * 3600, "1m": 365 * 24 * 60, "5m": 365 * 24 * 12, "15m": 365 * 24 * 4, "1h": 365 * 24, "4h": 365 * 6, "1d": 365, "1w": 52 };
       return map[interval] || 365;

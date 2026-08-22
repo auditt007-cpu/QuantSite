@@ -23,7 +23,11 @@ let candleSeries = null;
 let volSeries = null;
 
 function spec() {
-  return catalog.get(engineId);
+  return catalog.get(engineId) || catalog.list[0];
+}
+
+function isMasterSpec(s) {
+  return Boolean(s && (s.codeLocked || s.tier === "master"));
 }
 
 function t(key) {
@@ -88,8 +92,9 @@ function tradeRowsHtml(trades, eq) {
       n += 1;
       const eqOpen = eq && eq[tr.i0] != null ? eq[tr.i0] : START_EQ;
       timeAligned(tr.t0, interval);
+      const openLabel = tr.side === "SHORT" ? "OPEN_SHORT" : "OPEN_LONG";
       rows.push(
-        `<tr><td>${n}</td><td>OPEN_LONG</td><td>${fmtWhen(tr.t0)}</td><td>${openPx.toFixed(2)}</td><td>—</td><td>${fmtUsd(eqOpen)}</td></tr>`,
+        `<tr><td>${n}</td><td>${openLabel}</td><td>${fmtWhen(tr.t0)}</td><td>${openPx.toFixed(2)}</td><td>—</td><td>${fmtUsd(eqOpen)}</td></tr>`,
       );
     }
     if (currentPosition === 1) {
@@ -147,9 +152,36 @@ function fmtSignedPct(x) {
 }
 
 function paintPine() {
-  $("pineSrc").textContent = spec().pine;
+  const s = spec();
   $("stratSelect").value = engineId;
   $("sampleHint").textContent = "近 " + (bars.length || 1000) + " 根 K 線累積信號";
+  const locked = isMasterSpec(s);
+  const gate = $("masterGate");
+  if (gate) {
+    if (locked) {
+      gate.hidden = false;
+      const paid = window.QAIdentity && window.QAIdentity.seat() === "vip";
+      gate.innerHTML = paid
+        ? "大師組可回測，源碼不公開。請聯繫客服獲取指定交易平台接入連結。"
+        : '大師組免費可看業績與回測，但不能複製源碼、不能實盤接入。<a href="./member.html#pay">前往會員中心付費開通</a>';
+    } else {
+      gate.hidden = true;
+      gate.innerHTML = "";
+    }
+  }
+  const box = document.querySelector(".pine-box");
+  const copyBtn = $("btnCopyPine");
+  if (locked) {
+    $("pineSrc").textContent = "大師組源碼不在網站公開。付費後請聯繫客服，索取指定交易平台的接入配置連結。";
+    if (copyBtn) copyBtn.hidden = true;
+    if (box) {
+      const sum = box.querySelector("summary");
+      if (sum) sum.textContent = "源碼鎖定 · 僅提供平台接入";
+    }
+  } else {
+    $("pineSrc").textContent = s.pine || "";
+    if (copyBtn) copyBtn.hidden = false;
+  }
 }
 
 function paintNav(eq, st) {
@@ -268,10 +300,10 @@ function run(silent) {
   const t0 = performance.now();
   const trades = spec().run(bars);
   const eq = catalog.equityFrom(bars, trades);
-  const st = catalog.performanceOf(trades, eq, catalog.barsPerYear(interval));
+  const st = catalog.performanceOf(trades, eq, catalog.barsPerYear(interval), bars);
   $("sampleHint").textContent = "近 " + bars.length + " 根 K 線累積信號";
   paintNav(eq, st);
-  $("mWr").textContent = (st.wr * 100).toFixed(1) + "%";
+  $("mWr").textContent = (st.hit * 100).toFixed(1) + "%";
   $("mPf").textContent = fmtPf(st.pf);
   $("mTrades").textContent = String(st.trades);
   $("mBars").textContent = String(bars.length);
@@ -295,7 +327,12 @@ function run(silent) {
   if (!silent) toast(t("btDone").replace("{ms}", (performance.now() - t0).toFixed(1)).replace("{n}", String(bars.length)), "ok");
 }
 
-$("stratSelect").innerHTML = catalog.list.map((s) => `<option value="${s.id}">${s.name}</option>`).join("");
+$("stratSelect").innerHTML = catalog.list
+  .map((s) => {
+    const tag = s.tier === "master" ? "[大師組] " : "";
+    return `<option value="${s.id}">${tag}${s.name}</option>`;
+  })
+  .join("");
 $("stratSelect").addEventListener("change", () => {
   engineId = $("stratSelect").value;
   paintPine();
@@ -308,6 +345,10 @@ $("btnRun").addEventListener("click", () => run(false));
 $("btnCopyPine").addEventListener("click", async (e) => {
   e.preventDefault();
   e.stopPropagation();
+  if (isMasterSpec(spec())) {
+    toast("大師組源碼不公開，請聯繫客服獲取接入連結", "warn");
+    return;
+  }
   const btn = $("btnCopyPine");
   const prev = btn.textContent;
   try {

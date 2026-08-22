@@ -196,6 +196,19 @@ body::before {
 .market-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
 .m-card { border: 1px solid var(--line); background: var(--panel); padding: 14px; display: grid; gap: 8px; border-radius: var(--radius); max-width: 420px; justify-self: center; width: 100%; }
 .m-card h3 { font-size: 15px; font-weight: 500; color: var(--neon); }
+.m-card.master { border-color: #4a3d1f; background: linear-gradient(180deg, #12100a 0%, var(--panel) 48%); }
+.m-card.master h3 { color: #e6c07b; }
+.zone-head { margin: 28px 0 12px; }
+.zone-head h3 { margin: 0 0 6px; font-size: 15px; letter-spacing: 0.14em; color: var(--cyan); }
+.zone-head.master h3 { color: #e6c07b; }
+.zone-title { margin-top: 28px; color: var(--cyan); font-size: 14px; letter-spacing: 0.08em; }
+.card-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.code-lock { margin: 0; font-size: 11px; color: #c9a227; }
+.stats-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+#console select, #gate input, #console input, #console textarea {
+  width: 100%; margin-top: 8px; background: #070a0f; color: var(--text);
+  border: 1px solid var(--line); padding: 10px; font-family: inherit;
+}
 .tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .tag { font-size: 10px; color: var(--cyan); border: 1px solid #1c4a62; padding: 3px 7px; }
 .chart-meta {
@@ -225,6 +238,7 @@ footer.site-foot {
 .foot-official .sep { display: none; }
 .legal-body { white-space: pre-wrap; font-size: 12px; line-height: 1.7; margin: 12px 0 16px; max-height: 50vh; overflow: auto; }
 .dash-block { border: 0; padding: 4px 0 16px; margin-bottom: 8px; background: transparent; border-bottom: 1px solid rgba(42, 46, 57, 0.7); }
+.m-card .stats-row { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 0; }
 .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 12px; }
 .stat { border: 1px solid var(--line); padding: 8px; }
 .stat span { display: block; font-size: 10px; color: var(--muted); }
