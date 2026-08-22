@@ -18,7 +18,7 @@
       </a>
       <div class="nav-end">
         <div class="auth-dock" id="authDock">
-          <button type="button" class="auth-btn" id="btnAuth">🔐 登入</button>
+          <button type="button" class="auth-btn" id="btnAuth">[ 🔐 請先登入 ]</button>
         </div>
         <button type="button" class="nav-toggle" id="navToggle" aria-label="選單">☰</button>
       </div>
@@ -34,11 +34,6 @@
         </div>
       </div>
     </header>
-
-    <div class="tv-powered">
-      <img src="./assets/tradingview/logo-white.svg" alt="TradingView" class="tv-logo" />
-      <span>Powered by TradingView Charting Library &amp; Binance WebSockets</span>
-    </div>
 
     <div id="onboardBanner" class="onboard" hidden>
       <p id="onboardHi"></p>
@@ -78,10 +73,7 @@
       </div>
       <div class="chart-shell live">
         <div id="tvChart" class="tv-chart chart-container"></div>
-        <a class="tv-chart-badge" href="https://www.tradingview.com/" target="_blank" rel="noopener">
-          <img src="./assets/tradingview/mark-white.svg" alt="TradingView" />
-          <span>Charts by TradingView</span>
-        </a>
+        <a class="tv-chart-badge" href="https://www.tradingview.com/" target="_blank" rel="noopener">Charts by TradingView</a>
         <div class="chart-meta">
           <div>BTCUSDT · <span id="lastPx">—</span></div>
           <div id="legendLine" data-i18n="legend">SuperTrend (10, 3) · Dual</div>
@@ -101,11 +93,9 @@
         <button type="button" class="foot-link" data-legal="disclaimer" data-i18n="legalDisc">免責聲明 (Disclaimer)</button>
       </nav>
       <div class="foot-official">
-        Channel: <a href="https://t.me/quant_alpha_signals" target="_blank" rel="noopener">@quant_alpha_signals</a>
-        <span class="sep">|</span>
-        Bot: <a href="https://t.me/grid_quant_bot" target="_blank" rel="noopener">@grid_quant_bot</a>
-        <span class="sep">|</span>
-        Charts by <a href="https://www.tradingview.com/" target="_blank" rel="noopener">TradingView</a>
+        <span>Channel: <a href="https://t.me/quant_alpha_signals" target="_blank" rel="noopener">@quant_alpha_signals</a></span>
+        <span>Bot: <a href="https://t.me/grid_quant_bot" target="_blank" rel="noopener">@grid_quant_bot</a></span>
+        <span>Charts by <a href="https://www.tradingview.com/" target="_blank" rel="noopener">TradingView</a></span>
       </div>
     </footer>
   </div>
@@ -200,18 +190,9 @@
         </div>
         <h4 data-i18n="hookHead">50ms Webhook 三步接入</h4>
         <ol class="hook-steps">
-          <li>
-            <img src="./assets/tradingview/mark-white.svg" alt="" />
-            <span data-i18n="hookS1">① 複製專屬 Webhook URL</span>
-          </li>
-          <li>
-            <img src="./assets/tradingview/mark-white.svg" alt="" />
-            <span data-i18n="hookS2">② 貼到 TradingView 警報通知欄</span>
-          </li>
-          <li>
-            <img src="./assets/tradingview/mark-white.svg" alt="" />
-            <span data-i18n="hookS3">③ 一鍵複製標準 JSON Payload 模板</span>
-          </li>
+          <li data-i18n="hookS1">複製專屬 Webhook URL</li>
+          <li data-i18n="hookS2">貼到 TradingView 警報通知欄</li>
+          <li data-i18n="hookS3">一鍵複製標準 JSON Payload 模板</li>
         </ol>
         <div class="addr" id="hookUrl">—</div>
         <button class="btn" id="btnCopyHook" data-i18n="copyHook">複製 Webhook URL</button>

@@ -95,6 +95,7 @@
     if (!ok) {
       if (pill) pill.hidden = true;
       if (loginBtn) {
+        loginBtn.className = "auth-btn";
         loginBtn.hidden = false;
         loginBtn.textContent = t("loginDock");
         bindDock(loginBtn);

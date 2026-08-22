@@ -18,7 +18,7 @@
       </a>
       <div class="nav-end">
         <div class="auth-dock" id="authDock">
-          <button type="button" class="auth-btn" id="btnAuth">🔐 登入</button>
+          <button type="button" class="auth-btn" id="btnAuth">[ 🔐 請先登入 ]</button>
         </div>
         <button type="button" class="nav-toggle" id="navToggle" aria-label="選單">☰</button>
       </div>
@@ -40,23 +40,11 @@
       <p class="muted" data-i18n="mktLead">所有策略均基於幣安實盤最新 500 根 K 線於瀏覽器端即時計算，拒絕數據造假。</p>
       <p class="open-src" data-i18n="openSrc">100% 邏輯開源透明 · 支援一鍵導入 TradingView 自行復現與驗證</p>
       <div class="tv-guide">
-        <div class="tv-powered compact">
-          <img src="./assets/tradingview/logo-white.svg" alt="TradingView" class="tv-logo" />
-          <span data-i18n="tvAlertHead">對接 TradingView 警報 · 官方流程</span>
-        </div>
+        <h4 class="hook-title" data-i18n="tvAlertHead">對接 TradingView 警報</h4>
         <ol class="hook-steps">
-          <li>
-            <img src="./assets/tradingview/mark-white.svg" alt="" />
-            <span data-i18n="hookS1">① 複製專屬 Webhook URL</span>
-          </li>
-          <li>
-            <img src="./assets/tradingview/mark-white.svg" alt="" />
-            <span data-i18n="hookS2">② 貼到 TradingView 警報通知欄</span>
-          </li>
-          <li>
-            <img src="./assets/tradingview/mark-white.svg" alt="" />
-            <span data-i18n="hookS3">③ 一鍵複製標準 JSON Payload 模板</span>
-          </li>
+          <li data-i18n="hookS1">複製專屬 Webhook URL</li>
+          <li data-i18n="hookS2">貼到 TradingView 警報通知欄</li>
+          <li data-i18n="hookS3">一鍵複製標準 JSON Payload 模板</li>
         </ol>
         <a class="btn cyan" href="./index.html#dash" data-i18n="hookOpenDash">前往會員中心完成接入</a>
       </div>
@@ -65,6 +53,9 @@
     </section>
     <footer class="site-foot">
       <div class="foot-brand">QUANT ALPHA TECHNOLOGIES LTD. © 2026. All Rights Reserved.</div>
+      <div class="foot-official">
+        <span>Charts by <a href="https://www.tradingview.com/" target="_blank" rel="noopener">TradingView</a></span>
+      </div>
     </footer>
   </div>
   <script src="./js/nav.js"></script>
