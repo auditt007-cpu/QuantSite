@@ -10,8 +10,13 @@
   let startNode = 0;
 
   function packI18n() {
-    const lang = (typeof localStorage !== "undefined" && localStorage.getItem("quant_lang")) || "zh-Hant";
-    return (root.I18N && (root.I18N[lang] || root.I18N["zh-Hant"])) || {};
+    if (root.QALang && typeof root.QALang.current === "function") {
+      const lang = root.QALang.current();
+      return (root.I18N && (root.I18N[lang] || root.I18N.en || root.I18N["zh-Hant"])) || {};
+    }
+    const lang = (typeof localStorage !== "undefined" && (localStorage.getItem("quant_lang") || localStorage.getItem("user_lang"))) || "en";
+    const mapped = lang === "zh-Hans" ? "zh-CN" : lang;
+    return (root.I18N && (root.I18N[mapped] || root.I18N.en || root.I18N["zh-Hant"])) || {};
   }
 
   function parseKlineRow(row) {
@@ -50,8 +55,9 @@
     return off.forInterval(interval);
   }
 
-  async function restBinance(host, symbol, interval, limit) {
-    const qs = `symbol=${encodeURIComponent(symbol)}&interval=${encodeURIComponent(interval)}&limit=${limit}`;
+  async function restBinance(host, symbol, interval, limit, endTime) {
+    let qs = `symbol=${encodeURIComponent(symbol)}&interval=${encodeURIComponent(interval)}&limit=${limit}`;
+    if (endTime) qs += "&endTime=" + encodeURIComponent(String(endTime));
     const res = await fetchUrl(`${host}/api/v3/klines?${qs}`, 8000);
     if (!res.ok) throw new Error("http");
     const data = await res.json();
@@ -104,29 +110,44 @@
   async function fetchKlines(symbol, interval, limit) {
     const sym = String(symbol || "BTCUSDT").toUpperCase();
     const iv = INTERVALS.includes(interval) ? interval : "1m";
-    const lim = Math.min(1000, Math.max(1, Number(limit) || 1000));
+    const need = Math.min(2000, Math.max(1, Number(limit) || 1000));
     const apiBase = (root.QUANT_CONFIG && root.QUANT_CONFIG.apiBase) || "";
-    const tries = [
-      { venue: "Binance", run: () => restBinance("https://api.binance.com", sym, iv, lim) },
-      { venue: "Binance-Vision", run: () => restBinance("https://data-api.binance.vision", sym, iv, lim) },
-      { venue: "Worker", run: () => restBinance(apiBase, sym, iv, lim) },
-      { venue: "OKX", run: () => restOkx(sym, iv, lim) },
-      { venue: "Bybit", run: () => restBybit(sym, iv, lim) },
-    ];
-    for (const item of tries) {
-      if (item.venue === "Worker" && !String(apiBase).startsWith("http")) continue;
-      try {
-        const rows = await item.run();
-        if (rows && rows.length) {
-          lastMeta.source = "live";
-          lastMeta.venue = item.venue;
-          lastMeta.updatedAt = "";
-          return rows;
+    async function once(lim, endTime) {
+      const tries = [
+        { venue: "Binance", run: () => restBinance("https://api.binance.com", sym, iv, lim, endTime) },
+        { venue: "Binance-Vision", run: () => restBinance("https://data-api.binance.vision", sym, iv, lim, endTime) },
+        { venue: "Worker", run: () => restBinance(apiBase, sym, iv, lim, endTime) },
+        { venue: "OKX", run: () => restOkx(sym, iv, lim) },
+        { venue: "Bybit", run: () => restBybit(sym, iv, lim) },
+      ];
+      for (const item of tries) {
+        if (item.venue === "Worker" && !String(apiBase).startsWith("http")) continue;
+        if ((item.venue === "OKX" || item.venue === "Bybit") && endTime) continue;
+        try {
+          const rows = await item.run();
+          if (rows && rows.length) {
+            lastMeta.source = "live";
+            lastMeta.venue = item.venue;
+            lastMeta.updatedAt = "";
+            return rows;
+          }
+        } catch {
+          /* next venue */
         }
-      } catch {
-        /* next venue */
       }
+      return [];
     }
+    let rows = await once(Math.min(1000, need), null);
+    while (rows.length && rows.length < need) {
+      const oldest = rows[0];
+      const more = await once(Math.min(1000, need - rows.length), oldest.time * 1000 - 1);
+      if (!more.length) break;
+      const seen = new Set(rows.map((b) => b.time));
+      const older = more.filter((b) => !seen.has(b.time));
+      if (!older.length) break;
+      rows = older.concat(rows);
+    }
+    if (rows.length) return rows;
     const snap = snapshotBars(iv);
     if (snap.length) return snap;
     throw new Error("klines failed");

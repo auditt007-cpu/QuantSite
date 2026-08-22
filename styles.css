@@ -846,3 +846,107 @@ input {
   font-weight: 700;
 }
 .btn-back-list:hover { background: var(--bg-surface); }
+
+.gm-toolbar { margin-top: 8px; }
+.gm-btn, .btn-cta.gm-btn {
+  background: #000000;
+  color: #ffffff;
+  border: 1px solid #000000;
+}
+.dd-chart { height: 180px; }
+.param-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 0.8fr 0.8fr;
+  gap: 12px;
+  margin: 16px 0;
+}
+.param-card {
+  border: 1px solid #000000;
+  background: var(--bg-surface);
+  padding: 14px;
+}
+.param-card h3 {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  font-weight: 800;
+}
+.param-card textarea,
+.param-card input,
+.param-card select {
+  width: 100%;
+  margin-top: 0;
+  background: #ffffff;
+  border: 1px solid #000000;
+  color: #000000;
+  padding: 10px;
+  font-family: inherit;
+}
+.code-pane {
+  position: relative;
+  border: 1px solid #000000;
+  background: var(--bg-surface);
+  margin: 12px 0 20px;
+}
+.code-pane-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #000000;
+  background: #000000;
+  color: #ffffff;
+}
+.code-pane-bar h3 { margin: 0; font-size: 13px; color: #ffffff; letter-spacing: 0.08em; }
+.copy-float { flex-shrink: 0; }
+.code-hl {
+  margin: 0;
+  padding: 14px;
+  max-height: 320px;
+  background: #ffffff;
+  color: #000000;
+  font-family: ui-monospace, "SF Mono", Consolas, monospace;
+}
+.exec-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 12px 0 20px;
+}
+.exec-card {
+  border: 1px solid #000000;
+  padding: 14px;
+  background: #ffffff;
+  min-height: 92px;
+}
+.exec-card span {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  font-weight: 700;
+}
+.exec-card b {
+  display: block;
+  margin-top: 10px;
+  font-size: 16px;
+  line-height: 1.4;
+  color: #00873C;
+  font-variant-numeric: tabular-nums;
+}
+.matrix-table { min-width: 720px; border: 1px solid #000000; }
+.matrix-table th, .matrix-table td {
+  border: 1px solid #000000;
+  padding: 8px 10px;
+  font-variant-numeric: tabular-nums;
+}
+.matrix-table tbody tr:nth-child(even) { background: #f8fafc; }
+.matrix-table tbody tr:nth-child(odd) { background: #ffffff; }
+@media (max-width: 768px) {
+  .param-grid, .exec-grid { grid-template-columns: 1fr; }
+  .dd-chart { height: 280px; }
+  .code-pane-bar { flex-direction: column; align-items: stretch; }
+}
+

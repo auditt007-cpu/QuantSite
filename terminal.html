@@ -6,7 +6,7 @@
   <title>QUANT ALPHA · 策略終端</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
-<body class="editorial-light">
+<body class="editorial-light" data-title-key="titleTerminal">
   <div class="wrap wide">
     <header class="topbar">
       <a class="brand" href="./index.html">
@@ -28,8 +28,8 @@
         <a class="nav-link" href="./affiliate.html" data-i18n="navAff">推薦計畫</a>
         <a class="btn-cta pulse" href="https://t.me/quant_alpha_signals" target="_blank" rel="noopener" data-i18n="btnChannel">🔥 免費加入 TG 信號頻道</a>
         <div class="lang-pills" role="group" aria-label="Language">
-          <button type="button" data-lang="zh-Hant">繁</button>
           <button type="button" data-lang="zh-CN">简</button>
+          <button type="button" data-lang="zh-Hant">繁</button>
           <button type="button" data-lang="en">EN</button>
         </div>
       </div>
@@ -39,35 +39,35 @@
     <div id="viewList">
       <section class="ai-lab">
         <details class="ai-disc">
-          <summary>聲明</summary>
-          <p>歷史回測不代表未來收益，未計入滑點與手續費。信號僅供技術研究，不構成投資建議。</p>
+          <summary data-i18n="aiDiscSum">聲明</summary>
+          <p data-i18n="aiDiscBody">歷史回測不代表未來收益，未計入滑點與手續費。信號僅供技術研究，不構成投資建議。</p>
         </details>
-        <div class="kicker">AI STRATEGY LAB</div>
-        <h2 class="ai-lab-h1">不懂編程？一樣可以擁有自己的專屬量化策略</h2>
-        <textarea id="aiPrompt" rows="4" placeholder="例如：前兩天連續下跌，今天跳空高開且成交量放大，收盤價突破昨日最高價..."></textarea>
+        <div class="kicker" data-i18n="aiLabKicker">AI STRATEGY LAB</div>
+        <h2 class="ai-lab-h1" data-i18n="aiLabH1">不懂編程？一樣可以擁有自己的專屬量化策略</h2>
+        <textarea id="aiPrompt" rows="4" data-ph="aiPromptPh" placeholder="例如：前兩天連續下跌，今天跳空高開且成交量放大，收盤價突破昨日最高價..."></textarea>
         <div class="ai-chips" id="aiChips">
-          <button type="button" class="ai-chip" data-fill="收盤價突破前高，且當根成交量大於近 20 根均量的 1.5 倍，做多；跌破前低則平倉。">突破前高放量</button>
-          <button type="button" class="ai-chip" data-fill="RSI 出現底背離（價格創新低但 RSI 抬高）時抄底做多，RSI 回到 60 以上平倉。">RSI底背離抄底</button>
-          <button type="button" class="ai-chip" data-fill="EMA20、EMA50、EMA200 多頭排列且收盤站上 EMA20 時做多，跌破 EMA50 平倉。">均線多頭共振</button>
+          <button type="button" class="ai-chip" data-fill="收盤價突破前高，且當根成交量大於近 20 根均量的 1.5 倍，做多；跌破前低則平倉。" data-i18n="chipBreak">突破前高放量</button>
+          <button type="button" class="ai-chip" data-fill="RSI 出現底背離（價格創新低但 RSI 抬高）時抄底做多，RSI 回到 60 以上平倉。" data-i18n="chipRsi">RSI底背離抄底</button>
+          <button type="button" class="ai-chip" data-fill="EMA20、EMA50、EMA200 多頭排列且收盤站上 EMA20 時做多，跌破 EMA50 平倉。" data-i18n="chipEma">均線多頭共振</button>
         </div>
-        <button type="button" class="btn-cta lg ai-go" id="btnAiGo">立即讓 AI 生成並回測</button>
-        <p class="muted" id="aiHint">訪客每日 3 次 · 綁定 Telegram 10 次 · VIP 100 次</p>
+        <button type="button" class="btn-cta lg ai-go" id="btnAiGo" data-i18n="aiGo">🧠 立即生成並回測</button>
+        <p class="muted" id="aiHint" data-i18n="aiHint">訪客每日 3 次 · 綁定 Telegram 10 次 · VIP 100 次</p>
       </section>
 
       <section class="desk">
         <div class="kicker">STRATEGY TERMINAL</div>
-        <h2 class="h2">策略終端</h2>
+        <h2 class="h2" data-i18n="termDesk">策略終端</h2>
         <p class="muted" data-i18n="mktLead">所有策略均基於幣安實盤最新 500 根 K 線於瀏覽器端即時計算，拒絕數據造假。</p>
         <p class="open-src" data-i18n="openSrc">100% 邏輯開源透明 · 支援一鍵導入 TradingView 自行復現與驗證</p>
 
         <div class="term-tabs" id="termTabs" role="tablist"></div>
         <div class="market-grid" id="gridAll"></div>
-        <p class="disc-foot">歷史回測數據不代表未來實盤收益，未計入滑點與手續費。本站信號僅供技術研究，不構成投資建議。</p>
+        <p class="disc-foot" data-i18n="discFoot">歷史回測數據不代表未來實盤收益，未計入滑點與手續費。本站信號僅供技術研究，不構成投資建議。</p>
       </section>
     </div>
 
     <div id="viewBacktest" hidden>
-      <button type="button" class="btn-back-list" id="btnBackList">[ &lt; 返回策略列表 ]</button>
+      <button type="button" class="btn-back-list" id="btnBackList" data-i18n="backList">[ &lt; 返回策略列表 ]</button>
       <section class="lab-top">
         <div class="lab-top-bar">
           <div id="wsStatus" class="feed-status wait">● 數據重連中</div>
@@ -90,8 +90,8 @@
         <div class="engine-box">
           <label class="muted" for="stratSelect" data-i18n="engineLabel">策略引擎選擇</label>
           <select id="stratSelect"></select>
-          <div class="lab-actions">
-            <button class="btn-cta" id="btnRun" data-i18n="startBt">開始回測</button>
+          <div class="lab-actions gm-toolbar">
+            <button class="btn-cta gm-btn" id="btnRun" data-i18n="gmRun">Run Backtest</button>
           </div>
           <div class="risk-banner" id="masterGate" hidden></div>
           <details class="pine-box">
@@ -102,8 +102,9 @@
             <pre id="pineSrc" class="pine-pre"></pre>
           </details>
         </div>
+        <h3 class="zone-title" data-i18n="gmSummary">Performance Summary</h3>
         <p class="nav-kpis" id="navLine">
-          <span>起始資金: $10,000 USDT</span>
+          <span data-i18n="startEq">起始資金: $10,000 USDT</span>
           <span class="nav-sep">|</span>
           <span id="navNow">當前淨值: $10,000.00 USDT</span>
           <span class="nav-sep">|</span>
@@ -112,13 +113,16 @@
           <span id="navDd" class="nav-chip">最大回撤: 0.0%</span>
         </p>
         <p class="muted" id="sampleHint">近 1000 根 K 線累積信號</p>
-        <div id="equityChart" class="lc-chart chart-container"></div>
         <div class="bt-meta">
-          <div class="stat"><span>勝率</span><b id="mWr">—</b></div>
-          <div class="stat"><span>盈虧比</span><b id="mPf">—</b></div>
-          <div class="stat"><span>交易筆數</span><b id="mTrades">—</b></div>
-          <div class="stat"><span>樣本</span><b id="mBars">—</b></div>
+          <div class="stat"><span data-i18n="statWr">勝率</span><b id="mWr">—</b></div>
+          <div class="stat"><span data-i18n="statPf">盈虧比</span><b id="mPf">—</b></div>
+          <div class="stat"><span data-i18n="statTrades">交易筆數</span><b id="mTrades">—</b></div>
+          <div class="stat"><span data-i18n="statBars">樣本</span><b id="mBars">—</b></div>
         </div>
+        <h3 class="zone-title" data-i18n="gmEquity">Equity Curve</h3>
+        <div id="equityChart" class="lc-chart chart-container"></div>
+        <h3 class="zone-title" data-i18n="gmDrawdown">Drawdown Plot</h3>
+        <div id="ddChart" class="lc-chart chart-container dd-chart"></div>
         <div class="table-scroll">
           <table class="data-table">
             <thead>
@@ -139,10 +143,10 @@
 
   <div class="modal-bg" id="aiLimitModal">
     <div class="modal">
-      <h3>額度已用盡</h3>
+      <h3 data-i18n="aiLimitTitle">額度已用盡</h3>
       <p class="muted" id="aiLimitMsg"></p>
-      <a class="btn-cta compact" id="aiLimitCta" href="./member.html">前往會員中心</a>
-      <button type="button" class="btn ghost" id="aiLimitClose">關閉</button>
+      <a class="btn-cta compact" id="aiLimitCta" href="./member.html" data-i18n="goMember">前往會員中心</a>
+      <button type="button" class="btn ghost" id="aiLimitClose" data-i18n="close">關閉</button>
     </div>
   </div>
   <div class="toast" id="toast"></div>
@@ -159,6 +163,7 @@
   <script src="./js/strategy-catalog.js"></script>
   <script src="./js/master-catalog.js"></script>
   <script src="./js/binance-feed.js"></script>
+  <script src="./js/lib/grademark.min.js"></script>
   <script src="./js/lightweight-charts.standalone.production.js"></script>
   <script src="./js/backtest.js"></script>
   <script src="./js/terminal.js"></script>

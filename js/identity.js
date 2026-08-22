@@ -3,9 +3,11 @@
   const TS_KEY = "login_timestamp";
 
   function t(key) {
-    const lang = localStorage.getItem("quant_lang") || "zh-Hant";
-    const pack = (root.I18N && (root.I18N[lang] || root.I18N["zh-Hant"])) || {};
-    const fallback = (root.I18N && root.I18N["zh-Hant"]) || {};
+    if (root.QALang && typeof root.QALang.t === "function") return root.QALang.t(key);
+    const lang = localStorage.getItem("quant_lang") || localStorage.getItem("user_lang") || "en";
+    const mapped = lang === "zh-Hans" ? "zh-CN" : lang;
+    const pack = (root.I18N && (root.I18N[mapped] || root.I18N.en || root.I18N["zh-Hant"])) || {};
+    const fallback = (root.I18N && root.I18N.en) || {};
     return pack[key] || fallback[key] || key;
   }
 

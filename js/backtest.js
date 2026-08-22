@@ -19,6 +19,7 @@ let bars = [];
 let stream = null;
 let candleChart = null;
 let equityChart = null;
+let ddChart = null;
 let candleSeries = null;
 let volSeries = null;
 
@@ -31,8 +32,10 @@ function isMasterSpec(s) {
 }
 
 function t(key) {
-  const lang = localStorage.getItem("quant_lang") || "zh-Hant";
-  const pack = (window.I18N && (window.I18N[lang] || window.I18N["zh-Hant"])) || {};
+  if (window.QALang && typeof window.QALang.t === "function") return window.QALang.t(key);
+  const lang = localStorage.getItem("quant_lang") || localStorage.getItem("user_lang") || "en";
+  const mapped = lang === "zh-Hans" ? "zh-CN" : lang;
+  const pack = (window.I18N && (window.I18N[mapped] || window.I18N.en || window.I18N["zh-Hant"])) || {};
   return pack[key] || key;
 }
 
@@ -189,11 +192,13 @@ function paintPine() {
 
 function paintNav(eq, st) {
   const now = eq && eq.length ? eq[eq.length - 1] : START_EQ;
-  $("navNow").textContent = "當前淨值: $" + fmtUsd(now) + " USDT";
-  $("navPnl").textContent = "累計淨利: " + fmtSignedPct(st ? st.ret : 0);
-  $("navPnl").className = "nav-chip " + (st && st.ret < 0 ? "down" : "up");
+  if ($("navNow")) $("navNow").textContent = t("navNowTpl").replace("{v}", "$" + fmtUsd(now));
+  if ($("navPnl")) {
+    $("navPnl").textContent = t("navPnlTpl").replace("{v}", fmtSignedPct(st ? st.ret : 0));
+    $("navPnl").className = "nav-chip " + (st && st.ret < 0 ? "down" : "up");
+  }
   const dd = st ? st.mdd : 0;
-  $("navDd").textContent = "最大回撤: " + (dd * 100).toFixed(1) + "%";
+  if ($("navDd")) $("navDd").textContent = t("navDdTpl").replace("{v}", (dd * 100).toFixed(1) + "%");
 }
 
 function chartBoxSize(el, desktopH) {
@@ -206,6 +211,7 @@ function chartBoxSize(el, desktopH) {
 function resizeCharts() {
   const cEl = $("candleChart");
   const eEl = $("equityChart");
+  const dEl = $("ddChart");
   if (candleChart && cEl) {
     const s = chartBoxSize(cEl, 480);
     candleChart.applyOptions({ width: s.width, height: s.height });
@@ -215,6 +221,11 @@ function resizeCharts() {
     const s = chartBoxSize(eEl, 220);
     equityChart.applyOptions({ width: s.width, height: s.height });
     equityChart.timeScale().fitContent();
+  }
+  if (ddChart && dEl) {
+    const s = chartBoxSize(dEl, 180);
+    ddChart.applyOptions({ width: s.width, height: s.height });
+    ddChart.timeScale().fitContent();
   }
 }
 
@@ -302,15 +313,17 @@ function run(silent) {
   }
   const t0 = performance.now();
   const trades = spec().run(bars);
-  const eq = catalog.equityFrom(bars, trades);
+  const GM = window.Grademark;
+  const eq = GM ? GM.computeEquityCurve(trades, bars, START_EQ) : catalog.equityFrom(bars, trades);
+  const ddSeries = GM ? GM.computeDrawdown(eq) : [];
   const st = catalog.performanceOf(trades, eq, catalog.barsPerYear(interval), bars);
-  $("sampleHint").textContent = "近 " + bars.length + " 根 K 線累積信號";
+  if ($("sampleHint")) $("sampleHint").textContent = t("sampleHintTpl").replace("{n}", String(bars.length));
   paintNav(eq, st);
-  $("mWr").textContent = (st.hit * 100).toFixed(1) + "%";
-  $("mPf").textContent = fmtPf(st.pf);
-  $("mTrades").textContent = String(st.trades);
-  $("mBars").textContent = String(bars.length);
-  $("tradeRows").innerHTML = tradeRowsHtml(trades, eq);
+  if ($("mWr")) $("mWr").textContent = (st.hit * 100).toFixed(1) + "%";
+  if ($("mPf")) $("mPf").textContent = fmtPf(st.pf);
+  if ($("mTrades")) $("mTrades").textContent = String(st.trades);
+  if ($("mBars")) $("mBars").textContent = String(bars.length);
+  if ($("tradeRows")) $("tradeRows").innerHTML = tradeRowsHtml(trades, eq);
   if (candleSeries) {
     candleSeries.setMarkers(
       trades.flatMap((tr) => [
@@ -326,6 +339,15 @@ function run(silent) {
   equityChart.applyOptions({ width: size.width, height: size.height });
   addLine(equityChart, "#00873c").setData(bars.map((b, i) => ({ time: b.time, value: eq[i] })));
   equityChart.timeScale().fitContent();
+  const dEl = $("ddChart");
+  if (dEl && LC && ddSeries.length) {
+    if (ddChart) ddChart.remove();
+    const ds = chartBoxSize(dEl, 180);
+    ddChart = LC.createChart(dEl, feed.chartOptions(dEl, ds.height, interval));
+    ddChart.applyOptions({ width: ds.width, height: ds.height });
+    addLine(ddChart, "#d0021b").setData(bars.map((b, i) => ({ time: b.time, value: (ddSeries[i] || 0) * 100 })));
+    ddChart.timeScale().fitContent();
+  }
   scheduleFit();
   if (!silent) toast(t("btDone").replace("{ms}", (performance.now() - t0).toFixed(1)).replace("{n}", String(bars.length)), "ok");
 }

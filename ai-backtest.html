@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QUANT ALPHA · AI 深度回測</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body class="editorial-light" data-title-key="titleAiBt">
+  <div class="wrap wide">
+    <header class="topbar">
+      <a class="brand" href="./index.html">
+        <div class="logo"></div>
+        <div class="brand-text">
+          <h1>QUANT.ALPHA</h1>
+          <p class="site-slogan" data-i18n="brandSub">一個沒有感情的量化機器</p>
+        </div>
+      </a>
+      <div class="nav-end">
+        <div class="auth-dock" id="authDock">
+          <button type="button" class="auth-btn" id="btnAuth">[ 🔐 請先登入 ]</button>
+        </div>
+        <button type="button" class="nav-toggle" id="navToggle" aria-label="選單">☰</button>
+      </div>
+      <div class="nav-actions" id="navActions">
+        <a class="nav-link" href="./terminal.html" data-i18n="navTerminal">⚡ 策略終端</a>
+        <a class="nav-link" href="./member.html" data-i18n="navMember">會員中心</a>
+        <a class="nav-link" href="./affiliate.html" data-i18n="navAff">推薦計畫</a>
+        <a class="btn-cta pulse" href="https://t.me/quant_alpha_signals" target="_blank" rel="noopener" data-i18n="btnChannel">🔥 免費加入 TG 信號頻道</a>
+        <div class="lang-pills" role="group" aria-label="Language">
+          <button type="button" data-lang="zh-CN">简</button>
+          <button type="button" data-lang="zh-Hant">繁</button>
+          <button type="button" data-lang="en">EN</button>
+        </div>
+      </div>
+    </header>
+    <div class="ticker" aria-hidden="true">QUANT ALPHA · AI DEEP BACKTEST · GRADEMARK · HOLDING MATRIX</div>
+
+    <section class="desk">
+      <a class="btn-back-list" href="./terminal.html" data-i18n="backList">[ &lt; 返回策略列表 ]</a>
+      <div class="kicker">AI / GRADEMARK</div>
+      <h2 class="h2" data-i18n="aiBtTitle">AI 深度回測</h2>
+      <div class="param-grid">
+        <article class="param-card">
+          <h3 data-i18n="aiPromptCard">策略問句</h3>
+          <textarea id="aiPrompt" rows="5" data-ph="aiPromptPh"></textarea>
+        </article>
+        <article class="param-card">
+          <h3 data-i18n="holdCard">目標持股/持倉周期（天）</h3>
+          <input id="holdDays" type="number" min="1" max="30" value="4" />
+          <p class="muted" data-i18n="holdHint">範圍 1–30 天，預設 4 天</p>
+        </article>
+        <article class="param-card">
+          <h3 data-i18n="rangeCard">回測時間區間</h3>
+          <select id="lookback">
+            <option value="90" data-i18n="look3m">近3個月</option>
+            <option value="180" data-i18n="look6m">近6個月</option>
+            <option value="365" selected data-i18n="look1y">近1年</option>
+            <option value="1095" data-i18n="look3y">近3年</option>
+          </select>
+        </article>
+      </div>
+      <div class="lab-actions gm-toolbar">
+        <button type="button" class="btn-cta lg gm-btn" id="btnDeep" data-i18n="deepRun">⚡ 開始深度回測</button>
+      </div>
+    </section>
+
+    <section class="desk report-desk" id="reportDesk" hidden>
+      <div class="code-pane">
+        <div class="code-pane-bar">
+          <h3 data-i18n="codeHead">策略生成代碼</h3>
+          <button type="button" class="btn-cta compact copy-float" id="btnCopyCode" data-i18n="copyCode">📋 複製代碼</button>
+        </div>
+        <pre id="codeSrc" class="pine-pre code-hl"></pre>
+      </div>
+
+      <h3 class="zone-title" data-i18n="execSum">核心報告評級</h3>
+      <div class="exec-grid">
+        <article class="exec-card">
+          <span data-i18n="histCount">歷史發生次數</span>
+          <b id="histN">—</b>
+        </article>
+        <article class="exec-card">
+          <span data-i18n="bestAvg">最優平均漲跌幅</span>
+          <b id="bestAvg">—</b>
+        </article>
+        <article class="exec-card">
+          <span data-i18n="maxUpProb">最大上漲概率</span>
+          <b id="maxUp">—</b>
+        </article>
+      </div>
+
+      <h3 class="zone-title" data-i18n="gmSummary">Performance Summary</h3>
+      <p class="nav-kpis" id="navLine">
+        <span data-i18n="startEq">起始資金: $10,000 USDT</span>
+        <span class="nav-sep">|</span>
+        <span id="navNow">—</span>
+        <span class="nav-sep">|</span>
+        <span id="navPnl" class="nav-chip">—</span>
+        <span class="nav-sep">|</span>
+        <span id="navDd" class="nav-chip">—</span>
+      </p>
+      <div class="bt-meta">
+        <div class="stat"><span data-i18n="statWr">勝率</span><b id="mWr">—</b></div>
+        <div class="stat"><span data-i18n="statPf">盈虧比</span><b id="mPf">—</b></div>
+        <div class="stat"><span data-i18n="statTrades">交易筆數</span><b id="mTrades">—</b></div>
+        <div class="stat"><span data-i18n="statBars">樣本</span><b id="mBars">—</b></div>
+      </div>
+      <h3 class="zone-title" data-i18n="gmEquity">Equity Curve</h3>
+      <div id="equityChart" class="lc-chart chart-container"></div>
+      <h3 class="zone-title" data-i18n="gmDrawdown">Drawdown Plot</h3>
+      <div id="ddChart" class="lc-chart chart-container dd-chart"></div>
+
+      <h3 class="zone-title" data-i18n="matrixHead">持有期量化矩陣分析 (1–10 天)</h3>
+      <div class="table-scroll">
+        <table class="data-table matrix-table">
+          <thead>
+            <tr>
+              <th data-i18n="colHold">持有期 (天)</th>
+              <th data-i18n="colAvg">平均區間漲跌</th>
+              <th data-i18n="colMax">最大漲跌幅</th>
+              <th data-i18n="colMin">最小漲跌幅</th>
+              <th data-i18n="colPL">盈虧比 (P/L Ratio)</th>
+              <th data-i18n="colUp">上漲概率 (%)</th>
+              <th data-i18n="colDown">下跌概率 (%)</th>
+            </tr>
+          </thead>
+          <tbody id="matrixRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer class="site-foot">
+      <div class="foot-brand">QUANT ALPHA TECHNOLOGIES LTD. © 2026. All Rights Reserved.</div>
+    </footer>
+  </div>
+
+  <div class="modal-bg" id="aiLimitModal">
+    <div class="modal">
+      <h3 data-i18n="aiLimitTitle">額度已用盡</h3>
+      <p class="muted" id="aiLimitMsg"></p>
+      <a class="btn-cta compact" id="aiLimitCta" href="./member.html" data-i18n="goMember">前往會員中心</a>
+      <button type="button" class="btn ghost" id="aiLimitClose" data-i18n="close">關閉</button>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script src="./js/nav.js"></script>
+  <script src="./config.js"></script>
+  <script src="./i18n.js"></script>
+  <script src="./js/i18n-boot.js"></script>
+  <script src="./js/clipboard.js"></script>
+  <script src="./js/identity.js"></script>
+  <script src="./js/offline-klines.js"></script>
+  <script src="./js/indicators.js"></script>
+  <script src="./js/strategy-catalog.js"></script>
+  <script src="./js/binance-feed.js"></script>
+  <script src="./js/lib/grademark.min.js"></script>
+  <script src="./js/lightweight-charts.standalone.production.js"></script>
+  <script src="./js/ai-backtest.js"></script>
+</body>
+</html>

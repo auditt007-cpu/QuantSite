@@ -7,9 +7,11 @@
   const payHref = "./member.html#pay";
 
   function t(key) {
-    const lang = localStorage.getItem("quant_lang") || "zh-Hant";
-    const pack = (window.I18N && (window.I18N[lang] || window.I18N["zh-Hant"])) || {};
-    const fallback = (window.I18N && window.I18N["zh-Hant"]) || {};
+    if (window.QALang && typeof window.QALang.t === "function") return window.QALang.t(key);
+    const lang = localStorage.getItem("user_lang") || localStorage.getItem("quant_lang") || "en";
+    const mapped = lang === "zh-Hans" ? "zh-CN" : lang;
+    const pack = (window.I18N && (window.I18N[mapped] || window.I18N.en || window.I18N["zh-Hant"])) || {};
+    const fallback = (window.I18N && window.I18N.en) || {};
     return pack[key] || fallback[key] || key;
   }
 
@@ -268,44 +270,20 @@
 
   const go = document.getElementById("btnAiGo");
   if (go) {
-    go.addEventListener("click", async () => {
+    go.addEventListener("click", () => {
       const prompt = String((document.getElementById("aiPrompt") || {}).value || "").trim();
       if (prompt.length < 8) {
-        toast("請把進場條件寫完整一些", "warn");
+        toast(t("aiNeedPrompt"), "warn");
         return;
       }
-      go.disabled = true;
-      const prev = go.textContent;
-      go.textContent = "AI 生成中…";
       try {
-        const tg = (window.QAIdentity && window.QAIdentity.loggedIn && window.QAIdentity.loggedIn() && localStorage.getItem("quant_tg")) || "";
-        const res = await fetch(cfg.apiBase + "/api/ai-backtest", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ prompt, tg_id: tg }),
-        });
-        const data = await res.json().catch(() => ({}));
-        if (res.status === 429) {
-          const href = data.code === "limit_guest" ? "./member.html" : "./member.html#pay";
-          showLimit(data.error || "額度已用盡", href);
-          return;
-        }
-        if (!res.ok || !data.code) throw new Error(data.error || "AI 生成失敗");
-        let fn;
-        try {
-          fn = new Function("kLines", "currentIndex", data.code);
-        } catch {
-          throw new Error("生成代碼無法編譯，請換一種描述");
-        }
-        window.__QA_AI_FN = fn;
-        toast("已生成，正在回測…", "ok");
-        openEngine("ai", "1h");
-      } catch (e) {
-        toast(e.message || "AI 生成失敗", "err");
-      } finally {
-        go.disabled = false;
-        go.textContent = prev;
+        sessionStorage.setItem("qa_ai_prompt", prompt);
+      } catch {
+        /* ignore */
       }
+      const q = new URLSearchParams();
+      q.set("q", prompt.slice(0, 180));
+      location.href = "./ai-backtest.html?" + q.toString();
     });
   }
 

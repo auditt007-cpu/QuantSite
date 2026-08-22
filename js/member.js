@@ -2,8 +2,10 @@ const cfg = window.QUANT_CONFIG;
 const $ = (id) => document.getElementById(id);
 
 function t(key) {
-  const lang = localStorage.getItem("quant_lang") || "zh-Hant";
-  const pack = (window.I18N && (window.I18N[lang] || window.I18N["zh-Hant"])) || {};
+  if (window.QALang && typeof window.QALang.t === "function") return window.QALang.t(key);
+  const lang = localStorage.getItem("quant_lang") || localStorage.getItem("user_lang") || "en";
+  const mapped = lang === "zh-Hans" ? "zh-CN" : lang;
+  const pack = (window.I18N && (window.I18N[mapped] || window.I18N.en || window.I18N["zh-Hant"])) || {};
   return pack[key] || key;
 }
 

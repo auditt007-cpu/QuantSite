@@ -3,14 +3,18 @@ const $ = (id) => document.getElementById(id);
 let lang = "zh-Hant";
 
 function t(key) {
-  const pack = window.I18N[lang] || window.I18N["zh-Hant"];
-  return pack[key] || window.I18N["zh-Hant"][key] || key;
+  if (window.QALang && typeof window.QALang.t === "function") return window.QALang.t(key);
+  const pack = window.I18N[lang] || window.I18N.en || window.I18N["zh-Hant"];
+  return pack[key] || (window.I18N.en && window.I18N.en[key]) || (window.I18N["zh-Hant"] && window.I18N["zh-Hant"][key]) || key;
 }
 
 function detectLang() {
+  if (window.QALang && typeof window.QALang.current === "function") return window.QALang.current();
+  const user = localStorage.getItem("user_lang");
+  if (user && window.I18N[user]) return user === "zh-Hans" ? "zh-CN" : user;
   const saved = localStorage.getItem("quant_lang");
   if (saved && window.I18N[saved]) return saved;
-  return "zh-Hant";
+  return "en";
 }
 
 function loggedIn() {
