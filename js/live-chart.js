@@ -81,11 +81,19 @@
         bars.map((b) => ({
           time: b.time,
           value: b.volume,
-          color: b.close >= b.open ? "rgba(46,229,157,0.45)" : "rgba(255,90,106,0.45)",
+          color: b.close >= b.open ? "rgba(16,185,129,0.45)" : "rgba(239,68,68,0.45)",
         })),
       );
       chart.timeScale().fitContent();
       applyMarks();
+      if (typeof chart.subscribeCrosshairMove === "function") {
+        chart.subscribeCrosshairMove((param) => {
+          const line = $("ohlcLine");
+          if (!line || !param || !param.seriesData) return;
+          const d = param.seriesData.get(candle);
+          if (d) line.textContent = `O ${d.open}  H ${d.high}  L ${d.low}  C ${d.close}`;
+        });
+      }
       setTimeout(() => {
         if (chart && el) {
           chart.applyOptions({ width: Math.max(el.clientWidth, 280), height: sizeH });
@@ -95,15 +103,27 @@
     }
 
     async function load() {
-      feed.setFeedStatus($("wsStatus"), "reconnect");
+      feed.setFeedStatus($("wsStatus"), "connecting");
       if (stream) stream.close();
-      bars = await feed.fetchKlines(symbol, interval, 1000);
+      try {
+        bars = await feed.fetchKlines(symbol, interval, 1000);
+      } catch {
+        bars = (root.QAOffline && root.QAOffline.forInterval(interval)) || [];
+        feed.lastMeta.source = "offline";
+      }
       mountChart();
+      if (feed.lastMeta.source === "offline") {
+        feed.setFeedStatus($("wsStatus"), "offline", { updatedAt: feed.lastMeta.updatedAt });
+      }
+      const last = bars[bars.length - 1];
+      if (last && $("lastPx")) $("lastPx").textContent = last.close.toLocaleString(undefined, { maximumFractionDigits: 2 });
+      if ($("ohlcLine") && last) $("ohlcLine").textContent = `O ${last.open}  H ${last.high}  L ${last.low}  C ${last.close}`;
       stream = feed.createLiveStream({
         symbol,
         interval,
-        onStatus(s) {
-          feed.setFeedStatus($("wsStatus"), s);
+        preferRest: feed.preferRest || feed.lastMeta.source === "offline",
+        onStatus(s, extra) {
+          feed.setFeedStatus($("wsStatus"), s, extra);
         },
         onKline(bar) {
           upsert(bar);
@@ -116,10 +136,24 @@
       });
     }
 
+    function bindFeedBtns() {
+      const retry = $("btnFeedRetry");
+      const node = $("btnFeedNode");
+      if (retry) retry.onclick = () => {
+        feed.preferRest = false;
+        load();
+      };
+      if (node) node.onclick = () => {
+        feed.preferRest = true;
+        load();
+      };
+    }
+
     window.addEventListener("resize", () => {
       if (chart && $("tvChart")) chart.applyOptions({ width: $("tvChart").clientWidth });
     });
-    load().catch(() => feed.setFeedStatus($("wsStatus"), "reconnect"));
+    bindFeedBtns();
+    load();
   }
 
   root.QALiveDesk = { start: startLiveDesk };

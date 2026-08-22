@@ -3,11 +3,13 @@ const catalog = window.QACatalog;
 const feed = window.QAFeed;
 const LC = window.LightweightCharts;
 
-function toast(msg) {
+function toast(msg, kind) {
   const el = $("toast");
   el.textContent = msg;
-  el.classList.add("show");
-  setTimeout(() => el.classList.remove("show"), 1800);
+  el.className = "toast show " + (kind || "ok");
+  setTimeout(() => {
+    el.classList.remove("show");
+  }, 2200);
 }
 
 const SYMBOL = "BTCUSDT";
@@ -198,15 +200,24 @@ async function load(iv) {
     b.classList.toggle("active", b.getAttribute("data-tf") === interval);
   });
   if (stream) stream.close();
-  feed.setFeedStatus($("wsStatus"), "reconnect");
-  bars = await feed.fetchKlines(SYMBOL, interval, 1000);
+  feed.setFeedStatus($("wsStatus"), "connecting");
+  try {
+    bars = await feed.fetchKlines(SYMBOL, interval, 1000);
+  } catch {
+    bars = (window.QAOffline && window.QAOffline.forInterval(interval)) || [];
+    feed.lastMeta.source = "offline";
+  }
   mountCandles();
+  if (feed.lastMeta.source === "offline") {
+    feed.setFeedStatus($("wsStatus"), "offline", { updatedAt: feed.lastMeta.updatedAt });
+  }
   paintPine();
   stream = feed.createLiveStream({
     symbol: SYMBOL,
     interval,
-    onStatus(s) {
-      feed.setFeedStatus($("wsStatus"), s);
+    preferRest: feed.preferRest || feed.lastMeta.source === "offline",
+    onStatus(s, extra) {
+      feed.setFeedStatus($("wsStatus"), s, extra);
     },
     onKline: upsert,
   });
@@ -220,7 +231,7 @@ function fmtPf(pf) {
 
 function run(silent) {
   if (!bars.length) {
-    if (!silent) toast("請先載入 K 線");
+    if (!silent) toast(t("needBars") || "請先載入 K 線", "warn");
     return;
   }
   const t0 = performance.now();
@@ -279,7 +290,17 @@ window.addEventListener("quant-lang", () => {
 });
 function boot() {
   scheduleFit();
-  load("1m").catch((e) => toast(e.message));
+  const retry = $("btnFeedRetry");
+  const node = $("btnFeedNode");
+  if (retry) retry.onclick = () => {
+    feed.preferRest = false;
+    load(interval).catch((e) => toast(e.message, "warn"));
+  };
+  if (node) node.onclick = () => {
+    feed.preferRest = true;
+    load(interval).catch((e) => toast(e.message, "warn"));
+  };
+  load("1m").catch((e) => toast(e.message, "warn"));
 }
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
 else boot();

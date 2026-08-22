@@ -1,12 +1,28 @@
 const cfg = window.QUANT_CONFIG;
 const $ = (id) => document.getElementById(id);
 
-function toast(msg) {
+function toast(msg, kind) {
   const el = $("toast");
   el.textContent = msg;
-  el.classList.add("show");
+  el.className = "toast show " + (kind || "ok");
   setTimeout(() => el.classList.remove("show"), 2200);
 }
+
+function bindDemo() {
+  const range = $("demoRange");
+  const nEl = $("demoN");
+  const est = $("demoEst");
+  if (!range || !est) return;
+  const paint = () => {
+    const n = Number(range.value);
+    nEl.textContent = String(n);
+    est.textContent = "$" + (n * 34.65).toFixed(2) + " USDT";
+  };
+  range.addEventListener("input", paint);
+  paint();
+}
+
+bindDemo();
 
 function fmtTime(ts) {
   if (!ts) return "—";
@@ -54,7 +70,7 @@ function renderTree(data) {
       ${box(xs[0], y, w, h, "【推薦人節點】", parent, "#1c4a62")}
       ${box(xs[1], y, w, h, "【我的節點 (TG ID)】", me, "#2ee59d")}
       ${box(xs[2], y, w, h, "【第一層直推夥伴 (L1)】", l1, "#5cc8ff")}
-      ${box(xs[3], y, w, h, "【第二層裂變夥伴 (L2)】", l2, "#ffcc66")}
+      ${box(xs[3], y, w, h, "【第二層夥伴】", l2, "#ffcc66")}
       ${arrow(xs[0] + w, y + h / 2, xs[1])}
       ${arrow(xs[1] + w, y + h / 2, xs[2])}
       ${arrow(xs[2] + w, y + h / 2, xs[3])}
@@ -87,7 +103,7 @@ function renderRows(data) {
 async function load() {
   const tg = localStorage.getItem("quant_tg");
   if (!tg) {
-    $("gate").hidden = false;
+    if ($("gate")) $("gate").hidden = true;
     $("desk").hidden = true;
     $("listPanel").hidden = true;
     $("wdPanel").hidden = true;
@@ -99,7 +115,7 @@ async function load() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "載入失敗");
     $("meLine").textContent =
-      `我的節點：${data.me.masked} · 邀請碼 ${data.me.invite_code} · ${data.me.paid ? "機構 VIP" : "免費節點"}`;
+      `我的節點：${data.me.masked} · 邀請碼 ${data.me.invite_code} · ${data.me.paid ? "Pro" : "免費節點"}`;
     renderTree(data);
     renderRows(data);
     $("avail").textContent = Number(data.withdrawable || 0).toFixed(2) + " USDT";

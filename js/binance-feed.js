@@ -12,6 +12,32 @@
     };
   }
 
+  let lastMeta = { source: "live", updatedAt: "" };
+
+  function packI18n() {
+    const lang = (typeof localStorage !== "undefined" && localStorage.getItem("quant_lang")) || "zh-Hant";
+    return (root.I18N && (root.I18N[lang] || root.I18N["zh-Hant"])) || {};
+  }
+
+  async function fetchUrl(url, ms) {
+    const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+    const timer = ctrl ? setTimeout(() => ctrl.abort(), ms || 8000) : null;
+    try {
+      const res = await fetch(url, ctrl ? { signal: ctrl.signal } : {});
+      return res;
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  }
+
+  function snapshotBars(interval) {
+    const off = root.QAOffline;
+    if (!off) return [];
+    lastMeta.source = "offline";
+    lastMeta.updatedAt = off.updatedAt || "";
+    return off.forInterval(interval);
+  }
+
   async function fetchKlines(symbol, interval, limit) {
     const sym = String(symbol || "BTCUSDT").toUpperCase();
     const iv = INTERVALS.includes(interval) ? interval : "1m";
@@ -21,38 +47,56 @@
       `https://api.binance.com/api/v3/klines?${qs}`,
       (root.QUANT_CONFIG && root.QUANT_CONFIG.apiBase ? root.QUANT_CONFIG.apiBase : "") + `/api/klines?${qs}`,
     ];
-    let lastErr = "klines failed";
     for (const url of urls) {
       if (!url.startsWith("http")) continue;
       try {
-        const res = await fetch(url);
-        if (!res.ok) {
-          lastErr = "HTTP " + res.status;
-          continue;
-        }
+        const res = await fetchUrl(url, 8000);
+        if (!res.ok) continue;
         const data = await res.json();
         const rows = Array.isArray(data) ? data : data.data;
-        if (!Array.isArray(rows) || !rows.length) {
-          lastErr = "empty klines";
-          continue;
-        }
+        if (!Array.isArray(rows) || !rows.length) continue;
+        lastMeta.source = "live";
+        lastMeta.updatedAt = "";
         return rows.map(parseKlineRow);
-      } catch (e) {
-        lastErr = e.message || String(e);
+      } catch {
+        /* try next */
       }
     }
-    throw new Error(lastErr);
+    const snap = snapshotBars(iv);
+    if (snap.length) return snap;
+    throw new Error("klines failed");
   }
 
-  function setFeedStatus(el, state) {
+  function setFeedStatus(el, state, extra) {
     if (!el) return;
-    const live = state === "live";
-    el.className = "feed-status " + (live ? "live" : "warn");
-    const lang = (typeof localStorage !== "undefined" && localStorage.getItem("quant_lang")) || "zh-Hant";
-    const pack = (root.I18N && (root.I18N[lang] || root.I18N["zh-Hant"])) || {};
-    el.textContent = live
-      ? pack.feedLive || "● 實時推流中"
-      : pack.feedReconnect || "↻ 正在重連";
+    const p = packI18n();
+    const x = extra || {};
+    const cls = {
+      connecting: "wait",
+      live: "live",
+      rest: "live",
+      retry: "warn",
+      reconnect: "warn",
+      fail: "err",
+      offline: "warn",
+    };
+    el.className = "feed-status " + (cls[state] || "warn");
+    let text = p.feedReconnect || "↻ 正在重連";
+    if (state === "connecting") text = p.feedConnecting || "◌ 連線中";
+    if (state === "live") text = p.feedLive || "● 實時推流中";
+    if (state === "rest") text = p.feedRest || "● REST 輪詢中";
+    if (state === "retry") {
+      const n = x.countdown != null ? x.countdown : "";
+      text = (p.feedRetry || "↻ 重試中 {n}s").replace("{n}", String(n));
+    }
+    if (state === "fail") text = p.feedFail || "● 連線失敗";
+    if (state === "offline") {
+      const hm = x.updatedAt || lastMeta.updatedAt || "";
+      text = (p.feedOffline || "⚠️ 離線演示數據（更新於 {t}）").replace("{t}", hm || "--:--");
+    }
+    el.textContent = text;
+    const actions = document.getElementById("feedActions");
+    if (actions) actions.hidden = !(state === "fail" || state === "offline");
   }
 
   function createSocket({ symbol, interval, onKline, onStatus, onGiveUp }) {
@@ -61,14 +105,12 @@
     const url = `wss://stream.binance.com:9443/ws/${sym}@kline_${iv}`;
     let ws = null;
     let closed = false;
-    let delay = 800;
-    let timer = null;
+    let handshake = null;
     let staleTimer = null;
-    let fails = 0;
     const fast = iv === "1s" || iv === "1m" || iv === "5m";
 
-    function setStatus(s) {
-      if (onStatus) onStatus(s);
+    function setStatus(s, extra) {
+      if (onStatus) onStatus(s, extra);
     }
 
     function armStale() {
@@ -81,22 +123,30 @@
 
     function connect() {
       if (closed) return;
-      setStatus("reconnect");
+      setStatus("connecting");
       try {
         ws = new WebSocket(url);
       } catch {
-        fail();
+        giveUp();
         return;
       }
+      handshake = setTimeout(() => {
+        if (closed) return;
+        try {
+          if (ws && ws.readyState !== 1) ws.close();
+        } catch {
+          /* */
+        }
+        giveUp();
+      }, 3000);
       ws.onopen = () => {
-        fails = 0;
-        delay = 800;
+        if (handshake) clearTimeout(handshake);
+        handshake = null;
         setStatus("live");
         armStale();
       };
       ws.onmessage = (ev) => {
         armStale();
-        fails = 0;
         try {
           const msg = JSON.parse(ev.data);
           const k = msg.k;
@@ -116,21 +166,23 @@
       };
       ws.onerror = () => {};
       ws.onclose = () => {
-        if (!closed) fail();
+        if (handshake) clearTimeout(handshake);
+        handshake = null;
+        if (!closed) giveUp();
       };
     }
 
-    function fail() {
+    function giveUp() {
       if (closed) return;
-      fails += 1;
-      setStatus("reconnect");
-      if (fails >= 3) {
-        if (onGiveUp) onGiveUp();
-        return;
+      closed = true;
+      if (handshake) clearTimeout(handshake);
+      if (staleTimer) clearTimeout(staleTimer);
+      try {
+        if (ws) ws.close();
+      } catch {
+        /* */
       }
-      if (timer) clearTimeout(timer);
-      timer = setTimeout(connect, delay);
-      delay = Math.min(8000, delay * 1.7);
+      if (onGiveUp) onGiveUp();
     }
 
     function reconnect() {
@@ -146,7 +198,7 @@
       url,
       close() {
         closed = true;
-        if (timer) clearTimeout(timer);
+        if (handshake) clearTimeout(handshake);
         if (staleTimer) clearTimeout(staleTimer);
         try {
           if (ws) ws.close();
@@ -157,10 +209,12 @@
     };
   }
 
-  function createLiveStream({ symbol, interval, onKline, onStatus }) {
+  function createLiveStream({ symbol, interval, onKline, onStatus, preferRest }) {
     let sock = null;
     let pollTimer = null;
     let closed = false;
+    let restFails = 0;
+    let tickSec = 3;
 
     function stopPoll() {
       if (pollTimer) {
@@ -169,36 +223,59 @@
       }
     }
 
+    function goOffline() {
+      if (onStatus) onStatus("offline", { updatedAt: lastMeta.updatedAt });
+    }
+
     function startPoll() {
       if (closed || pollTimer) return;
-      if (onStatus) onStatus("reconnect");
+      if (onStatus) onStatus("rest");
       const tick = async () => {
         if (closed) return;
         try {
           const rows = await fetchKlines(symbol, interval, 2);
-          const last = rows[rows.length - 1];
-          if (last) onKline({ ...last, closed: false });
+          if (lastMeta.source === "offline") {
+            restFails += 1;
+            if (restFails >= 2) {
+              goOffline();
+              return;
+            }
+          } else {
+            restFails = 0;
+            const last = rows[rows.length - 1];
+            if (last) onKline({ ...last, closed: false });
+            if (onStatus) onStatus("rest");
+          }
         } catch {
-          /* keep polling silently */
+          restFails += 1;
+          if (onStatus) onStatus("retry", { countdown: tickSec });
+          if (restFails >= 3) {
+            goOffline();
+            stopPoll();
+          }
         }
       };
       tick();
-      pollTimer = setInterval(tick, 3000);
+      pollTimer = setInterval(tick, tickSec * 1000);
     }
 
-    sock = createSocket({
-      symbol,
-      interval,
-      onKline,
-      onStatus,
-      onGiveUp() {
-        if (sock) {
-          sock.close();
-          sock = null;
-        }
-        startPoll();
-      },
-    });
+    if (preferRest || root.QAFeed.preferRest) {
+      startPoll();
+    } else {
+      sock = createSocket({
+        symbol,
+        interval,
+        onKline,
+        onStatus,
+        onGiveUp() {
+          if (sock) {
+            sock.close();
+            sock = null;
+          }
+          startPoll();
+        },
+      });
+    }
 
     return {
       close() {
@@ -291,6 +368,8 @@
     createSocket,
     createLiveStream,
     setFeedStatus,
+    lastMeta,
+    preferRest: false,
     chartOptions,
   };
 })(typeof window !== "undefined" ? window : globalThis);

@@ -11,14 +11,14 @@
     <header class="topbar">
       <a class="brand" href="./index.html">
         <div class="logo"></div>
-        <h1>QUANT.ALPHA<span data-i18n="brandSub">機構級量化回測終端</span></h1>
+        <h1>QUANT.ALPHA<span data-i18n="brandSub">幣安公開行情 · 開源策略引擎</span></h1>
       </a>
       <button type="button" class="nav-toggle" id="navToggle" aria-label="選單">☰</button>
       <div class="nav-actions" id="navActions">
-        <a class="btn cyan" href="./marketplace.html" data-i18n="navMarket">策略廣場</a>
-        <a class="btn ghost" href="./backtest.html" data-i18n="navBacktest">回測中心</a>
-        <a class="btn ghost" href="./affiliate.html" data-i18n="navAff">裂變分銷</a>
-        <a class="btn ghost" href="./admin.html">Admin Console</a>
+        <a class="nav-link" href="./marketplace.html" data-i18n="navMarket">策略廣場</a>
+        <a class="nav-link" href="./backtest.html" data-i18n="navBacktest">回測中心</a>
+        <a class="nav-link" href="./affiliate.html" data-i18n="navAff">推薦計畫</a>
+        <a class="btn-cta pulse" href="./admin.html">Admin</a>
         <div class="lang-pills" role="group" aria-label="Language">
           <button type="button" data-lang="zh-Hant">繁</button>
           <button type="button" data-lang="zh-CN">简</button>
@@ -29,7 +29,9 @@
     <section class="desk">
       <div class="kicker">STRATEGY MARKETPLACE</div>
       <h2 class="h2">策略廣場</h2>
-      <p class="muted">卡片來自 Cloudflare KV <code>/api/strategies</code>。勝率與夏普若後台未填，則用幣安最近 500 根 K 線在瀏覽器即時回測，不虛構數字。</p>
+      <p class="muted" data-i18n="mktLead">所有策略均基於幣安實盤最新 500 根 K 線於瀏覽器端即時計算，拒絕數據造假。</p>
+      <p class="open-src" data-i18n="openSrc">100% 邏輯開源透明 · 支援一鍵導入 TradingView 自行復現與驗證</p>
+      <div class="risk-banner" data-i18n="riskBanner">⚠️ 免責聲明：歷史回測數據不代表未來實盤收益，未計入滑點與手續費。本站信號僅供技術研究與量化編程參考，不構成任何投資建議。</div>
       <div class="market-grid" id="grid"></div>
     </section>
     <footer class="site-foot">

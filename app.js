@@ -20,11 +20,13 @@ function loggedIn() {
 function applyAuthUi() {
   const btn = $("btnAuth");
   btn.textContent = loggedIn() ? t("member") : t("login");
+  const hint = document.querySelector(".micro-tag");
+  if (hint) hint.style.display = loggedIn() ? "none" : "";
   const tg = localStorage.getItem("quant_tg") || "";
   $("dashUser").textContent = tg ? "Telegram ID  " + tg : "";
   const vip = localStorage.getItem("quant_paid") === "1";
   $("nodeName").textContent = vip ? t("nodePro") : t("nodeBasic");
-  $("dashLevel").textContent = vip ? "VIP" : (lang === "en" ? "Free node" : lang === "zh-CN" ? "会员等级：基础免费节点" : "會員等級：基礎免費節點");
+  $("dashLevel").textContent = vip ? "Pro" : (lang === "en" ? "Free node" : lang === "zh-CN" ? "等级：免费节点" : "等級：免費節點");
   refreshInviteUi();
 }
 
@@ -32,7 +34,7 @@ function applyI18n() {
   document.documentElement.lang = lang === "en" ? "en" : lang === "zh-CN" ? "zh-CN" : "zh-Hant";
   document.title = t("title");
   document.querySelectorAll("[data-i18n]").forEach((el) => {
-    if (el.id === "nodeName" || el.id === "dashLevel" || el.id === "mCap" || el.id === "mWin" || el.id === "mPf" || el.id === "mDd") return;
+    if (el.id === "nodeName" || el.id === "dashLevel" || el.id === "mCap" || el.id === "mWin" || el.id === "mPf" || el.id === "mDd" || el.id === "btnAuth" || el.id === "refCount") return;
     el.textContent = t(el.getAttribute("data-i18n"));
   });
   document.querySelectorAll("[data-ph]").forEach((el) => {
@@ -46,11 +48,11 @@ function applyI18n() {
   applyDesk(false);
 }
 
-function toast(msg) {
+function toast(msg, kind) {
   const el = $("toast");
   el.textContent = msg;
-  el.classList.add("show");
-  setTimeout(() => el.classList.remove("show"), 2200);
+  el.className = "toast show " + (kind || "ok");
+  setTimeout(() => el.classList.remove("show"), 2400);
 }
 
 async function copyText(text) {
@@ -94,37 +96,111 @@ function onAuthClick() {
   } else openModal("loginModal");
 }
 
+let loginBusy = false;
+
+function lockUntil() {
+  return Number(localStorage.getItem("quant_login_lock") || 0);
+}
+
+function failCount() {
+  return Number(localStorage.getItem("quant_login_fails") || 0);
+}
+
+function bumpLoginFail() {
+  const n = failCount() + 1;
+  localStorage.setItem("quant_login_fails", String(n));
+  if (n >= 5) localStorage.setItem("quant_login_lock", String(Date.now() + 15 * 60 * 1000));
+  return n;
+}
+
+function otpCells() {
+  return Array.from(document.querySelectorAll(".otp-cell"));
+}
+
+function otpRead() {
+  const v = otpCells().map((el) => el.value.replace(/\D/g, "")).join("").slice(0, 4);
+  if ($("loginCode")) $("loginCode").value = v;
+  return v;
+}
+
+function otpWrite(str) {
+  const s = String(str || "").replace(/\D/g, "").slice(0, 4);
+  otpCells().forEach((el, i) => {
+    el.value = s[i] || "";
+  });
+  if ($("loginCode")) $("loginCode").value = s;
+}
+
+function wireOtp() {
+  const cells = otpCells();
+  if (!cells.length) return;
+  cells.forEach((el, i) => {
+    el.addEventListener("input", () => {
+      el.value = el.value.replace(/\D/g, "").slice(-1);
+      otpRead();
+      if (el.value && cells[i + 1]) cells[i + 1].focus();
+      if (otpRead().length === 4) doLogin();
+    });
+    el.addEventListener("keydown", (e) => {
+      if (e.key === "Backspace" && !el.value && cells[i - 1]) cells[i - 1].focus();
+      if (e.key === "Enter") doLogin();
+    });
+    el.addEventListener("paste", (e) => {
+      e.preventDefault();
+      otpWrite((e.clipboardData || window.clipboardData).getData("text"));
+      if (otpRead().length === 4) doLogin();
+    });
+  });
+}
+
 async function doLogin() {
-  const box = $("loginCode");
   const st = $("loginStatus");
-  const code = String(box.value || "").replace(/\D/g, "").slice(0, 4);
-  box.value = code;
+  const btn = $("btnDoLogin");
+  if (loginBusy) return;
+  const until = lockUntil();
+  if (until > Date.now()) {
+    st.className = "status err";
+    st.textContent = t("locked");
+    return;
+  }
+  const code = otpRead() || String($("loginCode").value || "").replace(/\D/g, "").slice(0, 4);
+  otpWrite(code);
   st.className = "status";
   if (!/^\d{4}$/.test(code)) {
     st.className = "status err";
     st.textContent = t("needLogin");
     return;
   }
+  loginBusy = true;
+  btn.disabled = true;
+  btn.textContent = t("logging");
   st.textContent = t("logging");
   try {
     const data = await api("/api/bind-tg", {
       method: "POST",
       body: JSON.stringify({ code, parent_invite: parentInviteFromUrl() }),
     });
-    if (!data || !data.ok || !data.tg_id) {
-      throw new Error(t("badCode"));
-    }
+    if (!data || !data.ok || !data.tg_id) throw new Error(t("badCode"));
+    localStorage.removeItem("quant_login_fails");
+    localStorage.removeItem("quant_login_lock");
     localStorage.setItem("quant_tg", String(data.tg_id));
     if (data.invite_code) localStorage.setItem("quant_invite", data.invite_code);
     if (data.invite_count != null) localStorage.setItem("quant_invites", String(data.invite_count));
+    st.className = "status";
     st.textContent = t("logged");
-    toast(t("logged"));
+    toast(t("logged"), "ok");
     applyAuthUi();
     closeModal("loginModal");
     openModal("dashModal");
   } catch (e) {
+    const n = bumpLoginFail();
     st.className = "status err";
-    st.textContent = t("badCode");
+    if (lockUntil() > Date.now()) st.textContent = t("locked");
+    else st.textContent = t("badCode") + " · " + t("leftTries").replace("{n}", String(Math.max(0, 5 - n)));
+  } finally {
+    loginBusy = false;
+    btn.disabled = false;
+    btn.textContent = t("doLogin");
   }
 }
 
@@ -153,12 +229,14 @@ async function refreshInviteUi() {
       if (data.me?.paid) localStorage.setItem("quant_paid", "1");
       localStorage.setItem("quant_invite", code);
       localStorage.setItem("quant_invites", String(count));
+      const bar = $("refBar");
+      if (bar) bar.style.width = Math.min(100, (count / 2) * 100) + "%";
     } catch {
       /* keep cached */
     }
   }
   $("inviteLink").textContent = code ? `${origin}?ref=${code}` : "—";
-  const unit = lang === "en" ? " / 2 unlock" : " / 2 人解鎖";
+  const unit = lang === "en" ? " / 2 binds" : " / 2 人";
   $("refCount").textContent = `${count}${unit}`;
   $("refAvail").textContent = avail.toFixed(2) + " USDT";
   $("refPend").textContent = pend.toFixed(2) + " USDT";
@@ -197,41 +275,58 @@ function logout() {
   closeModal("dashModal");
 }
 
-async function loadPay() {
+async function loadPay(plan) {
   const userId = localStorage.getItem("quant_tg") || uid();
   $("payStatus").textContent = t("locking");
   $("payDetail").hidden = false;
   try {
-    const data = await api("/api/pay-intent?user_id=" + encodeURIComponent(userId));
+    const q = "/api/pay-intent?user_id=" + encodeURIComponent(userId) + "&plan=" + encodeURIComponent(plan || "vip");
+    const data = await api(q);
     $("payAmount").textContent = data.amount + " USDT";
     $("payMeta").textContent = t("lockMeta").replace("{t}", new Date(data.expires_at).toLocaleString());
     $("payStatus").textContent = t("payHint");
     $("wallet").textContent = cfg.usdtWallet;
   } catch (e) {
+    $("payStatus").className = "status err";
     $("payStatus").textContent = e.message;
   }
+}
+
+async function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
 }
 
 async function verifyTx() {
   const txid = $("txid").value.trim();
   const userId = localStorage.getItem("quant_tg") || uid();
   if (txid.length < 16) {
+    $("payStatus").className = "status err";
     $("payStatus").textContent = t("txShort");
     return;
   }
   $("payBtn").disabled = true;
-  $("payStatus").textContent = t("verifying");
+  $("payStatus").className = "status";
+  let lastErr = t("verifying");
   try {
-    const data = await api("/api/verify-usdt", {
-      method: "POST",
-      body: JSON.stringify({ txid, user_id: userId }),
-    });
-    localStorage.setItem("quant_paid", "1");
-    applyAuthUi();
-    $("payStatus").textContent = data.message || t("paidOk");
-    toast(t("paidOk"));
-  } catch (e) {
-    $("payStatus").textContent = e.message;
+    for (let n = 1; n <= 12; n++) {
+      $("payStatus").textContent = t("chainSync").replace("{n}", String(n));
+      try {
+        const data = await api("/api/verify-usdt", {
+          method: "POST",
+          body: JSON.stringify({ txid, user_id: userId }),
+        });
+        localStorage.setItem("quant_paid", "1");
+        applyAuthUi();
+        $("payStatus").textContent = data.message || t("paidOk");
+        toast(t("paidOk"), "ok");
+        return;
+      } catch (e) {
+        lastErr = e.message;
+        await sleep(2500);
+      }
+    }
+    $("payStatus").className = "status err";
+    $("payStatus").textContent = lastErr;
   } finally {
     $("payBtn").disabled = false;
   }
@@ -245,14 +340,18 @@ function wire() {
   if ($("btnChannel2")) $("btnChannel2").href = cfg.tgChannelUrl;
   $("btnOpenBot").href = cfg.tgBotUrl;
   $("wallet").textContent = cfg.usdtWallet;
-  const codeBox = $("loginCode");
-  if (codeBox) {
-    codeBox.addEventListener("input", () => {
-      codeBox.value = codeBox.value.replace(/\D/g, "").slice(0, 4);
-    });
-    codeBox.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") doLogin();
-    });
+  if ($("paySupport")) $("paySupport").href = cfg.tgSupportUrl || cfg.tgBotUrl;
+  if ($("tgFab")) $("tgFab").href = cfg.tgChannelUrl;
+  wireOtp();
+  if (location.hash === "#login") openModal("loginModal");
+  const tick = $("signalTicker");
+  if (tick) {
+    const spin = () => {
+      const px = ($("lastPx") && $("lastPx").textContent) || "64,200";
+      tick.textContent = t("tickerTpl").replace("{px}", px);
+    };
+    spin();
+    setInterval(spin, 8000);
   }
   window.addEventListener("quant-lang", () => {
     lang = detectLang();
@@ -261,8 +360,17 @@ function wire() {
   $("btnAuth").addEventListener("click", onAuthClick);
   $("btnDoLogin").addEventListener("click", doLogin);
   $("btnLogout").addEventListener("click", logout);
-  $("btnPayIntent").addEventListener("click", loadPay);
-  $("btnCopyInvite").addEventListener("click", () => copyText($("inviteLink").textContent));
+  $("btnPayIntent").addEventListener("click", () => loadPay("vip"));
+  if ($("btnPayTrial")) $("btnPayTrial").addEventListener("click", () => loadPay("trial"));
+  $("btnCopyInvite").addEventListener("click", async () => {
+    const btn = $("btnCopyInvite");
+    const prev = btn.textContent;
+    await copyText($("inviteLink").textContent);
+    btn.textContent = t("copyDone");
+    setTimeout(() => {
+      btn.textContent = t("copyInvite");
+    }, 2000);
+  });
   $("btnCopyAddr").addEventListener("click", () => copyText(cfg.usdtWallet));
   $("payBtn").addEventListener("click", verifyTx);
   document.querySelectorAll("[data-legal]").forEach((b) => {

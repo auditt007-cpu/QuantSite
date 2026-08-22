@@ -16,7 +16,7 @@
     const lang = currentLang();
     document.documentElement.lang = lang === "en" ? "en" : lang === "zh-CN" ? "zh-CN" : "zh-Hant";
     document.querySelectorAll("[data-i18n]").forEach((el) => {
-      if (el.id === "btnAuth" || el.id === "nodeName" || el.id === "dashLevel") return;
+      if (el.id === "btnAuth" || el.id === "nodeName" || el.id === "dashLevel" || el.id === "refCount") return;
       el.textContent = t(el.getAttribute("data-i18n"));
     });
     document.querySelectorAll("[data-ph]").forEach((el) => {

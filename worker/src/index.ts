@@ -47,7 +47,7 @@ type PayIntent = {
 const USDT_TRC20 = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
 const ACTIVE_KEY = "ACTIVE_SUBSCRIBERS";
 const INTENT_TTL = 15 * 60;
-const BIND_TTL = 10 * 60;
+const BIND_TTL = 5 * 60;
 const CHANNEL_URL = "https://t.me/quant_alpha_signals";
 const BOT_URL = "https://t.me/grid_quant_bot?start=bind";
 const VIP_USDT = 99;
@@ -125,12 +125,34 @@ app.post("/api/register", async (c) => {
 app.post("/api/bind-confirm", (c) => confirmBind(c));
 app.post("/api/bind-tg", (c) => confirmBind(c));
 
-async function confirmBind(c: { req: { json: () => Promise<unknown>; text: () => Promise<string> }; env: Bindings; json: (d: unknown, s?: number) => Response }) {
+async function confirmBind(c: {
+  req: {
+    json: () => Promise<unknown>;
+    text: () => Promise<string>;
+    header: (n: string) => string | undefined;
+  };
+  env: Bindings;
+  json: (d: unknown, s?: number) => Response;
+}) {
+  const ip = String(c.req.header("CF-Connecting-IP") || c.req.header("x-forwarded-for") || "0").split(",")[0].trim();
+  const lockKey = `bindlock:${ip || "0"}`;
+  const lock = (await c.env.QUANT_USERS.get(lockKey, "json")) as { fails: number; until?: number } | null;
+  if (lock && lock.until && lock.until > Date.now()) {
+    return c.json({ error: "嘗試次數過多，請 15 分鐘後再試", locked_until: lock.until }, 429);
+  }
   const body = await readJson(c);
   const code = String(body.code || body.bind_code || "").trim();
   if (!/^\d{4}$/.test(code)) return c.json({ error: "請輸入 4 位綁定碼" }, 400);
   const rec = await c.env.QUANT_USERS.get(`bind:${code}`, "json") as { tg_id: string; exp: number } | null;
-  if (!rec || rec.exp < Date.now()) return c.json({ error: "驗證碼無效或已過期，請重新向 Telegram 機器人獲取" }, 410);
+  if (!rec || rec.exp < Date.now()) {
+    const fails = (lock?.fails || 0) + 1;
+    const next: { fails: number; until?: number } = { fails };
+    if (fails >= 5) next.until = Date.now() + 15 * 60 * 1000;
+    await c.env.QUANT_USERS.put(lockKey, JSON.stringify(next), { expirationTtl: 20 * 60 });
+    const left = Math.max(0, 5 - fails);
+    return c.json({ error: "驗證碼無效或已過期，請重新向 Telegram 機器人獲取", left }, 410);
+  }
+  await c.env.QUANT_USERS.delete(lockKey);
   const parentInvite = String(body.parent_invite || "").trim();
   const tgId = rec.tg_id;
   let user = await getUserByTg(c.env, tgId);
@@ -173,7 +195,8 @@ app.get("/api/pay-intent", async (c) => {
   const userId = String(c.req.query("user_id") || "").trim();
   if (!userId) return c.json({ error: "user_id required" }, 400);
 
-  const key = `pay:${userId}`;
+  const plan = String(c.req.query("plan") || "vip") === "trial" ? "trial" : "vip";
+  const key = `pay:${userId}:${plan}`;
   const prev = await c.env.QUANT_USERS.get(key, "json") as PayIntent | null;
   const now = Date.now();
   if (prev && prev.expires_at > now) {
@@ -185,7 +208,7 @@ app.get("/api/pay-intent", async (c) => {
     });
   }
 
-  const cents = 9901 + Math.floor(Math.random() * 99);
+  const cents = plan === "trial" ? 990 + Math.floor(Math.random() * 9) : 9901 + Math.floor(Math.random() * 99);
   const amount = (cents / 100).toFixed(2);
   const amountSun = String(cents * 10_000);
   const intent: PayIntent = {
@@ -216,9 +239,16 @@ app.post("/api/verify-usdt", async (c) => {
   const used = await c.env.QUANT_USERS.get(`txid:${txid}`);
   if (used) return c.json({ error: "txid already consumed (replay blocked)" }, 409);
 
-  const intent = await c.env.QUANT_USERS.get(`pay:${userId}`, "json") as PayIntent | null;
+  const keys = [`pay:${userId}:vip`, `pay:${userId}:trial`, `pay:${userId}`];
+  let intent: PayIntent | null = null;
+  for (const k of keys) {
+    const row = await c.env.QUANT_USERS.get(k, "json") as PayIntent | null;
+    if (row && row.expires_at > Date.now()) {
+      intent = row;
+      break;
+    }
+  }
   if (!intent) return c.json({ error: "no locked pay-intent; call GET /api/pay-intent first" }, 400);
-  if (intent.expires_at < Date.now()) return c.json({ error: "pay-intent expired; request a new amount" }, 410);
 
   const transfer = await inspectUsdtTransfer(txid, c.env);
   if (!transfer.ok) return c.json({ error: transfer.error }, 422);
@@ -582,7 +612,7 @@ function bindWelcome(code: string, _env: Bindings) {
     "免費公開頻道：https://t.me/quant_alpha_signals",
     "",
     "請將 4 位綁定碼回填至網站完成身份驗證。",
-    "綁定碼 10 分鐘內有效。重新傳送 /bind 可換發新碼。",
+    "綁定碼 5 分鐘內有效。重新傳送 /bind 可換發新碼。",
   ];
   if (code) {
     lines.push("", `您的專屬 4 位綁定碼為：${code}，請回填至網站完成身份驗證。`);
