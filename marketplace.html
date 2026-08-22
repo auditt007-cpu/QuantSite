@@ -16,7 +16,12 @@
           <p class="site-slogan" data-i18n="brandSub">一個沒有感情的量化機器</p>
         </div>
       </a>
-      <button type="button" class="nav-toggle" id="navToggle" aria-label="選單">☰</button>
+      <div class="nav-end">
+        <div class="auth-dock" id="authDock">
+          <button type="button" class="auth-btn" id="btnAuth">🔐 登入</button>
+        </div>
+        <button type="button" class="nav-toggle" id="navToggle" aria-label="選單">☰</button>
+      </div>
       <div class="nav-actions" id="navActions">
         <a class="nav-link" href="./marketplace.html" data-i18n="navMarket">策略廣場</a>
         <a class="nav-link" href="./backtest.html" data-i18n="navBacktest">回測中心</a>
@@ -34,6 +39,27 @@
       <h2 class="h2">策略廣場</h2>
       <p class="muted" data-i18n="mktLead">所有策略均基於幣安實盤最新 500 根 K 線於瀏覽器端即時計算，拒絕數據造假。</p>
       <p class="open-src" data-i18n="openSrc">100% 邏輯開源透明 · 支援一鍵導入 TradingView 自行復現與驗證</p>
+      <div class="tv-guide">
+        <div class="tv-powered compact">
+          <img src="./assets/tradingview/logo-white.svg" alt="TradingView" class="tv-logo" />
+          <span data-i18n="tvAlertHead">對接 TradingView 警報 · 官方流程</span>
+        </div>
+        <ol class="hook-steps">
+          <li>
+            <img src="./assets/tradingview/mark-white.svg" alt="" />
+            <span data-i18n="hookS1">① 複製專屬 Webhook URL</span>
+          </li>
+          <li>
+            <img src="./assets/tradingview/mark-white.svg" alt="" />
+            <span data-i18n="hookS2">② 貼到 TradingView 警報通知欄</span>
+          </li>
+          <li>
+            <img src="./assets/tradingview/mark-white.svg" alt="" />
+            <span data-i18n="hookS3">③ 一鍵複製標準 JSON Payload 模板</span>
+          </li>
+        </ol>
+        <a class="btn cyan" href="./index.html#dash" data-i18n="hookOpenDash">前往會員中心完成接入</a>
+      </div>
       <div class="risk-banner" data-i18n="riskBanner">⚠️ 免責聲明：歷史回測數據不代表未來實盤收益，未計入滑點與手續費。本站信號僅供技術研究與量化編程參考，不構成任何投資建議。</div>
       <div class="market-grid" id="grid"></div>
     </section>

@@ -14,19 +14,18 @@ function detectLang() {
 }
 
 function loggedIn() {
+  if (window.QAAuth && typeof window.QAAuth.loggedIn === "function") return window.QAAuth.loggedIn();
   return Boolean(localStorage.getItem("quant_tg"));
 }
 
 function applyAuthUi() {
-  const btn = $("btnAuth");
-  btn.textContent = loggedIn() ? t("member") : t("login");
   const hint = document.querySelector(".micro-tag");
-  if (hint) hint.style.display = loggedIn() ? "none" : "";
+  if (hint) hint.style.display = "none";
   const tg = localStorage.getItem("quant_tg") || "";
-  $("dashUser").textContent = tg ? "Telegram ID  " + tg : "";
+  if ($("dashUser")) $("dashUser").textContent = tg ? "Telegram ID  " + tg : "";
   const vip = localStorage.getItem("quant_paid") === "1";
-  $("nodeName").textContent = vip ? t("nodePro") : t("nodeBasic");
-  $("dashLevel").textContent = vip ? t("seatVip") : t("seatFree");
+  if ($("nodeName")) $("nodeName").textContent = vip ? t("nodePro") : t("nodeBasic");
+  if ($("dashLevel")) $("dashLevel").textContent = vip ? t("seatVip") : t("seatFree");
   if (loggedIn() && !localStorage.getItem("quant_join_at")) {
     localStorage.setItem("quant_join_at", String(Date.now()));
   }
@@ -50,7 +49,7 @@ function applyI18n() {
   document.documentElement.lang = lang === "en" ? "en" : lang === "zh-CN" ? "zh-CN" : "zh-Hant";
   document.title = t("title");
   document.querySelectorAll("[data-i18n]").forEach((el) => {
-    if (el.id === "nodeName" || el.id === "dashLevel" || el.id === "mCap" || el.id === "mWin" || el.id === "mPf" || el.id === "mDd" || el.id === "btnAuth" || el.id === "refCount") return;
+    if (el.id === "nodeName" || el.id === "dashLevel" || el.id === "mCap" || el.id === "mWin" || el.id === "mPf" || el.id === "mDd" || el.id === "btnAuth" || el.id === "idPill" || el.id === "refCount") return;
     el.textContent = t(el.getAttribute("data-i18n"));
   });
   document.querySelectorAll("[data-ph]").forEach((el) => {
@@ -199,7 +198,12 @@ async function doLogin() {
     if (!data || !data.ok || !data.tg_id) throw new Error(t("badCode"));
     localStorage.removeItem("quant_login_fails");
     localStorage.removeItem("quant_login_lock");
-    localStorage.setItem("quant_tg", String(data.tg_id));
+    if (window.QAAuth) window.QAAuth.persistSession(data.tg_id, data.token);
+    else {
+      localStorage.setItem("quant_tg", String(data.tg_id));
+      localStorage.setItem("login_timestamp", String(Date.now()));
+      if (data.token) localStorage.setItem("quant_token", String(data.token));
+    }
     if (!localStorage.getItem("quant_join_at")) localStorage.setItem("quant_join_at", String(Date.now()));
     if (data.invite_code) localStorage.setItem("quant_invite", data.invite_code);
     if (data.invite_count != null) localStorage.setItem("quant_invites", String(data.invite_count));
@@ -289,8 +293,13 @@ function openLegal(kind) {
   openModal("legalModal");
 }
 function logout() {
-  localStorage.removeItem("quant_tg");
-  localStorage.removeItem("quant_paid");
+  if (window.QAAuth) window.QAAuth.clearSession();
+  else {
+    localStorage.removeItem("quant_tg");
+    localStorage.removeItem("quant_token");
+    localStorage.removeItem("login_timestamp");
+    localStorage.removeItem("quant_paid");
+  }
   applyAuthUi();
   closeModal("dashModal");
 }
@@ -405,7 +414,6 @@ function wire() {
     lang = detectLang();
     applyI18n();
   });
-  $("btnAuth").addEventListener("click", onAuthClick);
   $("btnDoLogin").addEventListener("click", doLogin);
   $("btnLogout").addEventListener("click", logout);
   $("btnPayIntent").addEventListener("click", () => loadPay("vip"));

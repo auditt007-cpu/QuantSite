@@ -1,8 +1,12 @@
 (function (root) {
+  const LOGIN_TTL_MS = 86400000;
+  const TS_KEY = "login_timestamp";
+
   function t(key) {
     const lang = localStorage.getItem("quant_lang") || "zh-Hant";
     const pack = (root.I18N && (root.I18N[lang] || root.I18N["zh-Hant"])) || {};
-    return pack[key] || key;
+    const fallback = (root.I18N && root.I18N["zh-Hant"]) || {};
+    return pack[key] || fallback[key] || key;
   }
 
   function seat() {
@@ -14,52 +18,115 @@
     return "free";
   }
 
-  function paint() {
-    const bar = document.getElementById("navActions");
-    if (!bar) return;
-    let pill = document.getElementById("idPill");
+  function clearSession() {
+    localStorage.removeItem("quant_tg");
+    localStorage.removeItem("quant_token");
+    localStorage.removeItem(TS_KEY);
+    localStorage.removeItem("quant_paid");
+    try {
+      sessionStorage.removeItem("quant_tg");
+      sessionStorage.removeItem("quant_token");
+      sessionStorage.removeItem(TS_KEY);
+    } catch {
+      /* private mode */
+    }
+  }
+
+  function persistSession(tgId, token) {
+    const id = String(tgId || "");
+    if (!id) return;
+    localStorage.setItem("quant_tg", id);
+    localStorage.setItem(TS_KEY, String(Date.now()));
+    if (token) localStorage.setItem("quant_token", String(token));
+    try {
+      sessionStorage.removeItem("quant_tg");
+    } catch {
+      /* */
+    }
+  }
+
+  function loggedIn() {
     const tg = localStorage.getItem("quant_tg");
+    if (!tg) return false;
+    let ts = Number(localStorage.getItem(TS_KEY) || 0);
+    if (!ts) {
+      localStorage.setItem(TS_KEY, String(Date.now()));
+      return true;
+    }
+    if (Date.now() - ts > LOGIN_TTL_MS) {
+      clearSession();
+      return false;
+    }
+    return true;
+  }
+
+  function openAuth() {
+    if (loggedIn()) {
+      const dash = document.getElementById("dashModal");
+      if (dash) {
+        dash.classList.add("show");
+        return;
+      }
+      location.href = "./index.html#dash";
+      return;
+    }
+    const login = document.getElementById("loginModal");
+    if (login) {
+      login.classList.add("show");
+      return;
+    }
+    location.href = "./index.html#login";
+  }
+
+  function bindDock(el) {
+    if (!el || el.getAttribute("data-auth-bound") === "1") return;
+    el.setAttribute("data-auth-bound", "1");
+    el.addEventListener("click", openAuth);
+  }
+
+  function paint() {
+    const ok = loggedIn();
     const loginBtn = document.getElementById("btnAuth");
+    let pill = document.getElementById("idPill");
+    const dock = document.getElementById("authDock");
     const hint = document.querySelector(".micro-tag");
-    if (!tg) {
+    if (hint) hint.style.display = "none";
+
+    if (!ok) {
       if (pill) pill.hidden = true;
-      if (loginBtn) loginBtn.hidden = false;
-      if (hint) hint.style.display = "";
+      if (loginBtn) {
+        loginBtn.hidden = false;
+        loginBtn.textContent = t("loginDock");
+        bindDock(loginBtn);
+      }
       const onb = document.getElementById("onboardBanner");
       if (onb) onb.hidden = true;
       return;
     }
+
     if (loginBtn) loginBtn.hidden = true;
-    if (hint) hint.style.display = "none";
-    if (!pill) {
+    if (!pill && dock) {
       pill = document.createElement("button");
       pill.type = "button";
       pill.id = "idPill";
       pill.className = "id-pill";
-      const lang = bar.querySelector(".lang-pills");
-      bar.insertBefore(pill, lang || null);
-      pill.addEventListener("click", () => {
-        const dash = document.getElementById("dashModal");
-        if (dash) {
-          dash.classList.add("show");
-          return;
-        }
-        location.href = "./index.html#dash";
-      });
+      dock.appendChild(pill);
     }
-    pill.hidden = false;
-    const n = Number(localStorage.getItem("quant_invites") || "0");
-    const kind = seat();
-    pill.className = "id-pill " + kind;
-    if (kind === "vip") pill.textContent = t("pillVip");
-    else if (kind === "pro") pill.textContent = t("pillPro");
-    else pill.textContent = t("pillFree").replace("{n}", String(n));
+    if (pill) {
+      bindDock(pill);
+      pill.hidden = false;
+      const kind = seat();
+      pill.className = "id-pill " + kind;
+      if (kind === "vip") pill.textContent = t("pillVip");
+      else if (kind === "pro") pill.textContent = t("pillPro");
+      else pill.textContent = t("pillFree");
+    }
     paintOnboard();
   }
 
   function paintOnboard() {
     const box = document.getElementById("onboardBanner");
-    if (!box || !localStorage.getItem("quant_tg")) {
+    if (!box || !loggedIn()) {
       if (box) box.hidden = true;
       return;
     }
@@ -93,7 +160,13 @@
   }
 
   setInterval(tickCountdown, 1000);
-  root.QAIdentity = { paint, seat };
+  setInterval(() => {
+    const had = Boolean(localStorage.getItem("quant_tg"));
+    if (had && !loggedIn()) paint();
+  }, 30000);
+
+  root.QAIdentity = { paint, seat, loggedIn, persistSession, clearSession, openAuth, LOGIN_TTL_MS };
+  root.QAAuth = root.QAIdentity;
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", paint);
   else paint();
   window.addEventListener("quant-lang", paint);

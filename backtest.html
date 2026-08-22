@@ -16,7 +16,12 @@
           <p class="site-slogan" data-i18n="brandSub">一個沒有感情的量化機器</p>
         </div>
       </a>
-      <button type="button" class="nav-toggle" id="navToggle" aria-label="選單">☰</button>
+      <div class="nav-end">
+        <div class="auth-dock" id="authDock">
+          <button type="button" class="auth-btn" id="btnAuth">🔐 登入</button>
+        </div>
+        <button type="button" class="nav-toggle" id="navToggle" aria-label="選單">☰</button>
+      </div>
       <div class="nav-actions" id="navActions">
         <a class="nav-link" href="./marketplace.html" data-i18n="navMarket">策略廣場</a>
         <a class="nav-link" href="./backtest.html" data-i18n="navBacktest">回測中心</a>
@@ -32,6 +37,7 @@
 
     <section class="lab-top">
       <div class="lab-top-bar">
+        <div id="wsStatus" class="feed-status wait">● 數據重連中</div>
         <div class="seg" role="tablist">
           <button type="button" class="seg-btn active" data-tf="1m">1m</button>
           <button type="button" class="seg-btn" data-tf="5m">5m</button>
@@ -41,15 +47,14 @@
           <button type="button" class="seg-btn" data-tf="1d">1D</button>
           <button type="button" class="seg-btn" data-tf="1w">1W</button>
         </div>
-        <div class="feed-box">
-          <div id="wsStatus" class="feed-status wait">◌ 連線中</div>
-          <div class="feed-actions" id="feedActions" hidden>
-            <button type="button" class="btn ghost" id="btnFeedRetry" data-i18n="feedRetryBtn">重試</button>
-            <button type="button" class="btn ghost" id="btnFeedNode" data-i18n="feedNodeBtn">切換備用節點</button>
-          </div>
-        </div>
       </div>
-      <div id="candleChart" class="lab-canvas chart-container"></div>
+      <div class="lab-chart-frame">
+        <div id="candleChart" class="lab-canvas chart-container"></div>
+        <a class="tv-chart-badge" href="https://www.tradingview.com/" target="_blank" rel="noopener">
+          <img src="./assets/tradingview/mark-white.svg" alt="TradingView" />
+          <span>Charts by TradingView</span>
+        </a>
+      </div>
     </section>
 
     <section class="lab-panel">

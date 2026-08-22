@@ -340,17 +340,6 @@ function boot() {
     $("stratSelect").value = engineId;
   }
   const startIv = INTERVALS_OK(qIv) ? qIv : "1m";
-  const retry = $("btnFeedRetry");
-  const node = $("btnFeedNode");
-  if (retry) retry.onclick = () => {
-    feed.preferRest = false;
-    load(interval).catch((e) => toast(e.message, "warn"));
-  };
-  if (node) node.onclick = () => {
-    feed.nextNode();
-    feed.preferRest = false;
-    load(interval).catch((e) => toast(e.message, "warn"));
-  };
   load(startIv).catch((e) => toast(e.message, "warn"));
 }
 function INTERVALS_OK(iv) {

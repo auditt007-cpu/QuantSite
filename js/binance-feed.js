@@ -135,32 +135,22 @@
   function setFeedStatus(el, state, extra) {
     if (!el) return;
     const p = packI18n();
-    const x = extra || {};
     const cls = {
       connecting: "wait",
       live: "live",
       rest: "live",
-      retry: "warn",
-      switch: "warn",
-      reconnect: "warn",
+      retry: "err",
+      switch: "err",
+      reconnect: "err",
       fail: "err",
-      offline: "warn",
+      offline: "err",
     };
     el.className = "feed-status " + (cls[state] || "warn");
-    const v = x.venue || lastMeta.venue || "";
-    let text = p.feedReconnect || "↻ 正在重連";
-    if (state === "connecting") text = (p.feedConnectingSrc || "◌ 連線中 [{v}]").replace("{v}", v);
-    if (state === "live") text = (p.feedLiveSrc || "● 實時推流中 [{v}]").replace("{v}", v);
-    if (state === "rest") text = (p.feedRestSrc || "● REST 輪詢中 [{v}]").replace("{v}", v);
-    if (state === "switch") text = (p.feedSwitch || "↻ 切換節點至 [{v}]...").replace("{v}", v);
-    if (state === "retry") text = (p.feedRetry || "↻ 重試中 {n}s").replace("{n}", String(x.countdown != null ? x.countdown : ""));
-    if (state === "fail") text = p.feedFail || "● 連線失敗";
-    if (state === "offline") {
-      text = (p.feedOffline || "⚠️ 離線演示數據（更新於 {t}）").replace("{t}", x.updatedAt || lastMeta.updatedAt || "--:--");
-    }
+    let text = p.feedRecon || "● 數據重連中";
+    if (state === "live" || state === "rest") text = p.feedOk || "● 實時信號暢通";
+    else if (state === "connecting") text = p.feedWait || "● 數據重連中";
+    else text = p.feedRecon || "● 數據重連中";
     el.textContent = text;
-    const actions = document.getElementById("feedActions");
-    if (actions) actions.hidden = !(state === "fail" || state === "offline");
   }
 
   function barFromBinanceK(k) {

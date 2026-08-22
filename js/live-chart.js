@@ -136,24 +136,9 @@
       });
     }
 
-    function bindFeedBtns() {
-      const retry = $("btnFeedRetry");
-      const node = $("btnFeedNode");
-      if (retry) retry.onclick = () => {
-        feed.preferRest = false;
-        load();
-      };
-      if (node) node.onclick = () => {
-        feed.nextNode();
-        feed.preferRest = false;
-        load();
-      };
-    }
-
     window.addEventListener("resize", () => {
       if (chart && $("tvChart")) chart.applyOptions({ width: $("tvChart").clientWidth });
     });
-    bindFeedBtns();
     load();
   }
 

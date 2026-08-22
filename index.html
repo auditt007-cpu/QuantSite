@@ -16,13 +16,16 @@
           <p class="site-slogan" data-i18n="brandSub">一個沒有感情的量化機器</p>
         </div>
       </a>
-      <button type="button" class="nav-toggle" id="navToggle" aria-label="選單">☰</button>
+      <div class="nav-end">
+        <div class="auth-dock" id="authDock">
+          <button type="button" class="auth-btn" id="btnAuth">🔐 登入</button>
+        </div>
+        <button type="button" class="nav-toggle" id="navToggle" aria-label="選單">☰</button>
+      </div>
       <div class="nav-actions" id="navActions">
         <a class="nav-link" href="./marketplace.html" data-i18n="navMarket">策略廣場</a>
         <a class="nav-link" href="./backtest.html" data-i18n="navBacktest">回測中心</a>
         <a class="nav-link" href="./affiliate.html" data-i18n="navAff">推薦計畫</a>
-        <button type="button" class="nav-link" id="btnAuth" data-i18n="login">⚡ TG 一鍵登入</button>
-        <span class="micro-tag" data-i18n="loginHint">免密安全驗證</span>
         <a id="btnChannel" class="btn-cta pulse" href="https://t.me/quant_alpha_signals" target="_blank" rel="noopener" data-i18n="btnChannel">🔥 免費加入 TG 信號頻道</a>
         <div class="lang-pills" role="group" aria-label="Language">
           <button type="button" data-lang="zh-Hant">繁</button>
@@ -31,6 +34,11 @@
         </div>
       </div>
     </header>
+
+    <div class="tv-powered">
+      <img src="./assets/tradingview/logo-white.svg" alt="TradingView" class="tv-logo" />
+      <span>Powered by TradingView Charting Library &amp; Binance WebSockets</span>
+    </div>
 
     <div id="onboardBanner" class="onboard" hidden>
       <p id="onboardHi"></p>
@@ -63,20 +71,17 @@
 
     <section class="desk">
       <div class="desk-head">
-        <div>
-          <div class="kicker">BTCUSDT · 1m · Binance public WS</div>
-          <p class="muted" data-i18n="liveLead">BTCUSDT 1 分鐘 K 線，優先走幣安公開 WebSocket，失敗則 REST 輪詢或離線快照。</p>
-        </div>
-        <div class="feed-box">
-          <div id="wsStatus" class="feed-status wait">◌ 連線中</div>
-          <div class="feed-actions" id="feedActions" hidden>
-            <button type="button" class="btn ghost" id="btnFeedRetry" data-i18n="feedRetryBtn">重試</button>
-            <button type="button" class="btn ghost" id="btnFeedNode" data-i18n="feedNodeBtn">切換備用節點</button>
-          </div>
+        <div class="desk-status-row">
+          <div id="wsStatus" class="feed-status wait">● 數據重連中</div>
+          <div class="kicker">BTCUSDT · 1m</div>
         </div>
       </div>
       <div class="chart-shell live">
         <div id="tvChart" class="tv-chart chart-container"></div>
+        <a class="tv-chart-badge" href="https://www.tradingview.com/" target="_blank" rel="noopener">
+          <img src="./assets/tradingview/mark-white.svg" alt="TradingView" />
+          <span>Charts by TradingView</span>
+        </a>
         <div class="chart-meta">
           <div>BTCUSDT · <span id="lastPx">—</span></div>
           <div id="legendLine" data-i18n="legend">SuperTrend (10, 3) · Dual</div>
@@ -194,10 +199,19 @@
           <a class="pay-help" id="paySupport" href="https://t.me/grid_quant_bot" target="_blank" rel="noopener" data-i18n="paySupport">遇到了問題？點擊聯繫 TG 官方客服人工核對</a>
         </div>
         <h4 data-i18n="hookHead">50ms Webhook 三步接入</h4>
-        <ol class="login-guide">
-          <li data-i18n="hookS1">① 複製專屬 Webhook URL</li>
-          <li data-i18n="hookS2">② 貼到 TradingView 警報通知欄</li>
-          <li data-i18n="hookS3">③ 一鍵複製標準 JSON Payload 模板</li>
+        <ol class="hook-steps">
+          <li>
+            <img src="./assets/tradingview/mark-white.svg" alt="" />
+            <span data-i18n="hookS1">① 複製專屬 Webhook URL</span>
+          </li>
+          <li>
+            <img src="./assets/tradingview/mark-white.svg" alt="" />
+            <span data-i18n="hookS2">② 貼到 TradingView 警報通知欄</span>
+          </li>
+          <li>
+            <img src="./assets/tradingview/mark-white.svg" alt="" />
+            <span data-i18n="hookS3">③ 一鍵複製標準 JSON Payload 模板</span>
+          </li>
         </ol>
         <div class="addr" id="hookUrl">—</div>
         <button class="btn" id="btnCopyHook" data-i18n="copyHook">複製 Webhook URL</button>
