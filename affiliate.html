@@ -11,8 +11,9 @@
     <header class="topbar">
       <a class="brand" href="./index.html">
         <div class="logo"></div>
-        <h1>QUANT.ALPHA<span data-i18n="brandSub">幣安公開行情 · 開源策略引擎</span></h1>
+        <h1>QUANT.ALPHA</h1>
       </a>
+      <p class="site-slogan" data-i18n="brandSub">一个没有感情的量化机器</p>
       <button type="button" class="nav-toggle" id="navToggle" aria-label="選單">☰</button>
       <div class="nav-actions" id="navActions">
         <a class="nav-link" href="./marketplace.html" data-i18n="navMarket">策略廣場</a>
@@ -72,15 +73,17 @@
           <button type="button" class="btn-cta compact" id="btnWdTop" data-i18n="wdAsk" style="margin-top:10px">申請提現</button>
         </div>
       </div>
+      <div class="panel" id="desk">
         <div class="kicker">REFERRAL OVERVIEW</div>
         <h2>推廣概覽</h2>
         <p class="muted" id="meLine">我的節點：—</p>
-        <div class="tree-wrap" id="tree"></div>
+        <div class="tree-wrap fission-container" id="tree"></div>
       </div>
 
       <div class="panel" id="listPanel">
         <div class="kicker">DOWNLINE</div>
         <h2>下級清單（TG ID 脫敏）</h2>
+        <div class="table-scroll table-wrapper">
         <table class="data-table">
           <thead>
             <tr>
@@ -95,6 +98,7 @@
             <tr><td colspan="5" class="muted">尚無下級節點（不虛構用戶）</td></tr>
           </tbody>
         </table>
+        </div>
       </div>
 
       <div class="panel" id="wdPanel">

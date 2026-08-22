@@ -22,19 +22,25 @@
     return idx;
   }
 
+  function fillPrice(bars, i) {
+    const bar = bars[i];
+    if (!bar) return 0;
+    return Number(bar.close);
+  }
+
   function runTrades(bars, signalAt) {
     const trades = [];
-    let pos = 0;
+    let currentPosition = 0;
     let entry = 0;
     let entryI = 0;
     for (let i = 1; i < bars.length; i++) {
       const s = signalAt(i);
-      if (pos === 0 && s === 1) {
-        pos = 1;
-        entry = bars[i].close;
+      if (currentPosition === 0 && s === 1) {
+        currentPosition = 1;
+        entry = fillPrice(bars, i);
         entryI = i;
-      } else if (pos === 1 && s === -1) {
-        const px = bars[i].close;
+      } else if (currentPosition === 1 && s === -1) {
+        const px = fillPrice(bars, i);
         trades.push({
           side: "LONG",
           entry,
@@ -46,21 +52,22 @@
           t0: bars[entryI].time,
           t1: bars[i].time,
         });
-        pos = 0;
+        currentPosition = 0;
       }
     }
-    if (pos === 1) {
-      const last = bars[bars.length - 1];
+    if (currentPosition === 1) {
+      const lastI = bars.length - 1;
+      const px = fillPrice(bars, lastI);
       trades.push({
         side: "LONG",
         entry,
-        exit: last.close,
-        pnlPct: ((last.close - entry) / entry) * 100,
-        pnlAbs: last.close - entry,
+        exit: px,
+        pnlPct: ((px - entry) / entry) * 100,
+        pnlAbs: px - entry,
         i0: entryI,
-        i1: bars.length - 1,
+        i1: lastI,
         t0: bars[entryI].time,
-        t1: last.time,
+        t1: bars[lastI].time,
       });
     }
     return trades;
@@ -125,54 +132,123 @@
 
   const PINE = {
     dual: `//@version=5
-strategy("Dual SuperTrend", overlay=true, initial_capital=10000)
-stA = ta.supertrend(3, 10)
-stB = ta.supertrend(5, 10)
-long = close > stA and close > stB
-if long
-    strategy.entry("L", strategy.long)
-if not long
-    strategy.close("L")
+strategy("Dual SuperTrend Strategy (BTCUSDT 1H)", overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.percent, commission_value=0.05)
+
+// --- 参数设置 ---
+atrPeriod1 = input.int(10, "Fast ATR Period", minval=1)
+factor1 = input.float(1.5, "Fast SuperTrend Factor", minval=0.1, step=0.1)
+atrPeriod2 = input.int(20, "Slow ATR Period", minval=1)
+factor2 = input.float(3.0, "Slow SuperTrend Factor", minval=0.1, step=0.1)
+
+// --- SuperTrend 计算 ---
+[st1, dir1] = ta.supertrend(factor1, atrPeriod1)
+[st2, dir2] = ta.supertrend(factor2, atrPeriod2)
+
+// dir == -1 表示多头趋势 (Bullish), dir == 1 表示空头趋势 (Bearish)
+bullish = (dir1 == -1) and (dir2 == -1)
+bearish = (dir1 == 1) or (dir2 == 1)
+
+// --- 交易信号 ---
+longCondition = bullish and not (dir1[1] == -1 and dir2[1] == -1)
+exitCondition = bearish and (dir1[1] == -1 and dir2[1] == -1)
+
+if (longCondition)
+    strategy.entry("Long", strategy.long)
+
+if (exitCondition)
+    strategy.close("Long")
 `,
     ribbon: `//@version=5
-strategy("EMA Ribbon", overlay=true, initial_capital=10000)
-e20 = ta.ema(close, 20)
-e50 = ta.ema(close, 50)
-e200 = ta.ema(close, 200)
-plot(e20, color=color.aqua)
-plot(e50, color=color.orange)
-plot(e200, color=color.gray)
-if e20 > e50 and e50 > e200
-    strategy.entry("L", strategy.long)
-if e20 < e50 or e50 < e200
-    strategy.close("L")
+strategy("EMA Ribbon Momentum (BTCUSDT 1H)", overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.percent, commission_value=0.05)
+
+ema20 = ta.ema(close, 20)
+ema50 = ta.ema(close, 50)
+ema100 = ta.ema(close, 100)
+ema200 = ta.ema(close, 200)
+
+// 多头共振排列
+bullishRibbon = (ema20 > ema50) and (ema50 > ema100) and (ema100 > ema200)
+enterLong = bullishRibbon and ta.crossover(close, ema20)
+exitLong = ta.crossunder(close, ema50) or (ema20 < ema50)
+
+if (enterLong)
+    strategy.entry("EMA_Ribbon_Long", strategy.long)
+
+if (exitLong)
+    strategy.close("EMA_Ribbon_Long")
 `,
     rsi: `//@version=5
-strategy("RSI Divergence", overlay=false, initial_capital=10000)
-r = ta.rsi(close, 14)
-if ta.crossover(r, 30)
-    strategy.entry("L", strategy.long)
-if ta.crossunder(r, 70)
-    strategy.close("L")
+strategy("RSI Divergence Engine (BTCUSDT 15M)", overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.percent, commission_value=0.05)
+
+rsiLength = input.int(14, "RSI Length")
+lookback = input.int(5, "Pivot Lookback", minval=2)
+rsi = ta.rsi(close, rsiLength)
+
+// 局部极值检测 (Pivot High / Low)
+pl = ta.pivotlow(rsi, lookback, lookback)
+ph = ta.pivothigh(rsi, lookback, lookback)
+
+// 底背离判定
+bullishDiv = false
+if not na(pl)
+    prevLowPrice = ta.valuewhen(not na(pl), low[lookback], 1)
+    currentLowPrice = low[lookback]
+    prevRsi = ta.valuewhen(not na(pl), rsi[lookback], 1)
+    currentRsi = rsi[lookback]
+    if (currentLowPrice < prevLowPrice) and (currentRsi > prevRsi) and (currentRsi < 35)
+        bullishDiv := true
+
+if (bullishDiv)
+    strategy.entry("RSI_Div_Long", strategy.long)
+
+if (ta.crossover(rsi, 70) or ta.crossunder(rsi, 45))
+    strategy.close("RSI_Div_Long")
 `,
     squeeze: `//@version=5
-strategy("BB Squeeze Breakout", overlay=true, initial_capital=10000)
-[mid, up, lo] = ta.bb(close, 20, 2)
-bw = (up - lo) / mid
-squeeze = bw == ta.lowest(bw, 20)
-if squeeze and close > up
-    strategy.entry("L", strategy.long)
-if close < mid
-    strategy.close("L")
+strategy("Bollinger Squeeze Breakout (BTCUSDT 1H)", overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.percent, commission_value=0.05)
+
+length = 20
+multBB = 2.0
+multKC = 1.5
+
+// 布林带与肯特纳通道
+basis = ta.sma(close, length)
+dev = multBB * ta.stdev(close, length)
+upperBB = basis + dev
+lowerBB = basis - dev
+
+atrVal = ta.atr(length)
+upperKC = basis + (atrVal * multKC)
+lowerKC = basis - (atrVal * multKC)
+
+// 动量
+val = ta.linreg(close - math.avg(math.avg(ta.highest(high, length), ta.lowest(low, length)), ta.sma(close, length)), length, 0)
+
+squeezeCondition = (upperBB < upperKC) and (lowerBB > lowerKC)
+breakoutLong = (upperBB > upperKC) and (val > 0) and (val > val[1])
+exitLong = (val < val[1]) or (close < basis)
+
+if (breakoutLong)
+    strategy.entry("BB_Squeeze_Long", strategy.long)
+if (exitLong)
+    strategy.close("BB_Squeeze_Long")
 `,
     atr: `//@version=5
-strategy("Adaptive ATR Grid", overlay=true, initial_capital=10000)
-basis = ta.ema(close, 20)
-a = ta.atr(14)
-if close < basis - a
-    strategy.entry("L", strategy.long)
-if close > basis + a
-    strategy.close("L")
+strategy("Adaptive ATR Grid (BTCUSDT 5M)", overlay=true, initial_capital=10000, default_qty_type=strategy.percent_of_equity, default_qty_value=20, max_bars_back=500)
+
+atrLength = 14
+atrMult = 0.5
+gridStep = ta.atr(atrLength) * atrMult
+midPrice = ta.ema(close, 50)
+
+gridBuyLevel = midPrice - gridStep
+gridTakeProfit = midPrice + gridStep
+
+if (ta.crossunder(close, gridBuyLevel))
+    strategy.entry("GridBuy", strategy.long)
+
+if (ta.crossover(close, gridTakeProfit))
+    strategy.close("GridBuy")
 `,
   };
 

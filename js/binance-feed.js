@@ -409,6 +409,15 @@
     return pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
   }
 
+  function mdHmLocal(ts) {
+    const date = new Date(ts * 1000);
+    const m = (date.getMonth() + 1).toString().padStart(2, "0");
+    const d = date.getDate().toString().padStart(2, "0");
+    const h = date.getHours().toString().padStart(2, "0");
+    const min = date.getMinutes().toString().padStart(2, "0");
+    return m + "-" + d + " " + h + ":" + min;
+  }
+
   function isIntraday(interval) {
     return ["1s", "1m", "5m", "15m", "1h", "4h"].includes(interval);
   }
@@ -434,7 +443,7 @@
         dateFormat: "yyyy-MM-dd",
         timeFormatter: (time) => {
           const ts = unixOf(time);
-          return intra ? hmLocal(ts) : mdLocal(ts);
+          return intra ? mdHmLocal(ts) : mdLocal(ts);
         },
       },
       timeScale: {
@@ -447,7 +456,7 @@
         lockVisibleTimeRangeOnResize: true,
         tickMarkFormatter: (time) => {
           const ts = unixOf(time);
-          return intra ? hmLocal(ts) : mdLocal(ts);
+          return intra ? mdHmLocal(ts) : mdLocal(ts);
         },
       },
       handleScroll: {

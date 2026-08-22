@@ -45,31 +45,62 @@ function fmtWhen(ts) {
     " " +
     p(d.getHours()) +
     ":" +
-    p(d.getMinutes())
+    p(d.getMinutes()) +
+    ":" +
+    p(d.getSeconds())
   );
 }
 
-function pnlCell(pct) {
-  const n = Number(pct);
-  const cls = n >= 0 ? "pnl up" : "pnl down";
-  const sign = n > 0 ? "+" : "";
-  return `<span class="${cls}">${sign}${n.toFixed(2)}%</span>`;
+function intervalStep(iv) {
+  const map = { "1h": 3600, "4h": 14400, "15m": 900, "5m": 300, "1m": 60 };
+  return map[iv] || 0;
 }
 
-function tradeRowsHtml(trades) {
-  if (!trades.length) return `<tr><td colspan="5" class="muted">${t("noTrades")}</td></tr>`;
+function timeAligned(unix, iv) {
+  const step = intervalStep(iv);
+  if (!step) return true;
+  const ts = Number(unix);
+  if (!isFinite(ts)) return false;
+  const rem = ((ts % step) + step) % step;
+  if (rem === 0) return true;
+  const tz = (((-new Date().getTimezoneOffset()) * 60) % step + step) % step;
+  return rem === tz;
+}
+
+function pnlUsd(n) {
+  const v = Number(n);
+  if (!isFinite(v)) return "—";
+  const cls = v >= 0 ? "pnl up" : "pnl down";
+  const sign = v > 0 ? "+" : "";
+  return `<span class="${cls}">${sign}${fmtUsd(v)}</span>`;
+}
+
+function tradeRowsHtml(trades, eq) {
+  if (!trades.length) return `<tr><td colspan="6" class="muted">${t("noTrades")}</td></tr>`;
   const rows = [];
   let n = 0;
+  let currentPosition = 0;
   trades.forEach((tr) => {
-    const openLabel = tr.side === "SHORT" ? t("actShort") : t("actLong");
-    n += 1;
-    rows.push(
-      `<tr><td>${n}</td><td>${openLabel}</td><td>${Number(tr.entry).toFixed(2)}</td><td>${fmtWhen(tr.t0)}</td><td>—</td></tr>`,
-    );
-    n += 1;
-    rows.push(
-      `<tr><td>${n}</td><td>${t("actExit")}</td><td>${Number(tr.exit).toFixed(2)}</td><td>${fmtWhen(tr.t1)}</td><td>${pnlCell(tr.pnlPct)}</td></tr>`,
-    );
+    const openPx = Number(tr.entry);
+    const closePx = Number(tr.exit);
+    if (currentPosition === 0) {
+      currentPosition = 1;
+      n += 1;
+      const eqOpen = eq && eq[tr.i0] != null ? eq[tr.i0] : START_EQ;
+      timeAligned(tr.t0, interval);
+      rows.push(
+        `<tr><td>${n}</td><td>OPEN_LONG</td><td>${fmtWhen(tr.t0)}</td><td>${openPx.toFixed(2)}</td><td>—</td><td>${fmtUsd(eqOpen)}</td></tr>`,
+      );
+    }
+    if (currentPosition === 1) {
+      currentPosition = 0;
+      n += 1;
+      const eqClose = eq && eq[tr.i1] != null ? eq[tr.i1] : START_EQ;
+      timeAligned(tr.t1, interval);
+      rows.push(
+        `<tr><td>${n}</td><td>CLOSE_LONG</td><td>${fmtWhen(tr.t1)}</td><td>${closePx.toFixed(2)}</td><td>${pnlUsd(tr.pnlAbs)}</td><td>${fmtUsd(eqClose)}</td></tr>`,
+      );
+    }
   });
   return rows.join("");
 }
@@ -244,7 +275,7 @@ function run(silent) {
   $("mPf").textContent = fmtPf(st.pf);
   $("mTrades").textContent = String(st.trades);
   $("mBars").textContent = String(bars.length);
-  $("tradeRows").innerHTML = tradeRowsHtml(trades);
+  $("tradeRows").innerHTML = tradeRowsHtml(trades, eq);
   if (candleSeries) {
     candleSeries.setMarkers(
       trades.flatMap((tr) => [
