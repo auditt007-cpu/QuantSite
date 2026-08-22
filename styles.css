@@ -232,10 +232,18 @@ input {
   font-family: inherit; font-size: 18px; color: var(--neon);
   background: #0b121a; border: 1px solid var(--line); padding: 8px 12px; cursor: pointer;
 }
-.nav-kpis { display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 8px 0 12px; font-size: 13px; }
+.nav-kpis {
+  display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center;
+  margin: 8px 0 12px; font-size: 13px; line-height: 1.5; color: var(--text);
+}
+.nav-sep { color: #3d4a56; }
 .nav-chip { color: var(--muted); }
 .nav-chip.up { color: var(--neon); }
 .nav-chip.down { color: var(--red); }
+#candleChart, #equityChart, #tvChart, .lab-canvas, .chart-container, .lc-chart {
+  width: 100%;
+  display: block;
+}
 .pine-toolbar {
   position: sticky; top: 0; z-index: 2;
   background: #070a0f; padding: 8px 0; margin-top: 6px;
@@ -271,11 +279,20 @@ input {
   }
   .seg { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
   .seg-btn { flex: 0 0 auto; }
-  .chart-shell, .chart-shell.live, .lab-top {
-    height: 400px; min-height: 380px; max-height: 420px;
+  .chart-shell, .chart-shell.live {
+    height: 350px; min-height: 350px; max-height: 350px;
   }
-  .lab-canvas, .tv-chart, .lc-chart { min-height: 280px; }
-  .lc-chart { height: 220px; }
+  .lab-top {
+    height: auto; min-height: 0; max-height: none;
+  }
+  #candleChart, #equityChart, #backtest-chart, #tvChart,
+  .lab-canvas, .lc-chart, .chart-container {
+    width: 100% !important;
+    height: 350px !important;
+    min-height: 350px !important;
+    display: block !important;
+    flex: none !important;
+  }
   .h2 { font-size: 18px; }
   .engine-box select,
   .lab-actions .btn,

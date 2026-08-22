@@ -35,7 +35,7 @@
         </div>
         <div id="wsStatus" class="feed-status warn">↻ 正在重連</div>
       </div>
-      <div id="candleChart" class="lab-canvas"></div>
+      <div id="candleChart" class="lab-canvas chart-container"></div>
     </section>
 
     <section class="lab-panel">
@@ -53,14 +53,17 @@
           <pre id="pineSrc" class="pine-pre"></pre>
         </details>
       </div>
-      <h2 id="btTitle">淨值動態曲線 · 起始資金 $10,000 USDT</h2>
-      <div class="nav-kpis">
+      <p class="nav-kpis" id="navLine">
+        <span>起始資金: $10,000 USDT</span>
+        <span class="nav-sep">|</span>
         <span id="navNow">當前淨值: $10,000.00 USDT</span>
+        <span class="nav-sep">|</span>
         <span id="navPnl" class="nav-chip">累計淨利: 0.0%</span>
-        <span id="navDd" class="nav-chip">最大淨值回撤: 0.0%</span>
-      </div>
+        <span class="nav-sep">|</span>
+        <span id="navDd" class="nav-chip">最大回撤: 0.0%</span>
+      </p>
       <p class="muted" id="sampleHint">近 1000 根 K 線累積信號</p>
-      <div id="equityChart" class="lc-chart"></div>
+      <div id="equityChart" class="lc-chart chart-container"></div>
       <div class="bt-meta">
         <div class="stat"><span>勝率</span><b id="mWr">—</b></div>
         <div class="stat"><span>盈虧比</span><b id="mPf">—</b></div>

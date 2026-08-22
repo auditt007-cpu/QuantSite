@@ -71,7 +71,9 @@
         chart.remove();
         chart = null;
       }
-      chart = root.LightweightCharts.createChart(el, feed.chartOptions(el, el.clientHeight || (window.matchMedia("(max-width: 768px)").matches ? 400 : 520)));
+      const sizeH = window.matchMedia("(max-width: 768px)").matches ? 350 : Math.max(el.clientHeight || 520, 400);
+      chart = root.LightweightCharts.createChart(el, feed.chartOptions(el, sizeH));
+      chart.applyOptions({ width: Math.max(el.clientWidth, 280), height: sizeH });
       candle = addCandle(chart);
       vol = addHist(chart);
       candle.setData(bars.map((b) => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close })));
@@ -84,6 +86,12 @@
       );
       chart.timeScale().fitContent();
       applyMarks();
+      setTimeout(() => {
+        if (chart && el) {
+          chart.applyOptions({ width: Math.max(el.clientWidth, 280), height: sizeH });
+          chart.timeScale().fitContent();
+        }
+      }, 100);
     }
 
     async function load() {

@@ -67,19 +67,45 @@ function fmtSignedPct(x) {
 
 function paintPine() {
   $("pineSrc").textContent = spec().pine;
-  $("btTitle").textContent = "淨值動態曲線 · 起始資金 $10,000 USDT";
   $("stratSelect").value = engineId;
   $("sampleHint").textContent = "近 " + (bars.length || 1000) + " 根 K 線累積信號";
 }
 
 function paintNav(eq, st) {
   const now = eq && eq.length ? eq[eq.length - 1] : START_EQ;
-  $("btTitle").textContent = "淨值動態曲線 · 起始資金 $10,000 USDT";
   $("navNow").textContent = "當前淨值: $" + fmtUsd(now) + " USDT";
   $("navPnl").textContent = "累計淨利: " + fmtSignedPct(st ? st.ret : 0);
   $("navPnl").className = "nav-chip " + (st && st.ret < 0 ? "down" : "up");
   const dd = st ? st.mdd : 0;
-  $("navDd").textContent = "最大淨值回撤: " + (dd * 100).toFixed(1) + "%";
+  $("navDd").textContent = "最大回撤: " + (dd * 100).toFixed(1) + "%";
+}
+
+function chartBoxSize(el, desktopH) {
+  const mobile = window.matchMedia("(max-width: 768px)").matches;
+  const w = Math.max(el.clientWidth || window.innerWidth - 24, 280);
+  const h = mobile ? 350 : Math.max(el.clientHeight || desktopH, desktopH);
+  return { width: w, height: h };
+}
+
+function resizeCharts() {
+  const cEl = $("candleChart");
+  const eEl = $("equityChart");
+  if (candleChart && cEl) {
+    const s = chartBoxSize(cEl, 480);
+    candleChart.applyOptions({ width: s.width, height: s.height });
+    candleChart.timeScale().fitContent();
+  }
+  if (equityChart && eEl) {
+    const s = chartBoxSize(eEl, 220);
+    equityChart.applyOptions({ width: s.width, height: s.height });
+    equityChart.timeScale().fitContent();
+  }
+}
+
+function scheduleFit() {
+  requestAnimationFrame(() => {
+    setTimeout(resizeCharts, 100);
+  });
 }
 
 function upsert(bar) {
@@ -101,7 +127,9 @@ function mountCandles() {
     candleChart.remove();
     candleChart = null;
   }
-  candleChart = LC.createChart(el, feed.chartOptions(el, el.clientHeight || (window.matchMedia("(max-width: 768px)").matches ? 400 : 480)));
+  const size = chartBoxSize(el, 480);
+  candleChart = LC.createChart(el, feed.chartOptions(el, size.height));
+  candleChart.applyOptions({ width: size.width, height: size.height });
   candleSeries = addCandle(candleChart);
   volSeries = addHist(candleChart);
   candleSeries.setData(bars.map((b) => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close })));
@@ -113,6 +141,7 @@ function mountCandles() {
     })),
   );
   candleChart.timeScale().fitContent();
+  scheduleFit();
 }
 
 async function load(iv) {
@@ -133,7 +162,7 @@ async function load(iv) {
     },
     onKline: upsert,
   });
-  run();
+  run(true);
 }
 
 function fmtPf(pf) {
@@ -141,9 +170,9 @@ function fmtPf(pf) {
   return pf.toFixed(2);
 }
 
-function run() {
+function run(silent) {
   if (!bars.length) {
-    toast("請先載入 K 線");
+    if (!silent) toast("請先載入 K 線");
     return;
   }
   const t0 = performance.now();
@@ -179,23 +208,28 @@ function run() {
   }
   const eEl = $("equityChart");
   if (equityChart) equityChart.remove();
-  equityChart = LC.createChart(eEl, feed.chartOptions(eEl, 220));
+  const size = chartBoxSize(eEl, 220);
+  equityChart = LC.createChart(eEl, feed.chartOptions(eEl, size.height));
+  equityChart.applyOptions({ width: size.width, height: size.height });
   addLine(equityChart, "#2ee59d").setData(bars.map((b, i) => ({ time: b.time, value: eq[i] })));
   equityChart.timeScale().fitContent();
-  toast("回測完成 " + (performance.now() - t0).toFixed(1) + " ms · " + bars.length + " 根");
+  scheduleFit();
+  if (!silent) toast("回測完成 " + (performance.now() - t0).toFixed(1) + " ms · " + bars.length + " 根");
 }
 
 $("stratSelect").innerHTML = catalog.list.map((s) => `<option value="${s.id}">${s.name}</option>`).join("");
 $("stratSelect").addEventListener("change", () => {
   engineId = $("stratSelect").value;
   paintPine();
-  run();
+  run(true);
 });
 document.querySelectorAll("[data-tf]").forEach((b) => {
   b.addEventListener("click", () => load(b.getAttribute("data-tf")).catch((e) => toast(e.message)));
 });
-$("btnRun").addEventListener("click", run);
-$("btnCopyPine").addEventListener("click", async () => {
+$("btnRun").addEventListener("click", () => run(false));
+$("btnCopyPine").addEventListener("click", async (e) => {
+  e.preventDefault();
+  e.stopPropagation();
   try {
     await navigator.clipboard.writeText(spec().pine);
     toast("已成功複製至剪貼簿");
@@ -203,8 +237,10 @@ $("btnCopyPine").addEventListener("click", async () => {
     toast("複製失敗");
   }
 });
-window.addEventListener("resize", () => {
-  if (candleChart) candleChart.applyOptions({ width: $("candleChart").clientWidth, height: $("candleChart").clientHeight });
-  if (equityChart) equityChart.applyOptions({ width: $("equityChart").clientWidth });
-});
-load("1m").catch((e) => toast(e.message));
+window.addEventListener("resize", resizeCharts);
+function boot() {
+  scheduleFit();
+  load("1m").catch((e) => toast(e.message));
+}
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+else boot();
