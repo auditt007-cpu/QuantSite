@@ -1,7 +1,7 @@
 window.I18N = {
   "zh-Hant": {
     title: "QUANT ALPHA · 開源量化研究終端",
-    brandSub: "一个没有感情的量化机器",
+    brandSub: "一個沒有感情的量化機器",
     btnChannel: "🔥 免費加入 TG 信號頻道",
     login: "⚡ TG 一鍵登入",
     loginHint: "免密安全驗證",
@@ -281,7 +281,7 @@ window.I18N = {
   },
   en: {
     title: "QUANT ALPHA · Open-source quant desk",
-    brandSub: "一个没有感情的量化机器",
+    brandSub: "An unfeeling quant machine",
     btnChannel: "🔥 Join the free TG signal channel",
     login: "⚡ Telegram sign-in",
     loginHint: "No password",
