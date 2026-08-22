@@ -35,11 +35,15 @@ function applyI18n() {
     if (el.id === "nodeName" || el.id === "dashLevel" || el.id === "mCap" || el.id === "mWin" || el.id === "mPf" || el.id === "mDd") return;
     el.textContent = t(el.getAttribute("data-i18n"));
   });
-  $("loginCode").placeholder = t("phCode");
-  $("loginTg").placeholder = t("phTg");
-  $("txid").placeholder = t("phTxid");
+  document.querySelectorAll("[data-ph]").forEach((el) => {
+    el.placeholder = t(el.getAttribute("data-ph"));
+  });
+  if ($("txid") && !$("txid").getAttribute("data-ph")) $("txid").placeholder = t("phTxid");
   document.querySelectorAll("[data-lang]").forEach((b) => {
     b.classList.toggle("active", b.getAttribute("data-lang") === lang);
+  });
+  document.querySelectorAll("[data-lang-select]").forEach((sel) => {
+    sel.value = lang;
   });
   applyAuthUi();
   applyDesk(false);
@@ -259,6 +263,15 @@ function wire() {
       localStorage.setItem("quant_lang", lang);
       applyI18n();
     });
+  });
+  if ($("tgAltToggle") && $("loginTgWrap")) {
+    $("tgAltToggle").addEventListener("click", () => {
+      $("loginTgWrap").classList.toggle("show");
+    });
+  }
+  window.addEventListener("quant-lang", () => {
+    lang = detectLang();
+    applyI18n();
   });
   $("btnAuth").addEventListener("click", onAuthClick);
   $("btnDoLogin").addEventListener("click", doLogin);

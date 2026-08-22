@@ -72,7 +72,7 @@
         chart = null;
       }
       const sizeH = window.matchMedia("(max-width: 768px)").matches ? 350 : Math.max(el.clientHeight || 520, 400);
-      chart = root.LightweightCharts.createChart(el, feed.chartOptions(el, sizeH));
+      chart = root.LightweightCharts.createChart(el, feed.chartOptions(el, sizeH, interval));
       chart.applyOptions({ width: Math.max(el.clientWidth, 280), height: sizeH });
       candle = addCandle(chart);
       vol = addHist(chart);

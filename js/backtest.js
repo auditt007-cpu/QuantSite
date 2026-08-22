@@ -24,6 +24,54 @@ function spec() {
   return catalog.get(engineId);
 }
 
+function t(key) {
+  const lang = localStorage.getItem("quant_lang") || "zh-Hant";
+  const pack = (window.I18N && (window.I18N[lang] || window.I18N["zh-Hant"])) || {};
+  return pack[key] || key;
+}
+
+function fmtWhen(ts) {
+  const d = new Date(Number(ts) * 1000);
+  if (!isFinite(d.getTime())) return "—";
+  const p = (n) => String(n).padStart(2, "0");
+  return (
+    d.getFullYear() +
+    "-" +
+    p(d.getMonth() + 1) +
+    "-" +
+    p(d.getDate()) +
+    " " +
+    p(d.getHours()) +
+    ":" +
+    p(d.getMinutes())
+  );
+}
+
+function pnlCell(pct) {
+  const n = Number(pct);
+  const cls = n >= 0 ? "pnl up" : "pnl down";
+  const sign = n > 0 ? "+" : "";
+  return `<span class="${cls}">${sign}${n.toFixed(2)}%</span>`;
+}
+
+function tradeRowsHtml(trades) {
+  if (!trades.length) return `<tr><td colspan="5" class="muted">${t("noTrades")}</td></tr>`;
+  const rows = [];
+  let n = 0;
+  trades.forEach((tr) => {
+    const openLabel = tr.side === "SHORT" ? t("actShort") : t("actLong");
+    n += 1;
+    rows.push(
+      `<tr><td>${n}</td><td>${openLabel}</td><td>${Number(tr.entry).toFixed(2)}</td><td>${fmtWhen(tr.t0)}</td><td>—</td></tr>`,
+    );
+    n += 1;
+    rows.push(
+      `<tr><td>${n}</td><td>${t("actExit")}</td><td>${Number(tr.exit).toFixed(2)}</td><td>${fmtWhen(tr.t1)}</td><td>${pnlCell(tr.pnlPct)}</td></tr>`,
+    );
+  });
+  return rows.join("");
+}
+
 function addCandle(chart) {
   const opts = {
     upColor: "#2ee59d",
@@ -128,7 +176,7 @@ function mountCandles() {
     candleChart = null;
   }
   const size = chartBoxSize(el, 480);
-  candleChart = LC.createChart(el, feed.chartOptions(el, size.height));
+  candleChart = LC.createChart(el, feed.chartOptions(el, size.height, interval));
   candleChart.applyOptions({ width: size.width, height: size.height });
   candleSeries = addCandle(candleChart);
   volSeries = addHist(candleChart);
@@ -185,19 +233,7 @@ function run(silent) {
   $("mPf").textContent = fmtPf(st.pf);
   $("mTrades").textContent = String(st.trades);
   $("mBars").textContent = String(bars.length);
-  $("tradeRows").innerHTML = trades.length
-    ? trades
-        .map(
-          (tr, i) => `<tr>
-            <td>${i + 1}</td>
-            <td>${tr.side}</td>
-            <td>${tr.entry.toFixed(2)}</td>
-            <td>${tr.exit.toFixed(2)}</td>
-            <td>${tr.pnlPct.toFixed(2)}</td>
-          </tr>`,
-        )
-        .join("")
-    : `<tr><td colspan="5" class="muted">此樣本區間無交易</td></tr>`;
+  $("tradeRows").innerHTML = tradeRowsHtml(trades);
   if (candleSeries) {
     candleSeries.setMarkers(
       trades.flatMap((tr) => [
@@ -209,7 +245,7 @@ function run(silent) {
   const eEl = $("equityChart");
   if (equityChart) equityChart.remove();
   const size = chartBoxSize(eEl, 220);
-  equityChart = LC.createChart(eEl, feed.chartOptions(eEl, size.height));
+  equityChart = LC.createChart(eEl, feed.chartOptions(eEl, size.height, interval));
   equityChart.applyOptions({ width: size.width, height: size.height });
   addLine(equityChart, "#2ee59d").setData(bars.map((b, i) => ({ time: b.time, value: eq[i] })));
   equityChart.timeScale().fitContent();
@@ -238,6 +274,9 @@ $("btnCopyPine").addEventListener("click", async (e) => {
   }
 });
 window.addEventListener("resize", resizeCharts);
+window.addEventListener("quant-lang", () => {
+  if (bars.length) run(true);
+});
 function boot() {
   scheduleFit();
   load("1m").catch((e) => toast(e.message));

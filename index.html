@@ -14,12 +14,26 @@
         <h1>QUANT.ALPHA<span data-i18n="brandSub">機構級量化回測終端</span></h1>
       </a>
       <button type="button" class="nav-toggle" id="navToggle" aria-label="選單">☰</button>
+      <label class="lang-wrap lang-wrap-bar">
+        <select class="lang-select" data-lang-select aria-label="Language">
+          <option value="zh-Hant">繁體中文</option>
+          <option value="zh-CN">简体中文</option>
+          <option value="en">English</option>
+        </select>
+      </label>
       <div class="nav-actions" id="navActions">
-        <a class="btn ghost" href="./marketplace.html">策略廣場</a>
-        <a class="btn ghost" href="./backtest.html">回測中心</a>
-        <a class="btn ghost" href="./affiliate.html">裂變分銷</a>
+        <a class="btn ghost" href="./marketplace.html" data-i18n="navMarket">策略廣場</a>
+        <a class="btn ghost" href="./backtest.html" data-i18n="navBacktest">回測中心</a>
+        <a class="btn ghost" href="./affiliate.html" data-i18n="navAff">裂變分銷</a>
         <button type="button" class="btn cyan" id="btnAuth" data-i18n="login">登入 / 註冊</button>
         <a id="btnChannel" class="btn" href="https://t.me/quant_alpha_signals" target="_blank" rel="noopener" data-i18n="btnChannel">免費加入 TG 頻道</a>
+        <label class="lang-wrap lang-wrap-menu">
+          <select class="lang-select" data-lang-select aria-label="Language">
+            <option value="zh-Hant">繁體中文</option>
+            <option value="zh-CN">简体中文</option>
+            <option value="en">English</option>
+          </select>
+        </label>
       </div>
     </header>
 
@@ -27,8 +41,8 @@
       <div class="desk-head">
         <div>
           <div class="kicker">BTCUSDT · 1m</div>
-          <h2 class="h2">比特幣實盤大盤</h2>
-          <p class="muted">鎖定 BTCUSDT 一分鐘 K 線，幣安 WebSocket 秒級跳動。買賣點由 Dual SuperTrend 於本機標定。</p>
+          <h2 class="h2" data-i18n="heroTitle">比特幣實盤大盤</h2>
+          <p class="muted" data-i18n="liveLead">鎖定 BTCUSDT 一分鐘 K 線，幣安 WebSocket 秒級跳動。買賣點由 Dual SuperTrend 於本機標定。</p>
         </div>
         <div id="wsStatus" class="feed-status warn">↻ 正在重連</div>
       </div>
@@ -57,15 +71,22 @@
   </div>
 
   <div class="modal-bg" id="loginModal">
-    <div class="modal">
+    <div class="modal login-modal">
       <h3 data-i18n="loginTitle">登入 / 註冊</h3>
-      <p class="muted" data-i18n="loginLead">輸入 Telegram 數字 ID，或貼上機器人給你的 4 位綁定碼，即可一鍵登入。</p>
-      <a id="btnOpenBot" class="btn cyan" href="https://t.me/grid_quant_bot?start=bind" target="_blank" rel="noopener" data-i18n="openBot">先打開 Telegram 取得 4 位綁定碼</a>
-      <input id="loginCode" maxlength="4" inputmode="numeric" placeholder="4 位綁定碼，例如 8821" />
-      <input id="loginTg" placeholder="或輸入 Telegram ID" />
-      <button class="btn-cta compact" id="btnDoLogin" style="margin-top:12px;width:100%" data-i18n="doLogin">一鍵登入</button>
+      <div class="login-step">
+        <a id="btnOpenBot" class="btn-tg" href="https://t.me/grid_quant_bot?start=bind" target="_blank" rel="noopener" data-i18n="openBot">📱 打開 Telegram 獲取 4 位登入碼</a>
+      </div>
+      <div class="login-step">
+        <label for="loginCode" data-i18n="codeLabel">4 位驗證碼</label>
+        <input id="loginCode" maxlength="4" inputmode="numeric" placeholder="例如: 8821" data-ph="phCode" />
+      </div>
+      <button type="button" id="tgAltToggle" data-i18n="altTg">或者輸入 Telegram 數字 ID 登入 ▼</button>
+      <div id="loginTgWrap">
+        <input id="loginTg" placeholder="Telegram ID" data-ph="phTg" />
+      </div>
+      <button class="btn-cta compact" id="btnDoLogin" style="margin-top:16px;width:100%" data-i18n="doLogin">一鍵登入</button>
       <p class="status" id="loginStatus"></p>
-      <button class="btn ghost" data-close="loginModal" data-i18n="close">關閉</button>
+      <button type="button" class="btn-cancel" data-close="loginModal" data-i18n="cancel">取消</button>
     </div>
   </div>
 
@@ -102,7 +123,7 @@
           <img class="qr" src="./usdt-qr.png" alt="USDT QR" />
           <div class="addr" id="wallet"></div>
           <button class="btn" id="btnCopyAddr" data-i18n="copyAddr">複製收款地址</button>
-          <input id="txid" placeholder="貼上轉帳流水號" />
+          <input id="txid" placeholder="貼上轉帳流水號" data-ph="phTxid" />
           <button class="btn amber" id="payBtn" style="margin-top:10px" data-i18n="submitPay">提交校驗</button>
         </div>
         <p class="status" id="payStatus"></p>
@@ -124,6 +145,7 @@
   <script src="./js/nav.js"></script>
   <script src="./config.js"></script>
   <script src="./i18n.js"></script>
+  <script src="./js/i18n-boot.js"></script>
   <script src="./js/indicators.js"></script>
   <script src="./js/strategy-catalog.js"></script>
   <script src="./js/binance-feed.js"></script>

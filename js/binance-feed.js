@@ -48,7 +48,11 @@
     if (!el) return;
     const live = state === "live";
     el.className = "feed-status " + (live ? "live" : "warn");
-    el.textContent = live ? "● 實時推流中" : "↻ 正在重連";
+    const lang = (typeof localStorage !== "undefined" && localStorage.getItem("quant_lang")) || "zh-Hant";
+    const pack = (root.I18N && (root.I18N[lang] || root.I18N["zh-Hant"])) || {};
+    el.textContent = live
+      ? pack.feedLive || "● 實時推流中"
+      : pack.feedReconnect || "↻ 正在重連";
   }
 
   function createSocket({ symbol, interval, onKline, onStatus, onGiveUp }) {
@@ -205,10 +209,35 @@
     };
   }
 
-  function chartOptions(el, height) {
+  function pad2(n) {
+    return String(n).padStart(2, "0");
+  }
+
+  function unixOf(time) {
+    if (typeof time === "number") return time;
+    if (time && time.year) return Math.floor(Date.UTC(time.year, time.month - 1, time.day) / 1000);
+    return 0;
+  }
+
+  function hmLocal(ts) {
+    const d = new Date(ts * 1000);
+    return pad2(d.getHours()) + ":" + pad2(d.getMinutes());
+  }
+
+  function mdLocal(ts) {
+    const d = new Date(ts * 1000);
+    return pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+  }
+
+  function isIntraday(interval) {
+    return ["1s", "1m", "5m", "15m", "1h", "4h"].includes(interval);
+  }
+
+  function chartOptions(el, height, interval) {
     const mobile = typeof window !== "undefined" && window.matchMedia("(max-width: 768px)").matches;
+    const intra = isIntraday(interval || "1m");
     return {
-      width: el.clientWidth,
+      width: Math.max(el.clientWidth || 0, 280),
       height,
       layout: {
         background: { color: "#080b10" },
@@ -221,14 +250,25 @@
         horzLines: { visible: true, color: mobile ? "#10151c" : "#141c28" },
       },
       rightPriceScale: { borderColor: "#1a2330", autoScale: true },
+      localization: {
+        dateFormat: "yyyy-MM-dd",
+        timeFormatter: (time) => {
+          const ts = unixOf(time);
+          return intra ? hmLocal(ts) : mdLocal(ts);
+        },
+      },
       timeScale: {
         borderColor: "#1a2330",
-        timeVisible: !mobile,
+        timeVisible: intra,
         secondsVisible: false,
         fixLeftEdge: true,
         fixRightEdge: true,
         rightBarStaysOnScroll: true,
         lockVisibleTimeRangeOnResize: true,
+        tickMarkFormatter: (time) => {
+          const ts = unixOf(time);
+          return intra ? hmLocal(ts) : mdLocal(ts);
+        },
       },
       handleScroll: {
         mouseWheel: true,

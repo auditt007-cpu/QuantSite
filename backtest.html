@@ -11,14 +11,28 @@
     <header class="topbar">
       <a class="brand" href="./index.html">
         <div class="logo"></div>
-        <h1>QUANT.ALPHA<span>機構級量化回測終端</span></h1>
+        <h1>QUANT.ALPHA<span data-i18n="brandSub">機構級量化回測終端</span></h1>
       </a>
       <button type="button" class="nav-toggle" id="navToggle" aria-label="選單">☰</button>
+      <label class="lang-wrap lang-wrap-bar">
+        <select class="lang-select" data-lang-select aria-label="Language">
+          <option value="zh-Hant">繁體中文</option>
+          <option value="zh-CN">简体中文</option>
+          <option value="en">English</option>
+        </select>
+      </label>
       <div class="nav-actions" id="navActions">
-        <a class="btn ghost" href="./marketplace.html">策略廣場</a>
-        <a class="btn cyan" href="./backtest.html">回測中心</a>
-        <a class="btn ghost" href="./affiliate.html">裂變分銷</a>
-        <a class="btn" href="https://t.me/quant_alpha_signals" target="_blank" rel="noopener">免費加入 TG 頻道</a>
+        <a class="btn ghost" href="./marketplace.html" data-i18n="navMarket">策略廣場</a>
+        <a class="btn cyan" href="./backtest.html" data-i18n="navBacktest">回測中心</a>
+        <a class="btn ghost" href="./affiliate.html" data-i18n="navAff">裂變分銷</a>
+        <a class="btn" href="https://t.me/quant_alpha_signals" target="_blank" rel="noopener" data-i18n="btnChannel">免費加入 TG 頻道</a>
+        <label class="lang-wrap lang-wrap-menu">
+          <select class="lang-select" data-lang-select aria-label="Language">
+            <option value="zh-Hant">繁體中文</option>
+            <option value="zh-CN">简体中文</option>
+            <option value="en">English</option>
+          </select>
+        </label>
       </div>
     </header>
 
@@ -40,15 +54,15 @@
 
     <section class="lab-panel">
       <div class="engine-box">
-        <label class="muted" for="stratSelect">策略引擎選擇</label>
+        <label class="muted" for="stratSelect" data-i18n="engineLabel">策略引擎選擇</label>
         <select id="stratSelect"></select>
         <div class="lab-actions">
-          <button class="btn-cta" id="btnRun">開始回測</button>
+          <button class="btn-cta" id="btnRun" data-i18n="startBt">開始回測</button>
         </div>
         <details class="pine-box">
-          <summary>PineScript v5 策略源代碼</summary>
+          <summary data-i18n="pineHead">PineScript v5 策略源代碼</summary>
           <div class="pine-toolbar">
-            <button type="button" class="btn" id="btnCopyPine">一鍵複製 PineScript 代碼</button>
+            <button type="button" class="btn" id="btnCopyPine" data-i18n="copyPineBtn">一鍵複製 PineScript 代碼</button>
           </div>
           <pre id="pineSrc" class="pine-pre"></pre>
         </details>
@@ -73,7 +87,7 @@
       <div class="table-scroll">
         <table class="data-table">
           <thead>
-            <tr><th>#</th><th>方向</th><th>進場</th><th>出場</th><th>損益 %</th></tr>
+            <tr><th>#</th><th data-i18n="colAction">動作</th><th data-i18n="colPrice">價格</th><th data-i18n="colTime">時間</th><th data-i18n="colPnl">盈虧</th></tr>
           </thead>
           <tbody id="tradeRows">
             <tr><td colspan="5" class="muted">點擊「開始回測」後顯示明細</td></tr>
@@ -90,6 +104,8 @@
   <div class="toast" id="toast"></div>
   <script src="./js/nav.js"></script>
   <script src="./config.js"></script>
+  <script src="./i18n.js"></script>
+  <script src="./js/i18n-boot.js"></script>
   <script src="./js/indicators.js"></script>
   <script src="./js/strategy-catalog.js"></script>
   <script src="./js/binance-feed.js"></script>
