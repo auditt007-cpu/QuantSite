@@ -12,6 +12,7 @@ type Bindings = {
   TG_CHANNEL_USERNAME?: string;
   TG_BOT_USERNAME?: string;
   PUBLIC_CHANNEL_ENABLED?: string;
+  DEEPSEEK_API_KEY?: string;
 };
 
 type CommissionRow = {
@@ -90,6 +91,7 @@ app.get("/", (c) =>
       "GET /api/klines",
       "GET /api/strategies",
       "GET /api/admin/members",
+      "POST /api/ai-backtest",
       "POST /api/strategies",
       "PUT /api/strategies/:id",
       "DELETE /api/strategies/:id",
@@ -578,6 +580,99 @@ app.post("/api/presence", async (c) => {
   user.last_seen = Date.now();
   await putUser(c.env, user);
   return c.json({ ok: true });
+});
+
+const AI_SYSTEM = `You write ONLY a JavaScript function body. No markdown fences, no comments, no explanation, no imports.
+The function is invoked as function(kLines, currentIndex).
+kLines is an array of {time,open,high,low,close,volume} numbers.
+currentIndex is the bar to evaluate.
+Return true if the user's strategy condition is met at currentIndex, otherwise false.
+If there is not enough history, return false.
+Do not use fetch, eval, Function, this, window, document, globalThis, process, WebSocket, import, require, or network APIs.
+Use only kLines[i] fields and Math.`;
+
+const AI_BANNED = /eval|Function|fetch|XMLHttpRequest|import\s*\(|require\s*\(|process|Deno|window|document|globalThis|localStorage|indexedDB|WebSocket|Worker|constructor|__proto__|prototype/;
+
+function extractJsBody(raw: string) {
+  let s = String(raw || "").trim();
+  s = s.replace(/^```[a-zA-Z]*\s*/i, "").replace(/```$/i, "").trim();
+  const fn = s.match(/^(?:async\s+)?function(?:\s+\w+)?\s*\([^)]*\)\s*\{([\s\S]*)\}\s*;?\s*$/);
+  if (fn) return fn[1].trim();
+  const arrow = s.match(/^(?:async\s*)?\([^)]*\)\s*=>\s*\{([\s\S]*)\}\s*;?\s*$/);
+  if (arrow) return arrow[1].trim();
+  return s;
+}
+
+app.post("/api/ai-backtest", async (c) => {
+  const body = await readJson(c);
+  const prompt = String(body.prompt || body.text || "").trim().slice(0, 2000);
+  if (prompt.length < 8) return c.json({ error: "請描述更完整的策略條件" }, 400);
+
+  const ip = String(c.req.header("CF-Connecting-IP") || c.req.header("x-forwarded-for") || "0").split(",")[0].trim();
+  const tgId = String(body.tg_id || "").trim();
+  let tier: "guest" | "free" | "vip" = "guest";
+  let quotaId = "ip:" + (ip || "0");
+  if (/^\d{5,15}$/.test(tgId)) {
+    const user = await getUserByTg(c.env, tgId);
+    if (user) {
+      tier = user.paid ? "vip" : "free";
+      quotaId = "tg:" + tgId;
+    }
+  }
+  const cap = tier === "vip" ? 100 : tier === "free" ? 10 : 3;
+  const day = new Date().toISOString().slice(0, 10);
+  const key = `aiquota:${day}:${quotaId}`;
+  const used = Number((await c.env.QUANT_USERS.get(key)) || "0");
+  if (used >= cap) {
+    const msg =
+      tier === "guest"
+        ? "今日免費次數已用盡，請綁定 Telegram 解鎖 10 次額度"
+        : tier === "free"
+          ? "基礎額度已用盡，請升級 VIP 解鎖每日 100 次高頻調用"
+          : "今日 VIP 100 次額度已用盡，請明日再試";
+    const code = tier === "guest" ? "limit_guest" : tier === "free" ? "limit_free" : "limit_vip";
+    return c.json({ error: msg, code, tier, used, cap }, 429);
+  }
+
+  const apiKey = (c.env.DEEPSEEK_API_KEY || "").trim();
+  if (!apiKey) return c.json({ error: "AI 引擎未配置" }, 503);
+
+  const ds = await fetch("https://api.deepseek.com/chat/completions", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: "Bearer " + apiKey,
+    },
+    body: JSON.stringify({
+      model: "deepseek-chat",
+      temperature: 0.2,
+      messages: [
+        { role: "system", content: AI_SYSTEM },
+        { role: "user", content: prompt },
+      ],
+    }),
+  });
+  const payload = (await ds.json()) as {
+    choices?: Array<{ message?: { content?: string } }>;
+    error?: { message?: string };
+  };
+  if (!ds.ok) {
+    return c.json({ error: payload.error?.message || "DeepSeek HTTP " + ds.status }, 502);
+  }
+  const raw = payload.choices?.[0]?.message?.content || "";
+  const code = extractJsBody(raw);
+  if (!code || code.length < 8) return c.json({ error: "AI 未返回可執行邏輯，請換一種描述" }, 422);
+  if (AI_BANNED.test(code)) return c.json({ error: "生成代碼未通過安全校驗，請重新描述" }, 422);
+
+  await c.env.QUANT_USERS.put(key, String(used + 1), { expirationTtl: 60 * 60 * 36 });
+  return c.json({
+    ok: true,
+    code,
+    tier,
+    used: used + 1,
+    cap,
+    left: Math.max(0, cap - used - 1),
+  });
 });
 
 app.post("/api/telegram", async (c) => {

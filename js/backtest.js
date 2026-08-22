@@ -155,7 +155,7 @@ function paintPine() {
   const s = spec();
   $("stratSelect").value = engineId;
   $("sampleHint").textContent = "近 " + (bars.length || 1000) + " 根 K 線累積信號";
-  const locked = isMasterSpec(s);
+  const locked = isMasterSpec(s) || (s && s.id === "ai");
   const gate = $("masterGate");
   if (gate) {
     if (locked) {
@@ -172,7 +172,10 @@ function paintPine() {
   const box = document.querySelector(".pine-box");
   const copyBtn = $("btnCopyPine");
   if (locked) {
-    $("pineSrc").textContent = "大師組源碼不在網站公開。付費後請聯繫客服，索取指定交易平台的接入配置連結。";
+    $("pineSrc").textContent =
+      s && s.id === "ai"
+        ? "此邏輯由 AI 即時生成，僅在本機回測。不提供 Pine 複製與實盤接入。"
+        : "大師組源碼不在網站公開。付費後請聯繫客服，索取指定交易平台的接入配置連結。";
     if (copyBtn) copyBtn.hidden = true;
     if (box) {
       const sum = box.querySelector("summary");
@@ -329,49 +332,64 @@ function run(silent) {
 
 $("stratSelect").innerHTML = catalog.list
   .map((s) => {
-    const tag = s.tier === "master" ? "[大師組] " : "";
+    const tag = s.tier === "master" ? "[大師組] " : s.id === "ai" ? "[AI] " : "";
     return `<option value="${s.id}">${tag}${s.name}</option>`;
   })
   .join("");
-$("stratSelect").addEventListener("change", () => {
-  engineId = $("stratSelect").value;
-  paintPine();
-  run(true);
-});
-document.querySelectorAll("[data-tf]").forEach((b) => {
-  b.addEventListener("click", () => load(b.getAttribute("data-tf")).catch((e) => toast(e.message)));
-});
-$("btnRun").addEventListener("click", () => run(false));
-$("btnCopyPine").addEventListener("click", async (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-  if (isMasterSpec(spec())) {
-    toast("大師組源碼不公開，請聯繫客服獲取接入連結", "warn");
-    return;
-  }
-  const btn = $("btnCopyPine");
-  const prev = btn.textContent;
-  try {
-    if (window.copyToClipboard) {
-      await window.copyToClipboard(spec().pine, () => {
-        btn.textContent = t("copiedBang");
-        toast(t("copyPineOk"), "ok");
-        setTimeout(() => {
-          btn.textContent = prev;
-        }, 2000);
-      });
-    } else {
+function bindDesk() {
+  if (document.getElementById("stratSelect") && document.getElementById("stratSelect").getAttribute("data-bound") === "1") return;
+  if ($("stratSelect")) $("stratSelect").setAttribute("data-bound", "1");
+  $("stratSelect").addEventListener("change", () => {
+    engineId = $("stratSelect").value;
+    paintPine();
+    run(true);
+  });
+  document.querySelectorAll("[data-tf]").forEach((b) => {
+    b.addEventListener("click", () => load(b.getAttribute("data-tf")).catch((e) => toast(e.message)));
+  });
+  $("btnRun").addEventListener("click", () => run(false));
+  $("btnCopyPine").addEventListener("click", async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isMasterSpec(spec()) || spec().id === "ai") {
+      toast("此策略源碼不公開複製", "warn");
+      return;
+    }
+    const btn = $("btnCopyPine");
+    const prev = btn.textContent;
+    try {
+      if (window.copyToClipboard) {
+        await window.copyToClipboard(spec().pine, () => {
+          btn.textContent = t("copiedBang");
+          toast(t("copyPineOk"), "ok");
+          setTimeout(() => {
+            btn.textContent = prev;
+          }, 2000);
+        });
+      } else {
+        toast(t("copyFail"), "err");
+      }
+    } catch {
       toast(t("copyFail"), "err");
     }
-  } catch {
-    toast(t("copyFail"), "err");
-  }
-});
-window.addEventListener("resize", resizeCharts);
-window.addEventListener("quant-lang", () => {
-  if (bars.length) run(true);
-});
+  });
+  window.addEventListener("resize", resizeCharts);
+  window.addEventListener("quant-lang", () => {
+    if (bars.length) run(true);
+  });
+}
+function refillSelect() {
+  if (!$("stratSelect")) return;
+  $("stratSelect").innerHTML = catalog.list
+    .map((s) => {
+      const tag = s.tier === "master" ? "[大師組] " : s.id === "ai" ? "[AI] " : "";
+      return `<option value="${s.id}">${tag}${s.name}</option>`;
+    })
+    .join("");
+}
 function boot() {
+  bindDesk();
+  refillSelect();
   scheduleFit();
   const q = new URLSearchParams(location.search);
   const qIv = q.get("interval");
@@ -386,5 +404,18 @@ function boot() {
 function INTERVALS_OK(iv) {
   return ["1s", "1m", "5m", "15m", "1h", "4h", "1d", "1w"].includes(iv);
 }
-if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
-else boot();
+window.QABacktest = {
+  open(id, iv) {
+    bindDesk();
+    refillSelect();
+    if (id && catalog.get(id)) engineId = id;
+    if ($("stratSelect")) $("stratSelect").value = engineId;
+    const startIv = INTERVALS_OK(iv) ? iv : interval || "1h";
+    load(startIv).catch((e) => toast(e.message, "warn"));
+  },
+};
+const DEFER = Boolean(document.getElementById("viewList"));
+if (!DEFER) {
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
+}

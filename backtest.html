@@ -2,126 +2,13 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>QUANT ALPHA · 量化回測中心</title>
-  <link rel="stylesheet" href="./styles.css" />
+  <script>
+    location.replace("./terminal.html" + location.search + location.hash);
+  </script>
+  <meta http-equiv="refresh" content="0;url=./terminal.html" />
+  <title>Redirect</title>
 </head>
 <body>
-  <div class="wrap wide">
-    <header class="topbar">
-      <a class="brand" href="./index.html">
-        <div class="logo"></div>
-        <div class="brand-text">
-          <h1>QUANT.ALPHA</h1>
-          <p class="site-slogan" data-i18n="brandSub">一個沒有感情的量化機器</p>
-        </div>
-      </a>
-      <div class="nav-end">
-        <div class="auth-dock" id="authDock">
-          <button type="button" class="auth-btn" id="btnAuth">[ 🔐 請先登入 ]</button>
-        </div>
-        <button type="button" class="nav-toggle" id="navToggle" aria-label="選單">☰</button>
-      </div>
-      <div class="nav-actions" id="navActions">
-        <a class="nav-link" href="./marketplace.html" data-i18n="navMarket">策略廣場</a>
-        <a class="nav-link" href="./backtest.html" data-i18n="navBacktest">回測中心</a>
-        <a class="nav-link" href="./member.html" data-i18n="navMember">會員中心</a>
-        <a class="nav-link" href="./affiliate.html" data-i18n="navAff">推薦計畫</a>
-        <a class="btn-cta pulse" href="https://t.me/quant_alpha_signals" target="_blank" rel="noopener" data-i18n="btnChannel">🔥 免費加入 TG 信號頻道</a>
-        <div class="lang-pills" role="group" aria-label="Language">
-          <button type="button" data-lang="zh-Hant">繁</button>
-          <button type="button" data-lang="zh-CN">简</button>
-          <button type="button" data-lang="en">EN</button>
-        </div>
-      </div>
-    </header>
-
-    <section class="lab-top">
-      <div class="lab-top-bar">
-        <div id="wsStatus" class="feed-status wait">● 數據重連中</div>
-        <div class="seg" role="tablist">
-          <button type="button" class="seg-btn active" data-tf="1m">1m</button>
-          <button type="button" class="seg-btn" data-tf="5m">5m</button>
-          <button type="button" class="seg-btn" data-tf="15m">15m</button>
-          <button type="button" class="seg-btn" data-tf="1h">1h</button>
-          <button type="button" class="seg-btn" data-tf="4h">4h</button>
-          <button type="button" class="seg-btn" data-tf="1d">1D</button>
-          <button type="button" class="seg-btn" data-tf="1w">1W</button>
-        </div>
-      </div>
-      <div class="lab-chart-frame">
-        <div id="candleChart" class="lab-canvas chart-container"></div>
-        <a class="tv-chart-badge" href="https://www.tradingview.com/" target="_blank" rel="noopener">Charts by TradingView</a>
-      </div>
-    </section>
-
-    <section class="lab-panel">
-      <div class="engine-box">
-        <label class="muted" for="stratSelect" data-i18n="engineLabel">策略引擎選擇</label>
-        <select id="stratSelect"></select>
-        <div class="lab-actions">
-          <button class="btn-cta" id="btnRun" data-i18n="startBt">開始回測</button>
-        </div>
-        <div class="risk-banner" id="masterGate" hidden></div>
-        <details class="pine-box">
-          <summary data-i18n="pineHead">PineScript v5 策略源代碼</summary>
-          <div class="pine-toolbar">
-            <button type="button" class="btn" id="btnCopyPine" data-i18n="copyPineBtn">一鍵複製 PineScript 代碼</button>
-          </div>
-          <pre id="pineSrc" class="pine-pre"></pre>
-        </details>
-      </div>
-      <p class="nav-kpis" id="navLine">
-        <span>起始資金: $10,000 USDT</span>
-        <span class="nav-sep">|</span>
-        <span id="navNow">當前淨值: $10,000.00 USDT</span>
-        <span class="nav-sep">|</span>
-        <span id="navPnl" class="nav-chip">累計淨利: 0.0%</span>
-        <span class="nav-sep">|</span>
-        <span id="navDd" class="nav-chip">最大回撤: 0.0%</span>
-      </p>
-      <p class="muted" id="sampleHint">近 1000 根 K 線累積信號</p>
-      <div id="equityChart" class="lc-chart chart-container"></div>
-      <div class="bt-meta">
-        <div class="stat"><span>勝率</span><b id="mWr">—</b></div>
-        <div class="stat"><span>盈虧比</span><b id="mPf">—</b></div>
-        <div class="stat"><span>交易筆數</span><b id="mTrades">—</b></div>
-        <div class="stat"><span>樣本</span><b id="mBars">—</b></div>
-      </div>
-      <div class="table-scroll">
-        <table class="data-table">
-          <thead>
-            <tr><th>#</th><th data-i18n="colAction">交易動作</th><th data-i18n="colTime">信號時間</th><th data-i18n="colPrice">成交價</th><th data-i18n="colPnl">單筆盈虧</th><th data-i18n="colEquity">淨值</th></tr>
-          </thead>
-          <tbody id="tradeRows">
-            <tr><td colspan="6" class="muted">點擊「開始回測」後顯示明細</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="risk-banner" data-i18n="riskBanner">⚠️ 免責聲明：歷史回測數據不代表未來實盤收益，未計入滑點與手續費。本站信號僅供技術研究與量化編程參考，不構成任何投資建議。</div>
-    </section>
-
-    <footer class="site-foot">
-      <div class="foot-brand">QUANT ALPHA TECHNOLOGIES LTD. © 2026. All Rights Reserved.</div>
-      <div class="foot-official">
-        <span>Charts by <a href="https://www.tradingview.com/" target="_blank" rel="noopener">TradingView</a></span>
-      </div>
-    </footer>
-  </div>
-  <div class="toast" id="toast"></div>
-  <script src="./js/nav.js"></script>
-  <script src="./config.js"></script>
-  <script src="./i18n.js"></script>
-  <script src="./js/i18n-boot.js"></script>
-  <script src="./js/money.js"></script>
-  <script src="./js/clipboard.js"></script>
-  <script src="./js/identity.js"></script>
-  <script src="./js/offline-klines.js"></script>
-  <script src="./js/indicators.js"></script>
-  <script src="./js/strategy-catalog.js"></script>
-  <script src="./js/master-catalog.js"></script>
-  <script src="./js/binance-feed.js"></script>
-  <script src="./js/lightweight-charts.standalone.production.js"></script>
-  <script src="./js/backtest.js"></script>
+  <p><a href="./terminal.html">⚡ 策略終端</a></p>
 </body>
 </html>
