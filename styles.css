@@ -1600,14 +1600,21 @@ input.is-focused, textarea.is-focused, select.is-focused {
     font-size: 13px;
   }
   .m-card.is-paged { display: none !important; }
-  .sheet-handle { display: block; }
+  .sheet-head,
+  .sheet-foot,
+  .sheet-hint {
+    display: block;
+  }
   .result-sheet {
     position: fixed;
-    left: 0; right: 0; bottom: calc(64px + env(safe-area-inset-bottom));
-    height: 80vh;
-    max-height: 80vh;
+    left: 0;
+    right: 0;
+    bottom: calc(64px + env(safe-area-inset-bottom));
+    height: min(72vh, 640px);
+    max-height: min(72vh, 640px);
     background: #fff;
     border-top: 2px solid #000;
+    border-radius: 16px 16px 0 0;
     z-index: 40;
     transform: translateY(110%);
     transition: transform 0.22s ease;
@@ -1616,9 +1623,89 @@ input.is-focused, textarea.is-focused, select.is-focused {
     box-shadow: 0 -8px 24px rgba(0,0,0,0.12);
   }
   .result-sheet.open { transform: translateY(0); }
-  .sheet-body { overflow: auto; -webkit-overflow-scrolling: touch; padding: 8px 16px 24px; }
+  .sheet-head {
+    flex: 0 0 auto;
+    padding: 10px 16px 8px;
+    border-bottom: 1px solid #e2e8f0;
+    background: #fff;
+  }
+  .sheet-grab {
+    display: block;
+    width: 44px;
+    height: 4px;
+    margin: 0 auto 10px;
+    border-radius: 999px;
+    background: #cbd5e1;
+  }
+  .sheet-head-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .sheet-title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+  }
+  .sheet-x {
+    flex: 0 0 auto;
+    width: 36px;
+    height: 36px;
+    border: 1px solid #000;
+    background: #fff;
+    color: #000;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    border-radius: 8px;
+  }
+  .sheet-hint {
+    margin: 8px 0 0;
+    font-size: 11px;
+    line-height: 1.45;
+    color: #64748b;
+    text-align: center;
+  }
+  .sheet-body {
+    flex: 1 1 auto;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 10px 16px 12px;
+    min-height: 0;
+  }
+  .sheet-foot {
+    flex: 0 0 auto;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+    border-top: 1px solid #e2e8f0;
+    background: #fff;
+  }
+  .sheet-done {
+    width: 100%;
+    min-height: 44px;
+    font-weight: 700;
+  }
+  .result-sheet .money-card {
+    margin-bottom: 10px;
+    padding: 12px;
+  }
+  .result-sheet .money-end {
+    font-size: 20px;
+    line-height: 1.25;
+  }
+  .result-sheet .money-pnl { font-size: 14px; }
+  .result-sheet .money-facts { font-size: 12px; line-height: 1.55; }
+  .result-sheet .funnel-card { margin-bottom: 10px; padding: 10px; }
+  .result-sheet .zone-title { font-size: 13px; margin: 8px 0 6px; }
+  .result-sheet #equityChart {
+    height: 150px !important;
+    min-height: 150px !important;
+    margin-bottom: 8px;
+  }
+  .result-sheet .sheet-extra { display: none !important; }
   .sheet-scrim {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 39;
+    position: fixed; inset: 0; background: rgba(0,0,0,0.48); z-index: 39;
   }
   .sheet-scrim[hidden] { display: none; }
   body.sheet-open { overflow: hidden; }
@@ -1627,7 +1714,7 @@ input.is-focused, textarea.is-focused, select.is-focused {
 .disc-mini { display: none; }
 .ai-lab-sub { margin: 0 0 12px; font-size: 14px; color: #475569; }
 .thumb-dock { display: none; }
-.sheet-handle { display: none; }
+.sheet-head, .sheet-foot, .sheet-hint { display: none; }
 .money-card {
   border: 2px solid #000;
   background: #fff;

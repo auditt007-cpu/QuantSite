@@ -681,7 +681,8 @@ function bindChrome() {
       }
     });
   }
-  if ($("sheetClose")) $("sheetClose").addEventListener("click", closeSheet);
+  if ($("sheetCloseBtn")) $("sheetCloseBtn").addEventListener("click", closeSheet);
+  if ($("sheetDoneBtn")) $("sheetDoneBtn").addEventListener("click", closeSheet);
   if ($("sheetScrim")) $("sheetScrim").addEventListener("click", closeSheet);
   if ($("btnShareCard")) {
     $("btnShareCard").addEventListener("click", () => {

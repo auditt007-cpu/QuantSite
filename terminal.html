@@ -125,7 +125,14 @@
 
         <div class="sheet-scrim" id="sheetScrim" hidden></div>
         <div class="result-sheet" id="resultSheet">
-          <button type="button" class="sheet-handle" id="sheetClose" aria-label="關閉成績單"></button>
+          <header class="sheet-head">
+            <span class="sheet-grab" aria-hidden="true"></span>
+            <div class="sheet-head-row">
+              <h3 class="sheet-title" data-i18n="sheetTitle">回測戰績</h3>
+              <button type="button" class="sheet-x" id="sheetCloseBtn" aria-label="關閉">✕</button>
+            </div>
+            <p class="sheet-hint" data-i18n="sheetHint">輕觸背景或 ✕ 關閉，繼續查看 K 線</p>
+          </header>
           <div class="sheet-body">
             <article class="money-card" id="moneyCard">
               <p class="money-kicker" data-i18n="moneyAssume">假設投入 $1,000 USDT</p>
@@ -173,7 +180,7 @@
             <div class="trades-block">
               <h3 class="zone-title" data-i18n="gmTrades">交易紀錄</h3>
               <div class="trade-pills" id="tradePills"></div>
-              <details class="raw-log">
+              <details class="raw-log sheet-extra">
                 <summary data-i18n="rawLog">展開逐筆原始紀錄</summary>
                 <div class="table-scroll">
                   <table class="data-table">
@@ -188,7 +195,7 @@
               </details>
             </div>
 
-            <details class="pine-box source-module">
+            <details class="pine-box source-module sheet-extra">
               <summary data-i18n="pineHead">💻 查看底層原始碼 (PineScript) ▾</summary>
               <div class="pine-toolbar">
                 <button type="button" class="btn" id="btnCopyPine" data-i18n="copyPineBtn">一鍵複製 PineScript 程式碼</button>
@@ -196,7 +203,7 @@
               <pre id="pineSrc" class="pine-pre"></pre>
             </details>
 
-            <div class="trust-bar" id="trustBar">
+            <div class="trust-bar sheet-extra" id="trustBar">
               <article class="trust-card">
                 <h4 data-i18n="trustLocalTitle">🛡️ 純本地計算 (Zero-Custody Engine)</h4>
                 <p data-i18n="trustLocalBody">回測邏輯與參數 100% 於本地瀏覽器運算，絕不索取用戶 API 交易密鑰，程式碼開源透明。</p>
@@ -210,12 +217,15 @@
                 <p data-i18n="trustStressBody">全站策略均經過 2023-2026 極端牛熊行情回測檢驗，內建最大回撤與停損熔斷機制。</p>
               </article>
             </div>
-            <section class="week-board-mobile" aria-label="Weekly ranking">
+            <section class="week-board-mobile sheet-extra" aria-label="Weekly ranking">
               <div class="kicker kicker-plain">ALPHA</div>
               <h3 class="rail-h" data-week-title>📊 本周收益榜 TOP 5</h3>
               <ol class="week-list" data-week-board></ol>
             </section>
           </div>
+          <footer class="sheet-foot">
+            <button type="button" class="btn ghost sheet-done" id="sheetDoneBtn" data-i18n="sheetDone">收起戰績，返回 K 線</button>
+          </footer>
         </div>
       </section>
     </div>
