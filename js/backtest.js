@@ -1116,7 +1116,11 @@ function revealBacktest() {
   if (list) list.hidden = true;
   if (bt) bt.hidden = false;
   document.body.classList.add("desk-open");
+  window.scrollTo(0, 0);
+  if (document.documentElement) document.documentElement.scrollTop = 0;
+  if (document.body) document.body.scrollTop = 0;
   requestAnimationFrame(() => {
+    window.scrollTo(0, 0);
     window.dispatchEvent(new Event("resize"));
     setTimeout(() => window.dispatchEvent(new Event("resize")), 120);
   });

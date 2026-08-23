@@ -39,12 +39,20 @@
     history.replaceState({}, "", "./terminal.html");
   }
 
+  function scrollPageTop() {
+    window.scrollTo(0, 0);
+    if (document.documentElement) document.documentElement.scrollTop = 0;
+    if (document.body) document.body.scrollTop = 0;
+  }
+
   function showBacktest() {
     const list = document.getElementById("viewList");
     const bt = document.getElementById("viewBacktest");
     if (list) list.hidden = true;
     if (bt) bt.hidden = false;
     document.body.classList.add("desk-open");
+    scrollPageTop();
+    requestAnimationFrame(scrollPageTop);
     requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
   }
 
