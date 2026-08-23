@@ -1600,7 +1600,7 @@ body.sheet-open { overflow: hidden; }
   animation: btChartReveal 0.35s ease;
 }
 .lab-chart-block.bt-chart-collapsed.is-open {
-  display: block;
+  display: block !important;
 }
 @keyframes btChartReveal {
   from { opacity: 0; transform: translateY(-8px); }

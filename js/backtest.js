@@ -158,9 +158,17 @@ function resolveInterval() {
 function revealBtChart() {
   const block = $("btChartReveal");
   if (!block) return;
+  block.removeAttribute("hidden");
   block.hidden = false;
+  block.style.display = "block";
   block.classList.add("is-open");
   requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
+}
+
+function waitChartLayout() {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(resolve));
+  });
 }
 
 function barsPerDay(iv) {
@@ -766,15 +774,18 @@ function upsert(bar) {
 function mountCandles() {
   const el = $("candleChart");
   const Charts = window.LightweightCharts;
+  const chartHost = $("btChartReveal");
   if (!el || !Charts || !feed || !bars.length) return;
 
   const draw = () => {
     const size = chartBoxSize(el, 480);
     const host = $("viewBacktest");
-    if (size.width < 80 && host && !host.hidden) {
+    const chartOpen = chartHost && chartHost.classList.contains("is-open");
+    if (size.width < 80 && host && !host.hidden && chartOpen) {
       requestAnimationFrame(draw);
       return;
     }
+    if (size.width < 80 && chartHost && !chartOpen) return;
     if (candleChart) {
       candleChart.remove();
       candleChart = null;
@@ -895,22 +906,29 @@ function run(silent) {
   }
 }
 
+async function executeBacktest() {
+  revealBtChart();
+  await waitChartLayout();
+  interval = resolveInterval();
+  syncDock();
+  if (!allBars.length || !candleSeries) {
+    try {
+      await load(interval);
+    } catch (e) {
+      toast(e.message, "warn");
+      return;
+    }
+  }
+  run(false);
+}
+
 function bindDesk() {
   if (window.__QA_DESK_BOUND) return;
+  const btn = $("btnRun");
+  if (!btn) return;
   window.__QA_DESK_BOUND = true;
-  $("btnRun").addEventListener("click", async () => {
-    revealBtChart();
-    interval = resolveInterval();
-    syncDock();
-    if (!allBars.length || !candleSeries) {
-      try {
-        await load(interval);
-      } catch (e) {
-        toast(e.message, "warn");
-        return;
-      }
-    }
-    run(false);
+  btn.addEventListener("click", () => {
+    executeBacktest().catch((e) => toast(e.message, "warn"));
   });
   $("btnCopyPine").addEventListener("click", async (e) => {
     e.preventDefault();
@@ -982,6 +1000,7 @@ window.QABacktest = {
       if (chartBlock) {
         chartBlock.hidden = true;
         chartBlock.classList.remove("is-open");
+        chartBlock.style.display = "";
       }
       if (candleChart) {
         candleChart.remove();
@@ -1022,27 +1041,10 @@ function bindChrome() {
       if (bt && bt.hidden) {
         revealBacktest();
         await Promise.resolve(window.QABacktest.open(engineId || "dual", iv));
-        revealBtChart();
-        try {
-          await load(iv);
-        } catch (e) {
-          toast(e.message, "warn");
-          return;
-        }
-        run(false);
+        await executeBacktest();
         return;
       }
-      revealBtChart();
-      interval = iv;
-      if (!allBars.length) {
-        try {
-          await load(iv);
-        } catch (e) {
-          toast(e.message, "warn");
-          return;
-        }
-      }
-      run(false);
+      await executeBacktest();
     });
   }
   if ($("dockTf") && $("dockTf").getAttribute("data-bound") !== "1") {
@@ -1080,6 +1082,11 @@ function bindChrome() {
 bindChrome();
 window.addEventListener("quant-lang", () => refreshBacktestCardI18n());
 window.addEventListener("qa-leaderboard-ready", () => applyLeaderboardPeriodToCard());
+function ensureDeskBound() {
+  bindDesk();
+}
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", ensureDeskBound);
+else ensureDeskBound();
 const DEFER = Boolean(document.getElementById("viewList"));
 if (!DEFER) {
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);

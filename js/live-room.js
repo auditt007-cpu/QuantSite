@@ -11,7 +11,7 @@
   const THREE_HOURS_S = 3 * 3600;
   const MAX_WATCH_PAIRS = 24;
   const TAPE_MAX = 50;
-  const CHART_INTERVAL = "5m";
+  const CHART_INTERVAL = "1m";
   const OVERLAY_COLORS = ["#38bdf8", "#a855f7", "#f59e0b", "#ec4899", "#14b8a6", "#f97316"];
   const WATCH_EXCLUDED_KEY = "qa_live_watch_excluded";
 
@@ -513,6 +513,8 @@
   let overlaySeriesMap = new Map();
   let chartMetaByCoin = new Map();
   let zeroPriceLine = null;
+  let chartLockRange = null;
+  let chartRangeGuard = false;
   let pollTimer = null;
   let watchPollTimer = null;
   let countdownTimer = null;
@@ -690,27 +692,59 @@
     baseOpts.rightPriceScale = Object.assign({}, baseOpts.rightPriceScale, {
       autoScale: true,
     });
+    baseOpts.handleScroll = {
+      mouseWheel: false,
+      pressedMouseMove: false,
+      horzTouchDrag: false,
+      vertTouchDrag: false,
+    };
+    baseOpts.handleScale = {
+      axisPressedMouseMove: false,
+      mouseWheel: false,
+      pinch: false,
+    };
+    baseOpts.timeScale = Object.assign({}, baseOpts.timeScale, {
+      fixLeftEdge: true,
+      fixRightEdge: true,
+      lockVisibleTimeRangeOnResize: true,
+      rightBarStaysOnScroll: true,
+    });
     warChart = Charts.createChart(el, baseOpts);
     if (typeof ResizeObserver !== "undefined") {
       new ResizeObserver(() => {
         if (!warChart) return;
         warChart.applyOptions({ width: el.clientWidth || 280 });
+        if (chartLockRange) lockChartRange(chartLockRange.from, chartLockRange.to);
       }).observe(el);
     }
+    warChart.timeScale().subscribeVisibleTimeRangeChange((range) => {
+      if (chartRangeGuard || !chartLockRange || !range) return;
+      if (range.from !== chartLockRange.from || range.to !== chartLockRange.to) {
+        lockChartRange(chartLockRange.from, chartLockRange.to);
+      }
+    });
     bindCrosshairTooltip();
   }
 
   const SIX_HOURS_S = 6 * 3600;
 
+  function lockChartRange(from, to) {
+    if (!warChart) return;
+    chartRangeGuard = true;
+    try {
+      warChart.timeScale().setVisibleRange({ from, to });
+    } catch {
+      /* ignore */
+    }
+    chartRangeGuard = false;
+  }
+
   function lockChartToLast6h(bars) {
     if (!warChart || !bars || !bars.length) return;
     const lastTime = bars[bars.length - 1].time;
     const from = lastTime - SIX_HOURS_S;
-    try {
-      warChart.timeScale().setVisibleRange({ from, to: lastTime });
-    } catch {
-      warChart.timeScale().fitContent();
-    }
+    chartLockRange = { from, to: lastTime };
+    lockChartRange(from, lastTime);
   }
 
   function coinColor(coin, isFocus) {
@@ -1030,12 +1064,7 @@
 
     renderLegend();
 
-    let signalBars;
-    try {
-      signalBars = await barsOf(sym, s.interval);
-    } catch {
-      signalBars = focusBars;
-    }
+    const signalBars = focusBars;
     if (!signalBars || !signalBars.length || activeStrategy !== s) return;
 
     const spec = catalog.get(s.id);
@@ -1050,11 +1079,27 @@
 
     if (warSeries) {
       const inWindow = (ts) => ts >= windowFrom && ts <= lastBarTime;
+      const barTimes = new Set(focusNorm.slice.map((b) => b.time));
+      const snapTime = (ts) => {
+        if (barTimes.has(ts)) return ts;
+        let best = null;
+        let bestDiff = Infinity;
+        focusNorm.slice.forEach((b) => {
+          const diff = Math.abs(b.time - ts);
+          if (diff < bestDiff) {
+            bestDiff = diff;
+            best = b.time;
+          }
+        });
+        return bestDiff <= 120 ? best : null;
+      };
       warSeries.setMarkers(
         trades.flatMap((tr) => {
           const marks = [];
-          if (inWindow(tr.t0)) marks.push({ time: tr.t0, position: "belowBar", color: "#00873c", shape: "arrowUp", text: "BUY" });
-          if (!tr.open && inWindow(tr.t1)) marks.push({ time: tr.t1, position: "aboveBar", color: "#d0021b", shape: "arrowDown", text: "SELL" });
+          const tBuy = snapTime(tr.t0);
+          const tSell = !tr.open ? snapTime(tr.t1) : null;
+          if (tBuy && inWindow(tBuy)) marks.push({ time: tBuy, position: "belowBar", color: "#00873c", shape: "arrowUp", text: "BUY" });
+          if (tSell && inWindow(tSell)) marks.push({ time: tSell, position: "aboveBar", color: "#d0021b", shape: "arrowDown", text: "SELL" });
           return marks;
         })
       );
