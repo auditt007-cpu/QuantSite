@@ -189,6 +189,16 @@
             <p class="money-kicker" data-i18n="moneyAssume">假設投入 $1,000 USDT</p>
             <p class="money-end" id="moneyEnd">$1,000 → $1,000</p>
             <p class="money-pnl" id="moneyPnl" data-i18n="moneyPnlIdle">📈 歷史淨賺：+$0 USDT (0%)</p>
+            <div class="money-stats">
+              <p class="money-stats-label" data-i18n="gmSummary">參數指標</p>
+              <div class="money-stats-grid">
+                <div class="stat"><span data-i18n="statWr">勝率</span><b id="mWr">—</b></div>
+                <div class="stat"><span data-i18n="statPf">盈虧比</span><b id="mPf">—</b></div>
+                <div class="stat"><span data-i18n="statTrades">交易筆數</span><b id="mTrades">—</b></div>
+                <div class="stat"><span data-i18n="statBars">樣本</span><b id="mBars">—</b></div>
+              </div>
+              <p class="money-pf-hint" data-i18n="statPfHint">賺的總額 ÷ 虧的總額。大於 1 表示賺比虧多。</p>
+            </div>
             <ul class="money-facts">
               <li id="moneyDays" data-i18n="moneyDaysIdle">⏱️ 執行周期：—</li>
               <li id="moneyHit" data-i18n="moneyHitIdle">🎯 勝率：—</li>
@@ -210,13 +220,6 @@
           </p>
           <p class="muted sample-hint desk-only" id="sampleHint" data-i18n="btAwaitRun">設定幣種、周期與回測區間後，點擊「執行回測」</p>
           <div class="perf-block">
-            <h3 class="zone-title desk-only" data-i18n="gmSummary">績效摘要</h3>
-            <div class="bt-meta desk-only">
-              <div class="stat"><span data-i18n="statWr">勝率</span><b id="mWr">—</b></div>
-              <div class="stat"><span data-i18n="statPf">盈虧比</span><span class="hint" data-i18n="statPfHint" title="賺的總額 ÷ 虧的總額。大於 1 表示賺比虧多。">❓</span><b id="mPf">—</b></div>
-              <div class="stat"><span data-i18n="statTrades">交易筆數</span><b id="mTrades">—</b></div>
-              <div class="stat"><span data-i18n="statBars">樣本</span><b id="mBars">—</b></div>
-            </div>
             <h3 class="zone-title" data-i18n="gmEquity">淨值曲線</h3>
             <div id="equityChart" class="lc-chart chart-container"></div>
             <h3 class="zone-title desk-only" data-i18n="gmDrawdown">最大回撤</h3>
