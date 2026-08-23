@@ -205,8 +205,64 @@
     const msg = String((err && err.message) || err || "").toLowerCase();
     return (
       err instanceof TypeError ||
-      /failed to fetch|networkerror|network error|load failed|fetch failed|timeout|aborted|cors/i.test(msg)
+      err.name === "AbortError" ||
+      /failed to fetch|networkerror|network error|load failed|fetch failed|timeout|aborted|aborterror|cors/i.test(msg)
     );
+  }
+
+  let runBtnState = null;
+
+  function setRunning(on) {
+    const btn = $("btnDeep");
+    if (!btn) return;
+    if (on) {
+      runBtnState = { btn, prev: btn.textContent };
+      btn.disabled = true;
+      btn.textContent = t("runningDeep");
+      return;
+    }
+    if (runBtnState && runBtnState.btn) {
+      runBtnState.btn.disabled = false;
+      runBtnState.btn.textContent = runBtnState.prev;
+    }
+    runBtnState = null;
+  }
+
+  async function fetchAi(prompt, tgId, ms) {
+    const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+    const timer = ctrl ? setTimeout(() => ctrl.abort(), ms || 15000) : null;
+    try {
+      return await fetch(cfg.apiBase + "/api/ai-backtest", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ prompt, tg_id: tgId }),
+        signal: ctrl ? ctrl.signal : undefined,
+      });
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  }
+
+  function handleAiLimit(code, serverMsg) {
+    setRunning(false);
+    showLimitPlan(limitPlan(code, serverMsg));
+  }
+
+  function handleAiNetwork() {
+    const blockedCode = quotaBlocked();
+    if (blockedCode) {
+      handleAiLimit(blockedCode);
+      return true;
+    }
+    if (!window.QAIdentity || !window.QAIdentity.loggedIn || !window.QAIdentity.loggedIn()) {
+      handleAiLimit("limit_guest");
+      return true;
+    }
+    if (!window.QAIdentity.seat || window.QAIdentity.seat() !== "vip") {
+      handleAiLimit("limit_free");
+      return true;
+    }
+    return false;
   }
 
   function showLimitPlan(plan, hrefOverride) {
@@ -220,7 +276,10 @@
       cta.href = hrefOverride || (plan && plan.href) || "./member.html";
       cta.textContent = (plan && plan.cta) || t("goMember");
     }
-    if (modal) modal.classList.add("show");
+    if (modal) {
+      modal.classList.add("show");
+      modal.setAttribute("aria-hidden", "false");
+    }
   }
 
   function paintMatrix(rows) {
@@ -293,39 +352,19 @@
     }
     const blocked = quotaBlocked();
     if (blocked) {
-      showLimitPlan(limitPlan(blocked));
+      handleAiLimit(blocked);
       return;
     }
-    const btn = $("btnDeep");
-    const prev = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = t("runningDeep");
+    if (!$("btnDeep")) return;
+    setRunning(true);
     try {
       const tg =
         (window.QAIdentity && window.QAIdentity.loggedIn && window.QAIdentity.loggedIn() && localStorage.getItem("quant_tg")) || "";
       let res;
       try {
-        res = await fetch(cfg.apiBase + "/api/ai-backtest", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ prompt: prompt, tg_id: tg }),
-        });
+        res = await fetchAi(prompt, tg, 15000);
       } catch (netErr) {
-        if (isFetchError(netErr)) {
-          const blockedCode = quotaBlocked();
-          if (blockedCode) {
-            showLimitPlan(limitPlan(blockedCode));
-            return;
-          }
-          if (!window.QAIdentity || !window.QAIdentity.loggedIn || !window.QAIdentity.loggedIn()) {
-            showLimitPlan(limitPlan("limit_guest"));
-            return;
-          }
-          if (!window.QAIdentity.seat || window.QAIdentity.seat() !== "vip") {
-            showLimitPlan(limitPlan("limit_free"));
-            return;
-          }
-        }
+        if (isFetchError(netErr) && handleAiNetwork()) return;
         throw netErr;
       }
       let data = {};
@@ -341,12 +380,16 @@
           used: data.used != null ? data.used : data.cap || quotaCap(data.tier || aiTier()),
           code: data.code || "limit_guest",
         });
-        showLimitPlan(limitPlan(data.code, data.error));
+        handleAiLimit(data.code || "limit_guest", data.error);
         return;
       }
       if (!res.ok || !data.code) {
         if (res.status === 401 || res.status === 403) {
-          showLimitPlan(limitPlan("limit_guest", data.error));
+          handleAiLimit("limit_guest", data.error);
+          return;
+        }
+        if (res.status === 502 || res.status === 503) {
+          toast(data.error || t("aiNetErr"), "err");
           return;
         }
         throw new Error(data.error || t("aiNetErr"));
@@ -365,7 +408,14 @@
         throw new Error("compile");
       }
       const days = lookDays();
-      const bars = await feed.fetchKlines("BTCUSDT", "1d", Math.min(2000, days + 5));
+      let bars = [];
+      try {
+        bars = await feed.fetchKlines("BTCUSDT", "1d", Math.min(2000, days + 5));
+      } catch {
+        const off = window.QAOffline && window.QAOffline.forInterval("1d");
+        if (off && off.length) bars = off.slice(-Math.min(2000, days + 5));
+        else throw new Error(t("aiNetErr"));
+      }
       const sliced = bars.length > days ? bars.slice(bars.length - days) : bars;
       const pred = function (kLines, i) {
         try {
@@ -413,17 +463,10 @@
       if (!entries.length) toast(t("noSignals"), "warn");
       else toast(t("btDone").replace("{ms}", "—").replace("{n}", String(sliced.length)), "ok");
     } catch (e) {
-      if (isFetchError(e)) {
-        const code = quotaBlocked() || (aiTier() === "guest" ? "limit_guest" : aiTier() === "vip" ? "limit_vip" : "limit_free");
-        if (code === "limit_guest" || code === "limit_free" || code === "limit_vip") {
-          showLimitPlan(limitPlan(code));
-          return;
-        }
-      }
+      if (isFetchError(e) && handleAiNetwork()) return;
       toast((e && e.message) || t("aiNetErr"), "err");
     } finally {
-      btn.disabled = false;
-      btn.textContent = prev;
+      setRunning(false);
     }
   }
 
