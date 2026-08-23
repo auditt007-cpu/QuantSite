@@ -377,7 +377,7 @@ function tradePillDetailHtml(tr) {
   const eq = pillEq || [];
   return (
     `<div class="trade-pill-table-wrap">` +
-    `<table class="trade-pill-table data-table">${tradeTableHeadHtml()}<tbody>${singleTradeRowsHtml(tr, eq)}</tbody></table>` +
+    `<table class="trade-pill-table">${tradeTableHeadHtml()}<tbody>${singleTradeRowsHtml(tr, eq)}</tbody></table>` +
     `</div>`
   );
 }

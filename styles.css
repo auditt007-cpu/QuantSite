@@ -2031,11 +2031,18 @@ body.sheet-open { overflow: hidden; }
   .bb-sheet .trade-pill.down { color: #cc0000; }
   .bb-sheet .trade-pill.open.up { color: #4ade80; }
   .bb-sheet .trade-pill.open.down { color: #f87171; }
+  .bb-sheet .trade-pill-detail,
+  .bb-sheet .trade-pill-detail .trade-pill-table-wrap,
+  .bb-sheet .trade-pill-detail .trade-pill-table,
+  .bb-sheet .trade-pill-detail .trade-pill-table tbody,
+  .bb-sheet .trade-pill-detail .trade-pill-table tr,
+  .bb-sheet .trade-pill-detail .trade-pill-table td {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
   .bb-sheet .trade-pill-detail {
     margin-top: -1px;
     padding: 0;
-    background: #ffffff;
-    color: #000000;
     border: 1px solid #000000;
     overflow-x: auto;
   }
@@ -2044,23 +2051,28 @@ body.sheet-open { overflow: hidden; }
     margin: 0;
     font-size: 10px;
     border: 0;
+    border-collapse: collapse;
     color: #000000;
+    background: #ffffff;
   }
   .bb-sheet .trade-pill-table th,
   .bb-sheet .trade-pill-table td {
     padding: 5px 6px;
-    border-color: #d1d5db;
+    border: 1px solid #d1d5db;
     white-space: nowrap;
-    color: #000000;
+    color: #000000 !important;
+    background: #ffffff !important;
   }
   .bb-sheet .trade-pill-table th {
-    color: #f7941d;
+    color: #f7941d !important;
     font-size: 9px;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    background: #f8fafc;
+    background: #f8fafc !important;
   }
-  .bb-sheet .trade-pill-table tbody tr:nth-child(even) { background: #f8fafc; }
+  .bb-sheet .trade-pill-table tbody tr:nth-child(even) td { background: #f8fafc !important; }
+  .bb-sheet .trade-pill-table .pnl.up { color: #00873c !important; }
+  .bb-sheet .trade-pill-table .pnl.down { color: #cc0000 !important; }
   .bb-sheet .funnel-card { display: none !important; }
   .bb-sheet .zone-title {
     font-size: 11px;
@@ -2242,11 +2254,18 @@ body.sheet-open { overflow: hidden; }
 .trade-pill.down { color: #cc0000; }
 .trade-pill.open.up { color: #4ade80; }
 .trade-pill.open.down { color: #f87171; }
+.trade-pill-detail,
+.trade-pill-detail .trade-pill-table-wrap,
+.trade-pill-detail .trade-pill-table,
+.trade-pill-detail .trade-pill-table tbody,
+.trade-pill-detail .trade-pill-table tr,
+.trade-pill-detail .trade-pill-table td {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
 .trade-pill-detail {
   margin-top: -1px;
   padding: 0;
-  background: #fff;
-  color: #000;
   border: 1px solid #000;
   overflow-x: auto;
 }
@@ -2256,26 +2275,29 @@ body.sheet-open { overflow: hidden; }
   margin: 0;
   font-size: 11px;
   border: 0;
+  border-collapse: collapse;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   color: #000;
+  background: #fff;
 }
 .trade-pill-table th,
 .trade-pill-table td {
   padding: 7px 8px;
-  border-color: #d1d5db;
+  border: 1px solid #d1d5db;
   white-space: nowrap;
-  color: #000;
+  color: #000 !important;
+  background: #fff !important;
 }
 .trade-pill-table th {
-  color: #f7941d;
+  color: #f7941d !important;
   font-size: 10px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  background: #f8fafc;
+  background: #f8fafc !important;
 }
-.trade-pill-table tbody tr:nth-child(even) { background: #f8fafc; }
-.trade-pill-table .pnl.up { color: #00873c; font-weight: 800; }
-.trade-pill-table .pnl.down { color: #cc0000; font-weight: 800; }
+.trade-pill-table tbody tr:nth-child(even) td { background: #f8fafc !important; }
+.trade-pill-table .pnl.up { color: #00873c !important; font-weight: 800; }
+.trade-pill-table .pnl.down { color: #cc0000 !important; font-weight: 800; }
 @media (max-width: 900px) {
   .bb-money-head {
     grid-template-columns: minmax(0, 1fr) minmax(118px, 42%);
