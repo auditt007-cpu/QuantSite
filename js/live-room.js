@@ -290,7 +290,9 @@
   }
 
   function vpsFeedRows(data) {
-    if (data.exec_log && data.exec_log.length) {
+    // exec_log is the action tape. An empty array means "no fills this
+    // cycle" — do not fall back to active_signals (those are holdings).
+    if (Array.isArray(data.exec_log)) {
       return data.exec_log.slice().sort((a, b) => vpsSortTs(b) - vpsSortTs(a));
     }
     return (data.active_signals_3h || [])

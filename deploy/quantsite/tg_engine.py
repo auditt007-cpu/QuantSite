@@ -46,6 +46,9 @@ LIVE_FEED_WINDOW_SEC = 3 * 3600
 LIVE_FEED_LOOKBACK_BARS = 4  # small margin over the 3h window in 1h bars
 LIVE_FEED_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "live_feed.json")
 LIVE_EXEC_LOG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "live_exec_log.json")
+LIVE_POSITION_STATE_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "live_position_state.json"
+)
 LIVE_EXEC_LOG_MAX = 200
 UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -60,6 +63,11 @@ SIGNAL_STATE = {}
 KLINE_POOL = {}
 LIVE_POSITION_STATE = {}
 LIVE_POSITION_LOCK = threading.Lock()
+_POSITION_STATE_LOADED = False
+# True only on the first cycle after a missing/empty state file. Snapshot
+# current holdings without writing tape rows — otherwise a restart looks
+# like 45×20 brand-new fills.
+_POSITION_STATE_HYDRATING = False
 
 SIDE_ZHT = {"LONG": "做多", "SHORT": "做空"}
 SIDE_EN = {"LONG": "LONG", "SHORT": "SHORT"}
@@ -887,83 +895,213 @@ def merge_exec_log(existing, fresh_events):
     return merged[:LIVE_EXEC_LOG_MAX]
 
 
+def load_position_state():
+    global LIVE_POSITION_STATE, _POSITION_STATE_HYDRATING
+    try:
+        with open(LIVE_POSITION_STATE_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if isinstance(data, dict) and data:
+            LIVE_POSITION_STATE = data
+            _POSITION_STATE_HYDRATING = False
+            return
+    except Exception:
+        pass
+    LIVE_POSITION_STATE = {}
+    _POSITION_STATE_HYDRATING = True
+
+
+def ensure_position_state_loaded():
+    global _POSITION_STATE_LOADED
+    if _POSITION_STATE_LOADED:
+        return
+    load_position_state()
+    _POSITION_STATE_LOADED = True
+
+
+def save_position_state():
+    global _POSITION_STATE_HYDRATING
+    with LIVE_POSITION_LOCK:
+        snap = dict(LIVE_POSITION_STATE)
+    tmp = LIVE_POSITION_STATE_PATH + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(snap, f, ensure_ascii=False, indent=2)
+    os.replace(tmp, LIVE_POSITION_STATE_PATH)
+    _POSITION_STATE_HYDRATING = False
+
+
+def prune_hold_exec_log(events):
+    """Drop open rows that are the same side as the previous fill for that
+    strategy+symbol. Those are 'still holding' marks, not actions."""
+    if not events:
+        return []
+    chrono = sorted(
+        events,
+        key=lambda e: (
+            int(e.get("logged_at") or 0),
+            int(e.get("bar_ts") or 0),
+            0 if e.get("event") == "close" else 1,
+        ),
+    )
+    last_side = {}
+    kept = []
+    for ev in chrono:
+        pair = "{0}|{1}".format(ev.get("strategy_id"), ev.get("symbol"))
+        event = ev.get("event")
+        side = ev.get("side")
+        if event == "close":
+            kept.append(ev)
+            last_side.pop(pair, None)
+            continue
+        raw = "SHORT" if side and "SHORT" in str(side) else "LONG"
+        if last_side.get(pair) == raw:
+            continue
+        kept.append(ev)
+        last_side[pair] = raw
+    kept.sort(
+        key=lambda e: (int(e.get("logged_at") or 0), int(e.get("bar_ts") or 0)),
+        reverse=True,
+    )
+    return kept[:LIVE_EXEC_LOG_MAX]
+
+
+def _signal_cache_key(sid, sym, side, bar_ts_i):
+    return hashlib.md5(
+        "{0}|{1}|{2}|{3}".format(sid, sym, side, bar_ts_i).encode("utf-8")
+    ).hexdigest()[:20]
+
+
+def _cached_signal_audio(sid, sym, side, bar_ts_i):
+    cache_key = _signal_cache_key(sid, sym, side, bar_ts_i)
+    path = os.path.join(AUDIO_DIR, "sig_{0}.mp3".format(cache_key))
+    if os.path.exists(path) and os.path.getsize(path) > 500:
+        return audio_public_url("sig_{0}.mp3".format(cache_key))
+    return None
+
+
+def _open_row(sid, zht, en, sym, side, price, bar_ts_i, audio_url):
+    return {
+        "strategy_id": sid,
+        "name_zh": zht,
+        "name_en": en,
+        "symbol": sym,
+        "interval": LIVE_FEED_TF,
+        "event": "open",
+        "side": side,
+        "price": round(price, 8),
+        "bar_ts": bar_ts_i,
+        "audio_url": audio_url,
+    }
+
+
+def _close_row(sid, zht, en, sym, prev, exit_px, bar_ts_i, audio_url):
+    pnl_pct = _pnl_pct(prev["side"], prev["price"], exit_px)
+    return {
+        "strategy_id": sid,
+        "name_zh": zht,
+        "name_en": en,
+        "symbol": sym,
+        "interval": LIVE_FEED_TF,
+        "event": "close",
+        "side": "CLOSE_" + prev["side"],
+        "entry_price": round(prev["price"], 8),
+        "exit_price": round(exit_px, 8),
+        "pnl_pct": round(pnl_pct, 2),
+        "bar_ts": bar_ts_i,
+        "audio_url": audio_url if pnl_pct > 0 else None,
+    }
+
+
 def scan_one(spec, pool, now_sec):
-    """20-symbol scan for one strategy. Also drives the in-memory open/close
-    position tracker (LIVE_POSITION_STATE) so close events can be detected —
-    the eval_* functions only return a fresh point-in-time LONG/SHORT/None
-    per call, they are not stateful positions, so a small tracker keyed by
-    strategy+symbol is needed to know when a signal flips direction (= a
-    close of the prior leg) and to compute its pnl_pct."""
+    """20-symbol scan for one strategy. LIVE_POSITION_STATE is the fill book:
+    tape rows are written only on a real open / close / flip. Same-side holds
+    stay on the active-signal board but are not execution events."""
     sid, zht, en, fn = spec
     hits = []
     closes = []
     log_events = []
+    hydrating = _POSITION_STATE_HYDRATING
     for sym in SYMBOLS:
         data = pool.get(sym)
         if not data or len(data["c"]) < 30:
             continue
+        key = _position_key(sid, sym)
         hit = _scan_recent_signal(fn, data, now_sec)
         if not hit:
+            if hydrating:
+                continue
+            with LIVE_POSITION_LOCK:
+                prev = LIVE_POSITION_STATE.pop(key, None)
+            if not prev:
+                continue
+            exit_px = data["c"][-1]
+            bar_ts_i = int(data["t"][-1] / 1000.0)
+            close_audio_url = None
+            pnl_pct = _pnl_pct(prev["side"], prev["price"], exit_px)
+            if pnl_pct > 0:
+                close_cache_key = hashlib.md5(
+                    "close|{0}|{1}|{2}".format(sid, sym, bar_ts_i).encode("utf-8")
+                ).hexdigest()[:20]
+                close_audio_url = request_signal_audio(
+                    close_cache_key, close_signal_text(zht, pnl_pct)
+                )
+            close_row = _close_row(
+                sid, zht, en, sym, prev, exit_px, bar_ts_i, close_audio_url
+            )
+            closes.append(close_row)
+            log_events.append(dict(close_row, logged_at=int(now_sec)))
             continue
-        key = _position_key(sid, sym)
+
         bar_ts_i = int(hit["bar_ts"])
         price = hit["price"]
         side = hit["side"]
 
-        is_new_bar = True
-        flipped_from = None
         with LIVE_POSITION_LOCK:
             prev = LIVE_POSITION_STATE.get(key)
-            if prev and prev.get("bar_ts") == bar_ts_i:
-                is_new_bar = False
-            else:
-                if prev and prev.get("side") != side:
-                    flipped_from = dict(prev)
-                LIVE_POSITION_STATE[key] = {"side": side, "price": price, "bar_ts": bar_ts_i}
-
-        if not is_new_bar:
-            # Same bar as last cycle: signal persists in the window, just
-            # keep it visible with whatever audio_url is (by now) cached.
-            cache_key = hashlib.md5(
-                "{0}|{1}|{2}|{3}".format(sid, sym, side, bar_ts_i).encode("utf-8")
-            ).hexdigest()[:20]
-            audio_url = None
-            path = os.path.join(AUDIO_DIR, "sig_{0}.mp3".format(cache_key))
-            if os.path.exists(path) and os.path.getsize(path) > 500:
-                audio_url = audio_public_url("sig_{0}.mp3".format(cache_key))
-            hits.append(
-                {
-                    "strategy_id": sid,
-                    "name_zh": zht,
-                    "name_en": en,
-                    "symbol": sym,
-                    "interval": LIVE_FEED_TF,
-                    "event": "open",
+            if prev and prev.get("side") == side:
+                LIVE_POSITION_STATE[key] = {
                     "side": side,
-                    "price": round(price, 8),
+                    "price": prev.get("price") or price,
                     "bar_ts": bar_ts_i,
-                    "audio_url": audio_url,
                 }
+                action = "hold"
+                flipped_from = None
+            elif hydrating and not prev:
+                LIVE_POSITION_STATE[key] = {
+                    "side": side,
+                    "price": price,
+                    "bar_ts": bar_ts_i,
+                }
+                action = "hold"
+                flipped_from = None
+            else:
+                flipped_from = dict(prev) if prev else None
+                LIVE_POSITION_STATE[key] = {
+                    "side": side,
+                    "price": price,
+                    "bar_ts": bar_ts_i,
+                }
+                action = "open"
+
+        if action == "hold":
+            hits.append(
+                _open_row(
+                    sid,
+                    zht,
+                    en,
+                    sym,
+                    side,
+                    price,
+                    bar_ts_i,
+                    _cached_signal_audio(sid, sym, side, bar_ts_i),
+                )
             )
             continue
 
-        # Brand-new bar signal this cycle: kick off open-signal TTS.
-        cache_key = hashlib.md5(
-            "{0}|{1}|{2}|{3}".format(sid, sym, side, bar_ts_i).encode("utf-8")
-        ).hexdigest()[:20]
-        audio_url = request_signal_audio(cache_key, open_signal_text(zht, sym, side, price))
-        open_row = {
-            "strategy_id": sid,
-            "name_zh": zht,
-            "name_en": en,
-            "symbol": sym,
-            "interval": LIVE_FEED_TF,
-            "event": "open",
-            "side": side,
-            "price": round(price, 8),
-            "bar_ts": bar_ts_i,
-            "audio_url": audio_url,
-        }
+        audio_url = request_signal_audio(
+            _signal_cache_key(sid, sym, side, bar_ts_i),
+            open_signal_text(zht, sym, side, price),
+        )
+        open_row = _open_row(sid, zht, en, sym, side, price, bar_ts_i, audio_url)
         hits.append(open_row)
         log_events.append(dict(open_row, logged_at=int(now_sec)))
 
@@ -977,20 +1115,9 @@ def scan_one(spec, pool, now_sec):
                 close_audio_url = request_signal_audio(
                     close_cache_key, close_signal_text(zht, pnl_pct)
                 )
-            close_row = {
-                "strategy_id": sid,
-                "name_zh": zht,
-                "name_en": en,
-                "symbol": sym,
-                "interval": LIVE_FEED_TF,
-                "event": "close",
-                "side": "CLOSE_" + flipped_from["side"],
-                "entry_price": round(flipped_from["price"], 8),
-                "exit_price": round(price, 8),
-                "pnl_pct": round(pnl_pct, 2),
-                "bar_ts": bar_ts_i,
-                "audio_url": close_audio_url if pnl_pct > 0 else None,
-            }
+            close_row = _close_row(
+                sid, zht, en, sym, flipped_from, price, bar_ts_i, close_audio_url
+            )
             closes.append(close_row)
             log_events.append(dict(close_row, logged_at=int(now_sec)))
     return hits, closes, log_events
@@ -1002,6 +1129,7 @@ def build_live_feed_matrix():
     the heavier full pool refresh, so this step alone stays fast (a few
     seconds) regardless of what else is happening in the poll cycle."""
     now_sec = time.time()
+    ensure_position_state_loaded()
     specs = frontend_strategy_specs()
     pool = refresh_live_feed_pool()
 
@@ -1017,7 +1145,11 @@ def build_live_feed_matrix():
             fresh_log.extend(log_events)
     signals.sort(key=lambda x: x["bar_ts"], reverse=True)
     closed.sort(key=lambda x: x["bar_ts"], reverse=True)
-    exec_log = save_exec_log(merge_exec_log(load_exec_log(), fresh_log))
+    # First cycle after upgrade/restart: snapshot holdings only. The old
+    # tape was a new-bar dump of every still-active signal — drop it.
+    existing = [] if _POSITION_STATE_HYDRATING else prune_hold_exec_log(load_exec_log())
+    exec_log = save_exec_log(merge_exec_log(existing, fresh_log))
+    save_position_state()
 
     return {
         "updated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
