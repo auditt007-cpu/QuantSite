@@ -277,13 +277,30 @@
       const cached = barsCache.get(key);
       if (Date.now() - cached.ts < 20000) return cached.bars;
     }
-    if (!feed || typeof feed.fetchKlines !== "function") {
+    const offline = () => {
       const off = window.QAOffline && window.QAOffline.forInterval(interval);
       return off && off.length ? off.slice(-500) : [];
+    };
+    if (!feed || typeof feed.fetchKlines !== "function") return offline();
+    try {
+      if (typeof feed.readyGeo === "function") {
+        try {
+          await feed.readyGeo();
+        } catch {
+          /* keep current region */
+        }
+      }
+      const bars = await feed.fetchKlines(symbol, interval, 500);
+      if (bars && bars.length) {
+        barsCache.set(key, { bars, ts: Date.now() });
+        return bars;
+      }
+    } catch {
+      /* live fetch failed */
     }
-    const bars = await feed.fetchKlines(symbol, interval, 500);
-    barsCache.set(key, { bars, ts: Date.now() });
-    return bars;
+    const off = offline();
+    if (off.length) barsCache.set(key, { bars: off, ts: Date.now() });
+    return off;
   }
 
   function hashStr(s) {
@@ -675,6 +692,7 @@
       warSeries = null;
     }
     zeroPriceLine = null;
+    chartLockRange = null;
   }
 
   function ensureZeroLine(series) {
@@ -730,8 +748,18 @@
     const el = document.getElementById("warChart");
     const Charts = window.LightweightCharts;
     if (!el || !Charts) return;
-    if (warChart) return;
-    const baseOpts = feed.chartOptions(el, el.clientHeight || 420, CHART_INTERVAL);
+    const applySize = () => {
+      if (!warChart || !el) return;
+      warChart.applyOptions({
+        width: Math.max(el.clientWidth || 280, 280),
+        height: Math.max(el.clientHeight || 420, 280),
+      });
+    };
+    if (warChart) {
+      applySize();
+      return;
+    }
+    const baseOpts = feed.chartOptions(el, Math.max(el.clientHeight || 420, 280), CHART_INTERVAL);
     baseOpts.localization = Object.assign({}, baseOpts.localization, {
       priceFormatter: fmtPctAxis,
     });
@@ -756,10 +784,10 @@
       rightBarStaysOnScroll: true,
     });
     warChart = Charts.createChart(el, baseOpts);
+    applySize();
     if (typeof ResizeObserver !== "undefined") {
       new ResizeObserver(() => {
-        if (!warChart) return;
-        warChart.applyOptions({ width: el.clientWidth || 280 });
+        applySize();
         if (chartLockRange) lockChartRange(chartLockRange.from, chartLockRange.to);
       }).observe(el);
     }
@@ -787,17 +815,21 @@
     try {
       warChart.timeScale().setVisibleRange({ from, to });
     } catch {
-      /* ignore */
+      try {
+        warChart.timeScale().fitContent();
+      } catch {
+        /* ignore */
+      }
     }
     chartRangeGuard = false;
   }
 
-  function lockChartToLast6h(bars) {
-    if (!warChart || !bars || !bars.length) return;
-    const lastTime = bars[bars.length - 1].time;
-    const from = lastTime - SIX_HOURS_S;
-    chartLockRange = { from, to: lastTime };
-    lockChartRange(from, lastTime);
+  function lockChartToWindow(windowBars) {
+    if (!warChart || !windowBars || !windowBars.length) return;
+    const from = windowBars[0].time;
+    const to = windowBars[windowBars.length - 1].time;
+    chartLockRange = { from, to };
+    lockChartRange(from, to);
   }
 
   function coinColor(coin, isFocus) {
@@ -1093,8 +1125,10 @@
   }
 
   /* ---- Poll focused strategy + multi-coin normalized 6H overlay chart ---- */
+  let activeRefreshSeq = 0;
   async function refreshActive() {
     if (!activeStrategy) return;
+    const seq = ++activeRefreshSeq;
     const s = activeStrategy;
     const sym = effectiveSymbol(s);
     const coins = watchCoins.length ? watchCoins.slice() : [sym];
@@ -1112,7 +1146,7 @@
         }
       })
     );
-    if (activeStrategy !== s) return;
+    if (seq !== activeRefreshSeq || activeStrategy !== s) return;
 
     let anchorBars = [];
     barSets.forEach(({ coin, bars }) => {
@@ -1155,7 +1189,7 @@
       warSeries = addCandleSeries(warChart);
       warSeries.setData(focusNorm.normalized);
       ensureZeroLine(warSeries);
-      lockChartToLast6h(focusBars);
+      requestAnimationFrame(() => lockChartToWindow(focusNorm.slice));
     }
 
     renderLegend();
@@ -1171,7 +1205,7 @@
     } catch {
       trades = [];
     }
-    if (activeStrategy !== s) return;
+    if (seq !== activeRefreshSeq || activeStrategy !== s) return;
 
     if (warSeries && markerNorm) {
       const inWindow = (ts) => ts >= windowFrom && ts <= lastBarTime;
