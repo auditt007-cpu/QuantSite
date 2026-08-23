@@ -115,11 +115,16 @@
     const lb = lbForEngine(eng);
     if (lb) {
       return {
-        wr: Number.isFinite(lb.win_rate) ? lb.win_rate : null,
+        wr: Number.isFinite(lb.win_rate_smooth)
+          ? lb.win_rate_smooth
+          : Number.isFinite(lb.win_rate)
+            ? lb.win_rate
+            : null,
         sh: null,
         ret: Number.isFinite(lb.net_profit_pct) ? lb.net_profit_pct : null,
         pf: Number.isFinite(lb.profit_factor) ? lb.profit_factor : null,
         mdd: Number.isFinite(lb.max_drawdown) ? lb.max_drawdown : null,
+        trades: Number.isFinite(lb.trades) ? lb.trades : null,
         source: "leaderboard",
       };
     }
