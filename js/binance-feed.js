@@ -38,7 +38,7 @@
 
   async function fetchUrl(url, ms) {
     const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
-    const timer = ctrl ? setTimeout(() => ctrl.abort(), ms || 8000) : null;
+    const timer = ctrl ? setTimeout(() => ctrl.abort(), ms || 5000) : null;
     try {
       return await fetch(url, ctrl ? { signal: ctrl.signal } : {});
     } finally {
@@ -58,7 +58,7 @@
   async function restBinance(host, symbol, interval, limit, endTime) {
     let qs = `symbol=${encodeURIComponent(symbol)}&interval=${encodeURIComponent(interval)}&limit=${limit}`;
     if (endTime) qs += "&endTime=" + encodeURIComponent(String(endTime));
-    const res = await fetchUrl(`${host}/api/v3/klines?${qs}`, 8000);
+    const res = await fetchUrl(`${host}/api/v3/klines?${qs}`, 5000);
     if (!res.ok) throw new Error("http");
     const data = await res.json();
     if (!Array.isArray(data) || !data.length) throw new Error("empty");
@@ -68,7 +68,7 @@
   async function restOkx(symbol, interval, limit) {
     const bar = OKX_BAR[interval] || "1m";
     const url = `https://www.okx.com/api/v5/market/candles?instId=${encodeURIComponent(okxInst(symbol))}&bar=${bar}&limit=${Math.min(300, limit)}`;
-    const res = await fetchUrl(url, 8000);
+    const res = await fetchUrl(url, 5000);
     if (!res.ok) throw new Error("http");
     const data = await res.json();
     const rows = (data && data.data) || [];
@@ -89,7 +89,7 @@
   async function restBybit(symbol, interval, limit) {
     const iv = BYBIT_IV[interval] || "1";
     const url = `https://api.bybit.com/v5/market/kline?category=linear&symbol=${encodeURIComponent(symbol)}&interval=${iv}&limit=${Math.min(1000, limit)}`;
-    const res = await fetchUrl(url, 8000);
+    const res = await fetchUrl(url, 5000);
     if (!res.ok) throw new Error("http");
     const data = await res.json();
     const rows = (data && data.result && data.result.list) || [];
@@ -114,11 +114,11 @@
     const apiBase = (root.QUANT_CONFIG && root.QUANT_CONFIG.apiBase) || "";
     async function once(lim, endTime) {
       const tries = [
-        { venue: "Binance", run: () => restBinance("https://api.binance.com", sym, iv, lim, endTime) },
-        { venue: "Binance-Vision", run: () => restBinance("https://data-api.binance.vision", sym, iv, lim, endTime) },
-        { venue: "Worker", run: () => restBinance(apiBase, sym, iv, lim, endTime) },
         { venue: "OKX", run: () => restOkx(sym, iv, lim) },
         { venue: "Bybit", run: () => restBybit(sym, iv, lim) },
+        { venue: "Worker", run: () => restBinance(apiBase, sym, iv, lim, endTime) },
+        { venue: "Binance-Vision", run: () => restBinance("https://data-api.binance.vision", sym, iv, lim, endTime) },
+        { venue: "Binance", run: () => restBinance("https://api.binance.com", sym, iv, lim, endTime) },
       ];
       for (const item of tries) {
         if (item.venue === "Worker" && !String(apiBase).startsWith("http")) continue;

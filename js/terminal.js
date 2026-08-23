@@ -87,25 +87,40 @@
     return "trend";
   }
 
-  if (window.QAPackReady) {
+  async function fetchRemoteStrategies(ms) {
+    const base = (cfg && cfg.apiBase) || "";
+    if (!base.startsWith("http")) return [];
+    const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+    const timer = ctrl ? setTimeout(() => ctrl.abort(), ms || 4500) : null;
     try {
-      await window.QAPackReady;
+      const res = await fetch(base + "/api/strategies", {
+        cache: "no-store",
+        signal: ctrl ? ctrl.signal : undefined,
+      });
+      if (!res.ok) return [];
+      const payload = await res.json();
+      return payload.strategies || [];
     } catch {
-      /* pack optional */
+      return [];
+    } finally {
+      if (timer) clearTimeout(timer);
     }
   }
 
-  const LOCAL_FREE = (catalog.list || []).filter((s) => s.tier !== "master" && s.id !== "ai");
-  const LOCAL_MASTER = (catalog.list || []).filter((s) => s.tier === "master");
-
-  let remote = [];
-  try {
-    const res = await fetch(cfg.apiBase + "/api/strategies");
-    const payload = await res.json();
-    remote = payload.strategies || [];
-  } catch {
-    remote = [];
+  if (!catalog || !Array.isArray(catalog.list)) {
+    const gridEl = document.getElementById("gridAll");
+    if (gridEl) gridEl.innerHTML = `<p class="muted">${t("mktEmpty")}</p>`;
+    return;
   }
+
+  const packReady = window.QAPackReady
+    ? window.QAPackReady.catch(() => 0)
+    : Promise.resolve(0);
+  void packReady;
+
+  const LOCAL_FREE = catalog.list.filter((s) => s.tier !== "master" && s.id !== "ai");
+  const LOCAL_MASTER = catalog.list.filter((s) => s.tier === "master");
+  let remote = [];
 
   function asCard(s, tier) {
     return {
@@ -140,7 +155,22 @@
 
   const freeList = merge("free", LOCAL_FREE);
   const masterList = merge("master", LOCAL_MASTER);
-  const allList = freeList.concat(masterList);
+  let allList = freeList.concat(masterList);
+
+  function bindOpenButtons(root) {
+    (root || document).querySelectorAll("[data-open]").forEach((b) => {
+      if (b.dataset.bound === "1") return;
+      b.dataset.bound = "1";
+      b.addEventListener("click", () => openEngine(b.getAttribute("data-open"), b.getAttribute("data-iv")));
+    });
+  }
+
+  function paintGrid() {
+    if (!gridEl) return;
+    gridEl.innerHTML = allList.map((s) => cardHtml(s, s.tier === "master")).join("") || `<p class="muted">${t("mktEmpty")}</p>`;
+    bindOpenButtons(gridEl);
+    applyFilter();
+  }
 
   function openEngine(engine, interval) {
     showBacktest();
@@ -175,14 +205,6 @@
   }
 
   const gridEl = document.getElementById("gridAll");
-  if (gridEl) {
-    gridEl.innerHTML = allList.map((s) => cardHtml(s, s.tier === "master")).join("") || `<p class="muted">${t("mktEmpty")}</p>`;
-  }
-
-  document.querySelectorAll("[data-open]").forEach((b) => {
-    b.addEventListener("click", () => openEngine(b.getAttribute("data-open"), b.getAttribute("data-iv")));
-  });
-
   const tabsEl = document.getElementById("termTabs");
   const PAGE = 8;
   let pageN = PAGE;
@@ -242,6 +264,23 @@
     });
   }
   applyFilter();
+  paintGrid();
+
+  fetchRemoteStrategies(4500).then((rows) => {
+    if (!rows.length) return;
+    remote = rows;
+    allList = merge("free", LOCAL_FREE).concat(merge("master", LOCAL_MASTER));
+    tabDefs[0].label = `${t("tabAll")} (${allList.length})`;
+    tabDefs[5].label = `${t("tabFree")} (${merge("free", LOCAL_FREE).length})`;
+    tabDefs[6].label = `${t("tabMaster")} (${merge("master", LOCAL_MASTER).length})`;
+    if (tabsEl) {
+      tabsEl.innerHTML = tabDefs
+        .map((tb, i) => `<button type="button" class="term-tab${i === 0 ? " active" : ""}" data-filter="${tb.id}">${tb.label}</button>`)
+        .join("");
+    }
+    paintGrid();
+    fillStats(allList, gridEl);
+  });
 
   async function fillStats(list, rootEl) {
     if (!rootEl) return;
