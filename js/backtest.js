@@ -390,7 +390,7 @@ function tradePillsHtml(trades) {
       const win = Number(tr.pnlAbs) > 0;
       const d = new Date(Number(tr.t1) * 1000);
       const md = isFinite(d.getTime())
-        ? String(d.getMonth() + 1).padStart(2, "0") + "/" + String(d.getDate()).padStart(2, "0")
+        ? d.getMonth() + 1 + "/" + d.getDate()
         : "—";
       const usd = fmtUsd0(Math.abs(Number(tr.pnlAbs)));
       const sign = win ? "+" : "-";
@@ -399,8 +399,7 @@ function tradePillsHtml(trades) {
         `<div class="bbg-trade-item" data-trade-item="${idx}">` +
         `<button type="button" class="bbg-trade-pill ${tone}" data-trade-idx="${idx}" aria-expanded="false">` +
         `<span class="bbg-dot"></span>` +
-        `<span class="bbg-trade-val">${sign}$${usd}</span>` +
-        `<span class="bbg-trade-date">${md}</span>` +
+        `<span class="bbg-trade-val">${sign}$${usd} (${md})</span>` +
         `</button>` +
         `<div class="bbg-trade-detail" id="tradeDetail${idx}" hidden>${tradePillDetailHtml(tr)}</div>` +
         `</div>`
@@ -461,8 +460,10 @@ function paintRetail(eq, st, trades, ctx) {
   const pct = st ? st.ret : 0;
   const sign = profit >= 0 ? "+" : "-";
   const loss = profit < 0;
-  if ($("moneyStart")) $("moneyStart").textContent = "$" + fmtUsd0(START_EQ);
-  if ($("moneyEnd")) $("moneyEnd").textContent = "$" + fmtUsd0(end);
+  const startEl = $("moneyStart");
+  const endEl = $("moneyEnd");
+  if (startEl) startEl.textContent = "$" + fmtUsd0(START_EQ);
+  if (endEl) endEl.textContent = "$" + fmtUsd0(end);
   if ($("moneyPnl")) {
     $("moneyPnl").textContent = t("moneyPnlTpl")
       .replace("{sign}", sign)
@@ -478,6 +479,27 @@ function paintRetail(eq, st, trades, ctx) {
   const shareSub = $("shareSub");
   if (shareLine) shareLine.textContent = "$" + fmtUsd0(START_EQ) + " → $" + fmtUsd0(end);
   if (shareSub) shareSub.textContent = fmtSignedPct(pct) + " · " + (ctx ? ctx.windowDays : 0) + "d";
+}
+
+function refreshBacktestCardI18n() {
+  if (window.QAApplyI18n) window.QAApplyI18n();
+  if (lastCtx) {
+    const winOffset = lastCtx.winIdx - lastCtx.runStart;
+    const rawTrades = spec().run(lastCtx.runBars);
+    const trades = remapWindowTrades(rawTrades, winOffset);
+    const winBars = lastCtx.winBars;
+    const GM = window.Grademark;
+    const eq = GM ? GM.computeEquityCurve(trades, winBars, START_EQ) : catalog.equityFrom(winBars, trades);
+    const st = catalog.performanceOf(trades, eq, catalog.barsPerYear(interval), winBars);
+    paintRetail(eq, st, trades, lastCtx);
+    paintNav(eq, st, lastCtx);
+    paintSampleHint(lastCtx);
+  } else {
+    if ($("moneyPnl")) $("moneyPnl").textContent = t("moneyPnlIdle");
+    if ($("navDur")) $("navDur").textContent = t("navDurIdle");
+    if ($("bbgFooterRange")) $("bbgFooterRange").textContent = t("bbgFooterRangeIdle");
+    if ($("bbgFooterMeta")) $("bbgFooterMeta").textContent = t("bbgFooterMetaIdle");
+  }
 }
 
 function paintNav(eq, st, ctx) {
@@ -871,6 +893,7 @@ function bindChrome() {
   syncDock();
 }
 bindChrome();
+window.addEventListener("quant-lang", () => refreshBacktestCardI18n());
 const DEFER = Boolean(document.getElementById("viewList"));
 if (!DEFER) {
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);

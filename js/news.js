@@ -296,6 +296,18 @@
   }
 
   function weekRows() {
+    const lb = root.QALeaderboard;
+    if (lb && lb.by_engine) {
+      return Object.values(lb.by_engine)
+        .map((row) => ({
+          id: row.engine,
+          name: row.name_zh || row.name_en || row.engine,
+          pct: Number(row.net_profit_pct || 0) * 100,
+        }))
+        .filter((row) => row.id && Number.isFinite(row.pct))
+        .sort((a, b) => b.pct - a.pct)
+        .slice(0, 5);
+    }
     const cards = document.querySelectorAll("#gridAll .m-card, #gridAll .m-card, #gridAll .strategy-card");
     const live = [];
     cards.forEach((card) => {
@@ -399,10 +411,7 @@
     refreshNews();
     paintWeek();
   });
-  root.addEventListener("quant-lang", () => {
-    refreshNews();
-    paintWeek();
-  });
+  root.addEventListener("qa-leaderboard-ready", () => paintWeek());
 
   function boot() {
     bootNews();

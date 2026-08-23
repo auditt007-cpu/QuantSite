@@ -160,45 +160,45 @@
           <div class="bbg-terminal-card" id="moneyCard">
             <div class="bbg-main-grid">
               <div class="bbg-capital-panel">
-                <div class="bbg-badge-label" data-i18n="moneyAssume">INITIAL CAPITAL · 10,000 USDT</div>
-                <div class="bbg-flow-value">
+                <div class="bbg-badge-label" data-i18n="moneyAssume">假設投入</div>
+                <div class="bbg-flow-value" id="moneyFlowLine" aria-live="polite">
                   <span class="bbg-muted" id="moneyStart">$10,000</span>
-                  <span class="bbg-arrow">→</span>
+                  <span class="bbg-arrow" aria-hidden="true">→</span>
                   <span class="bbg-accent-gold" id="moneyEnd">$10,000</span>
                 </div>
                 <div class="bbg-pnl-banner" id="moneyPnlWrap">
-                  <span class="bbg-pnl-tag">NET PNL</span>
+                  <span class="bbg-pnl-tag" data-i18n="moneyNetProfit">歷史淨賺</span>
                   <span class="bbg-pnl-val" id="moneyPnl">+$0.00 USDT (+0.0%)</span>
                 </div>
               </div>
               <div class="bbg-metrics-matrix">
                 <div class="bbg-metric-cell">
-                  <span class="bbg-metric-title" data-i18n="statWr">WIN RATE / 勝率</span>
+                  <span class="bbg-metric-title" data-i18n="statWr">勝率</span>
                   <span class="bbg-metric-number bbg-accent-gold" id="mWr">—</span>
                 </div>
                 <div class="bbg-metric-cell">
-                  <span class="bbg-metric-title" data-i18n="statPf">PROFIT FACTOR / 盈虧比</span>
+                  <span class="bbg-metric-title" data-i18n="statPf">盈虧比</span>
                   <span class="bbg-metric-number bbg-bright-white" id="mPf">—</span>
                 </div>
                 <div class="bbg-metric-cell">
-                  <span class="bbg-metric-title" data-i18n="statTrades">TOTAL TRADES / 總筆數</span>
+                  <span class="bbg-metric-title" data-i18n="statTrades">交易筆數</span>
                   <span class="bbg-metric-number bbg-bright-white" id="mTrades">—</span>
                 </div>
                 <div class="bbg-metric-cell">
-                  <span class="bbg-metric-title" data-i18n="statBars">SAMPLE SIZE / 樣本數</span>
+                  <span class="bbg-metric-title" data-i18n="statBars">樣本</span>
                   <span class="bbg-metric-number bbg-bright-white" id="mBars">—</span>
                 </div>
               </div>
             </div>
             <div class="bbg-status-strip" id="navLine">
-              <div class="bbg-strip-item"><span>START:</span> <strong id="navStart">$10,000.00</strong></div>
-              <div class="bbg-strip-item"><span>CURRENT:</span> <strong id="navNow">$10,000.00</strong></div>
-              <div class="bbg-strip-item"><span>MAX DD:</span> <strong id="navDd" class="bbg-loss-text">0.0%</strong></div>
-              <div class="bbg-strip-item"><span>PERIOD:</span> <strong id="navDur" class="bbg-win-text">30 DAYS</strong></div>
+              <div class="bbg-strip-item"><span data-i18n="lblNavStart">起始淨值</span> <strong id="navStart">$10,000.00</strong></div>
+              <div class="bbg-strip-item"><span data-i18n="lblNavNow">當前淨值</span> <strong id="navNow">$10,000.00</strong></div>
+              <div class="bbg-strip-item"><span data-i18n="lblMaxDd">最大回撤</span> <strong id="navDd" class="bbg-loss-text">0.0%</strong></div>
+              <div class="bbg-strip-item"><span data-i18n="lblPeriod">回測用時</span> <strong id="navDur" class="bbg-win-text">30 DAYS</strong></div>
             </div>
             <div class="bbg-trades-section">
               <div class="bbg-section-header">
-                <span data-i18n="bbgExecLogs">EXECUTION LOGS / 實盤成交記錄</span>
+                <span data-i18n="bbgExecLogs">實盤成交記錄</span>
                 <span class="bbg-tag-live">LIVE EXEC</span>
               </div>
               <div class="bbg-trades-grid" id="tradePills"></div>

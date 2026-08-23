@@ -70,7 +70,44 @@
     return Number.isFinite(n) ? n / (String(raw).includes("%") || Math.abs(n) > 1 ? 100 : 1) : null;
   }
 
+  let leaderboard = null;
+  let leaderboardReady = null;
+
+  async function loadLeaderboard() {
+    if (leaderboardReady) return leaderboardReady;
+    leaderboardReady = (async () => {
+      const url = (cfg && cfg.leaderboardUrl) || "./leaderboard.json";
+      try {
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) return null;
+        leaderboard = await res.json();
+        return leaderboard;
+      } catch {
+        return null;
+      }
+    })();
+    return leaderboardReady;
+  }
+
+  function lbForEngine(engineId) {
+    if (!leaderboard || !leaderboard.by_engine) return null;
+    const key = String(engineId || "").trim();
+    return leaderboard.by_engine[key] || null;
+  }
+
   function seedMetrics(s) {
+    const eng = s.engine || s.id;
+    const lb = lbForEngine(eng);
+    if (lb) {
+      return {
+        wr: Number.isFinite(lb.win_rate) ? lb.win_rate : null,
+        sh: null,
+        ret: Number.isFinite(lb.net_profit_pct) ? lb.net_profit_pct : null,
+        pf: Number.isFinite(lb.profit_factor) ? lb.profit_factor : null,
+        mdd: Number.isFinite(lb.max_drawdown) ? lb.max_drawdown : null,
+        source: "leaderboard",
+      };
+    }
     const spec = catalog.get(s.engine || s.id) || catalog.get(s.id);
     const m = (spec && spec.metrics) || s.metrics || {};
     const wr = parsePct(m.win_rate);
@@ -80,6 +117,9 @@
       wr: wr != null ? wr : null,
       sh: Number.isFinite(sh) && sh > 0 ? sh : null,
       ret: ret != null ? ret : null,
+      pf: null,
+      mdd: parsePct(m.max_drawdown),
+      source: "pack",
     };
   }
 
@@ -286,16 +326,17 @@
     const principle = s.principle || "";
     const seed = seedMetrics(s);
     const wrPct = seed.wr != null ? (seed.wr * 100).toFixed(1) + "%" : "計算中";
-    const shTxt = seed.sh != null ? seed.sh.toFixed(2) : "計算中";
+    const shTxt = seed.sh != null ? seed.sh.toFixed(2) : seed.pf != null ? seed.pf.toFixed(2) : "計算中";
     const wrSoft = seed.wr != null ? "" : " soft";
-    const shSoft = seed.sh != null ? "" : " soft";
+    const shSoft = seed.sh != null || seed.pf != null ? "" : " soft";
     const hitLine =
       seed.wr != null
         ? `<p class="card-hit" data-hit-line>👑 ${t("mktWr")} ${wrPct}${seed.ret != null ? " · " + (seed.ret * 100).toFixed(0) + "%" : ""}</p>`
         : `<p class="card-hit" data-hit-line></p>`;
     const dataWr = seed.wr != null ? ` data-wr="${seed.wr}"` : "";
     const dataRet = seed.ret != null ? ` data-ret="${seed.ret}"` : "";
-    return `<article class="m-card strategy-card${master ? " master" : ""}" data-id="${s.id}" data-tier="${master ? "master" : "free"}" data-kind="${kindOf(s)}"${dataWr}${dataRet} data-mdd="">
+    const dataMdd = seed.mdd != null ? ` data-mdd="${seed.mdd}"` : "";
+    return `<article class="m-card strategy-card${master ? " master" : ""}" data-id="${s.id}" data-tier="${master ? "master" : "free"}" data-kind="${kindOf(s)}"${dataWr}${dataRet}${dataMdd} data-engine="${s.engine || s.id}">
         ${badge}
         <h3>${s.name}</h3>
         ${hitLine}
@@ -380,6 +421,13 @@
     });
   }
   paintGrid();
+  loadLeaderboard().then((lb) => {
+    if (lb && lb.by_engine) {
+      window.QALeaderboard = lb;
+      paintGrid();
+      window.dispatchEvent(new CustomEvent("qa-leaderboard-ready"));
+    }
+  });
   setTimeout(() => {
     if (document.body.classList.contains("desk-open")) return;
     void fillStats(allList, gridEl, 168, 4).then(() => {
