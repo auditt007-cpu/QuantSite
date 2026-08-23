@@ -200,12 +200,51 @@ function isMobile() {
   return window.matchMedia("(max-width: 768px)").matches;
 }
 
+function ensureSheetPortal() {
+  if (window.__QA_SHEET_PORTAL) return;
+  const scrim = $("sheetScrim");
+  const sheet = $("resultSheet");
+  if (!scrim || !sheet) return;
+  document.body.appendChild(scrim);
+  document.body.appendChild(sheet);
+  window.__QA_SHEET_PORTAL = true;
+}
+
+function bindSheetUi() {
+  ensureSheetPortal();
+  if (window.__QA_SHEET_BOUND) return;
+  window.__QA_SHEET_BOUND = true;
+  document.addEventListener(
+    "click",
+    (ev) => {
+      if (ev.target && ev.target.id === "sheetScrim") {
+        ev.preventDefault();
+        closeSheet();
+        return;
+      }
+      if (ev.target.closest("#sheetCloseBtn") || ev.target.closest("#sheetDoneBtn")) {
+        ev.preventDefault();
+        closeSheet();
+      }
+    },
+    true,
+  );
+  document.addEventListener("keydown", (ev) => {
+    if (ev.key === "Escape") closeSheet();
+  });
+}
+
 function openSheet() {
+  ensureSheetPortal();
   const sheet = $("resultSheet");
   const scrim = $("sheetScrim");
   if (!sheet || !isMobile()) return;
   sheet.classList.add("open");
-  if (scrim) scrim.hidden = false;
+  sheet.setAttribute("aria-hidden", "false");
+  if (scrim) {
+    scrim.hidden = false;
+    scrim.setAttribute("aria-hidden", "false");
+  }
   document.body.classList.add("sheet-open");
   requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
 }
@@ -213,8 +252,14 @@ function openSheet() {
 function closeSheet() {
   const sheet = $("resultSheet");
   const scrim = $("sheetScrim");
-  if (sheet) sheet.classList.remove("open");
-  if (scrim) scrim.hidden = true;
+  if (sheet) {
+    sheet.classList.remove("open");
+    sheet.setAttribute("aria-hidden", "true");
+  }
+  if (scrim) {
+    scrim.hidden = true;
+    scrim.setAttribute("aria-hidden", "true");
+  }
   document.body.classList.remove("sheet-open");
 }
 
@@ -601,6 +646,7 @@ function refillSelect() {
     .join("");
 }
 function boot() {
+  bindSheetUi();
   bindDesk();
   refillSelect();
   scheduleFit();
@@ -684,6 +730,7 @@ function bindChrome() {
   if ($("sheetCloseBtn")) $("sheetCloseBtn").addEventListener("click", closeSheet);
   if ($("sheetDoneBtn")) $("sheetDoneBtn").addEventListener("click", closeSheet);
   if ($("sheetScrim")) $("sheetScrim").addEventListener("click", closeSheet);
+  bindSheetUi();
   if ($("btnShareCard")) {
     $("btnShareCard").addEventListener("click", () => {
       const ov = $("shareOverlay");

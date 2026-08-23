@@ -1605,109 +1605,167 @@ input.is-focused, textarea.is-focused, select.is-focused {
   .sheet-hint {
     display: block;
   }
-  .result-sheet {
+  .result-sheet.bb-sheet {
     position: fixed;
     left: 0;
     right: 0;
     bottom: calc(64px + env(safe-area-inset-bottom));
-    height: min(72vh, 640px);
-    max-height: min(72vh, 640px);
-    background: #fff;
-    border-top: 2px solid #000;
-    border-radius: 16px 16px 0 0;
-    z-index: 40;
+    height: min(72vh, 620px);
+    max-height: min(72vh, 620px);
+    background: #ffffff;
+    border-top: 2px solid #000000;
+    border-radius: 0;
+    z-index: 620;
     transform: translateY(110%);
     transition: transform 0.22s ease;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 -8px 24px rgba(0,0,0,0.12);
+    box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.18);
+    pointer-events: none;
+    visibility: hidden;
   }
-  .result-sheet.open { transform: translateY(0); }
+  .result-sheet.bb-sheet.open {
+    transform: translateY(0);
+    pointer-events: auto;
+    visibility: visible;
+  }
   .sheet-head {
     flex: 0 0 auto;
-    padding: 10px 16px 8px;
-    border-bottom: 1px solid #e2e8f0;
-    background: #fff;
+    padding: 0;
+    border-bottom: 2px solid #000000;
+    background: #000000;
+    color: #ffffff;
   }
   .sheet-grab {
     display: block;
     width: 44px;
     height: 4px;
-    margin: 0 auto 10px;
-    border-radius: 999px;
-    background: #cbd5e1;
+    margin: 8px auto 0;
+    border-radius: 0;
+    background: #64748b;
   }
   .sheet-head-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
+    padding: 10px 14px 0;
   }
   .sheet-title {
     margin: 0;
-    font-size: 15px;
+    font-size: 11px;
     font-weight: 800;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #ffffff;
   }
   .sheet-x {
     flex: 0 0 auto;
     width: 36px;
     height: 36px;
-    border: 1px solid #000;
-    background: #fff;
-    color: #000;
+    border: 1px solid #ffffff;
+    background: transparent;
+    color: #ffffff;
     font-size: 18px;
     line-height: 1;
     cursor: pointer;
-    border-radius: 8px;
+    border-radius: 0;
   }
   .sheet-hint {
-    margin: 8px 0 0;
-    font-size: 11px;
+    margin: 0;
+    padding: 8px 14px 10px;
+    font-size: 10px;
     line-height: 1.45;
-    color: #64748b;
+    color: #94a3b8;
     text-align: center;
+    background: #000000;
+    letter-spacing: 0.04em;
   }
   .sheet-body {
     flex: 1 1 auto;
     overflow: auto;
     -webkit-overflow-scrolling: touch;
-    padding: 10px 16px 12px;
+    padding: 12px 14px;
     min-height: 0;
+    background: #ffffff;
   }
   .sheet-foot {
     flex: 0 0 auto;
-    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
-    border-top: 1px solid #e2e8f0;
-    background: #fff;
+    padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+    border-top: 2px solid #000000;
+    background: #ffffff;
   }
   .sheet-done {
     width: 100%;
     min-height: 44px;
-    font-weight: 700;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: #000000;
+    color: #ffffff;
+    border: 2px solid #000000;
+    border-radius: 0;
   }
-  .result-sheet .money-card {
+  .bb-sheet .money-card {
     margin-bottom: 10px;
     padding: 12px;
+    border: 2px solid #000000;
+    background: #ffffff;
   }
-  .result-sheet .money-end {
-    font-size: 20px;
-    line-height: 1.25;
+  .bb-sheet .money-kicker {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #64748b;
   }
-  .result-sheet .money-pnl { font-size: 14px; }
-  .result-sheet .money-facts { font-size: 12px; line-height: 1.55; }
-  .result-sheet .funnel-card { margin-bottom: 10px; padding: 10px; }
-  .result-sheet .zone-title { font-size: 13px; margin: 8px 0 6px; }
-  .result-sheet #equityChart {
+  .bb-sheet .money-end {
+    font-size: 22px;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+  }
+  .bb-sheet .money-pnl { font-size: 14px; font-weight: 800; }
+  .bb-sheet .money-facts {
+    font-size: 12px;
+    line-height: 1.55;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  .bb-sheet .funnel-card {
+    margin-bottom: 10px;
+    padding: 12px;
+    border: 1px solid #000000;
+    background: #ffffff;
+  }
+  .bb-sheet .funnel-lead {
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .bb-sheet .zone-title {
+    font-size: 11px;
+    margin: 8px 0 6px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 800;
+  }
+  .bb-sheet #equityChart {
     height: 150px !important;
     min-height: 150px !important;
     margin-bottom: 8px;
+    border: 1px solid #000000;
   }
-  .result-sheet .sheet-extra { display: none !important; }
+  .bb-sheet .trade-pill {
+    border: 1px solid #000000;
+    border-radius: 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .bb-sheet .sheet-extra { display: none !important; }
   .sheet-scrim {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.48); z-index: 39;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 610;
   }
-  .sheet-scrim[hidden] { display: none; }
+  .sheet-scrim[hidden] { display: none !important; }
   body.sheet-open { overflow: hidden; }
 }
 
@@ -1727,10 +1785,10 @@ input.is-focused, textarea.is-focused, select.is-focused {
 .money-pnl.down { color: #d0021b; }
 .money-facts { margin: 0; padding: 0; list-style: none; font-size: 13px; line-height: 1.7; }
 .funnel-card {
-  border: 1px solid #000;
+  border: 1px solid #000000;
   padding: 12px;
   margin: 0 0 12px;
-  background: #fffbeb;
+  background: #ffffff;
 }
 .funnel-lead { margin: 0 0 4px; font-weight: 800; }
 .funnel-tg { display: block; text-align: center; margin: 10px 0 8px; }
