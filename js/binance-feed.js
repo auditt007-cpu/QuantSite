@@ -15,9 +15,35 @@
   const GEO_CACHE_KEY = "qa_feed_geo";
   const GEO_TTL_MS = 6 * 60 * 60 * 1000;
   const CN_PROBE_KEY = "qa_cn_venue_probe";
-  const CN_PROBE_TTL_MS = 5 * 60 * 1000;
-  const CN_PROBE_INTERVAL_MS = 5 * 60 * 1000;
+  const CN_PROBE_TTL_MS = 30 * 60 * 1000;
+  const CN_PROBE_INTERVAL_MS = 10 * 60 * 1000;
   const CN_PROBE_TIMEOUT_MS = 3500;
+  const STICKY_VENUE_KEY = "qa_feed_sticky_venue";
+  const STICKY_VENUE_TTL_MS = 30 * 60 * 1000;
+
+  function feedStoreGet(key) {
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      try {
+        return sessionStorage.getItem(key);
+      } catch {
+        return null;
+      }
+    }
+  }
+
+  function feedStoreSet(key, val) {
+    try {
+      localStorage.setItem(key, val);
+    } catch {
+      try {
+        sessionStorage.setItem(key, val);
+      } catch {
+        /* ignore */
+      }
+    }
+  }
 
   let lastMeta = { source: "live", updatedAt: "", venue: "" };
   let startNode = 0;
@@ -30,7 +56,7 @@
 
   function loadCachedGeo() {
     try {
-      const raw = sessionStorage.getItem(GEO_CACHE_KEY);
+      const raw = feedStoreGet(GEO_CACHE_KEY);
       if (!raw) return null;
       const o = JSON.parse(raw);
       if (!o || !o.region || Date.now() - (o.ts || 0) > GEO_TTL_MS) return null;
@@ -41,11 +67,47 @@
   }
 
   function saveCachedGeo(region, country) {
+    feedStoreSet(GEO_CACHE_KEY, JSON.stringify({ region, country, ts: Date.now() }));
+  }
+
+  function readCnProbeCache() {
     try {
-      sessionStorage.setItem(GEO_CACHE_KEY, JSON.stringify({ region, country, ts: Date.now() }));
+      const raw = feedStoreGet(CN_PROBE_KEY);
+      if (!raw) return null;
+      return JSON.parse(raw);
     } catch {
-      /* ignore */
+      return null;
     }
+  }
+
+  function loadStickyVenue() {
+    try {
+      const raw = feedStoreGet(STICKY_VENUE_KEY);
+      if (!raw) return "";
+      const o = JSON.parse(raw);
+      if (!o || !o.venue || o.region !== feedRegionCode) return "";
+      if (Date.now() - (o.ts || 0) > STICKY_VENUE_TTL_MS) return "";
+      return ALL_VENUES.includes(o.venue) ? o.venue : "";
+    } catch {
+      return "";
+    }
+  }
+
+  function saveStickyVenue(venue) {
+    const v = String(venue || "");
+    if (!ALL_VENUES.includes(v)) return;
+    feedStoreSet(
+      STICKY_VENUE_KEY,
+      JSON.stringify({ venue: v, region: feedRegionCode, country: feedCountryCode, ts: Date.now() }),
+    );
+    lastMeta.venue = v;
+  }
+
+  function pinVenueList(list) {
+    const sticky = loadStickyVenue();
+    if (!sticky) return list.slice();
+    const rest = list.filter((v) => v !== sticky);
+    return [sticky].concat(rest);
   }
 
   function countryToRegion(country) {
@@ -77,23 +139,13 @@
   }
 
   function loadCachedCnProbe() {
-    try {
-      const raw = sessionStorage.getItem(CN_PROBE_KEY);
-      if (!raw) return null;
-      const o = JSON.parse(raw);
-      if (!o || !Array.isArray(o.order) || Date.now() - (o.ts || 0) > CN_PROBE_TTL_MS) return null;
-      return { order: o.order, latencies: o.latencies || {} };
-    } catch {
-      return null;
-    }
+    const o = readCnProbeCache();
+    if (!o || !Array.isArray(o.order) || Date.now() - (o.ts || 0) > CN_PROBE_TTL_MS) return null;
+    return { order: o.order, latencies: o.latencies || {}, ts: o.ts || 0 };
   }
 
   function saveCachedCnProbe(order, latencies) {
-    try {
-      sessionStorage.setItem(CN_PROBE_KEY, JSON.stringify({ order, latencies, ts: Date.now() }));
-    } catch {
-      /* ignore */
-    }
+    feedStoreSet(CN_PROBE_KEY, JSON.stringify({ order, latencies, ts: Date.now() }));
   }
 
   function applyCachedCnProbe() {
@@ -183,7 +235,9 @@
   function scheduleCnProbe() {
     if (feedRegion() !== "cn") return;
     if (cnProbeTimer) clearInterval(cnProbeTimer);
-    cnProbeReady = runCnVenueProbe();
+    applyCachedCnProbe();
+    const cached = loadCachedCnProbe();
+    cnProbeReady = cached ? Promise.resolve(cnSortedVenues) : runCnVenueProbe();
     cnProbeTimer = setInterval(() => {
       runCnVenueProbe();
     }, CN_PROBE_INTERVAL_MS);
@@ -192,6 +246,8 @@
   const cachedGeo = loadCachedGeo();
   if (cachedGeo) applyFeedRegion(cachedGeo.region, cachedGeo.country, false);
   else if (feedRegionCode === "cn") applyCachedCnProbe();
+  const bootSticky = loadStickyVenue();
+  if (bootSticky) lastMeta.venue = bootSticky;
 
   function feedRegion() {
     return feedRegionCode;
@@ -202,11 +258,13 @@
   }
 
   function orderedVenues() {
+    let list;
     if (feedRegion() === "cn" && cnSortedVenues && cnSortedVenues.length) {
-      return cnSortedVenues.filter((v) => ALL_VENUES.includes(v));
+      list = cnSortedVenues.filter((v) => ALL_VENUES.includes(v));
+    } else {
+      list = (VENUE_ORDER[feedRegion()] || VENUE_ORDER.intl).filter((v) => ALL_VENUES.includes(v));
     }
-    const list = VENUE_ORDER[feedRegion()] || VENUE_ORDER.intl;
-    return list.filter((v) => ALL_VENUES.includes(v));
+    return pinVenueList(list);
   }
 
   function resetRegion() {
@@ -241,6 +299,11 @@
   }
 
   async function initFeedGeo() {
+    const cached = loadCachedGeo();
+    if (cached) {
+      applyFeedRegion(cached.region, cached.country, false);
+      return feedRegionCode;
+    }
     let cc = "";
     try {
       cc = await probeCountryCode();
@@ -254,10 +317,13 @@
   }
 
   async function readyFeed() {
+    if (loadCachedGeo()) {
+      if (feedRegion() !== "cn" || loadCachedCnProbe() || loadStickyVenue()) return feedRegionCode;
+    }
     await feedGeoReady;
     if (feedRegion() !== "cn") return feedRegionCode;
     try {
-      await Promise.race([cnProbeReady, new Promise((resolve) => setTimeout(resolve, 2500))]);
+      await Promise.race([cnProbeReady, new Promise((resolve) => setTimeout(resolve, 800))]);
     } catch {
       /* keep cached/static order */
     }
@@ -485,6 +551,19 @@
     };
     const order = orderedVenues();
     if (feedRegion() === "cn") {
+      const sticky = loadStickyVenue();
+      if (sticky && tries[sticky]) {
+        try {
+          const rows = await tries[sticky]();
+          if (rows && rows.length) {
+            lastMeta.venue = sticky;
+            saveStickyVenue(sticky);
+            return rows;
+          }
+        } catch {
+          /* fall through */
+        }
+      }
       const cnRuns = order
         .slice(0, CN_RACE)
         .map((venue) => ({ venue, run: tries[venue] }))
@@ -498,6 +577,7 @@
           }),
         );
         lastMeta.venue = winner.venue;
+        saveStickyVenue(winner.venue);
         return winner.rows;
       } catch {
         /* fall through */
@@ -511,6 +591,7 @@
         const rows = await run();
         if (rows && rows.length) {
           lastMeta.venue = venue;
+          saveStickyVenue(venue);
           return rows;
         }
       } catch {
@@ -734,10 +815,31 @@
       lastMeta.source = "live";
       lastMeta.venue = winner.venue;
       lastMeta.updatedAt = "";
+      saveStickyVenue(winner.venue);
       return winner.rows;
     } catch {
       return null;
     }
+  }
+
+  async function tryStickyRestItem(tries) {
+    const sticky = loadStickyVenue();
+    if (!sticky) return null;
+    const item = tries.find((t) => t.venue === sticky);
+    if (!item) return null;
+    try {
+      const rows = await item.run();
+      if (rows && rows.length) {
+        lastMeta.source = "live";
+        lastMeta.venue = sticky;
+        lastMeta.updatedAt = "";
+        saveStickyVenue(sticky);
+        return rows;
+      }
+    } catch {
+      /* next path */
+    }
+    return null;
   }
 
   async function fetchKlines(symbol, interval, limit) {
@@ -748,6 +850,8 @@
     async function once(lim, endTime) {
       const tries = filterRestTries(buildRestTries(sym, iv, lim, endTime, apiBase), endTime, apiBase);
       if (feedRegion() === "cn" && !endTime) {
+        const stickyRows = await tryStickyRestItem(tries);
+        if (stickyRows && stickyRows.length) return stickyRows;
         const raced = await raceRestTries(tries);
         if (raced && raced.length) return raced;
       }
@@ -758,6 +862,7 @@
             lastMeta.source = "live";
             lastMeta.venue = item.venue;
             lastMeta.updatedAt = "";
+            saveStickyVenue(item.venue);
             return rows;
           }
         } catch {
@@ -844,6 +949,7 @@
     function emit(bar) {
       lastMeta.venue = venue;
       lastMeta.source = "live";
+      saveStickyVenue(venue);
       if (onStatus) onStatus("live", { venue });
       onKline(bar);
       touch();
@@ -1217,6 +1323,7 @@
     orderedVenues,
     feedRegion,
     feedCountry,
+    stickyVenue: loadStickyVenue,
     venueLatencies: () => ({ ...cnVenueLatencies }),
     initFeedGeo,
     probeCnVenues: runCnVenueProbe,
