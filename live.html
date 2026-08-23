@@ -93,7 +93,9 @@
           </div>
 
           <div class="war-chart-frame">
+            <div class="war-chart-legend" id="warChartLegend" aria-label="Chart legend"></div>
             <div id="warChart" class="war-chart chart-container"></div>
+            <div class="war-chart-tooltip" id="warChartTooltip" hidden></div>
           </div>
 
           <div class="war-countdown" id="warCountdown" hidden>
@@ -101,14 +103,20 @@
             <div class="war-countdown-label" id="warCountdownLabel">60s</div>
           </div>
 
-          <div class="war-tape-block">
-            <h3 class="war-tape-h" data-i18n="warTapeTitle">📡 3 小時內有效買賣點</h3>
-            <ul class="war-tape-list" id="warTapeList">
-              <li class="muted" data-i18n="warTapeEmpty">暫無 3 小時內有效訊號</li>
-            </ul>
+          <div id="selected-matrix-container" class="selected-matrix-container">
+            <div class="selected-matrix-left">
+              <span class="selected-matrix-label" data-i18n="warSelectedLabel">🎯 已監控組合</span>
+              <div class="selected-matrix-pills" id="selectedMatrixPills"></div>
+            </div>
+            <div class="selected-matrix-right">
+              <span class="selected-matrix-label" data-i18n="warTapeTitle">📡 3 小時內有效買賣點</span>
+              <ul class="war-tape-list war-tape-inline" id="warTapeList">
+                <li class="muted" data-i18n="warTapeEmpty">暫無 3 小時內有效訊號</li>
+              </ul>
+            </div>
           </div>
 
-          <div class="war-tape-block watch-tape-block">
+          <div class="war-tape-block watch-tape-block" id="watchTapeBlock">
             <h3 class="war-tape-h" data-i18n="watchTapeTitle">⭐ 我的專屬關注流水 (My Watchlist Tape)</h3>
             <ul class="war-tape-list watch-tape-list" id="watchTapeList">
               <li class="muted" data-i18n="watchTapeEmpty">請於下方勾選幣種與策略，開始生成專屬關注流水</li>

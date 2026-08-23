@@ -210,7 +210,7 @@
     // Pnl board "period tab" label — default-activates to the hero window's
     // period when present so the ROI board's header matches the KPI cards.
     const pnlPeriod = document.getElementById("hbPnlPeriod");
-    if (pnlPeriod) pnlPeriod.textContent = String(cardPeriod) + "D / ROI %";
+    if (pnlPeriod) pnlPeriod.textContent = t("hbPeriodPnlTpl").replace("{n}", String(cardPeriod));
     const kpiWinLabel = document.querySelector('.home-kpi .kpi [data-i18n="kpiWin"]');
     if (kpiWinLabel) {
       kpiWinLabel.textContent = t("kpiWinTpl").replace("{n}", String(cardPeriod));

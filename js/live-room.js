@@ -11,6 +11,9 @@
   const THREE_HOURS_S = 3 * 3600;
   const MAX_WATCH_PAIRS = 24;
   const TAPE_MAX = 50;
+  const CHART_INTERVAL = "5m";
+  const OVERLAY_COLORS = ["#38bdf8", "#a855f7", "#f59e0b", "#ec4899", "#14b8a6", "#f97316"];
+  const WATCH_EXCLUDED_KEY = "qa_live_watch_excluded";
 
   function t(key) {
     if (window.QALang && typeof window.QALang.t === "function") {
@@ -44,6 +47,38 @@
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;");
+  }
+
+  function loadExcludedPairs() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(WATCH_EXCLUDED_KEY) || "[]");
+      return new Set(Array.isArray(raw) ? raw : []);
+    } catch {
+      return new Set();
+    }
+  }
+  function saveExcludedPairs(set) {
+    try {
+      localStorage.setItem(WATCH_EXCLUDED_KEY, JSON.stringify([...set]));
+    } catch {
+      /* private mode */
+    }
+  }
+  let watchExcludedPairs = loadExcludedPairs();
+
+  function pairKey(coin, sid) {
+    return coin + "|" + sid;
+  }
+
+  function activePairs() {
+    const pairs = [];
+    watchCoins.forEach((coin) => {
+      watchStrategyIds.forEach((sid) => {
+        const key = pairKey(coin, sid);
+        if (!watchExcludedPairs.has(key)) pairs.push({ coin, sid });
+      });
+    });
+    return pairs;
   }
 
   function loadJsonArray(key, fallback) {
@@ -103,6 +138,13 @@
     if (welcomePlayed || isMuted()) return;
     welcomePlayed = true;
     playUrl(WELCOME_AUDIO_URLS[Math.floor(Math.random() * WELCOME_AUDIO_URLS.length)]);
+  }
+
+  function bindWelcomeOnInteraction() {
+    const unlock = () => maybePlayWelcome();
+    ["mousemove", "click", "touchstart", "scroll"].forEach((ev) => {
+      document.addEventListener(ev, unlock, { once: true, capture: true, passive: true });
+    });
   }
 
   // Dedupe so the same backend-generated signal clip never plays twice.
@@ -384,17 +426,22 @@
         // takes over the main War Room chart, regardless of how many other
         // coins are already checked for the watchlist aggregation below.
         activeSymbolOverride = sym;
+        [...watchExcludedPairs].forEach((k) => {
+          if (k.startsWith(sym + "|")) watchExcludedPairs.delete(k);
+        });
+        saveExcludedPairs(watchExcludedPairs);
         paintStatus();
         clearCountdown();
-        refreshActive();
       } else {
         watchCoins = watchCoins.filter((c) => c !== sym);
       }
       saveJsonArray(WATCH_COINS_KEY, watchCoins);
       const row = input.closest(".coin-pill");
       if (row) row.classList.toggle("is-checked", input.checked);
+      renderSelectedMatrix();
       refreshWatchTape();
       scheduleFunnelVoice();
+      refreshActive();
     });
   }
 
@@ -434,12 +481,17 @@
       } else {
         watchStrategyIds = watchStrategyIds.filter((x) => x !== id);
         if (row) row.classList.remove("is-checked");
+        [...watchExcludedPairs].forEach((k) => {
+          if (k.endsWith("|" + id)) watchExcludedPairs.delete(k);
+        });
+        saveExcludedPairs(watchExcludedPairs);
         if (activeStrategy && activeStrategy.id === id) {
           const fallback = watchStrategyIds[watchStrategyIds.length - 1] || (strategies[0] && strategies[0].id);
           if (fallback) selectStrategy(fallback, strategies);
         }
       }
       saveJsonArray(WATCH_STRATS_KEY, watchStrategyIds);
+      renderSelectedMatrix();
       refreshWatchTape();
       scheduleFunnelVoice();
     });
@@ -458,20 +510,62 @@
 
   let warChart = null;
   let warSeries = null;
+  let overlaySeriesMap = new Map();
+  let chartMetaByCoin = new Map();
+  let zeroPriceLine = null;
   let pollTimer = null;
   let watchPollTimer = null;
   let countdownTimer = null;
-  let lastSeenTs = new Map(); // strategy id -> last known signal ts (seconds)
-  let baselineSet = new Set(); // strategy ids whose first poll has been consumed as baseline
+  let lastSeenTs = new Map();
+  let baselineSet = new Set();
+  const legendEl = document.getElementById("warChartLegend");
+  const tooltipEl = document.getElementById("warChartTooltip");
+  const matrixPillsEl = document.getElementById("selectedMatrixPills");
 
-  // "Last activated" coin: whichever coin pill was most recently CHECKED wins
-  // and overrides the focused strategy's default symbol on the main chart.
   let activeSymbolOverride = null;
+  function focusCoin() {
+    return activeSymbolOverride || watchCoins[watchCoins.length - 1] || "BTCUSDT";
+  }
   function effectiveSymbol(s) {
-    return activeSymbolOverride || (s && s.symbol) || "BTCUSDT";
+    return focusCoin() || (s && s.symbol) || "BTCUSDT";
   }
 
-  function addCandleSeries(chart) {
+  function fmtPctAxis(v) {
+    const n = Number(v);
+    if (!Number.isFinite(n)) return "—";
+    const sign = n > 0 ? "+" : "";
+    return sign + n.toFixed(1) + "%";
+  }
+
+  function fmtUsdPx(n) {
+    const v = Number(n);
+    if (!Number.isFinite(v)) return "—";
+    return "$" + v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function pctOf(price, p0) {
+    if (!p0) return 0;
+    return ((Number(price) - p0) / p0) * 100;
+  }
+
+  function normalizeWindow(bars, windowFrom) {
+    const slice = bars.filter((b) => b.time >= windowFrom);
+    if (!slice.length) return null;
+    const p0 = slice[0].close;
+    const byTime = new Map();
+    slice.forEach((b) => byTime.set(b.time, b));
+    const normalized = slice.map((b) => ({
+      time: b.time,
+      open: pctOf(b.open, p0),
+      high: pctOf(b.high, p0),
+      low: pctOf(b.low, p0),
+      close: pctOf(b.close, p0),
+    }));
+    const line = slice.map((b) => ({ time: b.time, value: pctOf(b.close, p0) }));
+    return { p0, normalized, line, byTime, slice };
+  }
+
+  function addCandleSeries(chart, optsExtra) {
     const LC = window.LightweightCharts;
     const opts = {
       upColor: "#00873c",
@@ -479,29 +573,135 @@
       borderVisible: false,
       wickUpColor: "#00873c",
       wickDownColor: "#d0021b",
+      priceFormat: {
+        type: "custom",
+        formatter: fmtPctAxis,
+      },
+      ...(optsExtra || {}),
     };
     return typeof chart.addCandlestickSeries === "function" ? chart.addCandlestickSeries(opts) : chart.addSeries(LC.CandlestickSeries, opts);
+  }
+
+  function addLineSeries(chart, color, lineWidth, opacity) {
+    const LC = window.LightweightCharts;
+    const opts = {
+      color,
+      lineWidth,
+      priceLineVisible: false,
+      lastValueVisible: false,
+      crosshairMarkerVisible: true,
+      priceFormat: {
+        type: "custom",
+        formatter: fmtPctAxis,
+      },
+    };
+    const s =
+      typeof chart.addLineSeries === "function" ? chart.addLineSeries(opts) : chart.addSeries(LC.LineSeries, opts);
+    if (opacity != null && s.applyOptions) s.applyOptions({ color: colorWithAlpha(color, opacity) });
+    return s;
+  }
+
+  function colorWithAlpha(hex, alpha) {
+    const h = String(hex || "#38bdf8").replace("#", "");
+    const r = parseInt(h.slice(0, 2), 16);
+    const g = parseInt(h.slice(2, 4), 16);
+    const b = parseInt(h.slice(4, 6), 16);
+    return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
+  }
+
+  function clearChartSeries() {
+    overlaySeriesMap.forEach((s) => {
+      try {
+        warChart.removeSeries(s);
+      } catch {
+        /* already removed */
+      }
+    });
+    overlaySeriesMap.clear();
+    if (warSeries) {
+      try {
+        warChart.removeSeries(warSeries);
+      } catch {
+        /* */
+      }
+      warSeries = null;
+    }
+    zeroPriceLine = null;
+  }
+
+  function ensureZeroLine(series) {
+    if (!series || zeroPriceLine) return;
+    if (typeof series.createPriceLine === "function") {
+      zeroPriceLine = series.createPriceLine({
+        price: 0,
+        color: "#334155",
+        lineWidth: 1,
+        lineStyle: 2,
+        axisLabelVisible: true,
+        title: "0%",
+      });
+    }
+  }
+
+  function bindCrosshairTooltip() {
+    if (!warChart || !tooltipEl || warChart.__tipBound) return;
+    warChart.__tipBound = true;
+    warChart.subscribeCrosshairMove((param) => {
+      if (!param || !param.time || param.point.x < 0 || param.point.y < 0) {
+        tooltipEl.hidden = true;
+        return;
+      }
+      const ts = param.time;
+      const rows = [];
+      chartMetaByCoin.forEach((meta, coin) => {
+        const bar = meta.byTime.get(ts);
+        if (!bar) return;
+        const pct = pctOf(bar.close, meta.p0);
+        rows.push(
+          `<div class="tip-row"><span class="tip-sym">${escapeHtml(coin.replace("USDT", ""))}</span>` +
+            `<span class="tip-pct">${escapeHtml(fmtPctAxis(pct))}</span>` +
+            `<span class="tip-px">${escapeHtml(fmtUsdPx(bar.close))}</span></div>`
+        );
+      });
+      if (!rows.length) {
+        tooltipEl.hidden = true;
+        return;
+      }
+      tooltipEl.innerHTML = rows.join("");
+      tooltipEl.hidden = false;
+      const frame = document.querySelector(".war-chart-frame");
+      const rect = frame ? frame.getBoundingClientRect() : { left: 0, top: 0 };
+      const x = Math.min(Math.max(8, param.point.x + 12), (frame ? frame.clientWidth : 300) - 190);
+      const y = Math.max(8, param.point.y - 8);
+      tooltipEl.style.left = x + "px";
+      tooltipEl.style.top = y + "px";
+    });
   }
 
   function mountChart() {
     const el = document.getElementById("warChart");
     const Charts = window.LightweightCharts;
-    if (!el || !Charts || warChart) return;
-    warChart = Charts.createChart(el, feed.chartOptions(el, el.clientHeight || 420, "1h"));
-    warSeries = addCandleSeries(warChart);
+    if (!el || !Charts) return;
+    if (warChart) return;
+    const baseOpts = feed.chartOptions(el, el.clientHeight || 420, CHART_INTERVAL);
+    baseOpts.localization = Object.assign({}, baseOpts.localization, {
+      priceFormatter: fmtPctAxis,
+    });
+    baseOpts.rightPriceScale = Object.assign({}, baseOpts.rightPriceScale, {
+      autoScale: true,
+    });
+    warChart = Charts.createChart(el, baseOpts);
     if (typeof ResizeObserver !== "undefined") {
       new ResizeObserver(() => {
         if (!warChart) return;
         warChart.applyOptions({ width: el.clientWidth || 280 });
       }).observe(el);
     }
+    bindCrosshairTooltip();
   }
 
   const SIX_HOURS_S = 6 * 3600;
 
-  // Lock the War Room chart's visible time range to the last 6 hours of the
-  // just-loaded bars (fetch/compute can still use more bars for indicator
-  // warmup — only the VISIBLE window is constrained).
   function lockChartToLast6h(bars) {
     if (!warChart || !bars || !bars.length) return;
     const lastTime = bars[bars.length - 1].time;
@@ -511,6 +711,96 @@
     } catch {
       warChart.timeScale().fitContent();
     }
+  }
+
+  function coinColor(coin, isFocus) {
+    if (isFocus) return "#16a34a";
+    const idx = watchCoins.indexOf(coin);
+    return OVERLAY_COLORS[(idx >= 0 ? idx : hashStr(coin)) % OVERLAY_COLORS.length];
+  }
+
+  function renderLegend() {
+    if (!legendEl) return;
+    const focus = focusCoin();
+    if (!watchCoins.length) {
+      legendEl.innerHTML = "";
+      return;
+    }
+    legendEl.innerHTML = watchCoins
+      .map((coin) => {
+        const isFocus = coin === focus;
+        const color = coinColor(coin, isFocus);
+        return (
+          `<button type="button" class="war-legend-pill${isFocus ? " is-focus" : ""}" data-legend-coin="${escapeHtml(coin)}">` +
+          `<span class="war-legend-swatch" style="background:${color}"></span>` +
+          escapeHtml(coin.replace("USDT", "")) +
+          `</button>`
+        );
+      })
+      .join("");
+  }
+
+  function bindLegendClicks() {
+    if (!legendEl || legendEl.getAttribute("data-bound") === "1") return;
+    legendEl.setAttribute("data-bound", "1");
+    legendEl.addEventListener("click", (ev) => {
+      const btn = ev.target.closest("[data-legend-coin]");
+      if (!btn) return;
+      activeSymbolOverride = btn.getAttribute("data-legend-coin");
+      paintStatus();
+      refreshActive();
+    });
+  }
+
+  function strategyLabel(id) {
+    const s = allStrategies.find((x) => x.id === id);
+    return (s && s.name) || id;
+  }
+
+  function renderSelectedMatrix() {
+    if (!matrixPillsEl) return;
+    const pairs = activePairs();
+    if (!pairs.length) {
+      matrixPillsEl.innerHTML = `<span class="muted">${escapeHtml(t("watchTapeEmpty"))}</span>`;
+      return;
+    }
+    matrixPillsEl.innerHTML = pairs
+      .map(({ coin, sid }) => {
+        const label = coin.replace("USDT", "") + " · " + strategyLabel(sid);
+        return (
+          `<span class="selected-matrix-pill" data-pair-coin="${escapeHtml(coin)}" data-pair-sid="${escapeHtml(sid)}">` +
+          escapeHtml(label) +
+          `<button type="button" data-remove-pair="${escapeHtml(pairKey(coin, sid))}" aria-label="Remove">✕</button></span>`
+        );
+      })
+      .join("");
+  }
+
+  function bindMatrixPillClicks() {
+    if (!matrixPillsEl || matrixPillsEl.getAttribute("data-bound") === "1") return;
+    matrixPillsEl.setAttribute("data-bound", "1");
+    matrixPillsEl.addEventListener("click", (ev) => {
+      const rm = ev.target.closest("[data-remove-pair]");
+      if (rm) {
+        watchExcludedPairs.add(rm.getAttribute("data-remove-pair"));
+        saveExcludedPairs(watchExcludedPairs);
+        renderSelectedMatrix();
+        refreshWatchTape();
+        refreshActive();
+        return;
+      }
+      const pill = ev.target.closest("[data-pair-coin]");
+      if (!pill) return;
+      activeSymbolOverride = pill.getAttribute("data-pair-coin");
+      selectStrategy(pill.getAttribute("data-pair-sid"), allStrategies);
+    });
+  }
+
+  function paintWatchTapeAuth() {
+    const block = document.getElementById("watchTapeBlock");
+    if (!block) return;
+    const ok = window.QAIdentity && typeof window.QAIdentity.loggedIn === "function" && window.QAIdentity.loggedIn();
+    block.style.display = ok ? "" : "none";
   }
 
   function fmtHm(ts) {
@@ -578,6 +868,7 @@
   let watchRefreshSeq = 0;
   async function refreshWatchTape() {
     if (!watchTapeListEl) return;
+    if (!window.QAIdentity || typeof window.QAIdentity.loggedIn !== "function" || !window.QAIdentity.loggedIn()) return;
     const seq = ++watchRefreshSeq;
     if (!watchCoins.length || !watchStrategyIds.length) {
       watchTapeListEl.innerHTML = `<li class="muted">${escapeHtml(t("watchTapeEmpty"))}</li>`;
@@ -673,37 +964,91 @@
     }, 200);
   }
 
-  /* ---- Poll the focused strategy for fresh bars + trade signals ---- */
+  /* ---- Poll focused strategy + multi-coin normalized 6H overlay chart ---- */
   async function refreshActive() {
     if (!activeStrategy) return;
     const s = activeStrategy;
     const sym = effectiveSymbol(s);
-    let bars;
-    try {
-      bars = await barsOf(sym, s.interval);
-    } catch {
-      return;
-    }
-    if (!bars || !bars.length || activeStrategy !== s) return;
+    const coins = watchCoins.length ? watchCoins.slice() : [sym];
+    const focus = focusCoin();
+    mountChart();
+    if (!warChart) return;
 
-    if (warSeries) {
-      warSeries.setData(bars.map((b) => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close })));
-      lockChartToLast6h(bars);
+    const barSets = await Promise.all(
+      coins.map(async (coin) => {
+        try {
+          const bars = await barsOf(coin, CHART_INTERVAL);
+          return { coin, bars };
+        } catch {
+          return { coin, bars: [] };
+        }
+      })
+    );
+    if (activeStrategy !== s) return;
+
+    let anchorBars = [];
+    barSets.forEach(({ coin, bars }) => {
+      if (coin === focus && bars && bars.length) anchorBars = bars;
+    });
+    if (!anchorBars.length) {
+      const first = barSets.find((x) => x.bars && x.bars.length);
+      anchorBars = first ? first.bars : [];
     }
+    if (!anchorBars.length) return;
+
+    const lastBarTime = anchorBars[anchorBars.length - 1].time;
+    const windowFrom = lastBarTime - SIX_HOURS_S;
+
+    clearChartSeries();
+    chartMetaByCoin.clear();
+
+    const overlays = [];
+    const focusPack = barSets.find((x) => x.coin === focus) || barSets[0];
+    barSets.forEach(({ coin, bars }) => {
+      if (!bars || !bars.length || coin === focusPack.coin) return;
+      const pack = normalizeWindow(bars, windowFrom);
+      if (!pack) return;
+      chartMetaByCoin.set(coin, pack);
+      overlays.push({ coin, pack });
+    });
+
+    overlays.forEach(({ coin, pack }) => {
+      const series = addLineSeries(warChart, coinColor(coin, false), 1.5, 0.6);
+      series.setData(pack.line);
+      overlaySeriesMap.set(coin, series);
+    });
+
+    const focusBars = focusPack.bars;
+    const focusNorm = normalizeWindow(focusBars, windowFrom);
+    if (focusNorm) {
+      chartMetaByCoin.set(focusPack.coin, focusNorm);
+      warSeries = addCandleSeries(warChart, { lineWidth: 2 });
+      warSeries.setData(focusNorm.normalized);
+      ensureZeroLine(warSeries);
+      lockChartToLast6h(focusBars);
+    }
+
+    renderLegend();
+
+    let signalBars;
+    try {
+      signalBars = await barsOf(sym, s.interval);
+    } catch {
+      signalBars = focusBars;
+    }
+    if (!signalBars || !signalBars.length || activeStrategy !== s) return;
 
     const spec = catalog.get(s.id);
     if (!spec || typeof spec.run !== "function") return;
     let trades = [];
     try {
-      trades = spec.run(bars) || [];
+      trades = spec.run(signalBars) || [];
     } catch {
       trades = [];
     }
     if (activeStrategy !== s) return;
 
     if (warSeries) {
-      const lastBarTime = bars[bars.length - 1].time;
-      const windowFrom = lastBarTime - SIX_HOURS_S;
       const inWindow = (ts) => ts >= windowFrom && ts <= lastBarTime;
       warSeries.setMarkers(
         trades.flatMap((tr) => {
@@ -789,6 +1134,11 @@
     bindTapeRowClicks(tapeListEl);
     bindTapeRowClicks(watchTapeListEl);
     bindMuteBtn();
+    bindLegendClicks();
+    bindMatrixPillClicks();
+    bindWelcomeOnInteraction();
+    paintWatchTapeAuth();
+    window.addEventListener("quant-auth", paintWatchTapeAuth);
     paintCounters();
     setInterval(tickCounters, 4000);
     setInterval(refreshMatrixDots, 15000);
@@ -809,6 +1159,8 @@
       watchStrategyIds[watchStrategyIds.length - 1] ||
       strategies[0].id;
     selectStrategy(startId, strategies);
+    renderSelectedMatrix();
+    renderLegend();
 
     clearInterval(pollTimer);
     pollTimer = setInterval(refreshActive, 20000);
@@ -822,6 +1174,8 @@
       renderMatrix(strategies);
       paintFocusHighlight(activeStrategy ? activeStrategy.id : null);
       paintStatus();
+      renderSelectedMatrix();
+      renderLegend();
       refreshWatchTape();
     });
   }

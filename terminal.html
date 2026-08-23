@@ -102,24 +102,6 @@
       </div>
       <button type="button" class="btn-back-list action-btn" id="btnBackList" data-i18n="backList">＜ 返回策略列表</button>
       <section class="lab-flow">
-        <div class="lab-chart-block">
-          <div id="wsStatus" class="feed-status wait">● 數據重連中</div>
-          <div class="lab-chart-frame">
-            <div id="candleChart" class="lab-canvas chart-container"></div>
-            <a class="tv-chart-badge" href="https://www.tradingview.com/" target="_blank" rel="noopener">Charts by TradingView</a>
-          </div>
-        </div>
-
-        <div class="tf-bar" role="tablist" aria-label="Timeframe">
-          <button type="button" class="seg-btn" data-tf="1m">1m</button>
-          <button type="button" class="seg-btn" data-tf="5m">5m</button>
-          <button type="button" class="seg-btn" data-tf="15m">15m</button>
-          <button type="button" class="seg-btn active" data-tf="1h">1h</button>
-          <button type="button" class="seg-btn" data-tf="4h">4h</button>
-          <button type="button" class="seg-btn" data-tf="1d">1D</button>
-          <button type="button" class="seg-btn" data-tf="1w">1W</button>
-        </div>
-
         <div class="bt-param-grid">
           <label class="bt-param">
             <span class="exec-label" data-i18n="dockCoin">幣種</span>
@@ -154,6 +136,14 @@
           <p class="engine-chip" id="engineChip" aria-live="polite"></p>
           <button class="btn-cta gm-btn action-btn exec-run" id="btnRun" data-i18n="gmRun">執行回測</button>
           <div class="risk-banner" id="masterGate" hidden></div>
+        </div>
+
+        <div class="lab-chart-block bt-chart-collapsed" id="btChartReveal" hidden>
+          <div id="wsStatus" class="feed-status wait">● 數據重連中</div>
+          <div class="lab-chart-frame">
+            <div id="candleChart" class="lab-canvas chart-container"></div>
+            <a class="tv-chart-badge" href="https://www.tradingview.com/" target="_blank" rel="noopener">Charts by TradingView</a>
+          </div>
         </div>
 
         <div class="bt-results bb-sheet in-page" id="resultSheet">

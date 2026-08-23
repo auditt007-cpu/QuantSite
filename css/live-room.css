@@ -68,8 +68,140 @@
   border: 1px solid var(--border-subtle);
   background: var(--bg-surface);
   margin-bottom: 14px;
+  position: relative;
 }
 .war-chart { width: 100%; height: 420px; }
+.war-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 10px 0;
+  min-height: 32px;
+}
+.war-legend-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border: 1px solid #27272a;
+  border-radius: 999px;
+  background: #09090b;
+  color: #e2e8f0;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+}
+.war-legend-pill.is-focus {
+  border-color: #c9a227;
+  box-shadow: 0 0 0 1px rgba(201, 162, 39, 0.35);
+}
+.war-legend-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.war-chart-tooltip {
+  position: absolute;
+  z-index: 5;
+  pointer-events: none;
+  min-width: 180px;
+  padding: 8px 10px;
+  border: 1px solid #27272a;
+  border-radius: 4px;
+  background: rgba(9, 9, 11, 0.94);
+  color: #e2e8f0;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.45;
+}
+.war-chart-tooltip .tip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.war-chart-tooltip .tip-sym { font-weight: 800; color: #f8fafc; }
+.war-chart-tooltip .tip-pct { color: #38bdf8; }
+.war-chart-tooltip .tip-px { color: #94a3b8; }
+
+.selected-matrix-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 12px 20px;
+  min-height: 48px;
+  height: auto;
+  overflow: visible;
+  margin-bottom: 14px;
+  padding: 12px;
+  border: 1px solid #27272a;
+  border-radius: 4px;
+  background: #09090b;
+}
+.selected-matrix-left,
+.selected-matrix-right {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px;
+  flex: 1 1 280px;
+  min-width: 0;
+}
+.selected-matrix-label {
+  flex: 0 0 100%;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+  font-family: var(--mono);
+}
+.selected-matrix-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex: 1 1 auto;
+}
+.selected-matrix-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid #334155;
+  border-radius: 999px;
+  background: #0f172a;
+  color: #e2e8f0;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+.selected-matrix-pill button {
+  border: 0;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  padding: 0 2px;
+}
+.selected-matrix-pill button:hover { color: #f87171; }
+.war-tape-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-height: none;
+  overflow: visible;
+  flex: 1 1 auto;
+}
+.war-tape-inline li {
+  flex: 0 1 auto;
+  border: 1px solid #27272a;
+  border-radius: 4px;
+  padding: 6px 8px;
+  background: #0f172a;
+  border-bottom: 0;
+}
 
 .war-countdown { margin: 4px 0 16px; }
 .war-countdown-bar {

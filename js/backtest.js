@@ -143,6 +143,26 @@ function lookbackDays() {
   return isFinite(n) && n > 0 ? n : 30;
 }
 
+function intervalForLookback(days) {
+  const d = Number(days) || 30;
+  if (d <= 3) return "15m";
+  if (d <= 30) return "1h";
+  if (d <= 90) return "4h";
+  return "1d";
+}
+
+function resolveInterval() {
+  return intervalForLookback(lookbackDays());
+}
+
+function revealBtChart() {
+  const block = $("btChartReveal");
+  if (!block) return;
+  block.hidden = false;
+  block.classList.add("is-open");
+  requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
+}
+
 function barsPerDay(iv) {
   const step = intervalStep(iv);
   return step ? 86400 / step : 24;
@@ -358,13 +378,19 @@ function bindBacktestParams() {
     bs.addEventListener("change", () => {
       SYMBOL = bs.value || SYMBOL;
       syncDock();
-      load(interval).catch((e) => toast(e.message, "warn"));
+      if ($("btChartReveal") && $("btChartReveal").classList.contains("is-open")) {
+        load(interval).catch((e) => toast(e.message, "warn"));
+      }
     });
   }
   if (bl && bl.getAttribute("data-bound") !== "1") {
     bl.setAttribute("data-bound", "1");
     bl.addEventListener("change", () => {
-      load(interval).catch((e) => toast(e.message, "warn"));
+      interval = resolveInterval();
+      syncDock();
+      if ($("btChartReveal") && $("btChartReveal").classList.contains("is-open")) {
+        load(interval).catch((e) => toast(e.message, "warn"));
+      }
     });
   }
 }
@@ -860,17 +886,32 @@ function run(silent) {
   requestAnimationFrame(paintEq);
   if (!silent) {
     toast(t("btDone").replace("{ms}", (performance.now() - t0).toFixed(1)).replace("{n}", String(ctx.windowBarCount)), "ok");
+    revealBtChart();
     openSheet();
+    const chartBlock = $("btChartReveal");
+    if (chartBlock && typeof chartBlock.scrollIntoView === "function") {
+      chartBlock.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   }
 }
 
 function bindDesk() {
   if (window.__QA_DESK_BOUND) return;
   window.__QA_DESK_BOUND = true;
-  document.querySelectorAll("[data-tf]").forEach((b) => {
-    b.addEventListener("click", () => load(b.getAttribute("data-tf")).catch((e) => toast(e.message)));
+  $("btnRun").addEventListener("click", async () => {
+    revealBtChart();
+    interval = resolveInterval();
+    syncDock();
+    if (!allBars.length || !candleSeries) {
+      try {
+        await load(interval);
+      } catch (e) {
+        toast(e.message, "warn");
+        return;
+      }
+    }
+    run(false);
   });
-  $("btnRun").addEventListener("click", () => run(false));
   $("btnCopyPine").addEventListener("click", async (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -910,14 +951,16 @@ function boot() {
   bindChartResizeObserver();
   refillSelect();
   scheduleFit();
+  interval = resolveInterval();
+  syncDock();
+  paintPine();
+  resetBacktestResults();
   const q = new URLSearchParams(location.search);
-  const qIv = q.get("interval");
   const qSt = q.get("strategy") || q.get("engine");
   if (qSt && catalog.get(qSt)) {
     engineId = qSt;
+    paintPine();
   }
-  const startIv = INTERVALS_OK(qIv) ? qIv : "1h";
-  load(startIv).catch((e) => toast(e.message, "warn"));
 }
 function INTERVALS_OK(iv) {
   return ["1s", "1m", "5m", "15m", "1h", "4h", "1d", "1w"].includes(iv);
@@ -931,12 +974,28 @@ window.QABacktest = {
       refillSelect();
       if (id && catalog.get(id)) engineId = id;
       if ($("stratSelect")) $("stratSelect").value = engineId;
-      const startIv = INTERVALS_OK(iv) ? iv : interval || "1h";
-      interval = startIv;
+      interval = INTERVALS_OK(iv) ? iv : resolveInterval();
       syncDock();
       paintPine();
       resetBacktestResults();
-      return load(startIv).catch((e) => toast(e.message, "warn"));
+      const chartBlock = $("btChartReveal");
+      if (chartBlock) {
+        chartBlock.hidden = true;
+        chartBlock.classList.remove("is-open");
+      }
+      if (candleChart) {
+        candleChart.remove();
+        candleChart = null;
+        candleSeries = null;
+        volSeries = null;
+      }
+      allBars = [];
+      bars = [];
+      if (stream) {
+        stream.close();
+        stream = null;
+      }
+      return Promise.resolve();
     };
     if (window.QAPackReady) return window.QAPackReady.then(start);
     return start();
@@ -956,14 +1015,32 @@ function revealBacktest() {
 function bindChrome() {
   if ($("dockRun") && $("dockRun").getAttribute("data-bound") !== "1") {
     $("dockRun").setAttribute("data-bound", "1");
-    $("dockRun").addEventListener("click", () => {
+    $("dockRun").addEventListener("click", async () => {
       const bt = $("viewBacktest");
-      const iv = ($("dockTf") && $("dockTf").value) || "1h";
+      const iv = resolveInterval();
       if ($("dockSymbol")) SYMBOL = $("dockSymbol").value;
       if (bt && bt.hidden) {
         revealBacktest();
-        Promise.resolve(window.QABacktest.open(engineId || "dual", iv));
+        await Promise.resolve(window.QABacktest.open(engineId || "dual", iv));
+        revealBtChart();
+        try {
+          await load(iv);
+        } catch (e) {
+          toast(e.message, "warn");
+          return;
+        }
+        run(false);
         return;
+      }
+      revealBtChart();
+      interval = iv;
+      if (!allBars.length) {
+        try {
+          await load(iv);
+        } catch (e) {
+          toast(e.message, "warn");
+          return;
+        }
       }
       run(false);
     });
@@ -971,11 +1048,10 @@ function bindChrome() {
   if ($("dockTf") && $("dockTf").getAttribute("data-bound") !== "1") {
     $("dockTf").setAttribute("data-bound", "1");
     $("dockTf").addEventListener("change", () => {
-      const iv = $("dockTf").value;
-      if ($("viewBacktest") && !$("viewBacktest").hidden) {
-        load(iv).catch((e) => toast(e.message));
-      } else {
-        interval = iv;
+      interval = resolveInterval();
+      syncDock();
+      if ($("viewBacktest") && !$("viewBacktest").hidden && $("btChartReveal") && $("btChartReveal").classList.contains("is-open")) {
+        load(interval).catch((e) => toast(e.message));
       }
     });
   }
