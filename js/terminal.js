@@ -84,6 +84,14 @@
     return "trend";
   }
 
+  if (window.QAPackReady) {
+    try {
+      await window.QAPackReady;
+    } catch {
+      /* pack optional */
+    }
+  }
+
   const LOCAL_FREE = (catalog.list || []).filter((s) => s.tier !== "master" && s.id !== "ai");
   const LOCAL_MASTER = (catalog.list || []).filter((s) => s.tier === "master");
 
@@ -96,32 +104,35 @@
     remote = [];
   }
 
-  function merge(tier, localFallback) {
-    const fromApi = remote.filter((s) => (s.tier || "free") === tier);
-    if (fromApi.length) {
-      return fromApi.map((s) => {
-        const loc = catalog.get(s.engine || s.id) || catalog.get(s.id);
-        return {
-          ...s,
-          engine: s.engine || s.id,
-          name: (loc && loc.name) || s.name,
-          principle: (loc && loc.principle) || s.principle || "",
-          description: (loc && loc.description) || s.description || "",
-          tier,
-        };
-      });
-    }
-    return localFallback.map((s) => ({
+  function asCard(s, tier) {
+    return {
       id: s.id,
       name: s.name,
-      symbols: ["BTCUSDT"],
-      interval: "1h",
+      symbols: s.symbols && s.symbols.length ? s.symbols : ["BTCUSDT"],
+      interval: s.interval || "1h",
       tags: s.tags && s.tags.length ? s.tags : tier === "master" ? ["機構實盤", "BTCUSDT", "1H"] : ["開源"],
       principle: s.principle || "",
       description: s.description || "",
-      engine: s.id,
+      engine: s.engine || s.id,
       tier,
-    }));
+    };
+  }
+
+  function merge(tier, localFallback) {
+    const fromApi = remote.filter((s) => (s.tier || "free") === tier);
+    const byId = new Map();
+    localFallback.forEach((s) => byId.set(s.id, asCard(s, tier)));
+    fromApi.forEach((s) => {
+      const loc = catalog.get(s.engine || s.id) || catalog.get(s.id);
+      byId.set(s.id, {
+        ...asCard(s, tier),
+        engine: s.engine || s.id,
+        name: (loc && loc.name) || s.name,
+        principle: (loc && loc.principle) || s.principle || "",
+        description: (loc && loc.description) || s.description || "",
+      });
+    });
+    return Array.from(byId.values());
   }
 
   const freeList = merge("free", LOCAL_FREE);
@@ -138,16 +149,17 @@
   function cardHtml(s, master) {
     const tags = (s.tags || []).map((t0) => `<span class="tag">${t0}</span>`).join("");
     const unlockHref = paid() ? support : payHref;
-    const unlockLabel = paid() ? t("mktAskLink") : "解鎖實盤源碼 >";
+    const unlockLabel = paid() ? t("mktAskLink") : t("mktUnlockLive");
     const actions = master
       ? `<button type="button" class="btn-cta compact" data-open="${s.engine || s.id}" data-iv="${s.interval || "1h"}">${t("mktSeeBt")}</button>
          <a class="ghost-link" href="${unlockHref}" ${paid() ? 'target="_blank" rel="noopener"' : ""}>${unlockLabel}</a>`
       : `<button type="button" class="btn-cta compact" data-open="${s.engine || s.id}" data-iv="${s.interval || "1h"}">⚡ ${t("mktOpenBt")}</button>`;
     const badge = master ? `<span class="vip-badge">🔒 機構實盤</span>` : "";
     const principle = s.principle || "";
-    return `<article class="m-card strategy-card${master ? " master" : ""}" data-id="${s.id}" data-tier="${master ? "master" : "free"}" data-kind="${kindOf(s)}">
+    return `<article class="m-card strategy-card${master ? " master" : ""}" data-id="${s.id}" data-tier="${master ? "master" : "free"}" data-kind="${kindOf(s)}" data-wr="" data-ret="" data-mdd="">
         ${badge}
         <h3>${s.name}</h3>
+        <p class="card-hit" data-hit-line></p>
         ${principle ? `<p class="card-principle">${principle}</p>` : ""}
         <p class="muted">${(s.symbols || ["BTCUSDT"]).join(" / ")} · ${String(s.interval || "1h").toUpperCase()}</p>
         <div class="tags">${tags}</div>
@@ -169,17 +181,43 @@
   });
 
   const tabsEl = document.getElementById("termTabs");
-  const nTrend = allList.filter((s) => kindOf(s) === "trend").length;
-  const nGrid = allList.filter((s) => kindOf(s) === "grid").length;
-  const nRange = allList.filter((s) => kindOf(s) === "range").length;
+  const PAGE = 8;
+  let pageN = PAGE;
+  let activeFilter = "all";
   const tabDefs = [
-    { id: "all", label: `全部 (${allList.length})` },
-    { id: "free", label: `🆓 開源免費 (${freeList.length})` },
-    { id: "master", label: `👑 機構實盤 (${masterList.length})` },
-    { id: "trend", label: `趨勢 (${nTrend})` },
-    { id: "grid", label: `網格 (${nGrid})` },
-    { id: "range", label: `震盪 (${nRange})` },
+    { id: "all", label: `${t("tabAll")} (${allList.length})` },
+    { id: "hot", label: t("tabHot") },
+    { id: "moon", label: t("tabMoon") },
+    { id: "safe", label: t("tabSafe") },
+    { id: "grid", label: t("tabGrid") },
+    { id: "free", label: `${t("tabFree")} (${freeList.length})` },
+    { id: "master", label: `${t("tabMaster")} (${masterList.length})` },
   ];
+  function cardMatches(card, f) {
+    const tier = card.getAttribute("data-tier");
+    const kind = card.getAttribute("data-kind");
+    const wr = Number(card.getAttribute("data-wr"));
+    const ret = Number(card.getAttribute("data-ret"));
+    const mdd = Number(card.getAttribute("data-mdd"));
+    if (f === "all") return true;
+    if (f === "free" || f === "master") return tier === f;
+    if (f === "grid") return kind === "grid";
+    if (f === "hot") return Number.isFinite(wr) && wr >= 0.7;
+    if (f === "moon") return Number.isFinite(ret) && ret >= 1;
+    if (f === "safe") return Number.isFinite(mdd) && mdd > -0.1;
+    return true;
+  }
+  function applyFilter() {
+    if (!gridEl) return;
+    const cards = [...gridEl.querySelectorAll(".m-card")];
+    cards.forEach((card) => {
+      card.classList.toggle("is-hidden", !cardMatches(card, activeFilter));
+    });
+    const visible = cards.filter((c) => !c.classList.contains("is-hidden"));
+    visible.forEach((c, i) => c.classList.toggle("is-paged", i >= pageN));
+    const more = document.getElementById("gridMore");
+    if (more) more.hidden = visible.length <= pageN;
+  }
   if (tabsEl && gridEl) {
     tabsEl.innerHTML = tabDefs
       .map((tb, i) => `<button type="button" class="term-tab${i === 0 ? " active" : ""}" data-filter="${tb.id}">${tb.label}</button>`)
@@ -188,15 +226,19 @@
       const btn = ev.target.closest("[data-filter]");
       if (!btn) return;
       tabsEl.querySelectorAll(".term-tab").forEach((el) => el.classList.toggle("active", el === btn));
-      const f = btn.getAttribute("data-filter");
-      gridEl.querySelectorAll(".m-card").forEach((card) => {
-        const tier = card.getAttribute("data-tier");
-        const kind = card.getAttribute("data-kind");
-        const show = f === "all" || f === tier || f === kind;
-        card.classList.toggle("is-hidden", !show);
-      });
+      activeFilter = btn.getAttribute("data-filter");
+      pageN = PAGE;
+      applyFilter();
     });
   }
+  const moreBtn = document.getElementById("gridMore");
+  if (moreBtn) {
+    moreBtn.addEventListener("click", () => {
+      pageN += PAGE;
+      applyFilter();
+    });
+  }
+  applyFilter();
 
   async function fillStats(list, rootEl) {
     if (!rootEl) return;
@@ -216,13 +258,23 @@
         const trades = spec.run(bars);
         const eq = catalog.equityFrom(bars, trades);
         const st = catalog.performanceOf(trades, eq, catalog.barsPerYear(s.interval || "1h"), bars);
-        paintHit(wrEl, st.hit);
+        paintHit(wrEl, st.wr || st.hit);
         paintSharpe(shEl, st.sharpe);
+        card.setAttribute("data-wr", String(st.wr || 0));
+        card.setAttribute("data-ret", String(st.ret || 0));
+        card.setAttribute("data-mdd", String(st.mdd || 0));
+        const hitLine = card.querySelector("[data-hit-line]");
+        if (hitLine) {
+          const wrPct = ((st.wr || 0) * 100).toFixed(1);
+          const retPct = ((st.ret || 0) * 100).toFixed(0);
+          hitLine.textContent = `👑 ${t("mktWr")} ${wrPct}% · ${retPct}%`;
+        }
       } catch {
         paintHit(wrEl, null);
         paintSharpe(shEl, null);
       }
     }
+    applyFilter();
   }
 
   fillStats(allList, gridEl);
@@ -275,7 +327,7 @@
   const chips = document.getElementById("aiChips");
   if (chips) {
     chips.addEventListener("click", (ev) => {
-      const chip = ev.target.closest("[data-fill]");
+      const chip = ev.target.closest("[data-fill-key], [data-fill]");
       const box = document.getElementById("aiPrompt");
       if (!chip || !box) return;
       const fillKey = chip.getAttribute("data-fill-key");

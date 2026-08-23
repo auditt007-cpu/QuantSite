@@ -12,8 +12,8 @@ function toast(msg, kind) {
   }, 2200);
 }
 
-const SYMBOL = "BTCUSDT";
-let interval = "1m";
+let SYMBOL = "BTCUSDT";
+let interval = "1h";
 let engineId = "dual";
 let bars = [];
 let stream = null;
@@ -182,7 +182,7 @@ function paintPine() {
     if (copyBtn) copyBtn.hidden = true;
     if (box) {
       const sum = box.querySelector("summary");
-      if (sum) sum.textContent = "源碼鎖定 · 僅提供平台接入";
+      if (sum) sum.textContent = t("pineHead");
     }
   } else {
     $("pineSrc").textContent = s.pine || "";
@@ -196,6 +196,99 @@ function spanDays(barList) {
   const t1 = Number(barList[barList.length - 1].time);
   if (!isFinite(t0) || !isFinite(t1) || t1 === t0) return 14;
   return Math.max(1, Math.round(Math.abs(t1 - t0) / 86400));
+}
+
+function isMobile() {
+  return window.matchMedia("(max-width: 768px)").matches;
+}
+
+function openSheet() {
+  const sheet = $("resultSheet");
+  const scrim = $("sheetScrim");
+  if (!sheet || !isMobile()) return;
+  sheet.classList.add("open");
+  if (scrim) scrim.hidden = false;
+  document.body.classList.add("sheet-open");
+  requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
+}
+
+function closeSheet() {
+  const sheet = $("resultSheet");
+  const scrim = $("sheetScrim");
+  if (sheet) sheet.classList.remove("open");
+  if (scrim) scrim.hidden = true;
+  document.body.classList.remove("sheet-open");
+}
+
+function syncDock() {
+  const ds = $("dockSymbol");
+  const dt = $("dockTf");
+  if (ds) ds.value = SYMBOL;
+  if (dt) dt.value = interval;
+}
+
+function fmtUsd0(n) {
+  return Math.round(Number(n)).toLocaleString("en-US");
+}
+
+function tradePillsHtml(trades) {
+  const closed = (trades || []).filter((tr) => !tr.open);
+  if (!closed.length) return "";
+  return closed
+    .map((tr) => {
+      const win = Number(tr.pnlAbs) > 0;
+      const d = new Date(Number(tr.t1) * 1000);
+      const md = isFinite(d.getTime()) ? d.getMonth() + 1 + "/" + d.getDate() : "";
+      const sign = win ? "+" : "";
+      const scale = 1000 / START_EQ;
+      const usd = fmtUsd0(Number(tr.pnlAbs) * scale);
+      return `<span class="trade-pill ${win ? "up" : "down"}">${win ? "🟢" : "🔴"} ${sign}$${usd} (${md})</span>`;
+    })
+    .join("");
+}
+
+function paintRetail(eq, st, trades) {
+  const scale = 1000 / START_EQ;
+  const end = eq && eq.length ? eq[eq.length - 1] : START_EQ;
+  const end1k = end * scale;
+  const profit = (end - START_EQ) * scale;
+  const pct = st ? st.ret : 0;
+  const days = spanDays(bars);
+  const closed = (trades || []).filter((tr) => !tr.open);
+  const wins = closed.filter((tr) => Number(tr.pnlAbs) > 0).length;
+  const losses = closed.length - wins;
+  const wr = closed.length ? wins / closed.length : 0;
+  const mdd = st ? st.mdd : 0;
+  const riskUsd = Math.abs(mdd) * 1000;
+  const sign = profit >= 0 ? "+" : "-";
+  if ($("moneyEnd")) $("moneyEnd").textContent = "$1,000 → $" + fmtUsd0(end1k);
+  if ($("moneyPnl")) {
+    $("moneyPnl").textContent = t("moneyPnlTpl")
+      .replace("{sign}", sign)
+      .replace("{amt}", fmtUsd0(Math.abs(profit)))
+      .replace("{pct}", fmtSignedPct(pct));
+    $("moneyPnl").className = "money-pnl" + (profit < 0 ? " down" : "");
+  }
+  if ($("moneyDays")) $("moneyDays").textContent = t("moneyDaysTpl").replace("{n}", String(days));
+  if ($("moneyHit")) {
+    $("moneyHit").textContent = t("moneyHitTpl")
+      .replace("{pct}", (wr * 100).toFixed(0) + "%")
+      .replace("{n}", String(closed.length))
+      .replace("{w}", String(wins))
+      .replace("{l}", String(losses));
+  }
+  if ($("moneyRisk")) {
+    $("moneyRisk").textContent = t("moneyRiskTpl")
+      .replace("{pct}", (mdd * 100).toFixed(1) + "%")
+      .replace("{amt}", fmtUsd0(riskUsd));
+  }
+  if ($("tradePills")) $("tradePills").innerHTML = tradePillsHtml(trades);
+  const funnel = $("funnelCard");
+  if (funnel) funnel.hidden = !(profit > 0);
+  const shareLine = $("shareLine");
+  const shareSub = $("shareSub");
+  if (shareLine) shareLine.textContent = "$1,000 → $" + fmtUsd0(end1k);
+  if (shareSub) shareSub.textContent = fmtSignedPct(pct) + " · " + days + "d";
 }
 
 function paintNav(eq, st) {
@@ -324,6 +417,7 @@ async function load(iv) {
     onKline: upsert,
   });
   run(true);
+  syncDock();
 }
 
 function fmtPf(pf) {
@@ -344,6 +438,7 @@ function run(silent) {
   const st = catalog.performanceOf(trades, eq, catalog.barsPerYear(interval), bars);
   if ($("sampleHint")) $("sampleHint").textContent = t("sampleHintTpl").replace("{n}", String(bars.length));
   paintNav(eq, st);
+  paintRetail(eq, st, trades);
   if ($("mWr")) {
     $("mWr").textContent = (st.hit * 100).toFixed(1) + "%";
     if (window.QAUi) window.QAUi.flash($("mWr"), st.hit < 0.5);
@@ -377,7 +472,8 @@ function run(silent) {
   addLine(equityChart, "#00873c").setData(bars.map((b, i) => ({ time: b.time, value: eq[i] })));
   equityChart.timeScale().fitContent();
   const dEl = $("ddChart");
-  if (dEl && LC && ddSeries.length) {
+  const ddVisible = dEl && window.getComputedStyle(dEl).display !== "none";
+  if (dEl && LC && ddSeries.length && ddVisible) {
     if (ddChart) ddChart.remove();
     const ds = chartBoxSize(dEl, 180);
     ddChart = LC.createChart(dEl, feed.chartOptions(dEl, ds.height, interval));
@@ -386,7 +482,10 @@ function run(silent) {
     ddChart.timeScale().fitContent();
   }
   scheduleFit();
-  if (!silent) toast(t("btDone").replace("{ms}", (performance.now() - t0).toFixed(1)).replace("{n}", String(bars.length)), "ok");
+  if (!silent) {
+    toast(t("btDone").replace("{ms}", (performance.now() - t0).toFixed(1)).replace("{n}", String(bars.length)), "ok");
+    openSheet();
+  }
 }
 
 $("stratSelect").innerHTML = catalog.list
@@ -457,7 +556,7 @@ function boot() {
     engineId = qSt;
     $("stratSelect").value = engineId;
   }
-  const startIv = INTERVALS_OK(qIv) ? qIv : "1m";
+  const startIv = INTERVALS_OK(qIv) ? qIv : "1h";
   load(startIv).catch((e) => toast(e.message, "warn"));
 }
 function INTERVALS_OK(iv) {
@@ -465,14 +564,85 @@ function INTERVALS_OK(iv) {
 }
 window.QABacktest = {
   open(id, iv) {
-    bindDesk();
-    refillSelect();
-    if (id && catalog.get(id)) engineId = id;
-    if ($("stratSelect")) $("stratSelect").value = engineId;
-    const startIv = INTERVALS_OK(iv) ? iv : interval || "1h";
-    load(startIv).catch((e) => toast(e.message, "warn"));
+    const start = () => {
+      bindDesk();
+      refillSelect();
+      if (id && catalog.get(id)) engineId = id;
+      if ($("stratSelect")) $("stratSelect").value = engineId;
+      const startIv = INTERVALS_OK(iv) ? iv : interval || "1h";
+      return load(startIv)
+        .then(() => {
+          run(false);
+        })
+        .catch((e) => toast(e.message, "warn"));
+    };
+    if (window.QAPackReady) return window.QAPackReady.then(start);
+    return start();
   },
 };
+function revealBacktest() {
+  const list = $("viewList");
+  const bt = $("viewBacktest");
+  if (list) list.hidden = true;
+  if (bt) bt.hidden = false;
+  document.body.classList.add("desk-open");
+  requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
+}
+function bindChrome() {
+  if ($("dockRun") && $("dockRun").getAttribute("data-bound") !== "1") {
+    $("dockRun").setAttribute("data-bound", "1");
+    $("dockRun").addEventListener("click", () => {
+      const bt = $("viewBacktest");
+      const iv = ($("dockTf") && $("dockTf").value) || "1h";
+      if ($("dockSymbol")) SYMBOL = $("dockSymbol").value;
+      if (bt && bt.hidden) {
+        revealBacktest();
+        Promise.resolve(window.QABacktest.open(engineId || "dual", iv)).then(() => run(false));
+        return;
+      }
+      run(false);
+    });
+  }
+  if ($("dockTf") && $("dockTf").getAttribute("data-bound") !== "1") {
+    $("dockTf").setAttribute("data-bound", "1");
+    $("dockTf").addEventListener("change", () => {
+      const iv = $("dockTf").value;
+      if ($("viewBacktest") && !$("viewBacktest").hidden) {
+        load(iv).catch((e) => toast(e.message));
+      } else {
+        interval = iv;
+      }
+    });
+  }
+  if ($("dockSymbol") && $("dockSymbol").getAttribute("data-bound") !== "1") {
+    $("dockSymbol").setAttribute("data-bound", "1");
+    $("dockSymbol").addEventListener("change", () => {
+      SYMBOL = $("dockSymbol").value;
+      if ($("viewBacktest") && !$("viewBacktest").hidden) {
+        load(interval).catch((e) => toast(e.message));
+      }
+    });
+  }
+  if ($("sheetClose")) $("sheetClose").addEventListener("click", closeSheet);
+  if ($("sheetScrim")) $("sheetScrim").addEventListener("click", closeSheet);
+  if ($("btnShareCard")) {
+    $("btnShareCard").addEventListener("click", () => {
+      const ov = $("shareOverlay");
+      if (ov) ov.hidden = false;
+    });
+  }
+  if ($("shareClose")) {
+    $("shareClose").addEventListener("click", () => {
+      const ov = $("shareOverlay");
+      if (ov) ov.hidden = true;
+    });
+  }
+  const tg = $("funnelTg");
+  const cfg = window.QUANT_CONFIG;
+  if (tg && cfg && cfg.tgChannelUrl) tg.href = cfg.tgChannelUrl;
+  syncDock();
+}
+bindChrome();
 const DEFER = Boolean(document.getElementById("viewList"));
 if (!DEFER) {
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);

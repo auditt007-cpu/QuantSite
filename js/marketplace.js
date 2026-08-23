@@ -31,6 +31,14 @@
     return window.QAIdentity && window.QAIdentity.seat() === "vip";
   }
 
+  if (window.QAPackReady) {
+    try {
+      await window.QAPackReady;
+    } catch {
+      /* ignore */
+    }
+  }
+
   const LOCAL_FREE = (catalog.list || []).filter((s) => s.tier !== "master");
   const LOCAL_MASTER = (catalog.list || []).filter((s) => s.tier === "master");
 
