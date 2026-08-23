@@ -64,42 +64,59 @@
       if ($("lastPx")) $("lastPx").textContent = bar.close.toLocaleString(undefined, { maximumFractionDigits: 2 });
     }
 
+    function chartSize(el) {
+      const mobile = window.matchMedia("(max-width: 768px)").matches;
+      const w = Math.max(el.clientWidth || 0, window.innerWidth - 48, 280);
+      const h = mobile ? 350 : Math.max(el.clientHeight || 0, 480, 400);
+      return { width: w, height: h };
+    }
+
     function mountChart() {
       const el = $("tvChart");
       if (!el) return;
-      if (chart) {
-        chart.remove();
-        chart = null;
-      }
-      const sizeH = window.matchMedia("(max-width: 768px)").matches ? 350 : Math.max(el.clientHeight || 520, 400);
-      chart = root.LightweightCharts.createChart(el, feed.chartOptions(el, sizeH, interval));
-      chart.applyOptions({ width: Math.max(el.clientWidth, 280), height: sizeH });
-      candle = addCandle(chart);
-      vol = addHist(chart);
-      candle.setData(bars.map((b) => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close })));
-      vol.setData(
-        bars.map((b) => ({
-          time: b.time,
-          value: b.volume,
-          color: b.close >= b.open ? "rgba(0,135,60,0.45)" : "rgba(208,2,27,0.45)",
-        })),
-      );
-      chart.timeScale().fitContent();
-      applyMarks();
-      if (typeof chart.subscribeCrosshairMove === "function") {
-        chart.subscribeCrosshairMove((param) => {
-          const line = $("ohlcLine");
-          if (!line || !param || !param.seriesData) return;
-          const d = param.seriesData.get(candle);
-          if (d) line.textContent = `O ${d.open}  H ${d.high}  L ${d.low}  C ${d.close}`;
-        });
-      }
-      setTimeout(() => {
-        if (chart && el) {
-          chart.applyOptions({ width: Math.max(el.clientWidth, 280), height: sizeH });
-          chart.timeScale().fitContent();
+
+      const draw = () => {
+        const size = chartSize(el);
+        if (size.width < 80) {
+          requestAnimationFrame(draw);
+          return;
         }
-      }, 100);
+        if (chart) {
+          chart.remove();
+          chart = null;
+        }
+        chart = root.LightweightCharts.createChart(el, feed.chartOptions(el, size.height, interval));
+        chart.applyOptions({ width: size.width, height: size.height });
+        candle = addCandle(chart);
+        vol = addHist(chart);
+        candle.setData(bars.map((b) => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close })));
+        vol.setData(
+          bars.map((b) => ({
+            time: b.time,
+            value: b.volume,
+            color: b.close >= b.open ? "rgba(0,135,60,0.45)" : "rgba(208,2,27,0.45)",
+          })),
+        );
+        chart.timeScale().fitContent();
+        applyMarks();
+        if (typeof chart.subscribeCrosshairMove === "function") {
+          chart.subscribeCrosshairMove((param) => {
+            const line = $("ohlcLine");
+            if (!line || !param || !param.seriesData) return;
+            const d = param.seriesData.get(candle);
+            if (d) line.textContent = `O ${d.open}  H ${d.high}  L ${d.low}  C ${d.close}`;
+          });
+        }
+        setTimeout(() => {
+          if (chart && el) {
+            const s = chartSize(el);
+            chart.applyOptions({ width: s.width, height: s.height });
+            chart.timeScale().fitContent();
+          }
+        }, 120);
+      };
+
+      requestAnimationFrame(draw);
     }
 
     async function load() {
@@ -144,7 +161,12 @@
     }
 
     window.addEventListener("resize", () => {
-      if (chart && $("tvChart")) chart.applyOptions({ width: $("tvChart").clientWidth });
+      const el = $("tvChart");
+      if (chart && el) {
+        const size = chartSize(el);
+        chart.applyOptions({ width: size.width, height: size.height });
+        chart.timeScale().fitContent();
+      }
     });
     window.addEventListener("quant-feed-region", () => {
       load();

@@ -503,8 +503,14 @@ function paintNav(eq, st, ctx) {
 
 function chartBoxSize(el, desktopH) {
   const mobile = window.matchMedia("(max-width: 768px)").matches;
-  const w = Math.max(el.clientWidth || window.innerWidth - 24, 280);
-  if (!mobile) return { width: w, height: Math.max(el.clientHeight || desktopH, desktopH) };
+  const fallbackH = desktopH || (el && el.id === "candleChart" ? 480 : 220);
+  const w = Math.max((el && el.clientWidth) || 0, window.innerWidth - 48, 280);
+  if (!mobile) {
+    return {
+      width: w,
+      height: Math.max((el && el.clientHeight) || 0, fallbackH, 220),
+    };
+  }
   const id = el && el.id;
   if (id === "candleChart") return { width: w, height: 250 };
   return { width: w, height: 180 };
@@ -619,25 +625,37 @@ function upsert(bar) {
 
 function mountCandles() {
   const el = $("candleChart");
-  if (candleChart) {
-    candleChart.remove();
-    candleChart = null;
-  }
-  const size = chartBoxSize(el, 480);
-  candleChart = LC.createChart(el, feed.chartOptions(el, size.height, interval));
-  candleChart.applyOptions({ width: size.width, height: size.height });
-  candleSeries = addCandle(candleChart);
-  volSeries = addHist(candleChart);
-  candleSeries.setData(bars.map((b) => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close })));
-  volSeries.setData(
-    bars.map((b) => ({
-      time: b.time,
-      value: b.volume,
-      color: b.close >= b.open ? "rgba(0,135,60,0.45)" : "rgba(208,2,27,0.45)",
-    })),
-  );
-  candleChart.timeScale().fitContent();
-  scheduleFit();
+  const Charts = window.LightweightCharts;
+  if (!el || !Charts || !feed || !bars.length) return;
+
+  const draw = () => {
+    const size = chartBoxSize(el, 480);
+    const host = $("viewBacktest");
+    if (size.width < 80 && host && !host.hidden) {
+      requestAnimationFrame(draw);
+      return;
+    }
+    if (candleChart) {
+      candleChart.remove();
+      candleChart = null;
+    }
+    candleChart = Charts.createChart(el, feed.chartOptions(el, size.height, interval));
+    candleChart.applyOptions({ width: size.width, height: size.height });
+    candleSeries = addCandle(candleChart);
+    volSeries = addHist(candleChart);
+    candleSeries.setData(bars.map((b) => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close })));
+    volSeries.setData(
+      bars.map((b) => ({
+        time: b.time,
+        value: b.volume,
+        color: b.close >= b.open ? "rgba(0,135,60,0.45)" : "rgba(208,2,27,0.45)",
+      })),
+    );
+    candleChart.timeScale().fitContent();
+    scheduleFit();
+  };
+
+  requestAnimationFrame(draw);
 }
 
 function fmtPf(pf) {
@@ -695,12 +713,21 @@ function run(silent) {
   }
   const eEl = $("equityChart");
   if (equityChart) equityChart.remove();
-  const size = chartBoxSize(eEl, 220);
-  equityChart = LC.createChart(eEl, feed.chartOptions(eEl, size.height, interval));
-  equityChart.applyOptions({ width: size.width, height: size.height });
-  addLine(equityChart, "#00873c").setData(winBars.map((b, i) => ({ time: b.time, value: eq[i] })));
-  equityChart.timeScale().fitContent();
-  scheduleFit();
+  const Charts = window.LightweightCharts;
+  if (!Charts || !eEl) return;
+  const paintEq = () => {
+    const size = chartBoxSize(eEl, 220);
+    if (size.width < 80) {
+      requestAnimationFrame(paintEq);
+      return;
+    }
+    equityChart = Charts.createChart(eEl, feed.chartOptions(eEl, size.height, interval));
+    equityChart.applyOptions({ width: size.width, height: size.height });
+    addLine(equityChart, "#00873c").setData(winBars.map((b, i) => ({ time: b.time, value: eq[i] })));
+    equityChart.timeScale().fitContent();
+    scheduleFit();
+  };
+  requestAnimationFrame(paintEq);
   if (!silent) {
     toast(t("btDone").replace("{ms}", (performance.now() - t0).toFixed(1)).replace("{n}", String(ctx.windowBarCount)), "ok");
     openSheet();
@@ -789,7 +816,10 @@ function revealBacktest() {
   if (list) list.hidden = true;
   if (bt) bt.hidden = false;
   document.body.classList.add("desk-open");
-  requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
+  requestAnimationFrame(() => {
+    window.dispatchEvent(new Event("resize"));
+    setTimeout(() => window.dispatchEvent(new Event("resize")), 120);
+  });
 }
 function bindChrome() {
   if ($("dockRun") && $("dockRun").getAttribute("data-bound") !== "1") {

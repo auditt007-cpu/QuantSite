@@ -1,0 +1,18 @@
+[Unit]
+Description=QuantSite outbound Telegram signal engine
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/root/quantsite
+EnvironmentFile=-/root/quantsite/.env
+ExecStart=/usr/bin/python3 /root/quantsite/tg_engine.py
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+# Outbound HTTPS only; do not open listen sockets.
+
+[Install]
+WantedBy=multi-user.target
