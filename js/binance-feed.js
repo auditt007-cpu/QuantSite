@@ -14,11 +14,19 @@
 
   const GEO_CACHE_KEY = "qa_feed_geo";
   const GEO_TTL_MS = 6 * 60 * 60 * 1000;
+  const CN_PROBE_KEY = "qa_cn_venue_probe";
+  const CN_PROBE_TTL_MS = 5 * 60 * 1000;
+  const CN_PROBE_INTERVAL_MS = 5 * 60 * 1000;
+  const CN_PROBE_TIMEOUT_MS = 3500;
 
   let lastMeta = { source: "live", updatedAt: "", venue: "" };
   let startNode = 0;
   let feedRegionCode = "intl";
   let feedCountryCode = "";
+  let cnSortedVenues = null;
+  let cnVenueLatencies = {};
+  let cnProbeTimer = null;
+  let cnProbeReady = Promise.resolve();
 
   function loadCachedGeo() {
     try {
@@ -49,10 +57,17 @@
 
   function applyFeedRegion(region, country, notify) {
     const next = VENUE_ORDER[region] ? region : "intl";
+    const wasCn = feedRegionCode === "cn";
     const changed = next !== feedRegionCode;
     feedRegionCode = next;
     feedCountryCode = String(country || "").toUpperCase();
     if (changed) startNode = 0;
+    if (feedRegionCode === "cn") {
+      applyCachedCnProbe();
+      if (!wasCn || !cnProbeTimer) scheduleCnProbe();
+    } else if (wasCn) {
+      stopCnProbe();
+    }
     if (notify && changed && typeof root.dispatchEvent === "function") {
       root.dispatchEvent(
         new CustomEvent("quant-feed-region", { detail: { region: feedRegionCode, country: feedCountryCode } }),
@@ -61,8 +76,122 @@
     return changed;
   }
 
+  function loadCachedCnProbe() {
+    try {
+      const raw = sessionStorage.getItem(CN_PROBE_KEY);
+      if (!raw) return null;
+      const o = JSON.parse(raw);
+      if (!o || !Array.isArray(o.order) || Date.now() - (o.ts || 0) > CN_PROBE_TTL_MS) return null;
+      return { order: o.order, latencies: o.latencies || {} };
+    } catch {
+      return null;
+    }
+  }
+
+  function saveCachedCnProbe(order, latencies) {
+    try {
+      sessionStorage.setItem(CN_PROBE_KEY, JSON.stringify({ order, latencies, ts: Date.now() }));
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function applyCachedCnProbe() {
+    const cached = loadCachedCnProbe();
+    if (!cached || !cached.order.length) return;
+    cnSortedVenues = cached.order.filter((v) => ALL_VENUES.includes(v));
+    cnVenueLatencies = cached.latencies || {};
+  }
+
+  function stopCnProbe() {
+    if (cnProbeTimer) {
+      clearInterval(cnProbeTimer);
+      cnProbeTimer = null;
+    }
+    cnSortedVenues = null;
+    cnVenueLatencies = {};
+  }
+
+  function cnProbeUrls() {
+    const apiBase = (root.QUANT_CONFIG && root.QUANT_CONFIG.apiBase) || "";
+    const urls = {
+      HTX: "https://api.huobi.pro/market/detail/merged?symbol=btcusdt",
+      MEXC: "https://api.mexc.com/api/v3/ticker/price?symbol=BTCUSDT",
+      Bitget: "https://api.bitget.com/api/v2/spot/market/tickers?symbol=BTCUSDT",
+      Gate: "https://api.gateio.ws/api/v4/spot/tickers?currency_pair=BTC_USDT",
+      OKX: "https://www.okx.com/api/v5/market/ticker?instId=BTC-USDT",
+      Bybit: "https://api.bybit.com/v5/market/tickers?category=spot&symbol=BTCUSDT",
+      "Binance-Vision": "https://data-api.binance.vision/api/v3/ticker/price?symbol=BTCUSDT",
+      Binance: "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT",
+    };
+    const base = String(apiBase || "").replace(/\/$/, "");
+    if (base.startsWith("http")) {
+      urls.Worker = `${base}/api/ticker/24hr?symbols=${encodeURIComponent('["BTCUSDT"]')}`;
+    }
+    return urls;
+  }
+
+  async function probeVenueLatency(venue, url) {
+    if (!url) return { venue, ms: Infinity, ok: false };
+    const t0 = typeof performance !== "undefined" ? performance.now() : Date.now();
+    const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+    const timer = ctrl ? setTimeout(() => ctrl.abort(), CN_PROBE_TIMEOUT_MS) : null;
+    try {
+      const res = await fetch(url, ctrl ? { signal: ctrl.signal, cache: "no-store" } : { cache: "no-store" });
+      const t1 = typeof performance !== "undefined" ? performance.now() : Date.now();
+      if (!res.ok) return { venue, ms: Infinity, ok: false };
+      return { venue, ms: Math.max(0, t1 - t0), ok: true };
+    } catch {
+      return { venue, ms: Infinity, ok: false };
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  }
+
+  async function runCnVenueProbe() {
+    if (feedRegion() !== "cn") return cnSortedVenues;
+    const base = VENUE_ORDER.cn;
+    const urls = cnProbeUrls();
+    const results = await Promise.all(
+      base.filter((venue) => urls[venue]).map((venue) => probeVenueLatency(venue, urls[venue])),
+    );
+    const latMap = {};
+    results.forEach((r) => {
+      latMap[r.venue] = r.ok ? Math.round(r.ms) : null;
+    });
+    const sorted = [...base].sort((a, b) => {
+      const la = latMap[a] == null ? Infinity : latMap[a];
+      const lb = latMap[b] == null ? Infinity : latMap[b];
+      if (la !== lb) return la - lb;
+      return base.indexOf(a) - base.indexOf(b);
+    });
+    const prev = cnSortedVenues ? cnSortedVenues.join("|") : "";
+    cnSortedVenues = sorted.filter((v) => ALL_VENUES.includes(v));
+    cnVenueLatencies = latMap;
+    saveCachedCnProbe(cnSortedVenues, latMap);
+    const next = cnSortedVenues.join("|");
+    if (prev && prev !== next && typeof root.dispatchEvent === "function") {
+      root.dispatchEvent(
+        new CustomEvent("quant-feed-venues", {
+          detail: { region: "cn", order: cnSortedVenues.slice(), latencies: { ...latMap } },
+        }),
+      );
+    }
+    return cnSortedVenues;
+  }
+
+  function scheduleCnProbe() {
+    if (feedRegion() !== "cn") return;
+    if (cnProbeTimer) clearInterval(cnProbeTimer);
+    cnProbeReady = runCnVenueProbe();
+    cnProbeTimer = setInterval(() => {
+      runCnVenueProbe();
+    }, CN_PROBE_INTERVAL_MS);
+  }
+
   const cachedGeo = loadCachedGeo();
   if (cachedGeo) applyFeedRegion(cachedGeo.region, cachedGeo.country, false);
+  else if (feedRegionCode === "cn") applyCachedCnProbe();
 
   function feedRegion() {
     return feedRegionCode;
@@ -73,6 +202,9 @@
   }
 
   function orderedVenues() {
+    if (feedRegion() === "cn" && cnSortedVenues && cnSortedVenues.length) {
+      return cnSortedVenues.filter((v) => ALL_VENUES.includes(v));
+    }
     const list = VENUE_ORDER[feedRegion()] || VENUE_ORDER.intl;
     return list.filter((v) => ALL_VENUES.includes(v));
   }
@@ -118,6 +250,17 @@
     const region = cc ? countryToRegion(cc) : feedRegionCode || "intl";
     if (cc) saveCachedGeo(region, cc);
     applyFeedRegion(region, cc, true);
+    return feedRegionCode;
+  }
+
+  async function readyFeed() {
+    await feedGeoReady;
+    if (feedRegion() !== "cn") return feedRegionCode;
+    try {
+      await Promise.race([cnProbeReady, new Promise((resolve) => setTimeout(resolve, 2500))]);
+    } catch {
+      /* keep cached/static order */
+    }
     return feedRegionCode;
   }
 
@@ -1074,8 +1217,10 @@
     orderedVenues,
     feedRegion,
     feedCountry,
+    venueLatencies: () => ({ ...cnVenueLatencies }),
     initFeedGeo,
-    readyGeo: () => feedGeoReady,
+    probeCnVenues: runCnVenueProbe,
+    readyGeo: readyFeed,
     resetRegion,
     fetchKlines,
     fetchTicker24h,
