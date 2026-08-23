@@ -251,6 +251,101 @@
     }
   }
 
+  function fmtVpsPx(n) {
+    const x = Number(n);
+    if (!Number.isFinite(x)) return "—";
+    if (x >= 1000) return x.toLocaleString("en-US", { maximumFractionDigits: 0 });
+    if (x >= 1) return x.toFixed(2);
+    return x.toPrecision(4);
+  }
+
+  function fmtVpsTime(barTs) {
+    const d = new Date(Number(barTs) * 1000);
+    if (!isFinite(d.getTime())) return "—";
+    return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+  }
+
+  function vpsSigKey(sig) {
+    return [sig.strategy_id, sig.symbol, sig.event, sig.bar_ts, sig.side].join("|");
+  }
+
+  function vpsRowHtml(sig, isNew) {
+    const isClose = sig.event === "close";
+    const evt = isClose ? t("vpsEventClose") : t("vpsEventOpen");
+    const evtCls = isClose ? "vps-evt-close" : "vps-evt-open";
+    const sym = String(sig.symbol || "").replace("USDT", "") + "·" + String(sig.interval || "1h").toUpperCase();
+    let sideText;
+    let sideCls;
+    if (isClose) {
+      const pnl = Number(sig.pnl_pct);
+      sideText = (pnl >= 0 ? "+" : "") + (Number.isFinite(pnl) ? pnl.toFixed(2) : "0.00") + "%";
+      sideCls = pnl >= 0 ? "vps-up" : "vps-down";
+    } else {
+      sideText = sig.side === "SHORT" ? t("vpsShort") : t("vpsLong");
+      sideCls = sig.side === "SHORT" ? "vps-down" : "vps-up";
+    }
+    const px = isClose ? sig.exit_price : sig.price;
+    return (
+      `<li class="vps-exec-row${isNew ? " is-new" : ""}">` +
+      `<span class="vps-t">${fmtVpsTime(sig.bar_ts)}</span>` +
+      `<span class="vps-evt ${evtCls}">${escapeHtml(evt)}</span>` +
+      `<span class="vps-sym" title="${escapeHtml(sig.name_zh || sig.name_en || "")}">${escapeHtml(sym)}</span>` +
+      `<span class="vps-side ${sideCls}">${escapeHtml(sideText)}</span>` +
+      `<span class="vps-px">${escapeHtml(fmtVpsPx(px))}</span>` +
+      `</li>`
+    );
+  }
+
+  let lastVpsKeys = new Set();
+  let vpsBoardTimer = null;
+
+  async function refreshVpsExecBoard() {
+    const list = document.getElementById("vpsExecList");
+    const updatedEl = document.getElementById("vpsExecUpdated");
+    const viewport = document.getElementById("vpsExecViewport");
+    if (!list) return;
+    try {
+      const res = await fetch("./live_feed.json", { cache: "no-store" });
+      if (!res.ok) return;
+      const data = await res.json();
+      const merged = (data.active_signals_3h || [])
+        .concat(data.closed_signals_3h || [])
+        .sort((a, b) => (Number(b.bar_ts) || 0) - (Number(a.bar_ts) || 0))
+        .slice(0, 36);
+      if (updatedEl && data.updated_at) {
+        updatedEl.textContent = "UPD " + String(data.updated_at).replace("T", " ").replace("Z", " UTC");
+      }
+      if (!merged.length) {
+        list.innerHTML = `<li class="vps-exec-empty">${escapeHtml(t("vpsExecEmpty"))}</li>`;
+        list.classList.add("vps-exec-static");
+        return;
+      }
+      const nextKeys = new Set();
+      const rows = merged.map((sig) => {
+        const key = vpsSigKey(sig);
+        nextKeys.add(key);
+        return vpsRowHtml(sig, !lastVpsKeys.has(key));
+      });
+      lastVpsKeys = nextKeys;
+      const html = rows.join("");
+      list.innerHTML = rows.length > 8 ? html + html : html;
+      list.classList.toggle("vps-exec-static", rows.length <= 8);
+      if (viewport && viewport.getAttribute("data-bound") !== "1") {
+        viewport.setAttribute("data-bound", "1");
+        viewport.addEventListener("mouseenter", () => viewport.classList.add("is-paused"));
+        viewport.addEventListener("mouseleave", () => viewport.classList.remove("is-paused"));
+      }
+    } catch {
+      /* live_feed.json optional */
+    }
+  }
+
+  function bindVpsExecBoard() {
+    refreshVpsExecBoard();
+    if (vpsBoardTimer) clearInterval(vpsBoardTimer);
+    vpsBoardTimer = setInterval(refreshVpsExecBoard, 15000);
+  }
+
   /* ---------------------------------------------------------------------
    * Strategy list (45 canonical IDs) + bar-fetch cache.
    * ------------------------------------------------------------------- */
@@ -1322,6 +1417,7 @@
     seedCountersFromLeaderboard();
     pollLiveFeedAudio();
     setInterval(pollLiveFeedAudio, 20000);
+    bindVpsExecBoard();
 
     let savedId = null;
     try {
@@ -1352,6 +1448,7 @@
       renderSelectedMatrix();
       renderLegend();
       refreshWatchTape();
+      refreshVpsExecBoard();
     });
   }
 

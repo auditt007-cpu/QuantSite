@@ -12,8 +12,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
 </head>
-<body class="editorial-light" data-title-key="titleLive">
+<body class="editorial-light live-page" data-title-key="titleLive">
   <div class="wrap wide">
+    <div class="live-sticky-chrome">
     <header class="topbar">
       <a class="brand" href="./index.html">
         <div class="logo"></div>
@@ -62,6 +63,7 @@
       <div class="bb-track-wrap">
         <div class="bb-track" id="bbMarqueeTrack"></div>
       </div>
+    </div>
     </div>
 
     <div class="editorial-grid war-room-page-grid">
@@ -132,22 +134,25 @@
           </div>
         </section>
       </div>
-      <aside class="editorial-rail" aria-label="Live sidebar">
-        <section class="rail-block flash-desk">
-          <div class="kicker" data-i18n="flashKicker">FLASH NEWS</div>
-          <h3 class="rail-h" data-i18n="flashTitle">⚡ 7x24 即時快訊</h3>
-          <ul class="flash-list" id="flashNews" aria-live="polite"></ul>
-        </section>
-        <section class="rail-block rail-mkt">
-          <div class="kicker">MARKET</div>
-          <h3 class="rail-h" data-i18n="mktOverview">市場概覽</h3>
-          <div class="rail-quotes" id="railQuotes">
-            <div class="rail-quote" data-sym="BTCUSDT"><span>BTC</span><b data-px>—</b><em data-chg>—</em></div>
-            <div class="rail-quote" data-sym="ETHUSDT"><span>ETH</span><b data-px>—</b><em data-chg>—</em></div>
-            <div class="rail-quote" data-sym="SOLUSDT"><span>SOL</span><b data-px>—</b><em data-chg>—</em></div>
-            <div class="rail-quote" data-sym="BNBUSDT"><span>BNB</span><b data-px>—</b><em data-chg>—</em></div>
+      <aside class="editorial-rail vps-exec-rail" aria-label="VPS execution feed">
+        <section class="vps-exec-board">
+          <div class="vps-exec-head">
+            <span class="vps-exec-kicker" data-i18n="vpsExecKicker">VPS LIVE EXEC</span>
+            <h3 class="vps-exec-title" data-i18n="vpsExecTitle">實盤開平倉流水</h3>
+            <span class="vps-exec-updated" id="vpsExecUpdated">—</span>
           </div>
-          <p class="muted rail-note" data-i18n="mktQuoteNote">報價來自公開行情接口，僅供研究對照。</p>
+          <div class="vps-exec-cols" aria-hidden="true">
+            <span data-i18n="vpsColTime">時間</span>
+            <span data-i18n="vpsColEvent">事件</span>
+            <span data-i18n="vpsColSym">標的</span>
+            <span data-i18n="vpsColSide">方向</span>
+            <span data-i18n="vpsColPx">價格</span>
+          </div>
+          <div class="vps-exec-viewport" id="vpsExecViewport">
+            <ul class="vps-exec-list" id="vpsExecList" aria-live="polite">
+              <li class="vps-exec-empty" data-i18n="vpsExecEmpty">等待 VPS 信號…</li>
+            </ul>
+          </div>
         </section>
       </aside>
     </div>
