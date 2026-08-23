@@ -265,6 +265,19 @@
     return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
   }
 
+  function vpsSortTs(sig) {
+    return Number(sig && (sig.logged_at || sig.bar_ts)) || 0;
+  }
+
+  function vpsFeedRows(data) {
+    if (data.exec_log && data.exec_log.length) {
+      return data.exec_log.slice().sort((a, b) => vpsSortTs(b) - vpsSortTs(a));
+    }
+    return (data.active_signals_3h || [])
+      .concat(data.closed_signals_3h || [])
+      .sort((a, b) => vpsSortTs(b) - vpsSortTs(a));
+  }
+
   function vpsSigKey(sig) {
     return [sig.strategy_id, sig.symbol, sig.event, sig.bar_ts, sig.side].join("|");
   }
@@ -287,7 +300,7 @@
     const px = isClose ? sig.exit_price : sig.price;
     return (
       `<li class="vps-exec-row${isNew ? " is-new" : ""}">` +
-      `<span class="vps-t">${fmtVpsTime(sig.bar_ts)}</span>` +
+      `<span class="vps-t">${fmtVpsTime(sig.logged_at || sig.bar_ts)}</span>` +
       `<span class="vps-evt ${evtCls}">${escapeHtml(evt)}</span>` +
       `<span class="vps-sym" title="${escapeHtml(sig.name_zh || sig.name_en || "")}">${escapeHtml(sym)}</span>` +
       `<span class="vps-side ${sideCls}">${escapeHtml(sideText)}</span>` +
@@ -308,12 +321,17 @@
       const res = await fetch("./live_feed.json", { cache: "no-store" });
       if (!res.ok) return;
       const data = await res.json();
-      const merged = (data.active_signals_3h || [])
-        .concat(data.closed_signals_3h || [])
-        .sort((a, b) => (Number(b.bar_ts) || 0) - (Number(a.bar_ts) || 0))
-        .slice(0, 36);
-      if (updatedEl && data.updated_at) {
-        updatedEl.textContent = "UPD " + String(data.updated_at).replace("T", " ").replace("Z", " UTC");
+      const merged = vpsFeedRows(data).slice(0, 48);
+      if (updatedEl) {
+        const meta = t("vpsExecMeta")
+          .replace("{n}", String(data.strategy_count || 45))
+          .replace("{sym}", String((data.symbols || []).length || 20))
+          .replace("{sec}", String(data.poll_sec || 60))
+          .replace("{tf}", String(data.scan_tf || "1h").toUpperCase());
+        const upd = data.updated_at
+          ? " · UPD " + String(data.updated_at).replace("T", " ").replace("Z", " UTC")
+          : "";
+        updatedEl.textContent = meta + upd;
       }
       if (!merged.length) {
         list.innerHTML = `<li class="vps-exec-empty">${escapeHtml(t("vpsExecEmpty"))}</li>`;

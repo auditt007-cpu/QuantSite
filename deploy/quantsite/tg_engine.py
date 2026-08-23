@@ -45,6 +45,8 @@ LIVE_FEED_TF = "1h"
 LIVE_FEED_WINDOW_SEC = 3 * 3600
 LIVE_FEED_LOOKBACK_BARS = 4  # small margin over the 3h window in 1h bars
 LIVE_FEED_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "live_feed.json")
+LIVE_EXEC_LOG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "live_exec_log.json")
+LIVE_EXEC_LOG_MAX = 200
 UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
@@ -812,6 +814,42 @@ def _pnl_pct(side, entry_px, exit_px):
     return (entry_px - exit_px) / entry_px * 100.0
 
 
+def _exec_event_key(ev):
+    return "{0}|{1}|{2}|{3}".format(
+        ev.get("strategy_id"), ev.get("symbol"), ev.get("event"), ev.get("bar_ts")
+    )
+
+
+def load_exec_log():
+    try:
+        with open(LIVE_EXEC_LOG_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, list) else []
+    except Exception:
+        return []
+
+
+def save_exec_log(log):
+    trimmed = log[:LIVE_EXEC_LOG_MAX]
+    tmp = LIVE_EXEC_LOG_PATH + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(trimmed, f, ensure_ascii=False, indent=2)
+    os.replace(tmp, LIVE_EXEC_LOG_PATH)
+    return trimmed
+
+
+def merge_exec_log(existing, fresh_events):
+    keys = {_exec_event_key(e) for e in existing}
+    merged = list(existing)
+    for ev in fresh_events:
+        k = _exec_event_key(ev)
+        if k in keys:
+            continue
+        merged.insert(0, ev)
+        keys.add(k)
+    return merged[:LIVE_EXEC_LOG_MAX]
+
+
 def scan_one(spec, pool, now_sec):
     """20-symbol scan for one strategy. Also drives the in-memory open/close
     position tracker (LIVE_POSITION_STATE) so close events can be detected —
@@ -822,6 +860,7 @@ def scan_one(spec, pool, now_sec):
     sid, zht, en, fn = spec
     hits = []
     closes = []
+    log_events = []
     for sym in SYMBOLS:
         data = pool.get(sym)
         if not data or len(data["c"]) < 30:
@@ -876,20 +915,20 @@ def scan_one(spec, pool, now_sec):
             "{0}|{1}|{2}|{3}".format(sid, sym, side, bar_ts_i).encode("utf-8")
         ).hexdigest()[:20]
         audio_url = request_signal_audio(cache_key, open_signal_text(zht, sym, side, price))
-        hits.append(
-            {
-                "strategy_id": sid,
-                "name_zh": zht,
-                "name_en": en,
-                "symbol": sym,
-                "interval": LIVE_FEED_TF,
-                "event": "open",
-                "side": side,
-                "price": round(price, 8),
-                "bar_ts": bar_ts_i,
-                "audio_url": audio_url,
-            }
-        )
+        open_row = {
+            "strategy_id": sid,
+            "name_zh": zht,
+            "name_en": en,
+            "symbol": sym,
+            "interval": LIVE_FEED_TF,
+            "event": "open",
+            "side": side,
+            "price": round(price, 8),
+            "bar_ts": bar_ts_i,
+            "audio_url": audio_url,
+        }
+        hits.append(open_row)
+        log_events.append(dict(open_row, logged_at=int(now_sec)))
 
         if flipped_from is not None:
             pnl_pct = _pnl_pct(flipped_from["side"], flipped_from["price"], price)
@@ -901,23 +940,23 @@ def scan_one(spec, pool, now_sec):
                 close_audio_url = request_signal_audio(
                     close_cache_key, close_signal_text(zht, pnl_pct)
                 )
-            closes.append(
-                {
-                    "strategy_id": sid,
-                    "name_zh": zht,
-                    "name_en": en,
-                    "symbol": sym,
-                    "interval": LIVE_FEED_TF,
-                    "event": "close",
-                    "side": "CLOSE_" + flipped_from["side"],
-                    "entry_price": round(flipped_from["price"], 8),
-                    "exit_price": round(price, 8),
-                    "pnl_pct": round(pnl_pct, 2),
-                    "bar_ts": bar_ts_i,
-                    "audio_url": close_audio_url if pnl_pct > 0 else None,
-                }
-            )
-    return hits, closes
+            close_row = {
+                "strategy_id": sid,
+                "name_zh": zht,
+                "name_en": en,
+                "symbol": sym,
+                "interval": LIVE_FEED_TF,
+                "event": "close",
+                "side": "CLOSE_" + flipped_from["side"],
+                "entry_price": round(flipped_from["price"], 8),
+                "exit_price": round(price, 8),
+                "pnl_pct": round(pnl_pct, 2),
+                "bar_ts": bar_ts_i,
+                "audio_url": close_audio_url if pnl_pct > 0 else None,
+            }
+            closes.append(close_row)
+            log_events.append(dict(close_row, logged_at=int(now_sec)))
+    return hits, closes, log_events
 
 
 def build_live_feed_matrix():
@@ -931,23 +970,29 @@ def build_live_feed_matrix():
 
     signals = []
     closed = []
+    fresh_log = []
     with cf.ThreadPoolExecutor(max_workers=LIVE_FEED_WORKERS) as ex:
         futs = [ex.submit(scan_one, spec, pool, now_sec) for spec in specs]
         for fut in futs:
-            hits, closes = fut.result()
+            hits, closes, log_events = fut.result()
             signals.extend(hits)
             closed.extend(closes)
+            fresh_log.extend(log_events)
     signals.sort(key=lambda x: x["bar_ts"], reverse=True)
     closed.sort(key=lambda x: x["bar_ts"], reverse=True)
+    exec_log = save_exec_log(merge_exec_log(load_exec_log(), fresh_log))
 
     return {
         "updated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "period_hours": 3,
+        "poll_sec": POLL_SEC,
+        "scan_tf": LIVE_FEED_TF,
         "symbols": SYMBOLS,
         "strategy_count": len(specs),
         "signal_count": len(signals),
         "active_signals_3h": signals,
         "closed_signals_3h": closed[:60],
+        "exec_log": exec_log,
     }
 
 
