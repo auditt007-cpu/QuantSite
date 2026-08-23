@@ -131,118 +131,79 @@
           <label class="bt-param">
             <span class="exec-label" data-i18n="lookback">回測時間區間</span>
             <select id="btLookback">
-              <option value="90" data-i18n="look3m">近3個月</option>
-              <option value="180" data-i18n="look6m">近6個月</option>
-              <option value="365" selected data-i18n="look1y">近1年</option>
-              <option value="1095" data-i18n="look3y">近3年</option>
+              <option value="1" data-i18n="look1d">1天</option>
+              <option value="3" data-i18n="look3d">3天</option>
+              <option value="5" data-i18n="look5d">5天</option>
+              <option value="7" data-i18n="look7d">7天</option>
+              <option value="10" data-i18n="look10d">10天</option>
+              <option value="15" data-i18n="look15d">15天</option>
+              <option value="20" data-i18n="look20d">20天</option>
+              <option value="30" selected data-i18n="look30d">30天</option>
+              <option value="60" data-i18n="look60d">60天</option>
+              <option value="90" data-i18n="look90d">90天</option>
+              <option value="180" data-i18n="look180d">180天</option>
             </select>
           </label>
         </div>
 
         <div class="exec-bar">
-          <label class="muted exec-label" for="stratSelect" data-i18n="engineLabel">策略引擎選擇</label>
-          <select id="stratSelect"></select>
+          <p class="engine-chip" id="engineChip" aria-live="polite"></p>
           <button class="btn-cta gm-btn action-btn exec-run" id="btnRun" data-i18n="gmRun">執行回測</button>
           <div class="risk-banner" id="masterGate" hidden></div>
         </div>
-      </section>
-    </div>
-      </div>
-      <aside class="editorial-rail" aria-label="Flash news">
-        <section class="rail-block week-board-desk">
-          <div class="kicker kicker-plain">ALPHA</div>
-          <h3 class="rail-h" data-week-title>📊 本周收益榜 TOP 5</h3>
-          <ol class="week-list" data-week-board></ol>
-        </section>
-        <section class="rail-block flash-desk">
-          <div class="kicker" data-i18n="flashKicker">FLASH NEWS</div>
-          <h3 class="rail-h" data-i18n="flashTitle">⚡ 7x24 即時快訊</h3>
-          <ul class="flash-list" id="flashNews" aria-live="polite"></ul>
-        </section>
-        <section class="rail-block rail-mkt">
+
+        <section class="mkt-strip mobile-only" aria-label="Market">
           <div class="kicker">MARKET</div>
           <h3 class="rail-h" data-i18n="mktOverview">市場概覽</h3>
-          <div class="rail-quotes" id="railQuotes">
+          <div class="rail-quotes">
             <div class="rail-quote" data-sym="BTCUSDT"><span>BTC</span><b data-px>—</b><em data-chg>—</em></div>
             <div class="rail-quote" data-sym="ETHUSDT"><span>ETH</span><b data-px>—</b><em data-chg>—</em></div>
             <div class="rail-quote" data-sym="SOLUSDT"><span>SOL</span><b data-px>—</b><em data-chg>—</em></div>
             <div class="rail-quote" data-sym="BNBUSDT"><span>BNB</span><b data-px>—</b><em data-chg>—</em></div>
           </div>
-          <p class="muted rail-note" data-i18n="mktQuoteNote">報價來自公開行情接口，僅供研究對照。</p>
         </section>
-      </aside>
-    </div>
 
-    <div class="bt-sheet-portal" id="btSheetPortal" aria-hidden="true">
-      <div class="sheet-scrim" id="sheetScrim" hidden aria-hidden="true"></div>
-      <div class="result-sheet bb-sheet" id="resultSheet" aria-hidden="true">
-        <header class="sheet-head">
-          <span class="sheet-grab" aria-hidden="true"></span>
-          <div class="sheet-head-row">
-            <h3 class="sheet-title" data-i18n="sheetTitle">回測戰績</h3>
-            <button type="button" class="sheet-x" id="sheetCloseBtn" aria-label="關閉">✕</button>
-          </div>
-          <p class="sheet-hint" data-i18n="sheetHint">輕觸背景或 ✕ 關閉，繼續查看 K 線</p>
-        </header>
-        <div class="sheet-body">
-          <article class="money-card" id="moneyCard">
-            <div class="money-head">
-              <div class="money-head-main">
-                <p class="money-kicker" data-i18n="moneyAssume">假設投入 $10,000 USDT</p>
-                <p class="money-end" id="moneyEnd">$10,000 → $10,000</p>
-                <p class="money-pnl" id="moneyPnl" data-i18n="moneyPnlIdle">📈 歷史淨賺：+$0 USDT (0%)</p>
-                <p class="nav-kpis money-nav" id="navLine">
-                  <span data-i18n="startEq">起始資金: $10,000 USDT</span>
-                  <span class="nav-sep">|</span>
-                  <span id="navNow" data-i18n="navNowIdle">當前淨值: $10,000.00 USDT</span>
-                  <span class="nav-sep">|</span>
-                  <span id="navPnl" class="nav-chip" data-i18n="navPnlIdle">累計淨利: 0.0%</span>
-                  <span class="nav-sep">|</span>
-                  <span id="navDd" class="nav-chip" data-i18n="navDdIdle">最大回撤: 0.0%</span>
-                  <span class="nav-sep">|</span>
-                  <span id="navDur" class="nav-chip nav-dur" data-i18n="navDurIdle">回測用時: 僅 14 天</span>
-                </p>
+        <div class="bt-results bb-sheet in-page" id="resultSheet">
+          <article class="money-card bb-money" id="moneyCard">
+            <div class="bb-money-hero">
+              <p class="money-kicker" data-i18n="moneyAssume">假設投入 $10,000 USDT</p>
+              <p class="money-end" id="moneyEnd">$10,000 → $10,000</p>
+              <p class="money-pnl" id="moneyPnl" data-i18n="moneyPnlIdle">📈 歷史淨賺：+$0 USDT (0%)</p>
+            </div>
+            <div class="bb-money-stats" aria-label="Performance stats">
+              <div class="bb-params-hd" data-i18n="gmSummary">參數指標</div>
+              <div class="bb-params-grid">
+                <div class="bb-param"><span data-i18n="statWr">勝率</span><b id="mWr">—</b></div>
+                <div class="bb-param"><span data-i18n="statPf">盈虧比</span><b id="mPf">—</b></div>
+                <div class="bb-param"><span data-i18n="statTrades">交易筆數</span><b id="mTrades">—</b></div>
+                <div class="bb-param"><span data-i18n="statBars">樣本</span><b id="mBars">—</b></div>
               </div>
-              <aside class="money-stats" aria-label="Performance stats">
-                <p class="money-stats-label" data-i18n="gmSummary">參數指標</p>
-                <div class="money-stats-grid">
-                  <div class="stat"><span data-i18n="statWr">勝率</span><b id="mWr">—</b></div>
-                  <div class="stat"><span data-i18n="statPf" title="Profit factor">盈虧比</span><b id="mPf" title="">—</b></div>
-                  <div class="stat"><span data-i18n="statTrades">交易筆數</span><b id="mTrades">—</b></div>
-                  <div class="stat"><span data-i18n="statBars">樣本</span><b id="mBars">—</b></div>
-                </div>
-              </aside>
             </div>
-            <div class="money-mid">
-              <ul class="money-facts">
-                <li id="moneyDays" data-i18n="moneyDaysIdle">⏱️ 執行周期：—</li>
-                <li id="moneyHit" data-i18n="moneyHitIdle">🎯 勝率：—</li>
-                <li id="moneyRisk" data-i18n="moneyRiskIdle">🛡️ 最大扛單風險：—</li>
-              </ul>
+            <div class="bb-ticker nav-kpis money-nav" id="navLine">
+              <span data-i18n="startEq">起始資金: $10,000 USDT</span>
+              <span class="nav-sep">|</span>
+              <span id="navNow" data-i18n="navNowIdle">當前淨值: $10,000.00 USDT</span>
+              <span class="nav-sep">|</span>
+              <span id="navPnl" class="nav-chip" data-i18n="navPnlIdle">累計淨利: 0.0%</span>
+              <span class="nav-sep">|</span>
+              <span id="navDd" class="nav-chip" data-i18n="navDdIdle">最大回撤: 0.0%</span>
+              <span class="nav-sep">|</span>
+              <span id="navDur" class="nav-chip nav-dur" data-i18n="navDurIdle">回測用時: 僅 14 天</span>
             </div>
-            <p class="money-trades-label" data-i18n="gmTrades">交易紀錄</p>
-            <div class="trade-pills money-trade-pills" id="tradePills"></div>
+            <ul class="bb-facts money-facts">
+              <li id="moneyDays" data-i18n="moneyDaysIdle">⏱️ 執行周期：—</li>
+              <li id="moneyHit" data-i18n="moneyHitIdle">🎯 勝率：—</li>
+              <li id="moneyRisk" data-i18n="moneyRiskIdle">🛡️ 最大扛單風險：—</li>
+            </ul>
+            <div class="bb-trades">
+              <div class="bb-section-hd" data-i18n="gmTrades">交易紀錄</div>
+              <div class="trade-pills money-trade-pills" id="tradePills"></div>
+            </div>
           </article>
           <p class="muted sample-hint desk-only" id="sampleHint" data-i18n="btAwaitRun">設定幣種、周期與回測區間後，點擊「執行回測」</p>
           <div class="perf-block">
             <h3 class="zone-title" data-i18n="gmEquity">淨值曲線</h3>
             <div id="equityChart" class="lc-chart chart-container"></div>
-          </div>
-          <div class="trades-block desk-only">
-            <h3 class="zone-title" data-i18n="gmTrades">交易紀錄</h3>
-            <details class="raw-log sheet-extra">
-              <summary data-i18n="rawLog">展開逐筆原始紀錄</summary>
-              <div class="table-scroll">
-                <table class="data-table">
-                  <thead>
-                    <tr><th>#</th><th data-i18n="colAction">交易動作</th><th data-i18n="colTime">信號時間</th><th data-i18n="colPrice">成交價</th><th data-i18n="colPnl">單筆盈虧</th><th data-i18n="colEquity">淨值</th></tr>
-                  </thead>
-                  <tbody id="tradeRows">
-                    <tr><td colspan="6" class="muted" data-i18n="tradeEmpty">點擊「執行回測」後顯示明細</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </details>
           </div>
           <details class="pine-box source-module sheet-extra">
             <summary data-i18n="pineHead">💻 查看底層原始碼 (PineScript) ▾</summary>
@@ -271,10 +232,32 @@
             <ol class="week-list" data-week-board></ol>
           </section>
         </div>
-        <footer class="sheet-foot">
-          <button type="button" class="btn ghost sheet-done" id="sheetDoneBtn" data-i18n="sheetDone">收起戰績，返回 K 線</button>
-        </footer>
+      </section>
+    </div>
       </div>
+      <aside class="editorial-rail" aria-label="Flash news">
+        <section class="rail-block week-board-desk">
+          <div class="kicker kicker-plain">ALPHA</div>
+          <h3 class="rail-h" data-week-title>📊 本周收益榜 TOP 5</h3>
+          <ol class="week-list" data-week-board></ol>
+        </section>
+        <section class="rail-block flash-desk">
+          <div class="kicker" data-i18n="flashKicker">FLASH NEWS</div>
+          <h3 class="rail-h" data-i18n="flashTitle">⚡ 7x24 即時快訊</h3>
+          <ul class="flash-list" id="flashNews" aria-live="polite"></ul>
+        </section>
+        <section class="rail-block rail-mkt">
+          <div class="kicker">MARKET</div>
+          <h3 class="rail-h" data-i18n="mktOverview">市場概覽</h3>
+          <div class="rail-quotes" id="railQuotes">
+            <div class="rail-quote" data-sym="BTCUSDT"><span>BTC</span><b data-px>—</b><em data-chg>—</em></div>
+            <div class="rail-quote" data-sym="ETHUSDT"><span>ETH</span><b data-px>—</b><em data-chg>—</em></div>
+            <div class="rail-quote" data-sym="SOLUSDT"><span>SOL</span><b data-px>—</b><em data-chg>—</em></div>
+            <div class="rail-quote" data-sym="BNBUSDT"><span>BNB</span><b data-px>—</b><em data-chg>—</em></div>
+          </div>
+          <p class="muted rail-note" data-i18n="mktQuoteNote">報價來自公開行情接口，僅供研究對照。</p>
+        </section>
+      </aside>
     </div>
 
     <footer class="site-foot">

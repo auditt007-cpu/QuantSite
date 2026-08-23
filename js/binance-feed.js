@@ -601,6 +601,120 @@
     return [];
   }
 
+  /** Live mini-ticker WS (Binance) + REST fallback for header / rail quotes */
+  function subscribeMarketTickers(symbols, onTick) {
+    const syms = (Array.isArray(symbols) ? symbols : [symbols])
+      .map((s) => String(s || "").toUpperCase())
+      .filter(Boolean);
+    if (!syms.length || typeof onTick !== "function") return { close: () => {} };
+
+    let closed = false;
+    let ws = null;
+    let pollTimer = null;
+    let urlIdx = 0;
+    let wsLive = false;
+
+    function wsUrls() {
+      const streams = syms.map((s) => `${s.toLowerCase()}@miniTicker`).join("/");
+      return [
+        `wss://data-stream.binance.vision/stream?streams=${streams}`,
+        `wss://stream.binance.com:9443/stream?streams=${streams}`,
+      ];
+    }
+
+    function emitRows(rows) {
+      if (!rows || !rows.length) return;
+      rows.forEach((r) => {
+        try {
+          onTick(r);
+        } catch {
+          /* */
+        }
+      });
+    }
+
+    function startPoll(ms) {
+      if (pollTimer) clearInterval(pollTimer);
+      const tick = async () => {
+        if (closed) return;
+        try {
+          emitRows(await fetchTicker24h(syms));
+        } catch {
+          /* keep last quote */
+        }
+      };
+      tick();
+      pollTimer = setInterval(tick, ms);
+    }
+
+    function connectWs() {
+      if (closed) return;
+      const urls = wsUrls();
+      if (urlIdx >= urls.length) {
+        wsLive = false;
+        startPoll(2500);
+        return;
+      }
+      try {
+        ws = new WebSocket(urls[urlIdx]);
+      } catch {
+        urlIdx += 1;
+        connectWs();
+        return;
+      }
+      ws.onopen = () => {
+        wsLive = true;
+        startPoll(6000);
+      };
+      ws.onmessage = (ev) => {
+        try {
+          const msg = JSON.parse(ev.data);
+          const d = msg && msg.data;
+          if (!d || !d.s) return;
+          onTick({
+            symbol: String(d.s).toUpperCase(),
+            lastPrice: String(d.c),
+            priceChangePercent: String(d.P != null ? d.P : "0"),
+          });
+        } catch {
+          /* */
+        }
+      };
+      const retry = () => {
+        if (closed) return;
+        wsLive = false;
+        try {
+          if (ws) ws.close();
+        } catch {
+          /* */
+        }
+        ws = null;
+        urlIdx += 1;
+        setTimeout(connectWs, 1200);
+      };
+      ws.onerror = retry;
+      ws.onclose = retry;
+    }
+
+    connectWs();
+
+    return {
+      close() {
+        closed = true;
+        wsLive = false;
+        if (pollTimer) clearInterval(pollTimer);
+        pollTimer = null;
+        try {
+          if (ws) ws.close();
+        } catch {
+          /* */
+        }
+        ws = null;
+      },
+      isLive: () => wsLive,
+    };
+  }
+
   function packI18n() {
     if (root.QALang && typeof root.QALang.current === "function") {
       const lang = root.QALang.current();
@@ -1331,6 +1445,7 @@
     resetRegion,
     fetchKlines,
     fetchTicker24h,
+    subscribeMarketTickers,
     createLiveStream,
     setFeedStatus,
     lastMeta,

@@ -83,35 +83,25 @@ function pnlUsd(n) {
   return `<span class="${cls}">${sign}${fmtUsd(v)}</span>`;
 }
 
-function tradeRowsHtml(trades, eq) {
-  if (!trades.length) return `<tr><td colspan="6" class="muted">${t("noTrades")}</td></tr>`;
-  const rows = [];
-  let n = 0;
-  let currentPosition = 0;
-  trades.forEach((tr) => {
-    const openPx = Number(tr.entry);
-    const closePx = Number(tr.exit);
-    if (currentPosition === 0) {
-      currentPosition = 1;
-      n += 1;
-      const eqOpen = eq && eq[tr.i0] != null ? eq[tr.i0] : START_EQ;
-      timeAligned(tr.t0, interval);
-      const openLabel = tr.side === "SHORT" ? "OPEN_SHORT" : "OPEN_LONG";
-      rows.push(
-        `<tr><td>${n}</td><td>${openLabel}</td><td>${fmtWhen(tr.t0)}</td><td>${openPx.toFixed(2)}</td><td>—</td><td>${fmtUsd(eqOpen)}</td></tr>`,
-      );
-    }
-    if (currentPosition === 1) {
-      currentPosition = 0;
-      n += 1;
-      const eqClose = eq && eq[tr.i1] != null ? eq[tr.i1] : START_EQ;
-      timeAligned(tr.t1, interval);
-      rows.push(
-        `<tr><td>${n}</td><td>CLOSE_LONG</td><td>${fmtWhen(tr.t1)}</td><td>${closePx.toFixed(2)}</td><td>${pnlUsd(tr.pnlAbs)}</td><td>${fmtUsd(eqClose)}</td></tr>`,
-      );
-    }
-  });
-  return rows.join("");
+function tradeTableHeadHtml() {
+  return (
+    `<thead><tr>` +
+    `<th>#</th><th>${t("colAction")}</th><th>${t("colTime")}</th>` +
+    `<th>${t("colPrice")}</th><th>${t("colPnl")}</th><th>${t("colEquity")}</th>` +
+    `</tr></thead>`
+  );
+}
+
+function singleTradeRowsHtml(tr, eq) {
+  const openPx = Number(tr.entry);
+  const closePx = Number(tr.exit);
+  const eqOpen = eq && eq[tr.i0] != null ? eq[tr.i0] : START_EQ;
+  const eqClose = eq && eq[tr.i1] != null ? eq[tr.i1] : START_EQ;
+  const openLabel = tr.side === "SHORT" ? "OPEN_SHORT" : "OPEN_LONG";
+  return (
+    `<tr><td>1</td><td>${openLabel}</td><td>${fmtWhen(tr.t0)}</td><td>${openPx.toFixed(2)}</td><td>—</td><td>${fmtUsd(eqOpen)}</td></tr>` +
+    `<tr><td>2</td><td>CLOSE_LONG</td><td>${fmtWhen(tr.t1)}</td><td>${closePx.toFixed(2)}</td><td>${pnlUsd(tr.pnlAbs)}</td><td>${fmtUsd(eqClose)}</td></tr>`
+  );
 }
 
 function addCandle(chart) {
@@ -146,10 +136,11 @@ function addLine(chart, color) {
 const START_EQ = 10000;
 const BAR_LIMIT = 1000;
 const WARMUP_BARS = 250;
+let pillEq = null;
 
 function lookbackDays() {
-  const n = Number(($("btLookback") || {}).value || 365);
-  return isFinite(n) && n > 0 ? n : 365;
+  const n = Number(($("btLookback") || {}).value || 30);
+  return isFinite(n) && n > 0 ? n : 30;
 }
 
 function barsPerDay(iv) {
@@ -227,7 +218,8 @@ function fmtSignedPct(x) {
 
 function paintPine() {
   const s = spec();
-  $("stratSelect").value = engineId;
+  if ($("stratSelect")) $("stratSelect").value = engineId;
+  if ($("engineChip") && s) $("engineChip").textContent = s.name || engineId;
   if ($("sampleHint") && !lastCtx) $("sampleHint").textContent = t("btAwaitRun");
   const locked = isMasterSpec(s) || (s && s.id === "ai");
   const gate = $("masterGate");
@@ -272,29 +264,12 @@ function isMobile() {
 }
 
 function ensureSheetPortal() {
-  if (window.__QA_SHEET_PORTAL) return;
-  const host = $("btSheetPortal");
-  const scrim = $("sheetScrim");
-  const sheet = $("resultSheet");
-  if (!scrim || !sheet) return;
-  if (host) {
-    if (scrim.parentNode !== host) host.appendChild(scrim);
-    if (sheet.parentNode !== host) host.appendChild(sheet);
-  } else {
-    const foot = document.querySelector("footer.site-foot");
-    if (foot && foot.parentNode) {
-      foot.parentNode.insertBefore(scrim, foot);
-      foot.parentNode.insertBefore(sheet, foot);
-    } else {
-      document.body.appendChild(scrim);
-      document.body.appendChild(sheet);
-    }
-  }
   window.__QA_SHEET_PORTAL = true;
 }
 
 function bindSheetUi() {
   ensureSheetPortal();
+  bindTradePills();
   if (window.__QA_SHEET_BOUND) return;
   window.__QA_SHEET_BOUND = true;
   document.addEventListener(
@@ -318,31 +293,14 @@ function bindSheetUi() {
 }
 
 function openSheet() {
-  ensureSheetPortal();
-  const sheet = $("resultSheet");
-  const scrim = $("sheetScrim");
-  if (!sheet || !isMobile()) return;
-  sheet.classList.add("open");
-  sheet.setAttribute("aria-hidden", "false");
-  if (scrim) {
-    scrim.hidden = false;
-    scrim.setAttribute("aria-hidden", "false");
+  const sheet = $("resultSheet") || $("moneyCard");
+  if (sheet && typeof sheet.scrollIntoView === "function") {
+    sheet.scrollIntoView({ behavior: "smooth", block: "start" });
   }
-  document.body.classList.add("sheet-open");
   requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
 }
 
 function closeSheet() {
-  const sheet = $("resultSheet");
-  const scrim = $("sheetScrim");
-  if (sheet) {
-    sheet.classList.remove("open");
-    sheet.setAttribute("aria-hidden", "true");
-  }
-  if (scrim) {
-    scrim.hidden = true;
-    scrim.setAttribute("aria-hidden", "true");
-  }
   document.body.classList.remove("sheet-open");
 }
 
@@ -360,7 +318,7 @@ function resetBacktestResults() {
   if ($("moneyHit")) $("moneyHit").textContent = t("moneyHitIdle");
   if ($("moneyRisk")) $("moneyRisk").textContent = t("moneyRiskIdle");
   if ($("tradePills")) $("tradePills").innerHTML = "";
-  if ($("tradeRows")) $("tradeRows").innerHTML = "";
+  pillEq = null;
   if ($("mWr")) $("mWr").textContent = "—";
   if ($("mPf")) $("mPf").textContent = "—";
   if ($("mTrades")) $("mTrades").textContent = "—";
@@ -389,7 +347,7 @@ function syncDock() {
   if (ds) ds.value = SYMBOL;
   if (dt) dt.value = interval;
   if (bs) bs.value = SYMBOL;
-  if (bl && !bl.value) bl.value = "365";
+  if (bl && !bl.value) bl.value = "30";
 }
 
 function bindBacktestParams() {
@@ -415,19 +373,66 @@ function fmtUsd0(n) {
   return Math.round(Number(n)).toLocaleString("en-US");
 }
 
+function tradePillDetailHtml(tr) {
+  const eq = pillEq || [];
+  return (
+    `<div class="trade-pill-table-wrap">` +
+    `<table class="trade-pill-table data-table">${tradeTableHeadHtml()}<tbody>${singleTradeRowsHtml(tr, eq)}</tbody></table>` +
+    `</div>`
+  );
+}
+
 function tradePillsHtml(trades) {
   const closed = (trades || []).filter((tr) => !tr.open);
   if (!closed.length) return "";
   return closed
-    .map((tr) => {
+    .map((tr, idx) => {
       const win = Number(tr.pnlAbs) > 0;
       const d = new Date(Number(tr.t1) * 1000);
       const md = isFinite(d.getTime()) ? d.getMonth() + 1 + "/" + d.getDate() : "";
       const usd = fmtUsd0(Math.abs(Number(tr.pnlAbs)));
       const sign = win ? "+" : "-";
-      return `<span class="trade-pill ${win ? "up" : "down"}">${win ? "🟢" : "🔴"} ${sign}$${usd} (${md})</span>`;
+      return (
+        `<div class="trade-pill-item" data-trade-item="${idx}">` +
+        `<button type="button" class="trade-pill ${win ? "up" : "down"}" data-trade-idx="${idx}" aria-expanded="false">` +
+        `${win ? "🟢" : "🔴"} ${sign}$${usd} (${md})` +
+        `</button>` +
+        `<div class="trade-pill-detail" id="tradeDetail${idx}" hidden>${tradePillDetailHtml(tr)}</div>` +
+        `</div>`
+      );
     })
     .join("");
+}
+
+function bindTradePills() {
+  if (window.__QA_TRADE_PILLS_BOUND) return;
+  window.__QA_TRADE_PILLS_BOUND = true;
+  document.addEventListener("click", (ev) => {
+    const btn = ev.target.closest("[data-trade-idx]");
+    const host = $("tradePills");
+    if (!btn || !host || !host.contains(btn)) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    const idx = btn.getAttribute("data-trade-idx");
+    const detail = host.querySelector(`#tradeDetail${idx}`);
+    const item = btn.closest("[data-trade-item]");
+    if (!detail) return;
+    const wasOpen = btn.getAttribute("aria-expanded") === "true";
+    host.querySelectorAll(".trade-pill-detail").forEach((el) => {
+      el.hidden = true;
+    });
+    host.querySelectorAll(".trade-pill[data-trade-idx]").forEach((el) => {
+      el.setAttribute("aria-expanded", "false");
+      el.classList.remove("open");
+    });
+    host.querySelectorAll("[data-trade-item]").forEach((el) => el.classList.remove("open"));
+    if (!wasOpen) {
+      detail.hidden = false;
+      btn.setAttribute("aria-expanded", "true");
+      btn.classList.add("open");
+      if (item) item.classList.add("open");
+    }
+  });
 }
 
 function paintRetail(eq, st, trades, ctx) {
@@ -463,6 +468,7 @@ function paintRetail(eq, st, trades, ctx) {
       .replace("{pct}", (mdd * 100).toFixed(1) + "%")
       .replace("{amt}", fmtUsd0(riskUsd));
   }
+  pillEq = eq;
   if ($("tradePills")) $("tradePills").innerHTML = tradePillsHtml(trades);
   const shareLine = $("shareLine");
   const shareSub = $("shareSub");
@@ -667,8 +673,8 @@ function run(silent) {
   }
   if ($("mPf")) {
     $("mPf").textContent = fmtPf(st.pf);
-    const pfStat = $("mPf").closest(".stat");
-    if (pfStat) pfStat.title = t("statPfHint");
+    const pfCell = $("mPf").closest(".bb-param");
+    if (pfCell) pfCell.title = t("statPfHint");
     if (window.QAUi) window.QAUi.flash($("mPf"), !(st.pf > 1));
   }
   if ($("mTrades")) {
@@ -679,7 +685,6 @@ function run(silent) {
     $("mBars").textContent = String(ctx.windowBarCount);
     if (window.QAUi) window.QAUi.flash($("mBars"), false);
   }
-  if ($("tradeRows")) $("tradeRows").innerHTML = tradeRowsHtml(trades, eq);
   if (candleSeries) {
     candleSeries.setMarkers(
       trades.flatMap((tr) => [
@@ -702,20 +707,9 @@ function run(silent) {
   }
 }
 
-$("stratSelect").innerHTML = catalog.list
-  .map((s) => {
-    const tag = s.tier === "master" ? "[機構實盤] " : s.id === "ai" ? "[AI] " : "";
-    return `<option value="${s.id}">${tag}${s.name}</option>`;
-  })
-  .join("");
 function bindDesk() {
-  if (document.getElementById("stratSelect") && document.getElementById("stratSelect").getAttribute("data-bound") === "1") return;
-  if ($("stratSelect")) $("stratSelect").setAttribute("data-bound", "1");
-  $("stratSelect").addEventListener("change", () => {
-    engineId = $("stratSelect").value;
-    resetBacktestResults();
-    paintPine();
-  });
+  if (window.__QA_DESK_BOUND) return;
+  window.__QA_DESK_BOUND = true;
   document.querySelectorAll("[data-tf]").forEach((b) => {
     b.addEventListener("click", () => load(b.getAttribute("data-tf")).catch((e) => toast(e.message)));
   });
@@ -750,15 +744,7 @@ function bindDesk() {
     load(interval).catch((e) => toast(e.message, "warn"));
   });
 }
-function refillSelect() {
-  if (!$("stratSelect")) return;
-  $("stratSelect").innerHTML = catalog.list
-    .map((s) => {
-      const tag = s.tier === "master" ? "[機構實盤] " : s.id === "ai" ? "[AI] " : "";
-      return `<option value="${s.id}">${tag}${s.name}</option>`;
-    })
-    .join("");
-}
+function refillSelect() {}
 function boot() {
   bindSheetUi();
   bindBacktestParams();
@@ -770,7 +756,6 @@ function boot() {
   const qSt = q.get("strategy") || q.get("engine");
   if (qSt && catalog.get(qSt)) {
     engineId = qSt;
-    $("stratSelect").value = engineId;
   }
   const startIv = INTERVALS_OK(qIv) ? qIv : "1h";
   load(startIv).catch((e) => toast(e.message, "warn"));

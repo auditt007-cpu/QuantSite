@@ -70,7 +70,12 @@
     const px = root.querySelector("[data-px]");
     const chg = root.querySelector("[data-chg]");
     const up = Number(pct) >= 0;
-    if (px) px.textContent = fmtPx(last);
+    const prevPx = px ? px.getAttribute("data-last") : null;
+    const nextPx = last != null ? String(last) : "";
+    if (px) {
+      px.textContent = fmtPx(last);
+      if (nextPx) px.setAttribute("data-last", nextPx);
+    }
     if (chg) {
       const arrow = up ? "▲" : "▼";
       const n = Number(pct);
@@ -80,7 +85,24 @@
     }
     root.classList.toggle("up", up);
     root.classList.toggle("down", !up);
-    flash(px || root, !up);
+    if (prevPx !== nextPx) flash(root, !up);
+  }
+
+  function collectTickerSyms() {
+    const pills = document.querySelectorAll(".ticker-pill[data-sym], .rail-quote[data-sym]");
+    const syms = [];
+    pills.forEach((el) => {
+      const sym = el.getAttribute("data-sym");
+      if (sym && !syms.includes(sym)) syms.push(sym);
+    });
+    return syms;
+  }
+
+  function applyTickerRow(row) {
+    if (!row || !row.symbol) return;
+    document.querySelectorAll(`.ticker-pill[data-sym="${row.symbol}"], .rail-quote[data-sym="${row.symbol}"]`).forEach((el) => {
+      paintQuote(el, row.priceChangePercent, row.lastPrice);
+    });
   }
 
   async function refreshTicker() {
@@ -91,38 +113,37 @@
         /* keep current region */
       }
     }
-    const pills = document.querySelectorAll(".ticker-pill[data-sym], .rail-quote[data-sym]");
-    if (!pills.length) return;
-    const syms = [];
-    pills.forEach((el) => {
-      const sym = el.getAttribute("data-sym");
-      if (sym && !syms.includes(sym)) syms.push(sym);
-    });
+    const syms = collectTickerSyms();
+    if (!syms.length) return;
     try {
       const feed = window.QAFeed;
       const rows = feed && typeof feed.fetchTicker24h === "function" ? await feed.fetchTicker24h(syms) : null;
       if (!rows || !rows.length) throw new Error("empty");
-      const map = {};
-      rows.forEach((r) => {
-        map[r.symbol] = r;
-      });
-      pills.forEach((el) => {
-        const row = map[el.getAttribute("data-sym")];
-        if (!row) return;
-        paintQuote(el, row.priceChangePercent, row.lastPrice);
-      });
+      rows.forEach(applyTickerRow);
     } catch {
       /* keep placeholders */
     }
   }
+
+  let tickerLiveSub = null;
 
   window.addEventListener("quant-feed-region", () => {
     refreshTicker();
   });
 
   function startTickerLoop() {
+    if (tickerLiveSub) {
+      tickerLiveSub.close();
+      tickerLiveSub = null;
+    }
     refreshTicker();
-    setInterval(refreshTicker, 15000);
+    const syms = collectTickerSyms();
+    const feed = window.QAFeed;
+    if (feed && typeof feed.subscribeMarketTickers === "function" && syms.length) {
+      tickerLiveSub = feed.subscribeMarketTickers(syms, applyTickerRow);
+    } else {
+      setInterval(refreshTicker, 2500);
+    }
   }
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => setTimeout(startTickerLoop, 0));
