@@ -139,6 +139,10 @@
     window.addEventListener("resize", () => {
       if (chart && $("tvChart")) chart.applyOptions({ width: $("tvChart").clientWidth });
     });
+    window.addEventListener("quant-lang", () => {
+      if (feed && typeof feed.resetRegion === "function") feed.resetRegion();
+      load();
+    });
     load();
   }
 

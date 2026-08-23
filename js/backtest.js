@@ -633,7 +633,8 @@ function bindDesk() {
   });
   window.addEventListener("resize", resizeCharts);
   window.addEventListener("quant-lang", () => {
-    if (bars.length) run(true);
+    if (typeof feed.resetRegion === "function") feed.resetRegion();
+    load(interval).catch((e) => toast(e.message, "warn"));
   });
 }
 function refillSelect() {

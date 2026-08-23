@@ -49,7 +49,6 @@
     });
   }
 
-  const TICK_SYMS = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "DOGEUSDT"];
 
   function fmtPx(n) {
     const x = Number(n);
@@ -87,13 +86,17 @@
   async function refreshTicker() {
     const pills = document.querySelectorAll(".ticker-pill[data-sym], .rail-quote[data-sym]");
     if (!pills.length) return;
+    const syms = [];
+    pills.forEach((el) => {
+      const sym = el.getAttribute("data-sym");
+      if (sym && !syms.includes(sym)) syms.push(sym);
+    });
     try {
-      const qs = encodeURIComponent(JSON.stringify(TICK_SYMS));
-      const res = await fetch("https://data-api.binance.vision/api/v3/ticker/24hr?symbols=" + qs);
-      if (!res.ok) throw new Error("http");
-      const rows = await res.json();
+      const feed = window.QAFeed;
+      const rows = feed && typeof feed.fetchTicker24h === "function" ? await feed.fetchTicker24h(syms) : null;
+      if (!rows || !rows.length) throw new Error("empty");
       const map = {};
-      (Array.isArray(rows) ? rows : []).forEach((r) => {
+      rows.forEach((r) => {
         map[r.symbol] = r;
       });
       pills.forEach((el) => {
@@ -106,8 +109,20 @@
     }
   }
 
-  refreshTicker();
-  setInterval(refreshTicker, 15000);
+  window.addEventListener("quant-lang", () => {
+    if (window.QAFeed && typeof window.QAFeed.resetRegion === "function") window.QAFeed.resetRegion();
+    refreshTicker();
+  });
+
+  function startTickerLoop() {
+    refreshTicker();
+    setInterval(refreshTicker, 15000);
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => setTimeout(startTickerLoop, 0));
+  } else {
+    setTimeout(startTickerLoop, 0);
+  }
 
   document.addEventListener("focusin", (ev) => {
     const t = ev.target;

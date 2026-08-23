@@ -1,13 +1,156 @@
 (function (root) {
   const INTERVALS = ["1s", "1m", "5m", "15m", "1h", "4h", "1d", "1w"];
   const STALE_MS = 4000;
-  const VENUES = ["Binance", "Binance-Vision", "OKX", "Bybit"];
+  const ALL_VENUES = ["Binance", "Binance-Vision", "OKX", "Bybit", "Worker"];
+
+  /** Mainland CN: OKX/Bybit first; Binance often blocked. TW: Binance first. */
+  const VENUE_ORDER = {
+    cn: ["OKX", "Bybit", "Worker", "Binance-Vision", "Binance"],
+    tw: ["Binance", "Binance-Vision", "OKX", "Bybit", "Worker"],
+    intl: ["Binance-Vision", "Binance", "OKX", "Bybit", "Worker"],
+  };
+
+  let lastMeta = { source: "live", updatedAt: "", venue: "" };
+  let startNode = 0;
+
+  function currentFeedPack() {
+    if (root.QALang && typeof root.QALang.current === "function") return root.QALang.current();
+    const lang =
+      (typeof localStorage !== "undefined" && (localStorage.getItem("quant_lang") || localStorage.getItem("user_lang"))) ||
+      "en";
+    if (lang === "zh-Hans" || lang === "zh-CN" || lang === "zh-SG") return "zh-CN";
+    if (lang === "zh-Hant" || lang === "zh-TW" || lang === "zh-HK" || lang === "zh-MO") return "zh-Hant";
+    return "en";
+  }
+
+  function feedRegion() {
+    const pack = currentFeedPack();
+    if (pack === "zh-CN") return "cn";
+    if (pack === "zh-Hant") return "tw";
+    return "intl";
+  }
+
+  function orderedVenues() {
+    const list = VENUE_ORDER[feedRegion()] || VENUE_ORDER.intl;
+    return list.filter((v) => ALL_VENUES.includes(v));
+  }
+
+  function resetRegion() {
+    startNode = 0;
+  }
 
   const OKX_BAR = { "1s": "1s", "1m": "1m", "5m": "5m", "15m": "15m", "1h": "1H", "4h": "4H", "1d": "1D", "1w": "1W" };
   const BYBIT_IV = { "1s": "1", "1m": "1", "5m": "5", "15m": "15", "1h": "60", "4h": "240", "1d": "D", "1w": "W" };
 
-  let lastMeta = { source: "live", updatedAt: "", venue: "" };
-  let startNode = 0;
+  function restTryDefs(sym, iv, lim, endTime, apiBase) {
+    return {
+      OKX: { venue: "OKX", run: () => restOkx(sym, iv, lim) },
+      Bybit: { venue: "Bybit", run: () => restBybit(sym, iv, lim) },
+      Worker: { venue: "Worker", run: () => restWorker(apiBase, sym, iv, lim) },
+      "Binance-Vision": {
+        venue: "Binance-Vision",
+        run: () => restBinance("https://data-api.binance.vision", sym, iv, lim, endTime),
+      },
+      Binance: { venue: "Binance", run: () => restBinance("https://api.binance.com", sym, iv, lim, endTime) },
+    };
+  }
+
+  function buildRestTries(sym, iv, lim, endTime, apiBase) {
+    const defs = restTryDefs(sym, iv, lim, endTime, apiBase);
+    return orderedVenues()
+      .map((venue) => defs[venue])
+      .filter(Boolean);
+  }
+
+  function okxInstToSym(inst) {
+    return String(inst || "").replace("-", "");
+  }
+
+  async function restTickerBinance(host, symbols) {
+    const qs = encodeURIComponent(JSON.stringify(symbols));
+    const res = await fetchUrl(`${host}/api/v3/ticker/24hr?symbols=${qs}`, 5000);
+    if (!res.ok) throw new Error("http");
+    const rows = await res.json();
+    if (!Array.isArray(rows) || !rows.length) throw new Error("empty");
+    return rows.map((r) => ({
+      symbol: r.symbol,
+      lastPrice: r.lastPrice,
+      priceChangePercent: r.priceChangePercent,
+    }));
+  }
+
+  async function restTickerOkx(symbols) {
+    const want = new Set(symbols.map((s) => okxInst(s)));
+    const res = await fetchUrl("https://www.okx.com/api/v5/market/tickers?instType=SPOT", 5000);
+    if (!res.ok) throw new Error("http");
+    const data = await res.json();
+    const rows = (data && data.data) || [];
+    const out = rows
+      .filter((r) => want.has(r.instId))
+      .map((r) => {
+        const last = Number(r.last);
+        const open = Number(r.open24h);
+        const pct = open ? ((last - open) / open) * 100 : 0;
+        return { symbol: okxInstToSym(r.instId), lastPrice: String(last), priceChangePercent: String(pct) };
+      });
+    if (!out.length) throw new Error("empty");
+    return out;
+  }
+
+  async function restTickerBybit(symbols) {
+    const want = new Set(symbols.map((s) => String(s).toUpperCase()));
+    const res = await fetchUrl("https://api.bybit.com/v5/market/tickers?category=linear", 5000);
+    if (!res.ok) throw new Error("http");
+    const data = await res.json();
+    const rows = (data && data.result && data.result.list) || [];
+    const out = rows
+      .filter((r) => want.has(r.symbol))
+      .map((r) => ({
+        symbol: r.symbol,
+        lastPrice: r.lastPrice,
+        priceChangePercent: String(Number(r.price24hPcnt) * 100),
+      }));
+    if (!out.length) throw new Error("empty");
+    return out;
+  }
+
+  async function fetchTicker24h(symbols) {
+    const syms = (Array.isArray(symbols) ? symbols : [symbols])
+      .map((s) => String(s || "").toUpperCase())
+      .filter(Boolean);
+    if (!syms.length) return [];
+    const apiBase = (root.QUANT_CONFIG && root.QUANT_CONFIG.apiBase) || "";
+    const tries = {
+      OKX: () => restTickerOkx(syms),
+      Bybit: () => restTickerBybit(syms),
+      Worker: async () => {
+        const base = String(apiBase || "").replace(/\/$/, "");
+        if (!base.startsWith("http")) throw new Error("skip");
+        const qs = encodeURIComponent(JSON.stringify(syms));
+        const res = await fetchUrl(`${base}/api/ticker/24hr?symbols=${qs}`, 5000);
+        if (!res.ok) throw new Error("http");
+        const rows = await res.json();
+        if (!Array.isArray(rows) || !rows.length) throw new Error("empty");
+        return rows;
+      },
+      "Binance-Vision": () => restTickerBinance("https://data-api.binance.vision", syms),
+      Binance: () => restTickerBinance("https://api.binance.com", syms),
+    };
+    for (const venue of orderedVenues()) {
+      const run = tries[venue];
+      if (!run) continue;
+      try {
+        const rows = await run();
+        if (rows && rows.length) {
+          lastMeta.venue = venue;
+          return rows;
+        }
+      } catch {
+        /* next venue */
+      }
+    }
+    return [];
+  }
 
   function packI18n() {
     if (root.QALang && typeof root.QALang.current === "function") {
@@ -125,13 +268,7 @@
     const need = Math.min(2000, Math.max(1, Number(limit) || 1000));
     const apiBase = (root.QUANT_CONFIG && root.QUANT_CONFIG.apiBase) || "";
     async function once(lim, endTime) {
-      const tries = [
-        { venue: "OKX", run: () => restOkx(sym, iv, lim) },
-        { venue: "Bybit", run: () => restBybit(sym, iv, lim) },
-        { venue: "Worker", run: () => restWorker(apiBase, sym, iv, lim) },
-        { venue: "Binance-Vision", run: () => restBinance("https://data-api.binance.vision", sym, iv, lim, endTime) },
-        { venue: "Binance", run: () => restBinance("https://api.binance.com", sym, iv, lim, endTime) },
-      ];
+      const tries = buildRestTries(sym, iv, lim, endTime, apiBase);
       for (const item of tries) {
         if (item.venue === "Worker" && !String(apiBase).startsWith("http")) continue;
         if ((item.venue === "OKX" || item.venue === "Bybit") && endTime) continue;
@@ -341,7 +478,8 @@
     let sock = null;
     let pollTimer = null;
     let closed = false;
-    let idx = startNode;
+    const venues = orderedVenues();
+    let idx = Math.min(startNode, Math.max(venues.length - 1, 0));
     let restFails = 0;
 
     function stopPoll() {
@@ -383,11 +521,11 @@
         sock.close();
         sock = null;
       }
-      if (idx >= VENUES.length) {
+      if (idx >= venues.length) {
         startPoll();
         return;
       }
-      const venue = VENUES[idx];
+      const venue = venues[idx];
       idx += 1;
       if (onStatus) onStatus("switch", { venue });
       sock = connectVenue({
@@ -497,17 +635,27 @@
     };
   }
 
+  if (typeof root.addEventListener === "function") {
+    root.addEventListener("quant-lang", resetRegion);
+  }
+
   root.QAFeed = {
     INTERVALS,
-    VENUES,
+    ALL_VENUES,
+    VENUE_ORDER,
+    orderedVenues,
+    feedRegion,
+    resetRegion,
     fetchKlines,
+    fetchTicker24h,
     createLiveStream,
     setFeedStatus,
     lastMeta,
     preferRest: false,
     chartOptions,
     nextNode() {
-      startNode = (startNode + 1) % VENUES.length;
+      const venues = orderedVenues();
+      startNode = (startNode + 1) % Math.max(venues.length, 1);
     },
   };
   root.UniversalFeedManager = root.QAFeed;
