@@ -120,18 +120,58 @@
     }
   }
 
-  function playUrl(url) {
+  let activeAudio = null;
+
+  function playUrl(url, onFail) {
     if (!url || isMuted()) return;
     try {
+      if (activeAudio) {
+        activeAudio.pause();
+        activeAudio.currentTime = 0;
+        activeAudio = null;
+      }
+      window.speechSynthesis && window.speechSynthesis.cancel();
       const audio = new Audio(url);
+      activeAudio = audio;
       audio.volume = 1.0;
+      audio.addEventListener("ended", () => {
+        if (activeAudio === audio) activeAudio = null;
+      });
+      audio.addEventListener("error", () => {
+        if (activeAudio === audio) activeAudio = null;
+        if (typeof onFail === "function") onFail();
+      });
       audio.play().catch(() => {
-        /* autoplay blocked until a user gesture — funnel/mute clicks satisfy this */
+        if (activeAudio === audio) activeAudio = null;
+        if (typeof onFail === "function") onFail();
       });
     } catch {
-      /* audio element unsupported */
+      if (typeof onFail === "function") onFail();
     }
   }
+
+  function speakTextLine(text) {
+    if (isMuted() || !text) return;
+    try {
+      if (activeAudio) {
+        activeAudio.pause();
+        activeAudio = null;
+      }
+      const u = new SpeechSynthesisUtterance(text);
+      const lk = langKey();
+      u.lang = lk === "zh-CN" ? "zh-CN" : lk === "en" ? "en-US" : "zh-TW";
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(u);
+    } catch {
+      /* speech optional fallback */
+    }
+  }
+
+  function isMultiSelection() {
+    return activePairs().length > 1 || watchCoins.length > 1 || watchStrategyIds.length > 1;
+  }
+
+  const FUNNEL_MULTI_URL = "./audio/funnel_multi.mp3";
 
   let welcomePlayed = false;
   function maybePlayWelcome() {
@@ -181,6 +221,10 @@
   function scheduleFunnelVoice() {
     if (funnelVoiceTimer) clearTimeout(funnelVoiceTimer);
     funnelVoiceTimer = setTimeout(() => {
+      if (isMultiSelection()) {
+        playUrl(FUNNEL_MULTI_URL, () => speakTextLine(t("funnelMultiVoice")));
+        return;
+      }
       if (activeStrategy) playUrl("./audio/funnel_" + activeStrategy.id + ".mp3");
     }, 500);
   }
@@ -196,8 +240,12 @@
       const coinBases = new Set(watchCoins.map((c) => String(c).replace("USDT", "")));
       const relevant = (sig) =>
         sig && watchStrategyIds.includes(sig.strategy_id) && coinBases.has(String(sig.symbol || "").replace("USDT", ""));
-      (data.active_signals_3h || []).filter(relevant).forEach(maybePlaySignalAudio);
-      (data.closed_signals_3h || []).filter(relevant).forEach(maybePlaySignalAudio);
+      const hits = (data.active_signals_3h || [])
+        .filter(relevant)
+        .concat((data.closed_signals_3h || []).filter(relevant));
+      if (!hits.length) return;
+      if (isMultiSelection()) return;
+      maybePlaySignalAudio(hits[hits.length - 1]);
     } catch {
       /* live_feed.json optional for this decorative layer */
     }

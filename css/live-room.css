@@ -83,10 +83,10 @@
   align-items: center;
   gap: 6px;
   padding: 3px 10px;
-  border: 1px solid #27272a;
+  border: 1px solid var(--border-line);
   border-radius: 999px;
-  background: #09090b;
-  color: #e2e8f0;
+  background: #ffffff;
+  color: var(--text-main);
   font-family: var(--mono);
   font-size: 11px;
   font-weight: 700;
@@ -136,9 +136,9 @@
   overflow: visible;
   margin-bottom: 14px;
   padding: 12px;
-  border: 1px solid #27272a;
+  border: 1px solid var(--border-line);
   border-radius: 4px;
-  background: #09090b;
+  background: #ffffff;
 }
 .selected-matrix-left,
 .selected-matrix-right {
@@ -154,7 +154,7 @@
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.06em;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-family: var(--mono);
 }
 .selected-matrix-pills {
@@ -163,15 +163,20 @@
   gap: 8px;
   flex: 1 1 auto;
 }
+.selected-matrix-pills .muted {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-family: var(--mono);
+}
 .selected-matrix-pill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 4px 10px;
-  border: 1px solid #334155;
+  border: 1px solid var(--border-line);
   border-radius: 999px;
-  background: #0f172a;
-  color: #e2e8f0;
+  background: #ffffff;
+  color: var(--text-main);
   font-family: var(--mono);
   font-size: 11px;
   font-weight: 700;
@@ -179,13 +184,13 @@
 .selected-matrix-pill button {
   border: 0;
   background: transparent;
-  color: #94a3b8;
+  color: var(--text-muted);
   cursor: pointer;
   font-size: 13px;
   line-height: 1;
   padding: 0 2px;
 }
-.selected-matrix-pill button:hover { color: #f87171; }
+.selected-matrix-pill button:hover { color: var(--color-down); }
 .war-tape-inline {
   display: flex;
   flex-wrap: wrap;
@@ -196,12 +201,26 @@
 }
 .war-tape-inline li {
   flex: 0 1 auto;
-  border: 1px solid #27272a;
+  border: 1px solid var(--border-subtle);
   border-radius: 4px;
   padding: 6px 8px;
-  background: #0f172a;
+  background: var(--bg-surface);
   border-bottom: 0;
+  font-size: 12px;
+  font-family: var(--mono);
+  color: var(--text-main);
 }
+.war-tape-inline li.muted {
+  color: var(--text-muted);
+  background: #ffffff;
+  border-style: dashed;
+}
+.war-tape-inline .war-tape-time { color: var(--text-muted); }
+.war-tape-inline .war-tape-side.buy { color: var(--color-up); }
+.war-tape-inline .war-tape-side.sell { color: var(--color-down); }
+.war-tape-inline .war-tape-px { color: var(--text-main); }
+.war-tape-inline .war-tape-pnl.up { color: var(--color-up); }
+.war-tape-inline .war-tape-pnl.down { color: var(--color-down); }
 
 .war-countdown { margin: 4px 0 16px; }
 .war-countdown-bar {

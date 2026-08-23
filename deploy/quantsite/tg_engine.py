@@ -688,6 +688,14 @@ def ensure_funnel_audio():
             log("funnel audio generated: funnel_{0}.mp3".format(sid))
         except Exception as exc:
             log("funnel audio failed ({0}): {1}".format(sid, exc))
+    multi_path = os.path.join(AUDIO_DIR, "funnel_multi.mp3")
+    if not (os.path.exists(multi_path) and os.path.getsize(multi_path) > 500):
+        multi_text = "多選策略已生成，請注意語音播報喔～"
+        try:
+            _tts_generate_sync(multi_text, multi_path)
+            log("funnel audio generated: funnel_multi.mp3")
+        except Exception as exc:
+            log("funnel multi audio failed: {0}".format(exc))
 
 
 def request_signal_audio(cache_key, text):
