@@ -524,10 +524,47 @@ function paintNav(eq, st, ctx) {
   }
 }
 
+function leaderboardPeriodLabel() {
+  const lb = window.QALeaderboard;
+  const n = (lb && lb.period_days) || 7;
+  const lang = window.QALang && window.QALang.current ? window.QALang.current() : "en";
+  if (lang === "zh-CN") return t("navDurWeekZh").replace("7", String(n));
+  if (lang === "zh-Hant") return t("navDurWeekTw").replace("7", String(n));
+  return t("navDurWeekTpl").replace("7", String(n));
+}
+
+function applyLeaderboardPeriodToCard() {
+  const lb = window.QALeaderboard;
+  if (!lb || !lb.by_engine) return;
+  const eng = engineId || "dual";
+  const row = lb.by_engine[eng] || lb.by_engine[catalog.get(eng) && catalog.get(eng).id];
+  if ($("navDur") && !lastCtx) {
+    $("navDur").textContent = leaderboardPeriodLabel();
+  }
+  if (row && $("mWr") && !lastCtx) {
+    $("mWr").textContent = (row.win_rate * 100).toFixed(1) + "%";
+  }
+  if (row && $("mPf") && !lastCtx) {
+    $("mPf").textContent = Number(row.profit_factor).toFixed(2);
+  }
+}
+
+function chartHostWidth(el) {
+  if (!el) return 280;
+  let w = el.clientWidth || 0;
+  if (w < 8 && el.parentElement) w = el.parentElement.clientWidth || 0;
+  const frame = el.closest(".lab-chart-frame") || el.closest(".editorial-main");
+  if (w < 8 && frame) w = frame.clientWidth || 0;
+  const grid = el.closest(".editorial-main");
+  if (grid && w > 0) w = Math.min(w, grid.clientWidth || w);
+  if (w < 8) w = Math.min(window.innerWidth - 48, 960);
+  return Math.max(Math.min(w, window.innerWidth - 32), 280);
+}
+
 function chartBoxSize(el, desktopH) {
   const mobile = window.matchMedia("(max-width: 768px)").matches;
   const fallbackH = desktopH || (el && el.id === "candleChart" ? 480 : 220);
-  const w = Math.max((el && el.clientWidth) || 0, window.innerWidth - 48, 280);
+  const w = chartHostWidth(el);
   if (!mobile) {
     return {
       width: w,
@@ -537,6 +574,21 @@ function chartBoxSize(el, desktopH) {
   const id = el && el.id;
   if (id === "candleChart") return { width: w, height: 250 };
   return { width: w, height: 180 };
+}
+
+function bindChartResizeObserver() {
+  if (window.__QA_CHART_RO) return;
+  window.__QA_CHART_RO = true;
+  if (typeof ResizeObserver === "undefined") return;
+  const ro = new ResizeObserver(() => {
+    requestAnimationFrame(resizeCharts);
+  });
+  ["candleChart", "equityChart"].forEach((id) => {
+    const el = $(id);
+    if (el) ro.observe(el);
+    const frame = el && el.closest(".lab-chart-frame");
+    if (frame) ro.observe(frame);
+  });
 }
 
 function resizeCharts() {
@@ -790,6 +842,7 @@ function bindDesk() {
     }
   });
   window.addEventListener("resize", resizeCharts);
+  bindChartResizeObserver();
   window.addEventListener("quant-feed-region", () => {
     load(interval).catch((e) => toast(e.message, "warn"));
   });
@@ -799,6 +852,7 @@ function boot() {
   bindSheetUi();
   bindBacktestParams();
   bindDesk();
+  bindChartResizeObserver();
   refillSelect();
   scheduleFit();
   const q = new URLSearchParams(location.search);
@@ -894,6 +948,7 @@ function bindChrome() {
 }
 bindChrome();
 window.addEventListener("quant-lang", () => refreshBacktestCardI18n());
+window.addEventListener("qa-leaderboard-ready", () => applyLeaderboardPeriodToCard());
 const DEFER = Boolean(document.getElementById("viewList"));
 if (!DEFER) {
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);

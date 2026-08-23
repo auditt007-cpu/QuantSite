@@ -73,6 +73,21 @@
   let leaderboard = null;
   let leaderboardReady = null;
 
+  function lbPeriodDays() {
+    const lb = window.QALeaderboard || leaderboard;
+    return (lb && lb.period_days) || 7;
+  }
+
+  function paintLeaderboardMeta(lb) {
+    const n = (lb && lb.period_days) || 7;
+    document.querySelectorAll("[data-week-title]").forEach((el) => {
+      el.textContent = t("weekBoardTitleTpl").replace("{n}", String(n));
+    });
+    document.querySelectorAll("[data-lb-period]").forEach((el) => {
+      el.textContent = t("lbPeriodTag").replace("{n}", String(n));
+    });
+  }
+
   async function loadLeaderboard() {
     if (leaderboardReady) return leaderboardReady;
     leaderboardReady = (async () => {
@@ -421,9 +436,14 @@
     });
   }
   paintGrid();
+  window.addEventListener("quant-lang", () => {
+    if (window.QALeaderboard) paintLeaderboardMeta(window.QALeaderboard);
+  });
+
   loadLeaderboard().then((lb) => {
     if (lb && lb.by_engine) {
       window.QALeaderboard = lb;
+      paintLeaderboardMeta(lb);
       paintGrid();
       window.dispatchEvent(new CustomEvent("qa-leaderboard-ready"));
     }

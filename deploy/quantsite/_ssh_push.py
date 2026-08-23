@@ -12,7 +12,7 @@ USER = os.environ.get("SSH_USER", "root")
 PASSWORD = os.environ["SSH_PASS"]
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
-CRON_LINE = "0 0 * * * /usr/bin/python3 /root/quantsite/calc_rankings.py >> /root/quantsite/cron_calc.log 2>&1"
+CRON_LINE = "0 0 * * * /usr/bin/python3 /root/quantsite/calc_rankings.py --days 7 >> /root/quantsite/cron_calc.log 2>&1"
 
 
 def client():
@@ -66,7 +66,7 @@ def main():
     run(ssh, "command -v python3")
     run(ssh, "python3 -m py_compile /root/quantsite/tg_engine.py /root/quantsite/calc_rankings.py")
     setup_cron(ssh)
-    run(ssh, "python3 /root/quantsite/calc_rankings.py")
+    run(ssh, "python3 /root/quantsite/calc_rankings.py --days 7")
     run(ssh, "test -s /root/quantsite/leaderboard.json && head -c 400 /root/quantsite/leaderboard.json || echo 'leaderboard missing'")
     run(ssh, "systemctl daemon-reload")
     run(ssh, "systemctl enable tg-bot")

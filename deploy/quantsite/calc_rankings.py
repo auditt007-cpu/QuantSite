@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-"""Daily 30-day backtest rankings for 45-strategy matrix — stdlib only."""
+"""Daily backtest rankings for 45-strategy matrix — stdlib only."""
 
+import argparse
 import json
 import os
 import ssl
@@ -16,13 +17,13 @@ sys.path.insert(0, ROOT)
 import tg_engine as te  # noqa: E402
 
 SYMBOLS = te.SYMBOLS
-PERIOD_DAYS = 30
-TIMEFRAMES = ("1d", "4h")
+PERIOD_DAYS = 7
 UA = te.UA
 TIMEOUT = te.TIMEOUT
 SSL_CTX = te.SSL_CTX
 OUT_PATH = os.path.join(ROOT, "leaderboard.json")
 STATIC_PATH = os.environ.get("LEADERBOARD_STATIC", os.path.join(ROOT, "leaderboard.json"))
+START_CAPITAL = 10000.0
 
 FAMILY_ENGINE = {
     "ema_12_26": "dual",
@@ -56,6 +57,12 @@ def log(msg):
     print("[{0}] {1}".format(ts, msg), flush=True)
 
 
+def timeframes_for(days):
+    if days <= 7:
+        return ("1h", "4h")
+    return ("4h", "1d")
+
+
 def http_json(url):
     req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "application/json"})
     with urllib.request.urlopen(req, timeout=TIMEOUT, context=SSL_CTX) as resp:
@@ -66,12 +73,14 @@ def bar_ms(tf):
     return {"15m": 900000, "1h": 3600000, "4h": 14400000, "1d": 86400000}[tf]
 
 
-def kline_limit(tf):
+def kline_limit(tf, days):
     if tf == "1d":
-        return max(45, PERIOD_DAYS + 15)
+        return max(45, days + 20)
     if tf == "4h":
-        return max(200, PERIOD_DAYS * 6 + 30)
-    return 200
+        return max(120, days * 6 + 40)
+    if tf == "1h":
+        return max(200, days * 24 + 40)
+    return max(200, days * 24 + 40)
 
 
 def binance_interval(tf):
@@ -104,8 +113,8 @@ def pack_okx(rows, tf):
     return {"h": h, "l": l, "c": c, "v": v, "t": t, "src": "okx", "tf": tf}
 
 
-def fetch_klines(sym, tf):
-    limit = kline_limit(tf)
+def fetch_klines(sym, tf, days):
+    limit = kline_limit(tf, days)
     url = (
         "https://api.binance.com/api/v3/klines?symbol={0}&interval={1}&limit={2}"
     ).format(sym, binance_interval(tf), limit)
@@ -113,13 +122,13 @@ def fetch_klines(sym, tf):
     now_ms = int(time.time() * 1000)
     if rows and int(rows[-1][6]) > now_ms:
         rows = rows[:-1]
-    if len(rows) < 30:
+    if len(rows) < 35:
         raise RuntimeError("binance insufficient bars")
     return pack_binance(rows, tf)
 
 
-def fetch_klines_okx(sym, tf):
-    limit = kline_limit(tf)
+def fetch_klines_okx(sym, tf, days):
+    limit = kline_limit(tf, days)
     inst = te.okx_inst(sym)
     url = (
         "https://www.okx.com/api/v5/market/candles?instId={0}&bar={1}&limit={2}"
@@ -129,42 +138,54 @@ def fetch_klines_okx(sym, tf):
     now_ms = int(time.time() * 1000)
     if rows and int(rows[-1][0]) + bar_ms(tf) > now_ms:
         rows = rows[:-1]
-    if len(rows) < 30:
+    if len(rows) < 35:
         raise RuntimeError("okx insufficient bars")
     return pack_okx(rows, tf)
 
 
-def load_klines(sym, tf):
+def load_klines(sym, tf, days):
     try:
-        return fetch_klines(sym, tf)
+        return fetch_klines(sym, tf, days)
     except Exception as exc:
         log("{0} {1} binance fail: {2}; fallback okx".format(sym, tf, exc))
-        return fetch_klines_okx(sym, tf)
+        return fetch_klines_okx(sym, tf, days)
 
 
 def slice_data(data, i):
     return {k: data[k][: i + 1] for k in ("h", "l", "c", "v", "t")}
 
 
-def window_start_index(data, tf):
+def warmup_index(data, days):
     if not data["t"]:
-        return 0
-    cutoff = data["t"][-1] - PERIOD_DAYS * 86400000
+        return 30
+    cutoff = data["t"][-1] - days * 86400000
+    start = 30
     for i, ts in enumerate(data["t"]):
         if ts >= cutoff:
-            return max(30, i)
-    return 30
+            start = max(30, i)
+            break
+    return min(start, max(30, len(data["c"]) - 2))
 
 
-def backtest(eval_fn, data):
-    start = window_start_index(data, data.get("tf", "1d"))
+def fmt_trade_ts(ms):
+    if not ms:
+        return ""
+    dt = datetime.fromtimestamp(ms / 1000.0, tz=timezone.utc)
+    return dt.strftime("%Y-%m-%d %H:%M")
+
+
+def backtest(eval_fn, data, days):
+    start = warmup_index(data, days)
     rets = []
-    eq = 1.0
-    peak = 1.0
+    trade_log = []
+    eq = START_CAPITAL
+    peak = eq
     max_dd = 0.0
     in_pos = False
     entry = 0.0
+    entry_ts = 0
     c = data["c"]
+    t_arr = data["t"]
     for i in range(start, len(c)):
         d = slice_data(data, i)
         try:
@@ -172,21 +193,52 @@ def backtest(eval_fn, data):
         except Exception:
             side = None
         px = c[i]
+        bar_ts = t_arr[i] if i < len(t_arr) else 0
         if side == "LONG" and not in_pos:
             in_pos = True
             entry = px
+            entry_ts = bar_ts
         elif side == "SHORT" and in_pos:
             r = (px - entry) / entry if entry else 0.0
+            pnl_abs = eq * r
+            eq += pnl_abs
             rets.append(r)
-            eq *= 1.0 + r
+            trade_log.append(
+                {
+                    "side": "LONG",
+                    "entry_ts": entry_ts,
+                    "exit_ts": bar_ts,
+                    "entry_px": round(entry, 6),
+                    "exit_px": round(px, 6),
+                    "pnl_pct": round(r * 100.0, 2),
+                    "pnl_abs": round(pnl_abs, 2),
+                    "entry_label": fmt_trade_ts(entry_ts),
+                    "exit_label": fmt_trade_ts(bar_ts),
+                }
+            )
             peak = max(peak, eq)
             max_dd = min(max_dd, (eq - peak) / peak if peak else 0.0)
             in_pos = False
     if in_pos and entry:
         px = c[-1]
+        bar_ts = t_arr[-1] if t_arr else 0
         r = (px - entry) / entry
+        pnl_abs = eq * r
+        eq += pnl_abs
         rets.append(r)
-        eq *= 1.0 + r
+        trade_log.append(
+            {
+                "side": "LONG",
+                "entry_ts": entry_ts,
+                "exit_ts": bar_ts,
+                "entry_px": round(entry, 6),
+                "exit_px": round(px, 6),
+                "pnl_pct": round(r * 100.0, 2),
+                "pnl_abs": round(pnl_abs, 2),
+                "entry_label": fmt_trade_ts(entry_ts),
+                "exit_label": fmt_trade_ts(bar_ts),
+            }
+        )
         peak = max(peak, eq)
         max_dd = min(max_dd, (eq - peak) / peak if peak else 0.0)
     wins = [r for r in rets if r > 0]
@@ -195,12 +247,15 @@ def backtest(eval_fn, data):
     gp = sum(wins)
     gl = abs(sum(losses))
     pf = gp / gl if gl > 1e-12 else (9.99 if gp > 0 else 0.0)
+    net_pct = (eq / START_CAPITAL) - 1.0
     return {
         "win_rate": round(wr, 4),
         "profit_factor": round(min(pf, 99.0), 2),
         "max_drawdown": round(max_dd, 4),
-        "net_profit_pct": round(eq - 1.0, 4),
+        "net_profit_pct": round(net_pct, 4),
+        "net_profit_usd": round(eq - START_CAPITAL, 2),
         "trades": len(rets),
+        "trade_log": trade_log,
     }
 
 
@@ -211,14 +266,15 @@ def family_id(strat_id):
     return strat_id
 
 
-def run_all():
+def run_all(days):
     rows = []
     pool = {}
+    tfs = timeframes_for(days)
     for sym in SYMBOLS:
-        for tf in TIMEFRAMES:
+        for tf in tfs:
             key = (sym, tf)
             try:
-                pool[key] = load_klines(sym, tf)
+                pool[key] = load_klines(sym, tf, days)
                 log("loaded {0} {1} bars={2}".format(sym, tf, len(pool[key]["c"])))
             except Exception as exc:
                 log("skip pool {0} {1}: {2}".format(sym, tf, exc))
@@ -226,11 +282,11 @@ def run_all():
     for strat in te.STRATEGY_MATRIX:
         best = None
         for sym in SYMBOLS:
-            for tf in TIMEFRAMES:
+            for tf in tfs:
                 data = pool.get((sym, tf))
                 if not data or len(data["c"]) < 35:
                     continue
-                stats = backtest(strat["eval"], data)
+                stats = backtest(strat["eval"], data, days)
                 if stats["trades"] < 1:
                     continue
                 row = {
@@ -244,12 +300,18 @@ def run_all():
                     **stats,
                 }
                 rows.append(row)
-                if not best or stats["win_rate"] > best["win_rate"]:
+                if not best or stats["net_profit_pct"] > best["net_profit_pct"]:
                     best = row
         if best:
             log(
-                "rank {0} wr={1:.1%} pf={2} sym={3} tf={4}".format(
-                    strat["id"], best["win_rate"], best["profit_factor"], best["symbol"], best["timeframe"]
+                "rank {0} wr={1:.1%} pf={2} pnl={3:.2%} sym={4} tf={5} trades={6}".format(
+                    strat["id"],
+                    best["win_rate"],
+                    best["profit_factor"],
+                    best["net_profit_pct"],
+                    best["symbol"],
+                    best["timeframe"],
+                    best["trades"],
                 )
             )
 
@@ -257,7 +319,7 @@ def run_all():
     for row in rows:
         eng = row["engine"]
         cur = by_engine.get(eng)
-        if not cur or row["win_rate"] > cur["win_rate"]:
+        if not cur or row["net_profit_pct"] > cur["net_profit_pct"]:
             by_engine[eng] = {
                 "engine": eng,
                 "strategy_id": row["id"],
@@ -269,14 +331,19 @@ def run_all():
                 "profit_factor": row["profit_factor"],
                 "max_drawdown": row["max_drawdown"],
                 "net_profit_pct": row["net_profit_pct"],
+                "net_profit_usd": row["net_profit_usd"],
                 "trades": row["trades"],
+                "trade_log": row.get("trade_log") or [],
             }
 
     payload = {
         "updated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "period_days": PERIOD_DAYS,
+        "period_days": days,
+        "period_label": "{0} DAYS".format(days),
+        "period_label_zh": "仅 {0} 天".format(days),
+        "period_label_tw": "僅 {0} 天".format(days),
         "symbols": SYMBOLS,
-        "timeframes": list(TIMEFRAMES),
+        "timeframes": list(tfs),
         "strategy_count": len(te.STRATEGY_MATRIX),
         "rows": len(rows),
         "strategies": rows,
@@ -295,11 +362,19 @@ def write_outputs(payload):
     log("wrote {0} ({1} strategy rows, {2} engines)".format(OUT_PATH, len(payload["strategies"]), len(payload["by_engine"])))
 
 
-def main():
-    log("calc_rankings start period={0}d".format(PERIOD_DAYS))
-    payload = run_all()
+def parse_args(argv):
+    parser = argparse.ArgumentParser(description="Quant strategy rankings backtest")
+    parser.add_argument("--days", type=int, default=7, help="Backtest window in days (default: 7)")
+    return parser.parse_args(argv)
+
+
+def main(argv=None):
+    args = parse_args(argv or sys.argv[1:])
+    days = max(1, min(int(args.days), 180))
+    log("calc_rankings start period={0}d".format(days))
+    payload = run_all(days)
     write_outputs(payload)
-    log("calc_rankings done")
+    log("calc_rankings done period={0}d engines={1}".format(days, len(payload["by_engine"])))
 
 
 if __name__ == "__main__":

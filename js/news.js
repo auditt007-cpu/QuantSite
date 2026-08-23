@@ -346,7 +346,9 @@
           .join("")
       : `<li class="muted">${escapeHtml(t("weekBoardEmpty"))}</li>`;
     document.querySelectorAll("[data-week-title]").forEach((el) => {
-      el.textContent = t("weekBoardTitle");
+      const lb = root.QALeaderboard;
+      const n = (lb && lb.period_days) || 7;
+      el.textContent = t("weekBoardTitleTpl").replace("{n}", String(n));
     });
     document.querySelectorAll("[data-week-board]").forEach((el) => {
       el.innerHTML = html;
