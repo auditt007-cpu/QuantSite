@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QUANT ALPHA · 實時作戰室</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./css/bbg-terminal.css" />
+  <link rel="stylesheet" href="./css/bloomberg-system.css" />
+  <link rel="stylesheet" href="./css/live-room.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+</head>
+<body class="editorial-light" data-title-key="titleLive">
+  <div class="wrap wide">
+    <header class="topbar">
+      <a class="brand" href="./index.html">
+        <div class="logo"></div>
+        <div class="brand-text">
+          <h1>QUANT.ALPHA</h1>
+          <p class="site-slogan" data-i18n="brandSub">一個沒有感情的量化機器</p>
+        </div>
+      </a>
+      <div class="nav-end">
+        <a class="term-home-link" href="./index.html" data-i18n="backHome">＜ 返回首頁</a>
+        <div class="status-pill status-pill-desk" id="statusPill">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span data-i18n="statusPill">節點就緒 24ms · 99.99% Uptime</span>
+        </div>
+        <div class="auth-dock" id="authDock">
+          <button type="button" class="auth-btn" id="btnAuth">[ 🔐 請先登入 ]</button>
+        </div>
+        <button type="button" class="nav-toggle" id="navToggle" aria-label="選單">☰</button>
+      </div>
+      <div class="nav-actions" id="navActions">
+        <a class="nav-link" href="./terminal.html" data-i18n="navTerminal">策略終端</a>
+        <a class="nav-link nav-link-live active" href="./live.html" data-i18n="navLive">🔴 直播作戰室</a>
+        <a class="nav-link" href="./member.html" data-i18n="navMember">會員中心</a>
+        <a class="nav-link" href="./affiliate.html" data-i18n="navAff">推薦計畫</a>
+        <a class="nav-link" href="./about.html" data-i18n="navAbout">[ 關於我們 ]</a>
+        <a class="btn-cta pulse" href="https://t.me/quant_alpha_signals" target="_blank" rel="noopener" data-i18n="btnChannel">加入 TG 信號頻道</a>
+        <div class="lang-pills" role="group" aria-label="Language">
+          <button type="button" data-lang="zh-CN">简</button>
+          <button type="button" data-lang="zh-Hant">繁</button>
+          <button type="button" data-lang="en">EN</button>
+        </div>
+      </div>
+    </header>
+    <div class="ticker-bar" id="tickerBar" aria-label="Market ticker">
+      <div class="ticker-track" id="tickerTrack">
+        <span class="ticker-pill" data-sym="BTCUSDT"><span class="tp-sym">BTC</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
+        <span class="ticker-pill" data-sym="ETHUSDT"><span class="tp-sym">ETH</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
+        <span class="ticker-pill" data-sym="SOLUSDT"><span class="tp-sym">SOL</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
+        <span class="ticker-pill" data-sym="BNBUSDT"><span class="tp-sym">BNB</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
+        <span class="ticker-pill" data-sym="XRPUSDT"><span class="tp-sym">XRP</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
+        <span class="ticker-pill" data-sym="DOGEUSDT"><span class="tp-sym">DOGE</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
+      </div>
+    </div>
+
+    <div class="live-status-bar" id="liveStatusBar">
+      <span class="live-status-item">
+        <span class="live-dot" aria-hidden="true"></span>
+        <span data-i18n="liveWatchersLabel">LIVE WATCHERS</span>
+        <b id="liveWatchersCount">—</b>
+      </span>
+      <span class="live-status-sep" aria-hidden="true">·</span>
+      <span class="live-status-item">
+        <span data-i18n="liveSignalsLabel">今日觸發信號</span>
+        <b id="liveSignalsCount">—</b>
+      </span>
+      <span class="live-status-spacer"></span>
+      <button type="button" class="live-mute-btn" id="liveMuteBtn" data-i18n="liveMuteOn">🔔 音效開啟</button>
+    </div>
+
+    <div id="bloomberg-marquee-bar" class="bb-marquee" aria-label="Flash news ticker">
+      <span class="bb-tag" data-i18n="flashMarqueeTag">即時快訊</span>
+      <div class="bb-track-wrap">
+        <div class="bb-track" id="bbMarqueeTrack"></div>
+      </div>
+    </div>
+
+    <div class="editorial-grid">
+      <div class="editorial-main">
+        <section class="live-room-head">
+          <div class="kicker desk-only" data-i18n="liveKicker">LIVE WAR ROOM</div>
+          <h2 class="h2" data-i18n="liveTitle">實時量化作戰室</h2>
+          <p class="muted desk-only" data-i18n="liveSub">全球節點同步廣播 · K線收線落槌確認 · 置頂你的核心監控策略</p>
+        </section>
+
+        <section class="pinned-rail" id="pinnedRail" hidden>
+          <h3 class="pinned-h">⭐ <span data-i18n="pinnedTitle">核心監控席 · PINNED</span></h3>
+          <div class="pinned-track" id="pinnedTrack"></div>
+        </section>
+
+        <section class="desk">
+          <div class="live-grid" id="liveGrid">
+            <p class="muted" data-i18n="liveGridEmpty">策略載入中…</p>
+          </div>
+        </section>
+      </div>
+      <aside class="editorial-rail" aria-label="Live sidebar">
+        <section class="rail-block">
+          <div class="kicker kicker-plain" data-i18n="liveTapeTitle">🧾 全球執行動態 · GLOBAL TAPE</div>
+          <ul class="live-tape-list" id="liveTape">
+            <li class="muted" data-i18n="liveTapeEmpty">等待全球節點同步中…</li>
+          </ul>
+        </section>
+        <section class="rail-block flash-desk">
+          <div class="kicker" data-i18n="flashKicker">FLASH NEWS</div>
+          <h3 class="rail-h" data-i18n="flashTitle">⚡ 7x24 即時快訊</h3>
+          <ul class="flash-list" id="flashNews" aria-live="polite"></ul>
+        </section>
+        <section class="rail-block rail-mkt">
+          <div class="kicker">MARKET</div>
+          <h3 class="rail-h" data-i18n="mktOverview">市場概覽</h3>
+          <div class="rail-quotes" id="railQuotes">
+            <div class="rail-quote" data-sym="BTCUSDT"><span>BTC</span><b data-px>—</b><em data-chg>—</em></div>
+            <div class="rail-quote" data-sym="ETHUSDT"><span>ETH</span><b data-px>—</b><em data-chg>—</em></div>
+            <div class="rail-quote" data-sym="SOLUSDT"><span>SOL</span><b data-px>—</b><em data-chg>—</em></div>
+            <div class="rail-quote" data-sym="BNBUSDT"><span>BNB</span><b data-px>—</b><em data-chg>—</em></div>
+          </div>
+          <p class="muted rail-note" data-i18n="mktQuoteNote">報價來自公開行情接口，僅供研究對照。</p>
+        </section>
+      </aside>
+    </div>
+
+    <footer class="site-foot">
+      <p class="foot-disc" data-i18n="footDisc">QuantAlpha 是獨立的量化研究與演算法編譯工具，不構成任何投資建議。虛擬資產波動劇烈，請嚴格做好部位風控。</p>
+      <nav class="foot-links">
+        <a href="./about.html" data-i18n="navAbout">[ 關於我們 ]</a>
+        <span class="foot-sep">·</span>
+        <a href="./terminal.html" data-i18n="navTerminal">策略終端</a>
+        <span class="foot-sep">·</span>
+        <a href="https://t.me/quant_alpha_signals" target="_blank" rel="noopener" data-i18n="footTg">[ Telegram 官方頻道 ]</a>
+      </nav>
+      <div class="foot-brand">QUANT ALPHA TECHNOLOGIES LTD. © 2026. All Rights Reserved.</div>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="./js/nav.js"></script>
+  <script src="./config.js"></script>
+  <script src="./i18n.js"></script>
+  <script src="./js/i18n-boot.js"></script>
+  <script src="./js/news.js"></script>
+  <script src="./js/identity.js"></script>
+  <script src="./js/offline-klines.js"></script>
+  <script src="./js/indicators.js"></script>
+  <script src="./js/strategy-catalog.js"></script>
+  <script src="./js/master-catalog.js"></script>
+  <script src="./js/strategies-pack.js"></script>
+  <script src="./js/pack-catalog.js"></script>
+  <script src="./js/binance-feed.js"></script>
+  <script src="./js/engine-list.js"></script>
+  <script src="./js/live-room.js"></script>
+</body>
+</html>

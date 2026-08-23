@@ -76,10 +76,25 @@
     if (!tag.getAttribute("data-i18n")) tag.setAttribute("data-i18n", "flashMarqueeTag");
   }
 
+  function ensureLiveNavLink() {
+    const nav = document.querySelector(".nav-actions");
+    if (!nav || nav.querySelector(".nav-link-live")) return;
+    const onLive = /(^|\/)live\.html$/.test(location.pathname);
+    const link = document.createElement("a");
+    link.className = "nav-link nav-link-live" + (onLive ? " active" : "");
+    link.href = "./live.html";
+    link.setAttribute("data-i18n", "navLive");
+    link.textContent = "🔴 直播作戰室";
+    const term = nav.querySelector('a[href="./terminal.html"]');
+    if (term && term.parentNode) term.insertAdjacentElement("afterend", link);
+    else nav.insertBefore(link, nav.firstChild);
+  }
+
   ensureBloombergCss();
   ensureUtilBar();
   ensureFlashMarquee();
   normalizeMarqueeTag();
+  ensureLiveNavLink();
   loadFlashMarquee();
 
   const toggle = document.getElementById("navToggle");

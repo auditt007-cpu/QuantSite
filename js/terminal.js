@@ -237,7 +237,7 @@
 
   let { free: LOCAL_FREE, master: LOCAL_MASTER } = localLists();
 
-  const FALLBACK_ENGINES = [
+  const FALLBACK_ENGINES = window.QA_ENGINE_LIST || [
     ["dual", "free"],
     ["ribbon", "free"],
     ["rsi", "free"],

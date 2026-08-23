@@ -184,6 +184,29 @@ body.has-bb-util .topbar {
   color: #475569;
 }
 
+.nav-link-live {
+  color: #dc2626 !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.nav-link-live::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #dc2626;
+  animation: navLivePulse 1.6s ease-in-out infinite;
+}
+.nav-link-live.active {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+@keyframes navLivePulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.5); }
+  50% { opacity: 0.55; box-shadow: 0 0 0 4px rgba(220, 38, 38, 0); }
+}
+
 /* ---- Buttons: institutional, no gradients ---- */
 .btn,
 .btn-cta,
