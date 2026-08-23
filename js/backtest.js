@@ -165,8 +165,8 @@ function paintPine() {
       gate.hidden = false;
       const paid = window.QAIdentity && window.QAIdentity.seat() === "vip";
       gate.innerHTML = paid
-        ? "大師組可回測，源碼不公開。請聯繫客服獲取指定交易平台接入連結。"
-        : '大師組免費可看業績與回測，但不能複製源碼、不能實盤接入。<a href="./member.html#pay">前往會員中心付費開通</a>';
+        ? "機構實盤可回測，源碼不公開。請聯繫客服獲取指定交易平台接入連結。"
+        : '機構實盤免費可看業績與回測，但不能複製源碼、不能實盤接入。<a href="./member.html#pay">前往會員中心付費開通</a>';
     } else {
       gate.hidden = true;
       gate.innerHTML = "";
@@ -178,7 +178,7 @@ function paintPine() {
     $("pineSrc").textContent =
       s && s.id === "ai"
         ? "此邏輯由 AI 即時生成，僅在本機回測。不提供 Pine 複製與實盤接入。"
-        : "大師組源碼不在網站公開。付費後請聯繫客服，索取指定交易平台的接入配置連結。";
+        : "機構實盤源碼不在網站公開。付費後請聯繫客服，索取指定交易平台的接入配置連結。";
     if (copyBtn) copyBtn.hidden = true;
     if (box) {
       const sum = box.querySelector("summary");
@@ -391,7 +391,7 @@ function run(silent) {
 
 $("stratSelect").innerHTML = catalog.list
   .map((s) => {
-    const tag = s.tier === "master" ? "[大師組] " : s.id === "ai" ? "[AI] " : "";
+    const tag = s.tier === "master" ? "[機構實盤] " : s.id === "ai" ? "[AI] " : "";
     return `<option value="${s.id}">${tag}${s.name}</option>`;
   })
   .join("");
@@ -441,7 +441,7 @@ function refillSelect() {
   if (!$("stratSelect")) return;
   $("stratSelect").innerHTML = catalog.list
     .map((s) => {
-      const tag = s.tier === "master" ? "[大師組] " : s.id === "ai" ? "[AI] " : "";
+      const tag = s.tier === "master" ? "[機構實盤] " : s.id === "ai" ? "[AI] " : "";
       return `<option value="${s.id}">${tag}${s.name}</option>`;
     })
     .join("");

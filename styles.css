@@ -244,14 +244,23 @@ button:active, .action-btn:active, .btn:active, .btn-cta:active, .ai-chip:active
 }
 .m-card h3 { font-size: 15px; font-weight: 800; color: var(--text-main); line-height: 1.4; min-height: 42px; }
 .m-card.master { border-width: 2px; border-color: var(--border-line); background: var(--bg-surface); }
-.m-card.master h3 { color: var(--text-main); padding-right: 88px; }
+.m-card.master h3 { color: var(--text-main); padding-right: 96px; }
 .m-card .muted { font-size: 11px; }
 .vip-badge {
   position: absolute; top: 10px; right: 10px;
   font-size: 10px; letter-spacing: 0.04em;
-  color: var(--text-inverse); border: 1px solid var(--bg-pill);
-  background: var(--bg-pill);
+  color: #b8860b; border: 1px solid #c9a227;
+  background: #fffdf5;
   border-radius: 0; padding: 3px 8px; white-space: nowrap;
+  font-weight: 700;
+}
+.m-card.master { border-color: #c9a227; }
+.card-principle {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #94a3b8;
+  font-weight: 400;
 }
 .zone-head { margin: 28px 0 12px; }
 .zone-head h3 { margin: 0 0 6px; font-size: 15px; letter-spacing: 0.14em; color: var(--text-main); }

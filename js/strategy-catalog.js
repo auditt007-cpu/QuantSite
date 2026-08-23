@@ -336,7 +336,9 @@ if (ta.crossover(close, gridTakeProfit))
   const STRATS = [
     {
       id: "dual",
-      name: "Dual SuperTrend 趨勢追蹤",
+      name: "ATR 雙 SuperTrend 趨勢跟踪 (Dual SuperTrend)",
+      principle: "核心原理：兩條不同靈敏度的 SuperTrend 同時翻多，比單條均線更能過濾假突破。",
+      description: "核心原理：兩條不同靈敏度的 SuperTrend 同時翻多，比單條均線更能過濾假突破。觸發條件：快慢 SuperTrend 同時轉為多頭時買入；任一轉空時賣出。",
       pine: PINE.dual,
       run(bars) {
         const TA = I();
@@ -357,7 +359,9 @@ if (ta.crossover(close, gridTakeProfit))
     },
     {
       id: "ribbon",
-      name: "EMA Ribbon 均線多頭共振",
+      name: "CTA 多周期均線動量共振 (Multi-Horizon EMA Trend)",
+      principle: "核心原理：短中長均線同時向上，等於多個時間尺度都站在多頭一邊。",
+      description: "核心原理：短中長均線同時向上，等於多個時間尺度都站在多頭一邊。觸發條件：EMA20>EMA50>EMA200 形成多頭排列時買入；排列破壞時賣出。",
       pine: PINE.ribbon,
       run(bars) {
         const TA = I();
@@ -377,7 +381,9 @@ if (ta.crossover(close, gridTakeProfit))
     },
     {
       id: "rsi",
-      name: "RSI Divergence 頂底背離",
+      name: "RSI 極值均值回歸修復 (Mean Reversion Alpha)",
+      principle: "核心原理：價格創新低但 RSI 不再創新低，說明下跌力氣在減，容易出現修復。",
+      description: "核心原理：價格創新低但 RSI 不再創新低，說明下跌力氣在減，容易出現修復。觸發條件：RSI 從 30 以下回升或出現底背離時買入；RSI 從 70 以上回落時賣出。",
       pine: PINE.rsi,
       run(bars) {
         const TA = I();
@@ -402,7 +408,9 @@ if (ta.crossover(close, gridTakeProfit))
     },
     {
       id: "squeeze",
-      name: "Bollinger Squeeze 突破",
+      name: "布林帶波動率壓縮突破 (Bollinger Squeeze Breakout)",
+      principle: "核心原理：帶寬縮到極窄代表市場在蓄力，隨後張開往往伴隨方向性行情。",
+      description: "核心原理：帶寬縮到極窄代表市場在蓄力，隨後張開往往伴隨方向性行情。觸發條件：帶寬處於近 20 根最低且收盤上破上軌時買入；跌回中軌時賣出。",
       pine: PINE.squeeze,
       run(bars) {
         const TA = I();
@@ -423,7 +431,9 @@ if (ta.crossover(close, gridTakeProfit))
     },
     {
       id: "atr",
-      name: "Adaptive ATR 動態網格",
+      name: "ATR 自適應波動率做市網格 (Adaptive Volatility Grid)",
+      principle: "核心原理：用 ATR 當尺子，跌多了低吸、漲多了高拋，讓網格跟著波動呼吸。",
+      description: "核心原理：用 ATR 當尺子，跌多了低吸、漲多了高拋，讓網格跟著波動呼吸。觸發條件：價格跌破均線減 1 倍 ATR 時買入；漲破均線加 1 倍 ATR 時賣出。",
       pine: PINE.atr,
       run(bars) {
         const TA = I();

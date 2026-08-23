@@ -101,7 +101,14 @@
     if (fromApi.length) {
       return fromApi.map((s) => {
         const loc = catalog.get(s.engine || s.id) || catalog.get(s.id);
-        return { ...s, engine: s.engine || s.id, name: s.name || (loc && loc.name), tier };
+        return {
+          ...s,
+          engine: s.engine || s.id,
+          name: (loc && loc.name) || s.name,
+          principle: (loc && loc.principle) || s.principle || "",
+          description: (loc && loc.description) || s.description || "",
+          tier,
+        };
       });
     }
     return localFallback.map((s) => ({
@@ -109,7 +116,9 @@
       name: s.name,
       symbols: ["BTCUSDT"],
       interval: "1h",
-      tags: s.tags && s.tags.length ? s.tags : tier === "master" ? ["大師組", "BTCUSDT", "1H"] : ["開源"],
+      tags: s.tags && s.tags.length ? s.tags : tier === "master" ? ["機構實盤", "BTCUSDT", "1H"] : ["開源"],
+      principle: s.principle || "",
+      description: s.description || "",
       engine: s.id,
       tier,
     }));
@@ -134,10 +143,12 @@
       ? `<button type="button" class="btn-cta compact" data-open="${s.engine || s.id}" data-iv="${s.interval || "1h"}">${t("mktSeeBt")}</button>
          <a class="ghost-link" href="${unlockHref}" ${paid() ? 'target="_blank" rel="noopener"' : ""}>${unlockLabel}</a>`
       : `<button type="button" class="btn-cta compact" data-open="${s.engine || s.id}" data-iv="${s.interval || "1h"}">⚡ ${t("mktOpenBt")}</button>`;
-    const badge = master ? `<span class="vip-badge">🔒 VIP 專屬</span>` : "";
+    const badge = master ? `<span class="vip-badge">🔒 機構實盤</span>` : "";
+    const principle = s.principle || "";
     return `<article class="m-card strategy-card${master ? " master" : ""}" data-id="${s.id}" data-tier="${master ? "master" : "free"}" data-kind="${kindOf(s)}">
         ${badge}
         <h3>${s.name}</h3>
+        ${principle ? `<p class="card-principle">${principle}</p>` : ""}
         <p class="muted">${(s.symbols || ["BTCUSDT"]).join(" / ")} · ${String(s.interval || "1h").toUpperCase()}</p>
         <div class="tags">${tags}</div>
         <div class="stat-caps">
@@ -164,7 +175,7 @@
   const tabDefs = [
     { id: "all", label: `全部 (${allList.length})` },
     { id: "free", label: `🆓 開源免費 (${freeList.length})` },
-    { id: "master", label: `👑 大師實盤組 (${masterList.length})` },
+    { id: "master", label: `👑 機構實盤 (${masterList.length})` },
     { id: "trend", label: `趨勢 (${nTrend})` },
     { id: "grid", label: `網格 (${nGrid})` },
     { id: "range", label: `震盪 (${nRange})` },
