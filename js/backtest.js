@@ -518,6 +518,13 @@ function offlineBars(iv) {
 }
 
 async function load(iv) {
+  if (typeof feed.readyGeo === "function") {
+    try {
+      await feed.readyGeo();
+    } catch {
+      /* keep current region */
+    }
+  }
   interval = iv || interval;
   document.querySelectorAll("[data-tf]").forEach((b) => {
     b.classList.toggle("active", b.getAttribute("data-tf") === interval);
@@ -725,8 +732,7 @@ function bindDesk() {
     }
   });
   window.addEventListener("resize", resizeCharts);
-  window.addEventListener("quant-lang", () => {
-    if (typeof feed.resetRegion === "function") feed.resetRegion();
+  window.addEventListener("quant-feed-region", () => {
     load(interval)
       .then(() => {
         if (allBars.length && lastCtx) run(true);

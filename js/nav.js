@@ -84,6 +84,13 @@
   }
 
   async function refreshTicker() {
+    if (window.QAFeed && typeof window.QAFeed.readyGeo === "function") {
+      try {
+        await window.QAFeed.readyGeo();
+      } catch {
+        /* keep current region */
+      }
+    }
     const pills = document.querySelectorAll(".ticker-pill[data-sym], .rail-quote[data-sym]");
     if (!pills.length) return;
     const syms = [];
@@ -109,8 +116,7 @@
     }
   }
 
-  window.addEventListener("quant-lang", () => {
-    if (window.QAFeed && typeof window.QAFeed.resetRegion === "function") window.QAFeed.resetRegion();
+  window.addEventListener("quant-feed-region", () => {
     refreshTicker();
   });
 

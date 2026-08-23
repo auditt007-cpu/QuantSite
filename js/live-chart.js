@@ -103,6 +103,13 @@
     }
 
     async function load() {
+      if (typeof feed.readyGeo === "function") {
+        try {
+          await feed.readyGeo();
+        } catch {
+          /* keep current region */
+        }
+      }
       feed.setFeedStatus($("wsStatus"), "connecting");
       if (stream) stream.close();
       try {
@@ -139,8 +146,7 @@
     window.addEventListener("resize", () => {
       if (chart && $("tvChart")) chart.applyOptions({ width: $("tvChart").clientWidth });
     });
-    window.addEventListener("quant-lang", () => {
-      if (feed && typeof feed.resetRegion === "function") feed.resetRegion();
+    window.addEventListener("quant-feed-region", () => {
       load();
     });
     load();

@@ -5,31 +5,71 @@
   const CN_RACE = 4;
   const NO_HISTORY = new Set(["HTX", "OKX", "Bybit"]);
 
-  /** Mainland CN: domestic-friendly venues first + parallel race. TW: Binance first. */
+  /** Venue priority by visitor IP region (CN / TW+HK+MO / intl). */
   const VENUE_ORDER = {
     cn: ["HTX", "MEXC", "Bitget", "Gate", "OKX", "Bybit", "Worker", "Binance-Vision", "Binance"],
     tw: ["Binance", "Binance-Vision", "OKX", "Bybit", "HTX", "MEXC", "Bitget", "Gate", "Worker"],
     intl: ["Binance-Vision", "Binance", "OKX", "Bybit", "HTX", "MEXC", "Bitget", "Gate", "Worker"],
   };
 
+  const GEO_CACHE_KEY = "qa_feed_geo";
+  const GEO_TTL_MS = 6 * 60 * 60 * 1000;
+
   let lastMeta = { source: "live", updatedAt: "", venue: "" };
   let startNode = 0;
+  let feedRegionCode = "intl";
+  let feedCountryCode = "";
 
-  function currentFeedPack() {
-    if (root.QALang && typeof root.QALang.current === "function") return root.QALang.current();
-    const lang =
-      (typeof localStorage !== "undefined" && (localStorage.getItem("quant_lang") || localStorage.getItem("user_lang"))) ||
-      "en";
-    if (lang === "zh-Hans" || lang === "zh-CN" || lang === "zh-SG") return "zh-CN";
-    if (lang === "zh-Hant" || lang === "zh-TW" || lang === "zh-HK" || lang === "zh-MO") return "zh-Hant";
-    return "en";
+  function loadCachedGeo() {
+    try {
+      const raw = sessionStorage.getItem(GEO_CACHE_KEY);
+      if (!raw) return null;
+      const o = JSON.parse(raw);
+      if (!o || !o.region || Date.now() - (o.ts || 0) > GEO_TTL_MS) return null;
+      return { region: o.region, country: o.country || "" };
+    } catch {
+      return null;
+    }
   }
 
-  function feedRegion() {
-    const pack = currentFeedPack();
-    if (pack === "zh-CN") return "cn";
-    if (pack === "zh-Hant") return "tw";
+  function saveCachedGeo(region, country) {
+    try {
+      sessionStorage.setItem(GEO_CACHE_KEY, JSON.stringify({ region, country, ts: Date.now() }));
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function countryToRegion(country) {
+    const cc = String(country || "").toUpperCase();
+    if (cc === "CN") return "cn";
+    if (cc === "TW" || cc === "HK" || cc === "MO") return "tw";
     return "intl";
+  }
+
+  function applyFeedRegion(region, country, notify) {
+    const next = VENUE_ORDER[region] ? region : "intl";
+    const changed = next !== feedRegionCode;
+    feedRegionCode = next;
+    feedCountryCode = String(country || "").toUpperCase();
+    if (changed) startNode = 0;
+    if (notify && changed && typeof root.dispatchEvent === "function") {
+      root.dispatchEvent(
+        new CustomEvent("quant-feed-region", { detail: { region: feedRegionCode, country: feedCountryCode } }),
+      );
+    }
+    return changed;
+  }
+
+  const cachedGeo = loadCachedGeo();
+  if (cachedGeo) applyFeedRegion(cachedGeo.region, cachedGeo.country, false);
+
+  function feedRegion() {
+    return feedRegionCode;
+  }
+
+  function feedCountry() {
+    return feedCountryCode;
   }
 
   function orderedVenues() {
@@ -40,6 +80,48 @@
   function resetRegion() {
     startNode = 0;
   }
+
+  async function probeCountryCode() {
+    const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+    const timer = ctrl ? setTimeout(() => ctrl.abort(), 4000) : null;
+    const opts = ctrl ? { signal: ctrl.signal } : {};
+    try {
+      const res = await fetch("https://ipapi.co/country_code/", opts);
+      if (res.ok) {
+        const cc = (await res.text()).trim().toUpperCase();
+        if (/^[A-Z]{2}$/.test(cc)) return cc;
+      }
+    } catch {
+      /* next probe */
+    }
+    try {
+      const res = await fetch("https://ip-api.com/json/?fields=status,countryCode", opts);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.status === "success" && data.countryCode) return String(data.countryCode).toUpperCase();
+      }
+    } catch {
+      /* no geo */
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+    return "";
+  }
+
+  async function initFeedGeo() {
+    let cc = "";
+    try {
+      cc = await probeCountryCode();
+    } catch {
+      cc = "";
+    }
+    const region = cc ? countryToRegion(cc) : feedRegionCode || "intl";
+    if (cc) saveCachedGeo(region, cc);
+    applyFeedRegion(region, cc, true);
+    return feedRegionCode;
+  }
+
+  const feedGeoReady = initFeedGeo();
 
   const OKX_BAR = { "1s": "1s", "1m": "1m", "5m": "5m", "15m": "15m", "1h": "1H", "4h": "4H", "1d": "1D", "1w": "1W" };
   const BYBIT_IV = { "1s": "1", "1m": "1", "5m": "5", "15m": "15", "1h": "60", "4h": "240", "1d": "D", "1w": "W" };
@@ -985,16 +1067,15 @@
     };
   }
 
-  if (typeof root.addEventListener === "function") {
-    root.addEventListener("quant-lang", resetRegion);
-  }
-
   root.QAFeed = {
     INTERVALS,
     ALL_VENUES,
     VENUE_ORDER,
     orderedVenues,
     feedRegion,
+    feedCountry,
+    initFeedGeo,
+    readyGeo: () => feedGeoReady,
     resetRegion,
     fetchKlines,
     fetchTicker24h,
