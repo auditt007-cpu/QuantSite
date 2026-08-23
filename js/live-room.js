@@ -569,17 +569,15 @@
 
   function addCandleSeries(chart, optsExtra) {
     const LC = window.LightweightCharts;
+    const extra = Object.assign({}, optsExtra || {});
+    delete extra.lineWidth;
     const opts = {
       upColor: "#00873c",
       downColor: "#d0021b",
       borderVisible: false,
       wickUpColor: "#00873c",
       wickDownColor: "#d0021b",
-      priceFormat: {
-        type: "custom",
-        formatter: fmtPctAxis,
-      },
-      ...(optsExtra || {}),
+      ...extra,
     };
     return typeof chart.addCandlestickSeries === "function" ? chart.addCandlestickSeries(opts) : chart.addSeries(LC.CandlestickSeries, opts);
   }
@@ -612,6 +610,7 @@
   }
 
   function clearChartSeries() {
+    if (!warChart) return;
     overlaySeriesMap.forEach((s) => {
       try {
         warChart.removeSeries(s);
@@ -717,12 +716,19 @@
         if (chartLockRange) lockChartRange(chartLockRange.from, chartLockRange.to);
       }).observe(el);
     }
-    warChart.timeScale().subscribeVisibleTimeRangeChange((range) => {
-      if (chartRangeGuard || !chartLockRange || !range) return;
-      if (range.from !== chartLockRange.from || range.to !== chartLockRange.to) {
-        lockChartRange(chartLockRange.from, chartLockRange.to);
+    try {
+      const ts = warChart.timeScale();
+      if (ts && typeof ts.subscribeVisibleTimeRangeChange === "function") {
+        ts.subscribeVisibleTimeRangeChange((range) => {
+          if (chartRangeGuard || !chartLockRange || !range) return;
+          const fromDiff = Math.abs(Number(range.from) - chartLockRange.from);
+          const toDiff = Math.abs(Number(range.to) - chartLockRange.to);
+          if (fromDiff > 2 || toDiff > 2) lockChartRange(chartLockRange.from, chartLockRange.to);
+        });
       }
-    });
+    } catch {
+      /* range lock optional */
+    }
     bindCrosshairTooltip();
   }
 
@@ -1054,9 +1060,11 @@
 
     const focusBars = focusPack.bars;
     const focusNorm = normalizeWindow(focusBars, windowFrom);
+    let markerNorm = null;
     if (focusNorm) {
+      markerNorm = focusNorm;
       chartMetaByCoin.set(focusPack.coin, focusNorm);
-      warSeries = addCandleSeries(warChart, { lineWidth: 2 });
+      warSeries = addCandleSeries(warChart);
       warSeries.setData(focusNorm.normalized);
       ensureZeroLine(warSeries);
       lockChartToLast6h(focusBars);
@@ -1077,14 +1085,14 @@
     }
     if (activeStrategy !== s) return;
 
-    if (warSeries) {
+    if (warSeries && markerNorm) {
       const inWindow = (ts) => ts >= windowFrom && ts <= lastBarTime;
-      const barTimes = new Set(focusNorm.slice.map((b) => b.time));
+      const barTimes = new Set(markerNorm.slice.map((b) => b.time));
       const snapTime = (ts) => {
         if (barTimes.has(ts)) return ts;
         let best = null;
         let bestDiff = Infinity;
-        focusNorm.slice.forEach((b) => {
+        markerNorm.slice.forEach((b) => {
           const diff = Math.abs(b.time - ts);
           if (diff < bestDiff) {
             bestDiff = diff;

@@ -699,7 +699,15 @@ function offlineBars(iv) {
   return off && off.length ? off.slice() : [];
 }
 
-async function load(iv) {
+function chartPanelOpen() {
+  const host = $("btChartReveal");
+  return !host || host.classList.contains("is-open");
+}
+
+async function fetchBars(iv, opts) {
+  const options = opts || {};
+  const shouldMount = options.mount !== false && chartPanelOpen();
+  const shouldReset = options.reset !== false;
   if (typeof feed.readyGeo === "function") {
     try {
       await feed.readyGeo();
@@ -712,28 +720,28 @@ async function load(iv) {
     b.classList.toggle("active", b.getAttribute("data-tf") === interval);
   });
   if (stream) stream.close();
-  resetBacktestResults();
+  if (shouldReset) resetBacktestResults();
   setBtLoading(true);
-  feed.setFeedStatus($("wsStatus"), "connecting");
+  if ($("wsStatus")) feed.setFeedStatus($("wsStatus"), "connecting");
 
   const limit = fetchLimitForLookback(lookbackDays(), interval);
   try {
     allBars = await feed.fetchKlines(SYMBOL, interval, limit);
     bars = allBars;
     feed.lastMeta.source = "live";
-    mountCandles();
+    if (shouldMount) mountCandles();
     paintPine();
     if ($("sampleHint")) $("sampleHint").textContent = t("btAwaitRun");
-    feed.setFeedStatus($("wsStatus"), "live");
+    if ($("wsStatus")) feed.setFeedStatus($("wsStatus"), "live");
   } catch {
     allBars = offlineBars(interval);
     bars = allBars;
     feed.lastMeta.source = "offline";
     if (bars.length) {
-      mountCandles();
+      if (shouldMount) mountCandles();
       paintPine();
-      feed.setFeedStatus($("wsStatus"), "offline", { updatedAt: feed.lastMeta.updatedAt });
-    } else {
+      if ($("wsStatus")) feed.setFeedStatus($("wsStatus"), "offline", { updatedAt: feed.lastMeta.updatedAt });
+    } else if ($("wsStatus")) {
       feed.setFeedStatus($("wsStatus"), "retry");
     }
   } finally {
@@ -742,7 +750,7 @@ async function load(iv) {
 
   if (!bars.length) {
     toast(t("aiNetErr") || t("needBars") || "K line load failed", "warn");
-    return;
+    return false;
   }
 
   stream = feed.createLiveStream({
@@ -750,11 +758,16 @@ async function load(iv) {
     interval,
     preferRest: feed.lastMeta.source === "offline",
     onStatus(s, extra) {
-      feed.setFeedStatus($("wsStatus"), s, extra);
+      if ($("wsStatus")) feed.setFeedStatus($("wsStatus"), s, extra);
     },
     onKline: upsert,
   });
   syncDock();
+  return true;
+}
+
+async function load(iv) {
+  return fetchBars(iv, { mount: chartPanelOpen(), reset: true });
 }
 
 function upsert(bar) {
@@ -774,18 +787,16 @@ function upsert(bar) {
 function mountCandles() {
   const el = $("candleChart");
   const Charts = window.LightweightCharts;
-  const chartHost = $("btChartReveal");
   if (!el || !Charts || !feed || !bars.length) return;
+  if (!chartPanelOpen()) return;
 
   const draw = () => {
+    if (!chartPanelOpen()) return;
     const size = chartBoxSize(el, 480);
-    const host = $("viewBacktest");
-    const chartOpen = chartHost && chartHost.classList.contains("is-open");
-    if (size.width < 80 && host && !host.hidden && chartOpen) {
+    if (size.width < 80) {
       requestAnimationFrame(draw);
       return;
     }
-    if (size.width < 80 && chartHost && !chartOpen) return;
     if (candleChart) {
       candleChart.remove();
       candleChart = null;
@@ -911,13 +922,19 @@ async function executeBacktest() {
   await waitChartLayout();
   interval = resolveInterval();
   syncDock();
-  if (!allBars.length || !candleSeries) {
-    try {
-      await load(interval);
-    } catch (e) {
-      toast(e.message, "warn");
-      return;
-    }
+  if (!allBars.length) {
+    const ok = await fetchBars(interval, { mount: true, reset: true });
+    if (!ok) return;
+  } else {
+    mountCandles();
+  }
+  if (!candleSeries && allBars.length) {
+    await waitChartLayout();
+    mountCandles();
+  }
+  if (!candleSeries) {
+    toast(t("needBars") || "K 線渲染失敗", "warn");
+    return;
   }
   run(false);
 }
@@ -930,7 +947,8 @@ function bindDesk() {
   btn.addEventListener("click", () => {
     executeBacktest().catch((e) => toast(e.message, "warn"));
   });
-  $("btnCopyPine").addEventListener("click", async (e) => {
+  const copyBtn = $("btnCopyPine");
+  if (copyBtn) copyBtn.addEventListener("click", async (e) => {
     e.preventDefault();
     e.stopPropagation();
     if (isMasterSpec(spec()) || spec().id === "ai") {
@@ -986,7 +1004,7 @@ function INTERVALS_OK(iv) {
 window.QABacktest = {
   setLoading: setBtLoading,
   open(id, iv) {
-    const start = () => {
+    const start = async () => {
       bindDesk();
       bindBacktestParams();
       refillSelect();
@@ -1008,13 +1026,11 @@ window.QABacktest = {
         candleSeries = null;
         volSeries = null;
       }
-      allBars = [];
-      bars = [];
       if (stream) {
         stream.close();
         stream = null;
       }
-      return Promise.resolve();
+      await fetchBars(interval, { mount: false, reset: false });
     };
     if (window.QAPackReady) return window.QAPackReady.then(start);
     return start();
