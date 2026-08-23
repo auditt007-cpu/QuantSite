@@ -118,10 +118,13 @@
     return;
   }
 
-  const packReady = window.QAPackReady
-    ? window.QAPackReady.catch(() => 0)
-    : Promise.resolve(0);
-  void packReady;
+  if (window.QAPackReady) {
+    try {
+      await window.QAPackReady;
+    } catch {
+      /* pack optional */
+    }
+  }
 
   const FALLBACK_ENGINES = [
     ["dual", "free"],
@@ -139,6 +142,36 @@
     ["qk", "master"],
     ["hs", "master"],
     ["hg", "master"],
+    ["strat-001", "free"],
+    ["strat-002", "free"],
+    ["strat-003", "free"],
+    ["strat-004", "free"],
+    ["strat-005", "free"],
+    ["strat-006", "free"],
+    ["strat-007", "free"],
+    ["strat-008", "free"],
+    ["strat-009", "free"],
+    ["strat-010", "free"],
+    ["strat-011", "master"],
+    ["strat-012", "master"],
+    ["strat-013", "master"],
+    ["strat-014", "master"],
+    ["strat-015", "master"],
+    ["strat-016", "master"],
+    ["strat-017", "master"],
+    ["strat-018", "master"],
+    ["strat-019", "master"],
+    ["strat-020", "master"],
+    ["strat-021", "master"],
+    ["strat-022", "master"],
+    ["strat-023", "master"],
+    ["strat-024", "master"],
+    ["strat-025", "master"],
+    ["strat-026", "master"],
+    ["strat-027", "master"],
+    ["strat-028", "master"],
+    ["strat-029", "master"],
+    ["strat-030", "master"],
   ];
 
   function buildFallbackList() {
@@ -149,7 +182,7 @@
   }
 
   const LOCAL_FREE = catalog.list.filter((s) => s.tier !== "master" && s.id !== "ai");
-  const LOCAL_MASTER = catalog.list.filter((s) => s.tier === "master");
+  const LOCAL_MASTER = catalog.list.filter((s) => s.tier === "master" && s.id !== "ai");
   let remote = [];
 
   function asCard(s, tier) {
