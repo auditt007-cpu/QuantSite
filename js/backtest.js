@@ -683,6 +683,8 @@ function run(silent) {
   }
   if ($("mPf")) {
     $("mPf").textContent = fmtPf(st.pf);
+    const pfStat = $("mPf").closest(".stat");
+    if (pfStat) pfStat.title = t("statPfHint");
     if (window.QAUi) window.QAUi.flash($("mPf"), !(st.pf > 1));
   }
   if ($("mTrades")) {

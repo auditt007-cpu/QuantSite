@@ -1801,6 +1801,14 @@ body.sheet-open { overflow: hidden; }
     border: 2px solid #000000;
     background: #ffffff;
   }
+  .bb-sheet .money-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .bb-sheet .money-head-main { flex: 1 1 auto; min-width: 0; }
   .bb-sheet .money-kicker {
     font-size: 10px;
     letter-spacing: 0.12em;
@@ -1808,54 +1816,53 @@ body.sheet-open { overflow: hidden; }
     color: #64748b;
   }
   .bb-sheet .money-end {
-    font-size: 22px;
-    line-height: 1.2;
+    font-size: 20px;
+    line-height: 1.15;
     font-variant-numeric: tabular-nums;
   }
-  .bb-sheet .money-pnl { font-size: 14px; font-weight: 800; margin-bottom: 0; }
+  .bb-sheet .money-pnl { font-size: 13px; font-weight: 800; margin: 4px 0 0; }
   .bb-sheet .money-stats {
-    margin: 10px 0 8px;
-    padding-top: 10px;
-    border-top: 1px solid #cbd5e1;
+    flex: 0 0 auto;
+    width: 132px;
+    margin: 0;
+    padding: 0;
+    border: none;
   }
   .bb-sheet .money-stats-label {
-    margin: 0 0 6px;
-    font-size: 10px;
+    margin: 0 0 4px;
+    font-size: 9px;
     font-weight: 800;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: #64748b;
+    text-align: right;
   }
   .bb-sheet .money-stats-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
+    gap: 4px;
   }
   .bb-sheet .money-stats-grid .stat {
     border: 1px solid #000000;
-    padding: 6px 8px;
+    padding: 4px 5px;
     background: #f8fafc;
     min-width: 0;
+    text-align: right;
   }
   .bb-sheet .money-stats-grid .stat span {
     display: block;
-    font-size: 10px;
+    font-size: 8px;
     color: #64748b;
     letter-spacing: 0.04em;
   }
   .bb-sheet .money-stats-grid .stat b {
     display: block;
-    margin-top: 2px;
-    font-size: 15px;
+    margin-top: 1px;
+    font-size: 12px;
     font-weight: 800;
     font-variant-numeric: tabular-nums;
     color: #0f172a;
-  }
-  .bb-sheet .money-pf-hint {
-    margin: 6px 0 0;
-    font-size: 10px;
-    line-height: 1.45;
-    color: #64748b;
+    line-height: 1.1;
   }
   .bb-sheet .money-facts {
     font-size: 12px;
@@ -1914,54 +1921,61 @@ body.sheet-open { overflow: hidden; }
   margin: 0 0 12px;
 }
 .money-kicker { margin: 0; font-size: 12px; color: #64748b; }
+.money-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+.money-head-main { flex: 1 1 auto; min-width: 0; }
 .money-end { margin: 6px 0 4px; font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
-.money-pnl { margin: 0 0 0; font-size: 15px; font-weight: 700; color: #00873c; }
+.money-pnl { margin: 0; font-size: 15px; font-weight: 700; color: #00873c; }
 .money-pnl.down { color: #d0021b; }
 .money-stats {
-  margin: 12px 0 10px;
-  padding-top: 12px;
-  border-top: 1px solid #cbd5e1;
+  flex: 0 0 auto;
+  width: 168px;
+  margin: 0;
+  padding: 0;
+  border: none;
 }
 .money-stats-label {
-  margin: 0 0 8px;
-  font-size: 11px;
+  margin: 0 0 6px;
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #64748b;
+  text-align: right;
 }
 .money-stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
 }
 .money-stats-grid .stat {
   border: 1px solid #000;
-  padding: 8px 10px;
+  padding: 6px 8px;
   background: #f8fafc;
   min-width: 0;
+  text-align: right;
 }
 .money-stats-grid .stat span {
   display: block;
-  font-size: 10px;
+  font-size: 9px;
   color: #64748b;
   letter-spacing: 0.04em;
 }
 .money-stats-grid .stat b {
   display: block;
-  margin-top: 4px;
-  font-size: 16px;
+  margin-top: 2px;
+  font-size: 14px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   color: #0f172a;
+  line-height: 1.15;
 }
-.money-pf-hint {
-  margin: 8px 0 0;
-  font-size: 11px;
-  line-height: 1.45;
-  color: #64748b;
-}
-.money-facts { margin: 10px 0 0; padding: 10px 0 0; border-top: 1px solid #cbd5e1; list-style: none; font-size: 13px; line-height: 1.55; }
+.money-facts { margin: 0; padding: 10px 0 0; border-top: 1px solid #cbd5e1; list-style: none; font-size: 13px; line-height: 1.55; }
 .money-trades-label {
   margin: 10px 0 6px;
   font-size: 11px;
@@ -1977,8 +1991,9 @@ body.sheet-open { overflow: hidden; }
   margin: 0 0 4px;
 }
 @media (max-width: 900px) {
-  .money-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
-  .money-stats-grid .stat b { font-size: 14px; }
+  .money-stats { width: 128px; }
+  .money-stats-grid .stat b { font-size: 12px; }
+  .money-end { font-size: 18px; }
 }
 .funnel-card { display: none !important; }
 .trade-pill {

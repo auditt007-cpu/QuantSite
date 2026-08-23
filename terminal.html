@@ -186,18 +186,21 @@
         </header>
         <div class="sheet-body">
           <article class="money-card" id="moneyCard">
-            <p class="money-kicker" data-i18n="moneyAssume">假設投入 $1,000 USDT</p>
-            <p class="money-end" id="moneyEnd">$1,000 → $1,000</p>
-            <p class="money-pnl" id="moneyPnl" data-i18n="moneyPnlIdle">📈 歷史淨賺：+$0 USDT (0%)</p>
-            <div class="money-stats">
-              <p class="money-stats-label" data-i18n="gmSummary">參數指標</p>
-              <div class="money-stats-grid">
-                <div class="stat"><span data-i18n="statWr">勝率</span><b id="mWr">—</b></div>
-                <div class="stat"><span data-i18n="statPf">盈虧比</span><b id="mPf">—</b></div>
-                <div class="stat"><span data-i18n="statTrades">交易筆數</span><b id="mTrades">—</b></div>
-                <div class="stat"><span data-i18n="statBars">樣本</span><b id="mBars">—</b></div>
+            <div class="money-head">
+              <div class="money-head-main">
+                <p class="money-kicker" data-i18n="moneyAssume">假設投入 $1,000 USDT</p>
+                <p class="money-end" id="moneyEnd">$1,000 → $1,000</p>
+                <p class="money-pnl" id="moneyPnl" data-i18n="moneyPnlIdle">📈 歷史淨賺：+$0 USDT (0%)</p>
               </div>
-              <p class="money-pf-hint" data-i18n="statPfHint">賺的總額 ÷ 虧的總額。大於 1 表示賺比虧多。</p>
+              <aside class="money-stats" aria-label="Performance stats">
+                <p class="money-stats-label" data-i18n="gmSummary">參數指標</p>
+                <div class="money-stats-grid">
+                  <div class="stat"><span data-i18n="statWr">勝率</span><b id="mWr">—</b></div>
+                  <div class="stat"><span data-i18n="statPf" title="Profit factor">盈虧比</span><b id="mPf" title="">—</b></div>
+                  <div class="stat"><span data-i18n="statTrades">交易筆數</span><b id="mTrades">—</b></div>
+                  <div class="stat"><span data-i18n="statBars">樣本</span><b id="mBars">—</b></div>
+                </div>
+              </aside>
             </div>
             <ul class="money-facts">
               <li id="moneyDays" data-i18n="moneyDaysIdle">⏱️ 執行周期：—</li>
