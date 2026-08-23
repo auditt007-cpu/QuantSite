@@ -332,8 +332,76 @@ function closeSheet() {
   document.body.classList.remove("sheet-open");
 }
 
+let btChartLockRange = null;
+let btChartRangeGuard = false;
+
+function chartVisibleRange(ctx) {
+  if (!ctx) return null;
+  const to = ctx.windowEndT;
+  const from = to - (ctx.lookDays + 1) * 86400;
+  return { from, to };
+}
+
+function lockBtChartRange(chart, from, to) {
+  if (!chart) return;
+  btChartRangeGuard = true;
+  try {
+    chart.timeScale().setVisibleRange({ from, to });
+  } catch {
+    /* ignore */
+  }
+  btChartRangeGuard = false;
+}
+
+function bindBtChartInteractionLock(chart) {
+  if (!chart || chart.__btRangeBound) return;
+  chart.__btRangeBound = true;
+  chart.applyOptions({
+    handleScroll: {
+      mouseWheel: false,
+      pressedMouseMove: false,
+      horzTouchDrag: false,
+      vertTouchDrag: false,
+    },
+    handleScale: {
+      axisPressedMouseMove: false,
+      mouseWheel: false,
+      pinch: false,
+    },
+    timeScale: {
+      fixLeftEdge: true,
+      fixRightEdge: true,
+      lockVisibleTimeRangeOnResize: true,
+      rightBarStaysOnScroll: true,
+    },
+  });
+  try {
+    chart.timeScale().subscribeVisibleTimeRangeChange((range) => {
+      if (btChartRangeGuard || !btChartLockRange || !range) return;
+      const fromDiff = Math.abs(Number(range.from) - btChartLockRange.from);
+      const toDiff = Math.abs(Number(range.to) - btChartLockRange.to);
+      if (fromDiff > 2 || toDiff > 2) lockBtChartRange(chart, btChartLockRange.from, btChartLockRange.to);
+    });
+  } catch {
+    /* optional API */
+  }
+}
+
+function applyBtChartLock(chart, ctx) {
+  const range = chartVisibleRange(ctx);
+  if (!chart || !range) return;
+  btChartLockRange = range;
+  lockBtChartRange(chart, range.from, range.to);
+}
+
+function applyBtChartsLock(ctx) {
+  applyBtChartLock(candleChart, ctx);
+  applyBtChartLock(equityChart, ctx);
+}
+
 function resetBacktestResults() {
   lastCtx = null;
+  btChartLockRange = null;
   closeSheet();
   if (candleSeries) candleSeries.setMarkers([]);
   if ($("sampleHint")) $("sampleHint").textContent = t("btAwaitRun");
@@ -552,7 +620,7 @@ function paintNav(eq, st, ctx) {
     if (window.QAUi) window.QAUi.flash($("navDd"), true);
   }
   if ($("navDur")) {
-    $("navDur").textContent = t("navDurTpl").replace("{n}", String(n));
+    $("navDur").textContent = t("navDurTpl").replace("{n}", String(ctx ? ctx.lookDays : n));
     $("navDur").className = "bbg-win-text";
     if (window.QAUi) window.QAUi.flash($("navDur"), false);
   }
@@ -670,12 +738,14 @@ function resizeCharts() {
   if (candleChart && cEl) {
     const s = chartBoxSize(cEl, 480);
     candleChart.applyOptions({ width: s.width, height: s.height });
-    candleChart.timeScale().fitContent();
+    if (btChartLockRange) lockBtChartRange(candleChart, btChartLockRange.from, btChartLockRange.to);
+    else candleChart.timeScale().fitContent();
   }
   if (equityChart && eEl) {
     const s = chartBoxSize(eEl, 220);
     equityChart.applyOptions({ width: s.width, height: s.height });
-    equityChart.timeScale().fitContent();
+    if (btChartLockRange) lockBtChartRange(equityChart, btChartLockRange.from, btChartLockRange.to);
+    else equityChart.timeScale().fitContent();
   }
 }
 
@@ -803,6 +873,7 @@ function mountCandles() {
     }
     candleChart = Charts.createChart(el, feed.chartOptions(el, size.height, interval));
     candleChart.applyOptions({ width: size.width, height: size.height });
+    bindBtChartInteractionLock(candleChart);
     candleSeries = addCandle(candleChart);
     volSeries = addHist(candleChart);
     candleSeries.setData(bars.map((b) => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close })));
@@ -813,7 +884,8 @@ function mountCandles() {
         color: b.close >= b.open ? "rgba(0,135,60,0.45)" : "rgba(208,2,27,0.45)",
       })),
     );
-    candleChart.timeScale().fitContent();
+    if (lastCtx) applyBtChartLock(candleChart, lastCtx);
+    else candleChart.timeScale().fitContent();
     scheduleFit();
   };
 
@@ -888,6 +960,7 @@ function run(silent) {
         { time: tr.t1, position: "aboveBar", color: "#d0021b", shape: "arrowDown", text: "SELL" },
       ]),
     );
+    applyBtChartLock(candleChart, ctx);
   }
   const eEl = $("equityChart");
   if (equityChart) equityChart.remove();
@@ -901,8 +974,9 @@ function run(silent) {
     }
     equityChart = Charts.createChart(eEl, feed.chartOptions(eEl, size.height, interval));
     equityChart.applyOptions({ width: size.width, height: size.height });
+    bindBtChartInteractionLock(equityChart);
     addLine(equityChart, "#00873c").setData(winBars.map((b, i) => ({ time: b.time, value: eq[i] })));
-    equityChart.timeScale().fitContent();
+    applyBtChartLock(equityChart, ctx);
     scheduleFit();
   };
   requestAnimationFrame(paintEq);
