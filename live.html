@@ -144,18 +144,20 @@
             </div>
             <div class="subtitle-text" data-i18n="vpsExecTitle">撮合引擎執行流 (Order Execution Feed)</div>
           </div>
-          <section class="vps-exec-board">
-            <div class="vps-exec-meta" id="vpsExecUpdated">——</div>
-            <div class="vps-exec-cols">
-              <span data-i18n="vpsColTime">時間</span>
-              <span data-i18n="vpsColEvent">事件</span>
-              <span data-i18n="vpsColSym">標的</span>
-              <span data-i18n="vpsColPx">價格</span>
-            </div>
-            <div class="vps-exec-viewport" id="vpsExecViewport">
-              <ul class="vps-exec-list" id="vpsExecList" aria-live="polite">
-                <li class="vps-exec-empty" data-i18n="vpsExecEmpty">等待執行流同步…</li>
-              </ul>
+          <section class="vps-exec-board exec-tape-board">
+            <div class="exec-tape-meta" id="vpsExecUpdated">——</div>
+            <div class="exec-tape-table" role="table" aria-label="Order execution feed">
+              <div class="exec-tape-head" role="row">
+                <span class="tape-col tape-time" role="columnheader" data-i18n="vpsColTime">TIME</span>
+                <span class="tape-col tape-action" role="columnheader" data-i18n="vpsColAction">ACTION</span>
+                <span class="tape-col tape-pair" role="columnheader" data-i18n="vpsColSym">PAIR</span>
+                <span class="tape-col tape-price" role="columnheader" data-i18n="vpsColPx">PRICE</span>
+              </div>
+              <div class="exec-tape-viewport" id="vpsExecViewport">
+                <div class="exec-tape-body" id="vpsExecList" aria-live="polite">
+                  <div class="exec-tape-empty" data-i18n="vpsExecEmpty">等待執行流同步…</div>
+                </div>
+              </div>
             </div>
           </section>
         </div>

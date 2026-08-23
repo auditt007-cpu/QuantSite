@@ -251,12 +251,31 @@
     }
   }
 
-  function fmtVpsPx(n) {
+  function fmtTapePrice(n) {
     const x = Number(n);
     if (!Number.isFinite(x)) return "—";
-    if (x >= 1000) return x.toLocaleString("en-US", { maximumFractionDigits: 0 });
-    if (x >= 1) return x.toFixed(2);
-    return x.toPrecision(4);
+    if (x >= 1000) {
+      return (
+        "$" +
+        x.toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+      );
+    }
+    if (x >= 1) return "$" + x.toFixed(2);
+    if (x >= 0.01) return "$" + x.toFixed(4);
+    return "$" + x.toPrecision(4);
+  }
+
+  function fmtTapePair(symbol) {
+    const base = String(symbol || "").replace(/USDT$/i, "");
+    return base ? base + "/USDT" : "—";
+  }
+
+  function vpsTapeAction(sig) {
+    const isClose = sig.event === "close";
+    if (isClose) {
+      return String(sig.side || "").includes("LONG") ? "SELL" : "BUY";
+    }
+    return sig.side === "SHORT" ? "SELL" : "BUY";
   }
 
   function fmtVpsTime(barTs) {
@@ -284,28 +303,17 @@
   }
 
   function vpsRowHtml(sig, isNew) {
-    const isClose = sig.event === "close";
-    let evtText;
-    let evtCls;
-    if (isClose) {
-      const leg = String(sig.side || "").includes("LONG") ? t("vpsCloseLong") : t("vpsCloseShort");
-      evtText = leg;
-      evtCls = "vps-evt-close-leg";
-    } else if (sig.side === "SHORT") {
-      evtText = t("warSell");
-      evtCls = "vps-evt-sell";
-    } else {
-      evtText = t("warBuy");
-      evtCls = "vps-evt-buy";
-    }
-    const sym = String(sig.symbol || "").replace("USDT", "");
-    const px = isClose ? sig.exit_price : sig.price;
+    const action = vpsTapeAction(sig);
+    const actionCls = action === "BUY" ? "tape-action-buy" : "tape-action-sell";
+    const px = sig.event === "close" ? sig.exit_price : sig.price;
     return (
-      `<li class="vps-exec-item${isNew ? " is-new" : ""}">` +
-      `<span class="vps-t">${fmtVpsTime(sig.logged_at || sig.bar_ts)}</span> ` +
-      `<span class="${evtCls}">${escapeHtml(evtText)}</span> ` +
-      `<span class="vps-sym">${escapeHtml(sym + " " + fmtVpsPx(px))}</span>` +
-      `</li>`
+      `<div class="exec-tape-row${isNew ? " is-new" : ""}" role="row">` +
+      `<span class="tape-col tape-time" role="cell">${fmtVpsTime(sig.logged_at || sig.bar_ts)}</span>` +
+      `<span class="tape-col tape-action ${actionCls}" role="cell">` +
+      `<span class="tape-pill">${action}</span></span>` +
+      `<span class="tape-col tape-pair" role="cell">${escapeHtml(fmtTapePair(sig.symbol))}</span>` +
+      `<span class="tape-col tape-price" role="cell">${escapeHtml(fmtTapePrice(px))}</span>` +
+      `</div>`
     );
   }
 
@@ -334,7 +342,7 @@
       const res = await fetch("./live_feed.json", { cache: "no-store" });
       if (!res.ok) return;
       const data = await res.json();
-      const merged = vpsFeedRows(data).slice(0, 48);
+      const merged = vpsFeedRows(data).slice(0, 20);
       if (updatedEl) {
         const meta = t("vpsExecMeta")
           .replace("{n}", String(data.strategy_count || 45))
@@ -347,8 +355,7 @@
         updatedEl.textContent = meta + upd;
       }
       if (!merged.length) {
-        list.innerHTML = `<li class="vps-exec-empty">${escapeHtml(t("vpsExecEmpty"))}</li>`;
-        list.classList.add("vps-exec-static");
+        list.innerHTML = `<div class="exec-tape-empty">${escapeHtml(t("vpsExecEmpty"))}</div>`;
         return;
       }
       const nextKeys = new Set();
@@ -358,13 +365,9 @@
         return vpsRowHtml(sig, !lastVpsKeys.has(key));
       });
       lastVpsKeys = nextKeys;
-      const html = rows.join("");
-      list.innerHTML = rows.length > 8 ? html + html : html;
-      list.classList.toggle("vps-exec-static", rows.length <= 8);
+      list.innerHTML = rows.join("");
       if (viewport && viewport.getAttribute("data-bound") !== "1") {
         viewport.setAttribute("data-bound", "1");
-        viewport.addEventListener("mouseenter", () => viewport.classList.add("is-paused"));
-        viewport.addEventListener("mouseleave", () => viewport.classList.remove("is-paused"));
       }
     } catch {
       /* live_feed.json optional */

@@ -544,92 +544,128 @@ body.live-page .sidebar-header-aligned .subtitle-text {
   line-height: 1.35;
 }
 
-/* ---- VPS terminal exec board (Bloomberg black / amber) ---- */
-.vps-exec-board {
-  background: #000000;
-  color: #ff9900;
-  font-family: Consolas, Monaco, "Courier New", var(--mono, monospace);
-  padding: 16px 20px 20px;
-  border: 1px solid #333333;
+/* ---- Execution tape: Bloomberg / Binance dark live table ---- */
+.exec-tape-board {
+  background: #0c0d0e;
+  color: #f1f5f9;
+  font-family: "JetBrains Mono", "Roboto Mono", "SF Pro Display", -apple-system, sans-serif;
+  padding: 12px 14px 14px;
+  border: 1px solid #1f2428;
   border-top: none;
 }
-.vps-exec-meta {
-  color: #ff9900;
+.exec-tape-meta {
+  color: #64748b;
   font-size: 10px;
-  margin-bottom: 8px;
-  line-height: 1.4;
-  opacity: 0.85;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  margin-bottom: 10px;
+  line-height: 1.45;
 }
-.vps-exec-cols {
+.exec-tape-table {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px 14px;
-  color: #ff9900;
-  font-size: 12px;
-  font-weight: 700;
-  margin-bottom: 4px;
+  flex-direction: column;
+  min-width: 0;
 }
-.vps-exec-viewport {
-  max-height: min(560px, calc(100vh - 240px));
-  overflow: hidden;
+.exec-tape-head,
+.exec-tape-row {
+  display: grid;
+  grid-template-columns: minmax(65px, 1fr) 55px 75px minmax(80px, 1fr);
+  column-gap: 8px;
+  align-items: center;
+}
+.exec-tape-head {
+  padding: 0 2px 8px;
+  margin-bottom: 2px;
+  border-bottom: 1px solid #1f2428;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+.exec-tape-head .tape-price {
+  text-align: right;
+}
+.exec-tape-viewport {
+  height: 480px;
+  overflow-y: hidden;
   position: relative;
 }
-.vps-exec-list {
-  list-style-type: disc;
-  margin: 10px 0 0 20px;
-  padding-left: 0;
-  color: #ff9900;
-  animation: vpsBoardScroll 48s linear infinite;
+.exec-tape-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
-.vps-exec-list.vps-exec-static {
-  animation: none;
-}
-.vps-exec-viewport:hover .vps-exec-list,
-.vps-exec-viewport.is-paused .vps-exec-list {
-  animation-play-state: paused;
-}
-.vps-exec-item {
-  margin-bottom: 6px;
-  font-size: 12px;
-  line-height: 1.5;
-  padding-left: 2px;
-}
-.vps-exec-item.is-new {
-  animation: vpsRowFlash 1.2s ease;
-}
-.vps-exec-item .vps-t {
-  color: #ffffff;
+.exec-tape-row {
+  padding: 7px 2px;
+  border-bottom: 1px solid rgba(31, 36, 40, 0.65);
+  font-size: 11px;
+  line-height: 1.2;
   font-variant-numeric: tabular-nums;
 }
-.vps-exec-item .vps-evt-buy {
-  color: #00ff00;
+.exec-tape-row:last-child {
+  border-bottom: none;
+}
+.exec-tape-row.is-new {
+  animation: tapeRowFadeIn 0.55s ease;
+}
+.exec-tape-row .tape-time {
+  color: #94a3b8;
+  font-weight: 500;
+}
+.exec-tape-row .tape-pair {
+  color: #f8fafc;
   font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.vps-exec-item .vps-evt-sell {
-  color: #ff3333;
-  font-weight: 700;
+.exec-tape-row .tape-price {
+  color: #cbd5e1;
+  font-weight: 600;
+  text-align: right;
+  white-space: nowrap;
 }
-.vps-exec-item .vps-evt-close-leg {
-  color: #cccccc;
+.exec-tape-row .tape-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 38px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
 }
-.vps-exec-item .vps-sym {
-  color: #ffffff;
-  font-variant-numeric: tabular-nums;
+.exec-tape-row .tape-action-buy .tape-pill {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.14);
 }
-.vps-exec-empty {
-  list-style: none;
-  margin-left: 0;
-  color: #ffffff;
-  font-size: 12px;
-  padding: 4px 0;
+.exec-tape-row .tape-action-sell .tape-pill {
+  color: #f43f5e;
+  background: rgba(244, 63, 94, 0.14);
 }
-@keyframes vpsBoardScroll {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(calc(-50% + 0px)); }
+.exec-tape-empty {
+  grid-column: 1 / -1;
+  padding: 24px 4px;
+  text-align: center;
+  color: #64748b;
+  font-size: 11px;
+  letter-spacing: 0.03em;
 }
-@keyframes vpsRowFlash {
-  0%, 100% { background: transparent; }
-  30% { background: rgba(255, 153, 0, 0.15); }
+@keyframes tapeRowFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-6px);
+    background: rgba(241, 245, 249, 0.04);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    background: transparent;
+  }
 }
 @media (max-width: 900px) {
   body.live-page .editorial-rail.vps-exec-rail {
@@ -641,8 +677,8 @@ body.live-page .sidebar-header-aligned .subtitle-text {
   body.live-page .sidebar-rail-inner {
     padding-top: 0;
   }
-  .vps-exec-viewport {
-    max-height: 320px;
+  .exec-tape-viewport {
+    height: 320px;
   }
 }
 @media (max-width: 768px) {
