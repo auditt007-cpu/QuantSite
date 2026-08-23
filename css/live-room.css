@@ -6,12 +6,12 @@
 .war-top-status {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
   flex-wrap: wrap;
   gap: 8px 14px;
-  margin: 0;
-  padding: 8px 0;
-  border-bottom: 1px solid #000000;
+  margin: 8px 0 0;
+  padding: 0;
+  border: none;
   font-family: var(--mono);
   font-size: 12px;
 }
@@ -436,7 +436,7 @@
 .crowd-toast.is-out { opacity: 0; transform: translateY(-6px); }
 
 @media (max-width: 768px) {
-  .war-top-status { font-size: 11px; justify-content: space-between; }
+  .war-top-status { font-size: 11px; justify-content: flex-start; }
   .live-mute-btn { padding: 4px 8px; font-size: 10px; }
 
   .live-room-head { padding-right: 12px; }
@@ -479,18 +479,18 @@ body.live-page .topbar {
 }
 body.live-page .editorial-rail.vps-exec-rail {
   position: sticky;
-  top: calc(28px + 132px);
+  top: var(--live-chrome-h, 132px);
   align-self: start;
-  max-height: calc(100vh - 28px - 140px);
+  max-height: calc(100vh - var(--live-chrome-h, 132px) - 12px);
   padding-top: 0;
   padding-left: 20px;
 }
 body.live-page:not(.has-bb-util) .editorial-rail.vps-exec-rail {
-  top: 132px;
-  max-height: calc(100vh - 140px);
+  top: var(--live-chrome-h, 132px);
+  max-height: calc(100vh - var(--live-chrome-h, 132px) - 12px);
 }
 
-/* Right rail: DOM-level align with left war-chart-frame top edge */
+/* Right rail starts flush under chrome; sticks to K-line after scroll */
 body.live-page .war-room-page-grid {
   align-items: start;
   border-top: none;
@@ -499,7 +499,7 @@ body.live-page .sidebar-rail-inner {
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding-top: 12px;
+  padding-top: 0;
   min-width: 0;
 }
 body.live-page .sidebar-header-aligned {

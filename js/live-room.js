@@ -367,6 +367,21 @@
     vpsBoardTimer = setInterval(refreshVpsExecBoard, 15000);
   }
 
+  function bindLiveChromeOffset() {
+    const apply = () => {
+      const chrome = document.querySelector(".live-sticky-chrome");
+      if (!chrome) return;
+      const h = Math.round(chrome.getBoundingClientRect().height);
+      document.documentElement.style.setProperty("--live-chrome-h", h + "px");
+    };
+    apply();
+    window.addEventListener("resize", apply);
+    if (typeof ResizeObserver !== "undefined") {
+      const chrome = document.querySelector(".live-sticky-chrome");
+      if (chrome) new ResizeObserver(apply).observe(chrome);
+    }
+  }
+
   /* ---------------------------------------------------------------------
    * Strategy list (45 canonical IDs) + bar-fetch cache.
    * ------------------------------------------------------------------- */
@@ -1439,6 +1454,7 @@
     pollLiveFeedAudio();
     setInterval(pollLiveFeedAudio, 20000);
     bindVpsExecBoard();
+    bindLiveChromeOffset();
 
     let savedId = null;
     try {
