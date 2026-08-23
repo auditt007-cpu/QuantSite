@@ -482,10 +482,66 @@ body.live-page .editorial-rail.vps-exec-rail {
   top: calc(28px + 132px);
   align-self: start;
   max-height: calc(100vh - 28px - 140px);
+  padding-top: 0;
+  padding-left: 20px;
 }
 body.live-page:not(.has-bb-util) .editorial-rail.vps-exec-rail {
   top: 132px;
   max-height: calc(100vh - 140px);
+}
+
+/* Right rail: DOM-level align with left war-chart-frame top edge */
+body.live-page .war-room-page-grid {
+  align-items: start;
+}
+body.live-page .sidebar-rail-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  /* live-room-head + war-room pre-chart block (status bar above K-line) */
+  padding-top: var(--vps-chart-align, 196px);
+  min-width: 0;
+}
+body.live-page .sidebar-header-aligned {
+  border: 2px solid #000000;
+  background: #ffffff;
+  padding: 10px 12px 11px;
+  margin-bottom: 0;
+  font-family: var(--mono, Consolas, Monaco, monospace);
+}
+body.live-page .sidebar-header-aligned .small-meta {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #64748b;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+body.live-page .sidebar-header-aligned .main-title-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #000000;
+  margin-bottom: 5px;
+}
+body.live-page .sidebar-header-aligned .status-dot.green {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--color-up, #16a34a);
+  white-space: nowrap;
+  animation: liveDotPulse 1.5s ease-in-out infinite;
+}
+body.live-page .sidebar-header-aligned .subtitle-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: #334155;
+  letter-spacing: 0.02em;
+  line-height: 1.35;
 }
 
 /* ---- VPS terminal exec board (Bloomberg black / amber) ---- */
@@ -493,27 +549,9 @@ body.live-page:not(.has-bb-util) .editorial-rail.vps-exec-rail {
   background: #000000;
   color: #ff9900;
   font-family: Consolas, Monaco, "Courier New", var(--mono, monospace);
-  padding: 20px;
+  padding: 16px 20px 20px;
   border: 1px solid #333333;
-}
-.vps-exec-kicker {
-  display: block;
-  color: #ff9900;
-  font-weight: 700;
-  margin-bottom: 5px;
-  letter-spacing: 0.06em;
-}
-.vps-exec-title {
-  margin: 0 0 10px;
-  color: #ff9900;
-  font-weight: 700;
-  font-size: 1.1em;
-  letter-spacing: 0.02em;
-}
-.vps-exec-divider {
-  color: #ff9900;
-  margin-bottom: 5px;
-  letter-spacing: 0.2em;
+  border-top: none;
 }
 .vps-exec-meta {
   color: #ff9900;
@@ -598,6 +636,10 @@ body.live-page:not(.has-bb-util) .editorial-rail.vps-exec-rail {
     position: static;
     max-height: none;
     margin-top: 16px;
+    padding-left: 0;
+  }
+  body.live-page .sidebar-rail-inner {
+    padding-top: 0;
   }
   .vps-exec-viewport {
     max-height: 320px;

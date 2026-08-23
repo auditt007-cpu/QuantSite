@@ -626,7 +626,9 @@ LIVE_FEED_KLINE_LIMIT = 150
 # out of the lookback window.
 # ---------------------------------------------------------------------------
 AUDIO_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "audio")
-AUDIO_VOICE = "zh-CN-XiaoxiaoNeural"
+AUDIO_VOICE = "zh-TW-HsiaoChenNeural"
+AUDIO_RATE = "+2%"
+AUDIO_PITCH = "+8Hz"
 # Site is served by GitHub Pages from the repo root (see CNAME -> quantalpha.space).
 # _ssh_push.py fetches everything under AUDIO_DIR back into <repo>/audio/ so it
 # becomes reachable at https://quantalpha.space/audio/<file>.mp3 once pushed.
@@ -636,8 +638,8 @@ AUDIO_INFLIGHT = set()
 AUDIO_INFLIGHT_LOCK = threading.Lock()
 
 WELCOME_TEXTS = [
-    "哥哥，歡迎來到實時作戰室～策略和信號都幫你盯好啦，今天也要精準踩點，跟著我一起吃大波段喔～",
-    "哈囉～歡迎進入量化作戰室！算力矩陣已經就位囉，帶好止損，剩下的拐點信號就交給我來抓吧～",
+    "哥哥，歡迎來到實時作戰室～策略和信號都幫你盯好囉，今天也要精準踩點，跟著我一起吃大波段喔～",
+    "哈囉～歡迎進入量化作戰室！算力矩陣已經就位囉，帶好停損，剩下的拐點信號就交給我來抓吧～",
     "您好呀，作戰室已為您連線全球節點。行情波動很大，記得看好我的信號提醒，祝您今天交易順利、穩穩收米喔～",
 ]
 
@@ -648,7 +650,7 @@ def _tts_generate_sync(text, out_path):
     tmp = out_path + ".tmp"
 
     async def _run():
-        communicate = edge_tts.Communicate(text, AUDIO_VOICE)
+        communicate = edge_tts.Communicate(text, AUDIO_VOICE, rate=AUDIO_RATE, pitch=AUDIO_PITCH)
         await communicate.save(tmp)
 
     asyncio.run(_run())
@@ -659,13 +661,13 @@ def audio_public_url(filename):
     return "{0}/{1}".format(AUDIO_PUBLIC_PREFIX, filename)
 
 
-def ensure_welcome_audio():
+def ensure_welcome_audio(force=False):
     """Pre-generate the 3 welcome MP3s once; skip regeneration if already
     present on disk (so a service restart doesn't re-hit the TTS API)."""
     os.makedirs(AUDIO_DIR, exist_ok=True)
     for i, text in enumerate(WELCOME_TEXTS, start=1):
         path = os.path.join(AUDIO_DIR, "welcome_{0}.mp3".format(i))
-        if os.path.exists(path) and os.path.getsize(path) > 1000:
+        if not force and os.path.exists(path) and os.path.getsize(path) > 1000:
             continue
         try:
             _tts_generate_sync(text, path)
@@ -674,7 +676,7 @@ def ensure_welcome_audio():
             log("welcome audio failed ({0}): {1}".format(i, exc))
 
 
-def ensure_funnel_audio():
+def ensure_funnel_audio(force=False):
     """Pre-generate one 'monitoring created' confirmation clip per canonical
     frontend strategy id (45 total) — lets live.html's checkbox funnel play
     a per-strategy voice line after its 500ms debounce without needing any
@@ -682,7 +684,7 @@ def ensure_funnel_audio():
     os.makedirs(AUDIO_DIR, exist_ok=True)
     for sid, zht, en, _fn in frontend_strategy_specs():
         path = os.path.join(AUDIO_DIR, "funnel_{0}.mp3".format(sid))
-        if os.path.exists(path) and os.path.getsize(path) > 500:
+        if not force and os.path.exists(path) and os.path.getsize(path) > 500:
             continue
         text = "策略（{0}）監控已生成，請注意語音播報喔～".format(zht)
         try:
@@ -691,13 +693,48 @@ def ensure_funnel_audio():
         except Exception as exc:
             log("funnel audio failed ({0}): {1}".format(sid, exc))
     multi_path = os.path.join(AUDIO_DIR, "funnel_multi.mp3")
-    if not (os.path.exists(multi_path) and os.path.getsize(multi_path) > 500):
+    if force or not (os.path.exists(multi_path) and os.path.getsize(multi_path) > 500):
         multi_text = "多選策略已生成，請注意語音播報喔～"
         try:
             _tts_generate_sync(multi_text, multi_path)
             log("funnel audio generated: funnel_multi.mp3")
         except Exception as exc:
             log("funnel multi audio failed: {0}".format(exc))
+
+
+def _purge_audio_glob(prefix):
+    """Remove cached mp3 files matching prefix (e.g. 'sig_' or 'welcome_')."""
+    if not os.path.isdir(AUDIO_DIR):
+        return 0
+    removed = 0
+    for name in os.listdir(AUDIO_DIR):
+        if name.startswith(prefix) and name.endswith(".mp3"):
+            try:
+                os.remove(os.path.join(AUDIO_DIR, name))
+                removed += 1
+            except OSError as exc:
+                log("audio purge skip {0}: {1}".format(name, exc))
+    return removed
+
+
+def regenerate_all_audio():
+    """Force-regenerate welcome + funnel clips and purge dynamic signal cache."""
+    if edge_tts is None:
+        raise RuntimeError("edge_tts not installed")
+    os.makedirs(AUDIO_DIR, exist_ok=True)
+    n_sig = _purge_audio_glob("sig_")
+    n_wel = _purge_audio_glob("welcome_")
+    n_fun = _purge_audio_glob("funnel_")
+    log(
+        "audio purge removed welcome={0} funnel={1} signal={2}".format(n_wel, n_fun, n_sig)
+    )
+    ensure_welcome_audio(force=True)
+    ensure_funnel_audio(force=True)
+    log(
+        "audio regen complete voice={0} rate={1} pitch={2}".format(
+            AUDIO_VOICE, AUDIO_RATE, AUDIO_PITCH
+        )
+    )
 
 
 def request_signal_audio(cache_key, text):
@@ -1212,4 +1249,17 @@ def main():
 
 
 if __name__ == "__main__":
+    import argparse
+
+    ap = argparse.ArgumentParser()
+    ap.add_argument(
+        "--regen-audio",
+        action="store_true",
+        help="Purge and regenerate welcome/funnel MP3s with current TTS voice; "
+        "purge sig_*.mp3 so new signals use the new voice.",
+    )
+    args = ap.parse_args()
+    if args.regen_audio:
+        regenerate_all_audio()
+        raise SystemExit(0)
     main()

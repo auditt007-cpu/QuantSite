@@ -134,24 +134,31 @@
           </div>
         </section>
       </div>
-      <aside class="editorial-rail vps-exec-rail" aria-label="VPS execution feed">
-        <section class="vps-exec-board">
-          <div class="vps-exec-kicker" data-i18n="vpsExecKicker">VPS LIVE EXEC</div>
-          <h3 class="vps-exec-title" data-i18n="vpsExecTitle">實盤開平倉流水</h3>
-          <div class="vps-exec-divider" aria-hidden="true">——</div>
-          <div class="vps-exec-meta" id="vpsExecUpdated">——</div>
-          <div class="vps-exec-cols">
-            <span data-i18n="vpsColTime">時間</span>
-            <span data-i18n="vpsColEvent">事件</span>
-            <span data-i18n="vpsColSym">標的</span>
-            <span data-i18n="vpsColPx">價格</span>
+      <aside class="editorial-rail vps-exec-rail" aria-label="Order execution feed">
+        <div class="sidebar-rail-inner">
+          <div class="sidebar-header-aligned">
+            <div class="small-meta" data-i18n="vpsSidebarMeta">GLOBAL CONNECTIVITY</div>
+            <div class="main-title-flex">
+              <span data-i18n="vpsExecKicker">SYSTEM EXECUTION</span>
+              <span class="status-dot green" aria-hidden="true"><span data-i18n="vpsLiveBadge">● LIVE</span></span>
+            </div>
+            <div class="subtitle-text" data-i18n="vpsExecTitle">撮合引擎執行流 (Order Execution Feed)</div>
           </div>
-          <div class="vps-exec-viewport" id="vpsExecViewport">
-            <ul class="vps-exec-list" id="vpsExecList" aria-live="polite">
-              <li class="vps-exec-empty" data-i18n="vpsExecEmpty">等待 VPS 信號…</li>
-            </ul>
-          </div>
-        </section>
+          <section class="vps-exec-board">
+            <div class="vps-exec-meta" id="vpsExecUpdated">——</div>
+            <div class="vps-exec-cols">
+              <span data-i18n="vpsColTime">時間</span>
+              <span data-i18n="vpsColEvent">事件</span>
+              <span data-i18n="vpsColSym">標的</span>
+              <span data-i18n="vpsColPx">價格</span>
+            </div>
+            <div class="vps-exec-viewport" id="vpsExecViewport">
+              <ul class="vps-exec-list" id="vpsExecList" aria-live="polite">
+                <li class="vps-exec-empty" data-i18n="vpsExecEmpty">等待執行流同步…</li>
+              </ul>
+            </div>
+          </section>
+        </div>
       </aside>
     </div>
 
