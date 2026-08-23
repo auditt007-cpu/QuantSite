@@ -1,4 +1,40 @@
 (function () {
+  const TICKER_SYMBOLS = [
+    "BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "DOGEUSDT",
+    "ADAUSDT", "AVAXUSDT", "LINKUSDT", "SUIUSDT", "NEARUSDT", "APTUSDT",
+    "OPUSDT", "ARBUSDT", "PEPEUSDT", "SHIBUSDT", "TIAUSDT", "INJUSDT",
+    "RENDERUSDT", "FETUSDT",
+  ];
+
+  function tickerPillHtml(sym) {
+    const short = sym.replace(/USDT$/, "");
+    return (
+      '<span class="ticker-pill" data-sym="' + sym + '">' +
+      '<span class="tp-sym">' + short + "</span>" +
+      '<span class="tp-px" data-px>—</span>' +
+      '<span class="tp-chg" data-chg>▲ —</span>' +
+      "</span>"
+    );
+  }
+
+  function ensureTickerMarquee() {
+    const bar = document.getElementById("tickerBar") || document.querySelector(".ticker-bar");
+    const track = document.getElementById("tickerTrack") || (bar && bar.querySelector(".ticker-track"));
+    if (!bar || !track || track.getAttribute("data-marquee-built") === "1") return;
+    track.setAttribute("data-marquee-built", "1");
+    const pills = TICKER_SYMBOLS.map(tickerPillHtml).join("");
+    // Duplicate the full pill set once so a translateX(-50%) loop is seamless (same
+    // technique as .bb-track / bbMarquee for the flash-news ticker).
+    track.innerHTML = pills + pills;
+    const pause = () => bar.classList.add("is-paused");
+    const resume = () => bar.classList.remove("is-paused");
+    bar.addEventListener("mouseenter", pause);
+    bar.addEventListener("mouseleave", resume);
+    bar.addEventListener("touchstart", pause, { passive: true });
+    bar.addEventListener("touchend", resume, { passive: true });
+    bar.addEventListener("touchcancel", resume, { passive: true });
+  }
+
   function ensureBloombergCss() {
     if (document.querySelector('link[href*="bloomberg-system.css"]')) return;
     const link = document.createElement("link");
@@ -92,6 +128,7 @@
 
   ensureBloombergCss();
   ensureUtilBar();
+  ensureTickerMarquee();
   ensureFlashMarquee();
   normalizeMarqueeTag();
   ensureLiveNavLink();

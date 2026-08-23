@@ -1,10 +1,11 @@
 (function () {
   const catalog = window.QACatalog;
+  const feed = window.QAFeed;
   const ENGINES = window.QA_ENGINE_LIST || [];
-  const TAPE_MAX = 50;
   const MUTE_KEY = "qa_live_mute";
-  const PIN_KEY = "qa_live_pinned_ids";
+  const ACTIVE_KEY = "qa_live_active_id";
   const SYMS = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "DOGEUSDT"];
+  const THREE_HOURS_S = 3 * 3600;
 
   function t(key) {
     if (window.QALang && typeof window.QALang.t === "function") {
@@ -41,8 +42,9 @@
   }
 
   /* ---------------------------------------------------------------------
-   * Sound: synthesized "hammer strike" for bar-close confirmation.
-   * No binary assets — purely generated via Web Audio oscillator/noise.
+   * Sound + voice engine. All audio is synthesized (Web Audio) or spoken
+   * (Web Speech API) — no binary assets. A single toggle gates both the
+   * hammer SFX and the Taiwanese-accent voice narration.
    * ------------------------------------------------------------------- */
   let audioCtx = null;
   function isMuted() {
@@ -66,18 +68,7 @@
     audioCtx = new Ctor();
     return audioCtx;
   }
-  function unlockAudioOnce() {
-    const unlock = () => {
-      const ctx = ensureAudioCtx();
-      if (ctx && ctx.state === "suspended") ctx.resume().catch(() => {});
-      document.removeEventListener("click", unlock);
-      document.removeEventListener("touchstart", unlock);
-      document.removeEventListener("keydown", unlock);
-    };
-    document.addEventListener("click", unlock, { once: true });
-    document.addEventListener("touchstart", unlock, { once: true, passive: true });
-    document.addEventListener("keydown", unlock, { once: true });
-  }
+
   function playHammerSound() {
     if (isMuted()) return;
     const ctx = ensureAudioCtx();
@@ -119,65 +110,124 @@
     }
   }
 
-  /* ---------------------------------------------------------------------
-   * Leaderboard + card metrics (mirrors terminal.js seedMetrics logic).
-   * ------------------------------------------------------------------- */
-  let leaderboard = window.QALeaderboard || null;
-  async function loadLeaderboard() {
-    if (leaderboard) return leaderboard;
+  let heartbeat = null;
+  function startHeartbeat() {
+    if (heartbeat || isMuted()) return;
+    const ctx = ensureAudioCtx();
+    if (!ctx) return;
     try {
-      const cfg = window.QUANT_CONFIG;
-      const url = (cfg && cfg.leaderboardUrl) || "./leaderboard.json";
-      const res = await fetch(url, { cache: "no-store" });
-      if (!res.ok) return null;
-      leaderboard = await res.json();
-      window.QALeaderboard = leaderboard;
-      return leaderboard;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = 54;
+      gain.gain.value = 0.0001;
+      osc.connect(gain).connect(ctx.destination);
+      osc.start();
+      const timer = setInterval(() => {
+        if (!audioCtx) return;
+        const now = ctx.currentTime;
+        gain.gain.cancelScheduledValues(now);
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.045, now + 0.06);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.55);
+      }, 1300);
+      heartbeat = { osc, gain, timer };
     } catch {
-      return null;
+      /* ambient bed is optional */
+    }
+  }
+  function stopHeartbeat() {
+    if (!heartbeat) return;
+    clearInterval(heartbeat.timer);
+    try {
+      heartbeat.osc.stop();
+    } catch {
+      /* already stopped */
+    }
+    heartbeat = null;
+  }
+
+  let cachedVoices = [];
+  function refreshVoices() {
+    if (!("speechSynthesis" in window)) return;
+    try {
+      cachedVoices = window.speechSynthesis.getVoices() || [];
+    } catch {
+      cachedVoices = [];
+    }
+  }
+  if ("speechSynthesis" in window) {
+    refreshVoices();
+    window.speechSynthesis.onvoiceschanged = refreshVoices;
+  }
+  function pickSweetVoice() {
+    if (!cachedVoices.length) return null;
+    const byName = cachedVoices.find((v) => /zh-TW|zh-HK/i.test(v.lang) && /美|雅婷|Yating|Meijia|Sinji|Zhiwei|Female/i.test(v.name));
+    if (byName) return byName;
+    const tw = cachedVoices.find((v) => /zh-TW/i.test(v.lang));
+    if (tw) return tw;
+    const hk = cachedVoices.find((v) => /zh-HK/i.test(v.lang));
+    if (hk) return hk;
+    return cachedVoices.find((v) => /^zh/i.test(v.lang)) || null;
+  }
+  function speak(text) {
+    if (isMuted() || !("speechSynthesis" in window) || !text) return;
+    try {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "zh-TW";
+      u.pitch = 1.15;
+      u.rate = 1.05;
+      const v = pickSweetVoice();
+      if (v) u.voice = v;
+      window.speechSynthesis.speak(u);
+    } catch {
+      /* speech synthesis unsupported */
     }
   }
 
-  function lbForEngine(id) {
-    if (!leaderboard || !leaderboard.by_engine) return null;
-    const be = leaderboard.by_engine;
-    if (be[id]) return be[id];
-    const lower = String(id).toLowerCase();
-    const keys = Object.keys(be);
-    for (let i = 0; i < keys.length; i++) {
-      if (keys[i].toLowerCase() === lower) return be[keys[i]];
-    }
-    return null;
-  }
-
-  function seedMetrics(id) {
-    const lb = lbForEngine(id);
-    if (lb) {
-      return {
-        wr: Number.isFinite(lb.win_rate_smooth) ? lb.win_rate_smooth : Number.isFinite(lb.win_rate) ? lb.win_rate : null,
-        pf: Number.isFinite(lb.profit_factor) ? lb.profit_factor : null,
-        ret: Number.isFinite(lb.roi_pct) ? lb.roi_pct / 100 : null,
-        trades: Number.isFinite(lb.total_trades) ? lb.total_trades : Number.isFinite(lb.trades) ? lb.trades : null,
-      };
-    }
-    const spec = catalog && catalog.get(id);
-    const m = (spec && spec.metrics) || {};
-    const parsePct = (raw) => {
-      if (raw == null || raw === "") return null;
-      const mm = String(raw).match(/-?\d+(?:\.\d+)?/);
-      if (!mm) return null;
-      const n = Number(mm[0]);
-      return Number.isFinite(n) ? n / (String(raw).includes("%") || Math.abs(n) > 1 ? 100 : 1) : null;
+  function unlockAudioOnce() {
+    const unlock = () => {
+      const ctx = ensureAudioCtx();
+      if (ctx && ctx.state === "suspended") ctx.resume().catch(() => {});
+      if (!isMuted()) startHeartbeat();
+      document.removeEventListener("click", unlock);
+      document.removeEventListener("touchstart", unlock);
+      document.removeEventListener("keydown", unlock);
     };
-    return { wr: parsePct(m.win_rate), pf: null, ret: parsePct(m.week_return || m.optimal_return), trades: null };
+    document.addEventListener("click", unlock, { once: true });
+    document.addEventListener("touchstart", unlock, { once: true, passive: true });
+    document.addEventListener("keydown", unlock, { once: true });
+  }
+
+  function bindMuteBtn() {
+    const btn = document.getElementById("liveMuteBtn");
+    if (!btn) return;
+    const paint = () => {
+      const muted = isMuted();
+      btn.setAttribute("data-i18n", muted ? "liveMuteOff" : "liveMuteOn");
+      btn.textContent = muted ? t("liveMuteOff") : t("liveMuteOn");
+    };
+    btn.addEventListener("click", () => {
+      const nowMuted = !isMuted();
+      setMuted(nowMuted);
+      paint();
+      if (nowMuted) {
+        stopHeartbeat();
+        if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+      } else {
+        playHammerSound();
+        startHeartbeat();
+      }
+    });
+    paint();
+    window.addEventListener("quant-lang", paint);
   }
 
   /* ---------------------------------------------------------------------
-   * Build strategy card model list from the canonical 45-ID engine list.
+   * Strategy list (45 canonical IDs) + bar-fetch cache.
    * ------------------------------------------------------------------- */
-  const INTERVAL_MS = { "1m": 60000, "5m": 300000, "15m": 900000, "1h": 3600000, "4h": 14400000, "1d": 86400000, "1w": 604800000 };
-
-  function buildCards() {
+  function buildStrategies() {
     const out = [];
     ENGINES.forEach(([id, tier]) => {
       const spec = catalog && catalog.get(id);
@@ -185,196 +235,34 @@
       out.push({
         id,
         tier,
-        engine: id,
         name: spec.name || id,
-        symbols: (spec.symbols && spec.symbols.length && spec.symbols) || ["BTCUSDT"],
+        symbol: (spec.symbols && spec.symbols[0]) || "BTCUSDT",
         interval: spec.interval || "1h",
-        tags: (spec.tags && spec.tags.length && spec.tags) || (tier === "master" ? ["機構實盤"] : ["開源"]),
-        principle: spec.principle || "",
       });
     });
     return out;
+  }
+
+  const barsCache = new Map();
+  async function barsOf(symbol, interval) {
+    const key = symbol + ":" + interval;
+    if (barsCache.has(key)) {
+      const cached = barsCache.get(key);
+      if (Date.now() - cached.ts < 20000) return cached.bars;
+    }
+    if (!feed || typeof feed.fetchKlines !== "function") {
+      const off = window.QAOffline && window.QAOffline.forInterval(interval);
+      return off && off.length ? off.slice(-500) : [];
+    }
+    const bars = await feed.fetchKlines(symbol, interval, 500);
+    barsCache.set(key, { bars, ts: Date.now() });
+    return bars;
   }
 
   function hashStr(s) {
     let h = 0;
     for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
     return Math.abs(h);
-  }
-
-  function fmtMMSS(ms) {
-    const s = Math.max(0, Math.ceil(ms / 1000));
-    const m = Math.floor(s / 60);
-    const r = s % 60;
-    return String(m).padStart(2, "0") + ":" + String(r).padStart(2, "0");
-  }
-
-  /* ---------------------------------------------------------------------
-   * Pinning (localStorage-backed watchlist).
-   * ------------------------------------------------------------------- */
-  function loadPins() {
-    try {
-      const raw = JSON.parse(localStorage.getItem(PIN_KEY) || "[]");
-      return Array.isArray(raw) ? raw.filter((x) => typeof x === "string") : [];
-    } catch {
-      return [];
-    }
-  }
-  function savePins(ids) {
-    try {
-      localStorage.setItem(PIN_KEY, JSON.stringify(ids));
-    } catch {
-      /* private mode */
-    }
-  }
-  let pinnedIds = loadPins();
-
-  function cardBadgeHtml(id) {
-    return `<span class="lockin-badge" data-lockin="${id}"><span class="lockin-msg"></span><span class="lockin-time"></span></span>`;
-  }
-
-  function cardHtml(card, pinnedVariant) {
-    const master = card.tier === "master";
-    const pinned = pinnedIds.includes(card.id);
-    const seed = seedMetrics(card.id);
-    const wrPct = seed.wr != null ? (seed.wr * 100).toFixed(1) + "%" : "計算中";
-    const pfTxt = seed.pf != null ? seed.pf.toFixed(2) : "—";
-    const badge = master ? `<span class="vip-badge">🔒 機構實盤</span>` : "";
-    const tags = card.tags.map((tg) => `<span class="tag">${escapeHtml(tg)}</span>`).join("");
-    const openHref = "./terminal.html?strategy=" + encodeURIComponent(card.id) + "&interval=" + encodeURIComponent(card.interval);
-    const hitLine =
-      seed.wr != null
-        ? `<p class="card-hit" data-hit-line>👑 ${t("mktWr")} ${wrPct}${seed.ret != null ? " · " + (seed.ret * 100).toFixed(1) + "%" : ""}</p>`
-        : `<p class="card-hit" data-hit-line></p>`;
-    return `<article class="m-card strategy-card${master ? " master" : ""}${pinnedVariant ? " pinned-card" : ""}${pinned ? " is-pinned" : ""}" data-id="${card.id}" data-engine="${card.id}">
-        ${badge}
-        <button type="button" class="card-pin-btn${pinned ? " is-pinned" : ""}" data-pin-toggle="${card.id}" aria-pressed="${pinned}" title="${pinned ? t("pinRemove") : t("pinAdd")}">${pinned ? "★" : "☆"}</button>
-        <h3>${escapeHtml(card.name)}</h3>
-        ${hitLine}
-        ${card.principle ? `<p class="card-principle">${escapeHtml(card.principle)}</p>` : ""}
-        <p class="muted">${card.symbols.join(" / ")} · ${String(card.interval).toUpperCase()}</p>
-        <div class="tags">${tags}</div>
-        <div class="stat-caps">
-          <div class="stat-cap"><span>${t("mktWr")}</span><b>${wrPct}</b></div>
-          <div class="stat-cap"><span>${t("mktSh")}</span><b>${pfTxt}</b></div>
-        </div>
-        ${cardBadgeHtml(card.id)}
-        <div class="card-actions">
-          <a class="btn-cta compact" href="${openHref}">⚡ ${t("mktOpenBt")}</a>
-        </div>
-      </article>`;
-  }
-
-  /* ---------------------------------------------------------------------
-   * Render grid + pinned rail.
-   * ------------------------------------------------------------------- */
-  const gridEl = document.getElementById("liveGrid");
-  const pinnedRail = document.getElementById("pinnedRail");
-  const pinnedTrack = document.getElementById("pinnedTrack");
-
-  function renderGrid(cards) {
-    if (!gridEl) return;
-    gridEl.innerHTML = cards.map((c) => cardHtml(c, false)).join("") || `<p class="muted">${t("mktEmpty")}</p>`;
-  }
-
-  function renderPinnedRail(cards) {
-    if (!pinnedRail || !pinnedTrack) return;
-    const byId = new Map(cards.map((c) => [c.id, c]));
-    const pinnedCards = pinnedIds.map((id) => byId.get(id)).filter(Boolean);
-    if (!pinnedCards.length) {
-      pinnedRail.hidden = false;
-      pinnedTrack.innerHTML = `<p class="pinned-empty">${t("pinnedEmpty")}</p>`;
-      return;
-    }
-    pinnedRail.hidden = false;
-    pinnedTrack.innerHTML = pinnedCards.map((c) => cardHtml(c, true)).join("");
-  }
-
-  function updatePinButtons(id, pinned) {
-    document.querySelectorAll('[data-pin-toggle="' + id + '"]').forEach((btn) => {
-      btn.classList.toggle("is-pinned", pinned);
-      btn.setAttribute("aria-pressed", String(pinned));
-      btn.textContent = pinned ? "★" : "☆";
-      btn.title = pinned ? t("pinRemove") : t("pinAdd");
-    });
-    document.querySelectorAll('.m-card[data-id="' + id + '"]').forEach((card) => {
-      card.classList.toggle("is-pinned", pinned);
-    });
-  }
-
-  function togglePin(id, cards) {
-    const idx = pinnedIds.indexOf(id);
-    const pinning = idx === -1;
-    if (pinning) pinnedIds.push(id);
-    else pinnedIds.splice(idx, 1);
-    savePins(pinnedIds);
-    updatePinButtons(id, pinning);
-    renderPinnedRail(cards);
-    if (pinning && pinnedTrack) {
-      const flown = pinnedTrack.querySelector('[data-id="' + id + '"]');
-      if (flown) flown.classList.add("pin-fly");
-    }
-  }
-
-  function bindPinClicks(cards) {
-    document.addEventListener("click", (ev) => {
-      const btn = ev.target.closest("[data-pin-toggle]");
-      if (!btn) return;
-      togglePin(btn.getAttribute("data-pin-toggle"), cards);
-    });
-  }
-
-  /* ---------------------------------------------------------------------
-   * Live watchers + today's signal counters (client-side atmosphere layer,
-   * seeded from real leaderboard sample sizes where available).
-   * ------------------------------------------------------------------- */
-  const watchersEl = document.getElementById("liveWatchersCount");
-  const signalsEl = document.getElementById("liveSignalsCount");
-  let watchers = 180;
-  let signalsToday = 1200;
-
-  function seedCountersFromLeaderboard() {
-    if (leaderboard && leaderboard.by_engine) {
-      const rows = Object.values(leaderboard.by_engine);
-      const totalTrades = rows.reduce((sum, r) => sum + (Number(r.total_trades || r.trades) || 0), 0);
-      if (totalTrades > 0) signalsToday = 300 + (totalTrades % 900);
-      watchers = 140 + (rows.length ? Math.round((totalTrades / Math.max(1, rows.length)) % 90) : 0);
-    }
-  }
-
-  function paintCounters() {
-    if (watchersEl) watchersEl.textContent = watchers.toLocaleString("en-US");
-    if (signalsEl) signalsEl.textContent = signalsToday.toLocaleString("en-US");
-  }
-
-  function tickCounters() {
-    const hourUtc = new Date().getUTCHours();
-    // Mild day/night wave: busier during Asia + US session overlaps.
-    const wave = 26 * Math.sin(((hourUtc + 2) / 24) * Math.PI * 2);
-    const target = 180 + wave;
-    watchers += Math.round((target - watchers) * 0.08 + (Math.random() * 6 - 3));
-    watchers = Math.max(58, Math.min(420, watchers));
-    if (Math.random() < 0.7) signalsToday += Math.floor(Math.random() * 3);
-    paintCounters();
-  }
-
-  /* ---------------------------------------------------------------------
-   * Global execution tape (capped at TAPE_MAX DOM nodes for robustness).
-   * ------------------------------------------------------------------- */
-  const tapeEl = document.getElementById("liveTape");
-  function addTapeEntry(text, confirmed) {
-    if (!tapeEl) return;
-    const empty = tapeEl.querySelector(".muted");
-    if (empty) empty.remove();
-    const li = document.createElement("li");
-    const now = new Date();
-    const hh = String(now.getHours()).padStart(2, "0");
-    const mm = String(now.getMinutes()).padStart(2, "0");
-    li.innerHTML = `<time>[${hh}:${mm}]</time><span${confirmed ? ' class="tape-confirmed"' : ""}>${escapeHtml(text)}</span>`;
-    tapeEl.insertBefore(li, tapeEl.firstChild);
-    while (tapeEl.children.length > TAPE_MAX) {
-      tapeEl.removeChild(tapeEl.lastChild);
-    }
   }
 
   /* ---------------------------------------------------------------------
@@ -485,124 +373,310 @@
   }
 
   /* ---------------------------------------------------------------------
-   * Bar-close lock-in countdown engine — driven by real wall-clock bar
-   * boundaries per strategy interval. A deterministic hash decides which
-   * ~1/3 of strategies carry a "pending signal" in any given bar bucket,
-   * so all visitors see the same synchronized state (global broadcast feel).
+   * Live watchers + today's signal counters.
    * ------------------------------------------------------------------- */
-  function isPendingSignal(id, bucket) {
-    return (hashStr(id) + bucket) % 3 === 0;
-  }
+  const watchersEl = document.getElementById("liveWatchersCount");
+  const signalsEl = document.getElementById("liveSignalsCount");
+  let watchers = 180;
+  let signalsToday = 1200;
 
-  function tickCard(state, now) {
-    if (state.confirmedUntil) {
-      if (now < state.confirmedUntil) return { phase: "confirmed" };
-      state.confirmedUntil = 0;
-      state.bucket = -1;
+  async function seedCountersFromLeaderboard() {
+    try {
+      const cfg = window.QUANT_CONFIG;
+      const url = (cfg && cfg.leaderboardUrl) || "./leaderboard.json";
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) return;
+      const lb = await res.json();
+      window.QALeaderboard = lb;
+      const rows = Object.values(lb.by_engine || {});
+      const totalTrades = rows.reduce((sum, r) => sum + (Number(r.total_trades || r.trades) || 0), 0);
+      if (totalTrades > 0) signalsToday = 300 + (totalTrades % 900);
+      watchers = 140 + (rows.length ? Math.round((totalTrades / Math.max(1, rows.length)) % 90) : 0);
+      paintCounters();
+      window.dispatchEvent(new CustomEvent("qa-leaderboard-ready"));
+    } catch {
+      /* atmosphere layer only — keep defaults on failure */
     }
-    const bucket = Math.floor(now / state.intervalMs);
-    if (bucket !== state.bucket) {
-      const wasPending = state.bucket >= 0 && state.pending;
-      state.bucket = bucket;
-      state.pending = isPendingSignal(state.id, bucket);
-      if (wasPending) {
-        state.confirmedUntil = now + 3200;
-        return { phase: "confirmed" };
-      }
-    }
-    if (!state.pending) return { phase: "idle" };
-    const remaining = (bucket + 1) * state.intervalMs - now;
-    return { phase: remaining <= 10000 ? "warn" : "pending", remaining };
   }
 
-  function paintLockin(card, result) {
-    const badges = document.querySelectorAll('.lockin-badge[data-lockin="' + card.id + '"]');
-    badges.forEach((b) => {
-      b.classList.remove("is-pending", "is-warn", "is-confirmed");
-      const msg = b.querySelector(".lockin-msg");
-      const time = b.querySelector(".lockin-time");
-      if (result.phase === "idle") {
-        b.classList.remove("is-pending");
-        return;
-      }
-      b.classList.add("is-pending");
-      if (result.phase === "warn") {
-        b.classList.add("is-warn");
-        if (msg) msg.textContent = t("lockinWarn");
-        if (time) time.textContent = fmtMMSS(result.remaining);
-      } else if (result.phase === "confirmed") {
-        b.classList.add("is-confirmed");
-        if (msg) msg.textContent = t("lockinConfirmed");
-        if (time) time.textContent = "";
-      } else {
-        if (msg) msg.textContent = t("lockinLabel");
-        if (time) time.textContent = fmtMMSS(result.remaining);
-      }
-    });
+  function paintCounters() {
+    if (watchersEl) watchersEl.textContent = watchers.toLocaleString("en-US");
+    if (signalsEl) signalsEl.textContent = signalsToday.toLocaleString("en-US");
   }
 
-  function fireConfirmedFx(card) {
-    document.querySelectorAll('.m-card[data-id="' + card.id + '"]').forEach((el) => {
-      el.classList.remove("lockin-hit");
-      void el.offsetWidth;
-      el.classList.add("lockin-hit");
-    });
-    playHammerSound();
-    const sym = (card.symbols && card.symbols[0]) || "BTCUSDT";
-    const text = crowdLockEventText(sym);
-    pushCrowdToast(text);
-    addTapeEntry(text, true);
-    signalsToday += 1;
+  function tickCounters() {
+    const hourUtc = new Date().getUTCHours();
+    const wave = 26 * Math.sin(((hourUtc + 2) / 24) * Math.PI * 2);
+    const target = 180 + wave;
+    watchers += Math.round((target - watchers) * 0.08 + (Math.random() * 6 - 3));
+    watchers = Math.max(58, Math.min(420, watchers));
+    if (Math.random() < 0.7) signalsToday += Math.floor(Math.random() * 3);
     paintCounters();
   }
 
-  function startLockinEngine(cards) {
-    const states = new Map();
-    cards.forEach((card) => {
-      states.set(card.id, {
-        id: card.id,
-        intervalMs: INTERVAL_MS[card.interval] || INTERVAL_MS["1h"],
-        bucket: -1,
-        pending: false,
-        confirmedUntil: 0,
-        lastPhase: "idle",
-      });
+  /* ---------------------------------------------------------------------
+   * Strategy checkbox matrix (single active selection).
+   * ------------------------------------------------------------------- */
+  const matrixListEl = document.getElementById("matrixList");
+  let activeStrategy = null;
+
+  function hotBucket() {
+    return Math.floor(Date.now() / 300000); // rotates every 5 minutes
+  }
+  function isHot(id) {
+    return (hashStr(id) + hotBucket()) % 3 === 0;
+  }
+
+  function matrixRowHtml(s) {
+    return `<label class="matrix-row" data-row="${s.id}">
+        <input type="checkbox" class="matrix-check" data-select="${s.id}" ${activeStrategy && activeStrategy.id === s.id ? "checked" : ""} />
+        <span class="matrix-dot${isHot(s.id) ? " is-hot" : ""}" data-dot="${s.id}" aria-hidden="true"></span>
+        <span class="matrix-name">${escapeHtml(s.name)}</span>
+      </label>`;
+  }
+
+  function renderMatrix(strategies) {
+    if (!matrixListEl) return;
+    matrixListEl.innerHTML = strategies.map(matrixRowHtml).join("");
+  }
+
+  function refreshMatrixDots() {
+    document.querySelectorAll("[data-dot]").forEach((dot) => {
+      dot.classList.toggle("is-hot", isHot(dot.getAttribute("data-dot")));
     });
-    function tick() {
-      const now = Date.now();
-      cards.forEach((card) => {
-        const st = states.get(card.id);
-        if (!st) return;
-        const result = tickCard(st, now);
-        if (result.phase === "confirmed" && st.lastPhase !== "confirmed") {
-          fireConfirmedFx(card);
-        }
-        st.lastPhase = result.phase;
-        paintLockin(card, result);
-      });
-    }
-    tick();
-    setInterval(tick, 1000);
+  }
+
+  function setActiveRow(id) {
+    document.querySelectorAll(".matrix-row").forEach((row) => {
+      const isActive = row.getAttribute("data-row") === id;
+      row.classList.toggle("is-active", isActive);
+      const box = row.querySelector(".matrix-check");
+      if (box) box.checked = isActive;
+    });
   }
 
   /* ---------------------------------------------------------------------
-   * Mute toggle.
+   * War Room Terminal: chart + real trade signals + 3h tape + 60s voice
+   * countdown for whichever strategy is currently selected.
    * ------------------------------------------------------------------- */
-  function bindMuteBtn() {
-    const btn = document.getElementById("liveMuteBtn");
-    if (!btn) return;
-    const paint = () => {
-      const muted = isMuted();
-      btn.setAttribute("data-i18n", muted ? "liveMuteOff" : "liveMuteOn");
-      btn.textContent = muted ? t("liveMuteOff") : t("liveMuteOn");
+  const statusTextEl = document.getElementById("warStatusText");
+  const tapeListEl = document.getElementById("warTapeList");
+  const countdownEl = document.getElementById("warCountdown");
+  const countdownFillEl = document.getElementById("warCountdownFill");
+  const countdownLabelEl = document.getElementById("warCountdownLabel");
+
+  let warChart = null;
+  let warSeries = null;
+  let pollTimer = null;
+  let countdownTimer = null;
+  let lastSeenTs = new Map(); // strategy id -> last known signal ts (seconds)
+  let baselineSet = new Set(); // strategy ids whose first poll has been consumed as baseline
+
+  function addCandleSeries(chart) {
+    const LC = window.LightweightCharts;
+    const opts = {
+      upColor: "#00873c",
+      downColor: "#d0021b",
+      borderVisible: false,
+      wickUpColor: "#00873c",
+      wickDownColor: "#d0021b",
     };
-    btn.addEventListener("click", () => {
-      setMuted(!isMuted());
-      paint();
-      if (!isMuted()) playHammerSound();
+    return typeof chart.addCandlestickSeries === "function" ? chart.addCandlestickSeries(opts) : chart.addSeries(LC.CandlestickSeries, opts);
+  }
+
+  function mountChart() {
+    const el = document.getElementById("warChart");
+    const Charts = window.LightweightCharts;
+    if (!el || !Charts || warChart) return;
+    warChart = Charts.createChart(el, feed.chartOptions(el, el.clientHeight || 420, "1h"));
+    warSeries = addCandleSeries(warChart);
+    if (typeof ResizeObserver !== "undefined") {
+      new ResizeObserver(() => {
+        if (!warChart) return;
+        warChart.applyOptions({ width: el.clientWidth || 280 });
+      }).observe(el);
+    }
+  }
+
+  function fmtHm(ts) {
+    const d = new Date(ts * 1000);
+    return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+  }
+
+  function renderTape(trades) {
+    if (!tapeListEl) return;
+    const nowS = Date.now() / 1000;
+    const recent = trades.filter((tr) => Math.max(tr.t0 || 0, tr.t1 || 0) >= nowS - THREE_HOURS_S).sort((a, b) => (b.t1 || b.t0) - (a.t1 || a.t0));
+    if (!recent.length) {
+      tapeListEl.innerHTML = `<li class="muted">${escapeHtml(t("warTapeEmpty"))}</li>`;
+      return;
+    }
+    tapeListEl.innerHTML = recent
+      .map((tr) => {
+        const pnl = Number(tr.pnlPct);
+        const pnlTxt = tr.open ? "—" : (pnl >= 0 ? "+" : "") + pnl.toFixed(2) + "%";
+        const pnlCls = pnl >= 0 ? "up" : "down";
+        const side = tr.side === "SHORT" ? "sell" : "buy";
+        const label = tr.open ? (tr.side === "SHORT" ? t("warSell") : t("warBuy")) : (tr.side === "SHORT" ? t("warBuy") : t("warSell"));
+        return `<li>
+            <span class="war-tape-time">${fmtHm(tr.open ? tr.t0 : tr.t1)}</span>
+            <span class="war-tape-side ${side}">${escapeHtml(label)}</span>
+            <span class="war-tape-px">${Number(tr.open ? tr.entry : tr.exit).toLocaleString("en-US", { maximumFractionDigits: 6 })}</span>
+            <span class="war-tape-pnl ${pnlCls}">${pnlTxt}</span>
+          </li>`;
+      })
+      .join("");
+  }
+
+  /* ---- 60s open-window countdown + voice cascade ---- */
+  function clearCountdown() {
+    if (countdownTimer) clearInterval(countdownTimer);
+    countdownTimer = null;
+    if (countdownEl) {
+      countdownEl.hidden = true;
+      countdownEl.classList.remove("is-warn", "is-danger", "is-locked");
+    }
+  }
+
+  function updateCountdownUi(remainMs, totalMs, phase) {
+    if (!countdownEl || !countdownFillEl || !countdownLabelEl) return;
+    countdownEl.hidden = false;
+    const pct = Math.max(0, Math.min(100, (remainMs / totalMs) * 100));
+    countdownFillEl.style.width = pct + "%";
+    countdownEl.classList.toggle("is-warn", phase === "warn");
+    countdownEl.classList.toggle("is-danger", phase === "danger");
+    countdownEl.classList.toggle("is-locked", phase === "locked");
+    if (phase === "locked") {
+      countdownLabelEl.textContent = t("warLocked");
+    } else {
+      const secs = Math.max(0, Math.ceil(remainMs / 1000));
+      countdownLabelEl.textContent = secs + "s " + t("warCountdownLabel");
+    }
+  }
+
+  function runOpenWindowCountdown(strategyName) {
+    clearCountdown();
+    playHammerSound();
+    speak(`叮咚！${strategyName}已經可以開倉囉，進入一分鐘窗口期！`);
+    pushCrowdToast(crowdLockEventText(activeStrategy ? activeStrategy.symbol : "BTCUSDT"));
+    signalsToday += 1;
+    paintCounters();
+
+    const total = 60000;
+    const startTs = Date.now();
+    let said30 = false;
+    let said10 = false;
+    updateCountdownUi(total, total, "normal");
+    countdownTimer = setInterval(() => {
+      const elapsed = Date.now() - startTs;
+      const remain = total - elapsed;
+      if (remain <= 0) {
+        clearInterval(countdownTimer);
+        countdownTimer = null;
+        playHammerSound();
+        speak(`${strategyName}開倉窗口期已結束，點位已鎖定！`);
+        updateCountdownUi(0, total, "locked");
+        setTimeout(() => {
+          if (countdownEl) countdownEl.hidden = true;
+        }, 3500);
+        return;
+      }
+      const phase = remain <= 10000 ? "danger" : remain <= 30000 ? "warn" : "normal";
+      updateCountdownUi(remain, total, phase);
+      if (remain <= 30000 && !said30) {
+        said30 = true;
+        speak(`注意，距離${strategyName}開倉窗口期僅剩三十秒！`);
+      }
+      if (remain <= 10000 && !said10) {
+        said10 = true;
+        speak("最後十秒，即將鎖定點位！");
+      }
+    }, 200);
+  }
+
+  /* ---- Poll the active strategy for fresh bars + trade signals ---- */
+  async function refreshActive() {
+    if (!activeStrategy) return;
+    const s = activeStrategy;
+    let bars;
+    try {
+      bars = await barsOf(s.symbol, s.interval);
+    } catch {
+      return;
+    }
+    if (!bars || !bars.length || activeStrategy !== s) return;
+
+    if (warSeries) {
+      warSeries.setData(bars.map((b) => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close })));
+      if (warChart) warChart.timeScale().fitContent();
+    }
+
+    const spec = catalog.get(s.id);
+    if (!spec || typeof spec.run !== "function") return;
+    let trades = [];
+    try {
+      trades = spec.run(bars) || [];
+    } catch {
+      trades = [];
+    }
+    if (activeStrategy !== s) return;
+
+    if (warSeries) {
+      warSeries.setMarkers(
+        trades.flatMap((tr) => {
+          const marks = [{ time: tr.t0, position: "belowBar", color: "#00873c", shape: "arrowUp", text: "BUY" }];
+          if (!tr.open) marks.push({ time: tr.t1, position: "aboveBar", color: "#d0021b", shape: "arrowDown", text: "SELL" });
+          return marks;
+        })
+      );
+    }
+
+    renderTape(trades);
+
+    const last = trades.length ? trades[trades.length - 1] : null;
+    const lastTs = last ? (last.open ? last.t0 : last.t1) : 0;
+    const nowS = Date.now() / 1000;
+    if (!baselineSet.has(s.id)) {
+      baselineSet.add(s.id);
+      lastSeenTs.set(s.id, lastTs);
+    } else if (lastTs && lastTs !== lastSeenTs.get(s.id) && nowS - lastTs < 300) {
+      lastSeenTs.set(s.id, lastTs);
+      runOpenWindowCountdown(s.name);
+    }
+  }
+
+  function paintStatus() {
+    if (!statusTextEl || !activeStrategy) return;
+    statusTextEl.removeAttribute("data-i18n");
+    statusTextEl.textContent = t("warStatusTpl")
+      .replace("{name}", activeStrategy.name)
+      .replace("{tf}", String(activeStrategy.interval).toUpperCase());
+  }
+
+  function selectStrategy(id, strategies) {
+    const s = strategies.find((x) => x.id === id);
+    if (!s) return;
+    activeStrategy = s;
+    setActiveRow(id);
+    paintStatus();
+    clearCountdown();
+    try {
+      localStorage.setItem(ACTIVE_KEY, id);
+    } catch {
+      /* private mode */
+    }
+    mountChart();
+    refreshActive();
+  }
+
+  function bindMatrixClicks(strategies) {
+    if (!matrixListEl) return;
+    matrixListEl.addEventListener("click", (ev) => {
+      const row = ev.target.closest("[data-row]");
+      if (!row) return;
+      ev.preventDefault();
+      selectStrategy(row.getAttribute("data-row"), strategies);
     });
-    paint();
-    window.addEventListener("quant-lang", paint);
   }
 
   /* ---------------------------------------------------------------------
@@ -616,39 +690,42 @@
         /* pack optional */
       }
     }
-    if (!catalog || !ENGINES.length) {
-      if (gridEl) gridEl.innerHTML = `<p class="muted">${t("mktEmpty")}</p>`;
+    if (!catalog || !ENGINES.length || !feed) {
+      if (matrixListEl) matrixListEl.innerHTML = `<p class="muted">${t("mktEmpty")}</p>`;
       return;
     }
-    const cards = buildCards();
-    if (!cards.length) {
-      if (gridEl) gridEl.innerHTML = `<p class="muted">${t("mktEmpty")}</p>`;
+    const strategies = buildStrategies();
+    if (!strategies.length) {
+      if (matrixListEl) matrixListEl.innerHTML = `<p class="muted">${t("mktEmpty")}</p>`;
       return;
     }
-    pinnedIds = pinnedIds.filter((id) => cards.some((c) => c.id === id));
-    renderGrid(cards);
-    renderPinnedRail(cards);
-    bindPinClicks(cards);
+    renderMatrix(strategies);
+    bindMatrixClicks(strategies);
     bindMuteBtn();
     unlockAudioOnce();
     paintCounters();
     setInterval(tickCounters, 4000);
+    setInterval(refreshMatrixDots, 15000);
     scheduleCrowdLoop();
     setTimeout(spawnRandomCrowdEvent, 900);
-    startLockinEngine(cards);
+    seedCountersFromLeaderboard();
 
-    await loadLeaderboard();
-    if (leaderboard) {
-      seedCountersFromLeaderboard();
-      paintCounters();
-      renderGrid(cards);
-      renderPinnedRail(cards);
-      window.dispatchEvent(new CustomEvent("qa-leaderboard-ready"));
+    let savedId = null;
+    try {
+      savedId = localStorage.getItem(ACTIVE_KEY);
+    } catch {
+      savedId = null;
     }
+    const startId = (savedId && strategies.some((s) => s.id === savedId) && savedId) || strategies[0].id;
+    selectStrategy(startId, strategies);
+
+    clearInterval(pollTimer);
+    pollTimer = setInterval(refreshActive, 20000);
 
     window.addEventListener("quant-lang", () => {
-      renderGrid(cards);
-      renderPinnedRail(cards);
+      renderMatrix(strategies);
+      if (activeStrategy) setActiveRow(activeStrategy.id);
+      paintStatus();
     });
   }
 

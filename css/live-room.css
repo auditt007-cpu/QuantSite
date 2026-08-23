@@ -1,4 +1,5 @@
-/* Live War Room — Copart-style crowd presence, pinning and bar-close lock-in. */
+/* Live War Room — Top-20 marquee lives in styles.css; this file covers the
+   single War Room terminal + compact strategy checkbox matrix + crowd toast. */
 
 .live-status-bar {
   display: flex;
@@ -20,7 +21,8 @@
   font-weight: 800;
 }
 .live-status-sep { color: #475569; }
-.live-dot {
+.live-dot,
+.war-status-dot {
   width: 8px; height: 8px; border-radius: 50%; background: #4ade80;
   display: inline-block; margin-right: 2px;
   animation: liveDotPulse 1.5s ease-in-out infinite;
@@ -40,92 +42,131 @@
 /* ---- Head ---- */
 .live-room-head { margin-bottom: 4px; }
 
-/* ---- Pinned rail ---- */
-.pinned-rail {
-  margin: 18px 0 22px;
-  padding: 14px;
-  border: 2px solid #c9a227;
-  background: #fffdf5;
+/* ---- War Room Terminal (single big view) ---- */
+.war-room {
+  margin: 18px 0 20px;
+  padding: 16px;
+  border: 2px solid #000000;
+  background: #ffffff;
 }
-.pinned-h {
-  margin: 0 0 12px !important;
-  display: flex; align-items: center; gap: 6px;
-  font-size: 13px; letter-spacing: 0.1em; color: #8a6d1a;
-  text-transform: uppercase;
-}
-.pinned-track {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 12px;
-}
-.pinned-card { min-height: 0 !important; border-color: #c9a227 !important; background: #ffffff; }
-.pinned-empty { margin: 0; font-size: 12px; color: #94a3b8; line-height: 1.6; }
-
-@keyframes pinFlyUp {
-  0% { opacity: 0; transform: translateY(18px) scale(0.94); }
-  60% { opacity: 1; transform: translateY(-4px) scale(1.02); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
-}
-.pin-fly { animation: pinFlyUp 0.42s cubic-bezier(0.2, 0.8, 0.2, 1); }
-
-/* ---- Grid + card pin/lock-in add-ons (extends .m-card / .strategy-card) ---- */
-.live-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
-.live-grid .m-card.is-pinned,
-.pinned-card { box-shadow: inset 0 0 0 1px #c9a227; }
-
-.card-pin-btn {
-  position: absolute; top: 8px; left: 8px; z-index: 2;
-  width: 28px; height: 28px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 15px; line-height: 1;
-  background: #ffffff; border: 1px solid var(--border-line);
-  cursor: pointer; padding: 0; color: #94a3b8;
-  transition: color 0.15s ease, transform 0.12s ease;
-}
-.card-pin-btn:hover { transform: scale(1.08); }
-.card-pin-btn.is-pinned { color: #c9a227; border-color: #c9a227; }
-.m-card.master .card-pin-btn { top: 8px; left: 8px; }
-.m-card.master .vip-badge { right: 8px; }
-.m-card.master h3 { padding-right: 0; padding-left: 30px; }
-.m-card h3 { padding-left: 30px; }
-
-.lockin-badge {
-  display: none;
+.war-room-status {
+  display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-family: var(--mono);
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
+  font-size: 13px;
+  font-weight: 800;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.war-chart-frame {
   border: 1px solid var(--border-subtle);
   background: var(--bg-surface);
-  color: var(--text-muted);
-  padding: 5px 8px;
-  white-space: nowrap;
+  margin-bottom: 14px;
 }
-.lockin-badge.is-pending { display: inline-flex; }
-.lockin-badge .lockin-time { font-variant-numeric: tabular-nums; color: var(--text-main); }
-.lockin-badge.is-warn {
-  color: #92400e;
-  border-color: #d97706;
-  background: #fffbeb;
-  animation: lockinWarnFlash 0.5s steps(2, jump-none) infinite;
+.war-chart { width: 100%; height: 420px; }
+
+.war-countdown { margin: 4px 0 16px; }
+.war-countdown-bar {
+  height: 10px;
+  background: #e2e8f0;
+  border: 1px solid #000000;
+  overflow: hidden;
 }
-@keyframes lockinWarnFlash {
-  0%, 100% { border-color: #d97706; box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.35); }
-  50% { border-color: #fbbf24; box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.18); }
-}
-.lockin-badge.is-confirmed {
-  color: #ffffff;
-  border-color: #16a34a;
+.war-countdown-fill {
+  height: 100%;
+  width: 100%;
   background: #16a34a;
-  animation: none;
+  transition: width 0.25s linear, background-color 0.3s ease;
 }
-.m-card.lockin-hit { animation: hammerFlash 0.55s ease-out; }
-@keyframes hammerFlash {
-  0% { box-shadow: inset 0 0 0 3px #16a34a; }
-  100% { box-shadow: inset 0 0 0 0 rgba(22, 163, 74, 0); }
+.war-countdown.is-warn .war-countdown-fill { background: #d97706; }
+.war-countdown.is-danger .war-countdown-fill { background: #dc2626; animation: warCountdownDanger 0.4s steps(2, jump-none) infinite; }
+.war-countdown.is-locked .war-countdown-fill { background: #111827; }
+@keyframes warCountdownDanger {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
+.war-countdown-label {
+  margin-top: 6px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--text-muted);
+}
+.war-countdown.is-warn .war-countdown-label { color: #92400e; }
+.war-countdown.is-danger .war-countdown-label { color: #b91c1c; font-weight: 800; }
+.war-countdown.is-locked .war-countdown-label { color: #111827; }
+
+.war-tape-h { margin: 0 0 10px; font-size: 13px; letter-spacing: 0.06em; color: var(--text-main); }
+.war-tape-list {
+  list-style: none;
+  margin: 0; padding: 0;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.war-tape-list li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 2px;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 12px;
+  font-family: var(--mono);
+}
+.war-tape-list li:last-child { border-bottom: 0; }
+.war-tape-time { color: var(--text-muted); flex: 0 0 auto; }
+.war-tape-side { flex: 0 0 auto; font-weight: 800; }
+.war-tape-side.buy { color: var(--color-up); }
+.war-tape-side.sell { color: var(--color-down); }
+.war-tape-px { flex: 1 1 auto; text-align: right; color: var(--text-main); }
+.war-tape-pnl { flex: 0 0 auto; font-weight: 700; min-width: 64px; text-align: right; }
+.war-tape-pnl.up { color: var(--color-up); }
+.war-tape-pnl.down { color: var(--color-down); }
+
+/* ---- Strategy checkbox matrix ---- */
+.strategy-matrix {
+  margin: 4px 0 26px;
+  border-top: 2px solid #000000;
+  padding-top: 14px;
+}
+.matrix-h {
+  margin: 0 0 10px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.matrix-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 2px 16px;
+}
+.matrix-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 4px;
+  font-size: 12.5px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-subtle);
+  user-select: none;
+}
+.matrix-row:hover { background: var(--bg-surface); }
+.matrix-row.is-active {
+  font-weight: 800;
+  background: #fffdf5;
+  box-shadow: inset 2px 0 0 #c9a227;
+}
+.matrix-check { accent-color: #000000; width: 15px; height: 15px; flex-shrink: 0; }
+.matrix-dot { width: 7px; height: 7px; border-radius: 50%; background: transparent; flex-shrink: 0; }
+.matrix-dot.is-hot {
+  background: #16a34a;
+  animation: liveDotPulse 1.4s ease-in-out infinite;
+}
+.matrix-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ---- Crowd activity toast capsules (bottom-left, Copart style) ---- */
 .crowd-toast-stack {
@@ -154,51 +195,16 @@
 .crowd-toast.is-in { opacity: 1; transform: translateY(0); }
 .crowd-toast.is-out { opacity: 0; transform: translateY(-6px); }
 
-/* ---- Global execution tape (sidebar) ---- */
-.live-tape-list {
-  list-style: none;
-  margin: 0; padding: 0;
-  max-height: 320px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-.live-tape-list li {
-  padding: 7px 0;
-  border-bottom: 1px solid var(--border-subtle);
-  font-size: 11.5px;
-  line-height: 1.5;
-  color: var(--text-main);
-}
-.live-tape-list li:last-child { border-bottom: 0; }
-.live-tape-list time {
-  font-family: var(--mono);
-  color: var(--text-muted);
-  margin-right: 6px;
-  font-size: 10.5px;
-}
-.live-tape-list .tape-confirmed { color: #16a34a; font-weight: 700; }
-
 @media (max-width: 768px) {
   .live-status-bar { font-size: 11px; padding: 8px 12px; }
   .live-mute-btn { padding: 4px 8px; font-size: 10px; }
 
-  .pinned-rail { padding: 10px; margin: 14px 0 16px; }
-  .pinned-track {
-    display: flex;
-    flex-direction: row;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    gap: 10px;
-    padding-bottom: 4px;
-  }
-  .pinned-track::-webkit-scrollbar { display: none; }
-  .pinned-card {
-    flex: 0 0 78vw;
-    scroll-snap-align: start;
-  }
+  .war-room { padding: 12px; margin: 14px 0 16px; }
+  .war-chart { height: 280px; }
+  .war-room-status { font-size: 12px; }
+
+  .matrix-list { grid-template-columns: 1fr 1fr; gap: 0 10px; }
+  .matrix-row { font-size: 12px; padding: 8px 2px; }
 
   .crowd-toast-stack {
     left: 8px; right: 8px; bottom: 8px;

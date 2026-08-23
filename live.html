@@ -80,32 +80,43 @@
       </div>
     </div>
 
-    <div class="editorial-grid">
+    <div class="editorial-grid war-room-page-grid">
       <div class="editorial-main">
         <section class="live-room-head">
           <div class="kicker desk-only" data-i18n="liveKicker">LIVE WAR ROOM</div>
           <h2 class="h2" data-i18n="liveTitle">實時量化作戰室</h2>
-          <p class="muted desk-only" data-i18n="liveSub">全球節點同步廣播 · K線收線落槌確認 · 置頂你的核心監控策略</p>
+          <p class="muted desk-only" data-i18n="liveSub">單一大屏監控 · 3 小時內有效買賣點 · 60 秒開倉窗口語音倒計時</p>
         </section>
 
-        <section class="pinned-rail" id="pinnedRail" hidden>
-          <h3 class="pinned-h">⭐ <span data-i18n="pinnedTitle">核心監控席 · PINNED</span></h3>
-          <div class="pinned-track" id="pinnedTrack"></div>
-        </section>
-
-        <section class="desk">
-          <div class="live-grid" id="liveGrid">
-            <p class="muted" data-i18n="liveGridEmpty">策略載入中…</p>
+        <section class="war-room" id="warRoom">
+          <div class="war-room-status" id="warStatus">
+            <span class="war-status-dot" aria-hidden="true"></span>
+            <span id="warStatusText" data-i18n="warStatusIdle">⚪ 選擇左側策略以啟動監控</span>
           </div>
+
+          <div class="war-chart-frame">
+            <div id="warChart" class="war-chart chart-container"></div>
+          </div>
+
+          <div class="war-countdown" id="warCountdown" hidden>
+            <div class="war-countdown-bar"><div class="war-countdown-fill" id="warCountdownFill"></div></div>
+            <div class="war-countdown-label" id="warCountdownLabel">60s</div>
+          </div>
+
+          <div class="war-tape-block">
+            <h3 class="war-tape-h" data-i18n="warTapeTitle">📡 3 小時內有效買賣點</h3>
+            <ul class="war-tape-list" id="warTapeList">
+              <li class="muted" data-i18n="warTapeEmpty">暫無 3 小時內有效訊號</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="strategy-matrix" id="strategyMatrix">
+          <h3 class="matrix-h" data-i18n="matrixTitle">策略清單 · STRATEGY MATRIX</h3>
+          <div class="matrix-list" id="matrixList"></div>
         </section>
       </div>
       <aside class="editorial-rail" aria-label="Live sidebar">
-        <section class="rail-block">
-          <div class="kicker kicker-plain" data-i18n="liveTapeTitle">🧾 全球執行動態 · GLOBAL TAPE</div>
-          <ul class="live-tape-list" id="liveTape">
-            <li class="muted" data-i18n="liveTapeEmpty">等待全球節點同步中…</li>
-          </ul>
-        </section>
         <section class="rail-block flash-desk">
           <div class="kicker" data-i18n="flashKicker">FLASH NEWS</div>
           <h3 class="rail-h" data-i18n="flashTitle">⚡ 7x24 即時快訊</h3>
@@ -154,6 +165,7 @@
   <script src="./js/pack-catalog.js"></script>
   <script src="./js/binance-feed.js"></script>
   <script src="./js/engine-list.js"></script>
+  <script src="./js/lightweight-charts.standalone.production.js"></script>
   <script src="./js/live-room.js"></script>
 </body>
 </html>
