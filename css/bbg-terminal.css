@@ -1,0 +1,302 @@
+/* Bloomberg terminal — backtest results card */
+.bbg-terminal-card {
+  background: #090d14;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  padding: 18px;
+  color: #e2e8f0;
+  font-family: "JetBrains Mono", "Roboto Mono", "SF Mono", Consolas, monospace;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+  max-width: 100%;
+  margin: 15px auto;
+}
+
+.bbg-main-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 768px) {
+  .bbg-main-grid { grid-template-columns: 1fr; }
+}
+
+.bbg-capital-panel {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 6px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.bbg-badge-label {
+  font-size: 11px;
+  color: #f59e0b;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.bbg-flow-value {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.bbg-arrow { color: #64748b; margin: 0 6px; }
+.bbg-muted { color: #94a3b8; }
+.bbg-accent-gold { color: #fbbf24; }
+.bbg-bright-white { color: #ffffff; }
+
+.bbg-pnl-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.bbg-pnl-tag {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.bbg-pnl-banner.is-loss .bbg-pnl-tag {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.bbg-pnl-val {
+  color: #10b981;
+  font-weight: 700;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.bbg-pnl-val.is-loss { color: #ef4444; }
+
+.bbg-metrics-matrix {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.bbg-metric-cell {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 6px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.bbg-metric-cell:hover {
+  border-color: #334155;
+  background: #111c31;
+}
+
+.bbg-metric-title {
+  font-size: 10px;
+  color: #64748b;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.bbg-metric-number {
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.bbg-status-strip {
+  background: #020617;
+  border: 1px solid #1e293b;
+  border-radius: 4px;
+  padding: 8px 12px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 12px;
+  font-size: 11px;
+  margin-bottom: 14px;
+  color: #94a3b8;
+}
+
+.bbg-strip-item strong {
+  color: #f1f5f9;
+  margin-left: 4px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.bbg-loss-text { color: #ef4444 !important; }
+.bbg-win-text { color: #10b981 !important; }
+
+.bbg-trades-section {
+  background: #0b1120;
+  border: 1px solid #1e293b;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.bbg-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 600;
+  margin-bottom: 10px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.bbg-tag-live {
+  background: #1e293b;
+  color: #38bdf8;
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 2px;
+  letter-spacing: 0.5px;
+}
+
+.bbg-trades-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+@media (max-width: 600px) {
+  .bbg-trades-grid { grid-template-columns: 1fr; }
+}
+
+.bbg-trade-item.open { grid-column: 1 / -1; }
+
+.bbg-trade-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: filter 0.15s ease, border-color 0.15s ease;
+}
+
+.bbg-trade-pill:hover { filter: brightness(1.08); }
+
+.bbg-trade-win {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: #10b981;
+}
+
+.bbg-trade-loss {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #ef4444;
+}
+
+.bbg-trade-pill.open {
+  border-color: #f59e0b;
+  box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.25);
+}
+
+.bbg-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+
+.bbg-trade-win .bbg-dot { background: #10b981; }
+.bbg-trade-loss .bbg-dot { background: #ef4444; }
+
+.bbg-trade-val {
+  flex: 1;
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+}
+
+.bbg-trade-date {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: normal;
+  margin-left: 8px;
+}
+
+.bbg-trade-detail {
+  margin-top: 6px;
+  border: 1px solid #1e293b;
+  border-radius: 4px;
+  overflow-x: auto;
+  background: #020617;
+}
+
+.bbg-trade-detail[hidden] { display: none !important; }
+
+.bbg-trade-detail .trade-pill-table {
+  width: 100%;
+  margin: 0;
+  border-collapse: collapse;
+  font-size: 10px;
+  font-family: inherit;
+  color: #e2e8f0;
+  background: #020617;
+}
+
+.bbg-trade-detail .trade-pill-table th,
+.bbg-trade-detail .trade-pill-table td {
+  padding: 6px 8px;
+  border: 1px solid #1e293b;
+  white-space: nowrap;
+  color: #e2e8f0;
+  background: #020617;
+}
+
+.bbg-trade-detail .trade-pill-table th {
+  color: #f59e0b;
+  font-size: 9px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  background: #0f172a;
+}
+
+.bbg-trade-detail .trade-pill-table tbody tr:nth-child(even) td { background: #0b1120; }
+.bbg-trade-detail .trade-pill-table .pnl.up { color: #10b981; font-weight: 700; }
+.bbg-trade-detail .trade-pill-table .pnl.down { color: #ef4444; font-weight: 700; }
+
+.bbg-footer-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px 12px;
+  font-size: 10px;
+  color: #475569;
+  margin-top: 10px;
+  padding: 0 4px;
+  letter-spacing: 0.3px;
+}
+
+@media (max-width: 768px) {
+  .bbg-terminal-card { padding: 12px; margin: 10px auto; }
+  .bbg-flow-value { font-size: 18px; }
+  .bbg-footer-bar { flex-direction: column; }
+}

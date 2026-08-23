@@ -309,11 +309,12 @@ function resetBacktestResults() {
   closeSheet();
   if (candleSeries) candleSeries.setMarkers([]);
   if ($("sampleHint")) $("sampleHint").textContent = t("btAwaitRun");
-  if ($("moneyEnd")) $("moneyEnd").textContent = "$10,000.00 → $10,000.00";
-  if ($("moneyPnl")) {
-    $("moneyPnl").textContent = t("moneyPnlIdle");
-    $("moneyPnl").className = "bb-term-pnl";
-  }
+  if ($("moneyStart")) $("moneyStart").textContent = "$10,000";
+  if ($("moneyEnd")) $("moneyEnd").textContent = "$10,000";
+  if ($("moneyPnl")) $("moneyPnl").textContent = t("moneyPnlIdle");
+  const pnlWrap = $("moneyPnlWrap");
+  if (pnlWrap) pnlWrap.classList.remove("is-loss");
+  if ($("moneyPnl")) $("moneyPnl").classList.remove("is-loss");
   if ($("tradePills")) $("tradePills").innerHTML = "";
   pillEq = null;
   if ($("mWr")) $("mWr").textContent = "—";
@@ -322,18 +323,16 @@ function resetBacktestResults() {
   if ($("mBars")) $("mBars").textContent = "—";
   if ($("navStart")) $("navStart").textContent = "$10,000.00";
   if ($("navNow")) $("navNow").textContent = "$10,000.00";
-  if ($("navPnl")) {
-    $("navPnl").textContent = "+0.00%";
-    $("navPnl").className = "val up";
-  }
   if ($("navDd")) {
     $("navDd").textContent = "0.0%";
-    $("navDd").className = "val down";
+    $("navDd").className = "bbg-loss-text";
   }
   if ($("navDur")) {
     $("navDur").textContent = t("navDurIdle");
-    $("navDur").className = "val";
+    $("navDur").className = "bbg-win-text";
   }
+  if ($("bbgFooterRange")) $("bbgFooterRange").textContent = t("bbgFooterRangeIdle");
+  if ($("bbgFooterMeta")) $("bbgFooterMeta").textContent = t("bbgFooterMetaIdle");
   if (equityChart) {
     equityChart.remove();
     equityChart = null;
@@ -390,15 +389,20 @@ function tradePillsHtml(trades) {
     .map((tr, idx) => {
       const win = Number(tr.pnlAbs) > 0;
       const d = new Date(Number(tr.t1) * 1000);
-      const md = isFinite(d.getTime()) ? d.getMonth() + 1 + "/" + d.getDate() : "";
+      const md = isFinite(d.getTime())
+        ? String(d.getMonth() + 1).padStart(2, "0") + "/" + String(d.getDate()).padStart(2, "0")
+        : "—";
       const usd = fmtUsd0(Math.abs(Number(tr.pnlAbs)));
       const sign = win ? "+" : "-";
+      const tone = win ? "bbg-trade-win" : "bbg-trade-loss";
       return (
-        `<div class="trade-pill-item" data-trade-item="${idx}">` +
-        `<button type="button" class="trade-pill ${win ? "up" : "down"}" data-trade-idx="${idx}" aria-expanded="false">` +
-        `${sign}$${usd} · ${md}` +
+        `<div class="bbg-trade-item" data-trade-item="${idx}">` +
+        `<button type="button" class="bbg-trade-pill ${tone}" data-trade-idx="${idx}" aria-expanded="false">` +
+        `<span class="bbg-dot"></span>` +
+        `<span class="bbg-trade-val">${sign}$${usd}</span>` +
+        `<span class="bbg-trade-date">${md}</span>` +
         `</button>` +
-        `<div class="trade-pill-detail" id="tradeDetail${idx}" hidden>${tradePillDetailHtml(tr)}</div>` +
+        `<div class="bbg-trade-detail" id="tradeDetail${idx}" hidden>${tradePillDetailHtml(tr)}</div>` +
         `</div>`
       );
     })
@@ -419,14 +423,14 @@ function bindTradePills() {
     const item = btn.closest("[data-trade-item]");
     if (!detail) return;
     const wasOpen = btn.getAttribute("aria-expanded") === "true";
-    host.querySelectorAll(".trade-pill-detail").forEach((el) => {
+    host.querySelectorAll(".bbg-trade-detail").forEach((el) => {
       el.hidden = true;
     });
-    host.querySelectorAll(".trade-pill[data-trade-idx]").forEach((el) => {
+    host.querySelectorAll(".bbg-trade-pill[data-trade-idx]").forEach((el) => {
       el.setAttribute("aria-expanded", "false");
       el.classList.remove("open");
     });
-    host.querySelectorAll("[data-trade-item]").forEach((el) => el.classList.remove("open"));
+    host.querySelectorAll(".bbg-trade-item").forEach((el) => el.classList.remove("open"));
     if (!wasOpen) {
       detail.hidden = false;
       btn.setAttribute("aria-expanded", "true");
@@ -436,26 +440,44 @@ function bindTradePills() {
   });
 }
 
+function paintBbgFooter(ctx) {
+  if (!ctx) return;
+  if ($("bbgFooterRange")) {
+    $("bbgFooterRange").textContent = t("bbgFooterRangeTpl")
+      .replace("{from}", ctx.fromLabel)
+      .replace("{to}", ctx.toLabel)
+      .replace("{days}", String(ctx.lookDays));
+  }
+  if ($("bbgFooterMeta")) {
+    $("bbgFooterMeta").textContent = t("bbgFooterMetaTpl")
+      .replace("{tf}", String(ctx.tf || interval).toUpperCase())
+      .replace("{n}", String(ctx.windowBarCount));
+  }
+}
+
 function paintRetail(eq, st, trades, ctx) {
   const end = eq && eq.length ? eq[eq.length - 1] : START_EQ;
   const profit = end - START_EQ;
   const pct = st ? st.ret : 0;
-  const days = ctx ? ctx.windowDays : spanDays(bars);
   const sign = profit >= 0 ? "+" : "-";
-  if ($("moneyEnd")) $("moneyEnd").textContent = "$" + fmtUsd(START_EQ) + " → $" + fmtUsd(end);
+  const loss = profit < 0;
+  if ($("moneyStart")) $("moneyStart").textContent = "$" + fmtUsd0(START_EQ);
+  if ($("moneyEnd")) $("moneyEnd").textContent = "$" + fmtUsd0(end);
   if ($("moneyPnl")) {
     $("moneyPnl").textContent = t("moneyPnlTpl")
       .replace("{sign}", sign)
       .replace("{amt}", fmtUsd(Math.abs(profit)))
       .replace("{pct}", fmtSignedPct(pct));
-    $("moneyPnl").className = "bb-term-pnl " + (profit < 0 ? "down" : "up");
+    $("moneyPnl").classList.toggle("is-loss", loss);
   }
+  if ($("moneyPnlWrap")) $("moneyPnlWrap").classList.toggle("is-loss", loss);
   pillEq = eq;
   if ($("tradePills")) $("tradePills").innerHTML = tradePillsHtml(trades);
+  paintBbgFooter(ctx);
   const shareLine = $("shareLine");
   const shareSub = $("shareSub");
   if (shareLine) shareLine.textContent = "$" + fmtUsd0(START_EQ) + " → $" + fmtUsd0(end);
-  if (shareSub) shareSub.textContent = fmtSignedPct(pct) + " · " + days + "d";
+  if (shareSub) shareSub.textContent = fmtSignedPct(pct) + " · " + (ctx ? ctx.windowDays : 0) + "d";
 }
 
 function paintNav(eq, st, ctx) {
@@ -468,19 +490,14 @@ function paintNav(eq, st, ctx) {
     $("navNow").textContent = "$" + fmtUsd(now);
     if (window.QAUi) window.QAUi.flash($("navNow"), down);
   }
-  if ($("navPnl")) {
-    $("navPnl").textContent = fmtSignedPct(st ? st.ret : 0);
-    $("navPnl").className = "val " + (st && st.ret < 0 ? "down" : "up");
-    if (window.QAUi) window.QAUi.flash($("navPnl"), down);
-  }
   if ($("navDd")) {
     $("navDd").textContent = (dd * 100).toFixed(1) + "%";
-    $("navDd").className = "val down";
+    $("navDd").className = "bbg-loss-text";
     if (window.QAUi) window.QAUi.flash($("navDd"), true);
   }
   if ($("navDur")) {
     $("navDur").textContent = t("navDurTpl").replace("{n}", String(n));
-    $("navDur").className = "val accent";
+    $("navDur").className = "bbg-win-text";
     if (window.QAUi) window.QAUi.flash($("navDur"), false);
   }
 }

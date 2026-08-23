@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>QUANT ALPHA · 策略終端</title>
   <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./css/bbg-terminal.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
@@ -156,37 +157,57 @@
         </div>
 
         <div class="bt-results bb-sheet in-page" id="resultSheet">
-          <article class="money-card bb-term" id="moneyCard">
-            <div class="bb-term-panel">
-              <div class="bb-term-main">
-                <section class="bb-term-capital">
-                  <span class="bb-term-label" data-i18n="moneyAssume">INITIAL CAPITAL $10,000 USDT</span>
-                  <p class="bb-term-flow" id="moneyEnd">$10,000.00 → $10,000.00</p>
-                  <p class="bb-term-pnl" id="moneyPnl" data-i18n="moneyPnlIdle">NET PNL: +$0.00 / +0.00%</p>
-                </section>
-                <section class="bb-term-metrics" aria-label="Performance stats">
-                  <div class="bb-term-metrics-hd" data-i18n="gmSummary">METRICS</div>
-                  <div class="bb-term-metrics-grid">
-                    <div class="bb-term-metric"><span data-i18n="statWr">WIN RATE</span><b id="mWr">—</b></div>
-                    <div class="bb-term-metric"><span data-i18n="statPf">PROFIT FACTOR</span><b id="mPf">—</b></div>
-                    <div class="bb-term-metric"><span data-i18n="statTrades">TRADES</span><b id="mTrades">—</b></div>
-                    <div class="bb-term-metric"><span data-i18n="statBars">SAMPLE</span><b id="mBars">—</b></div>
-                  </div>
-                </section>
+          <div class="bbg-terminal-card" id="moneyCard">
+            <div class="bbg-main-grid">
+              <div class="bbg-capital-panel">
+                <div class="bbg-badge-label" data-i18n="moneyAssume">INITIAL CAPITAL · 10,000 USDT</div>
+                <div class="bbg-flow-value">
+                  <span class="bbg-muted" id="moneyStart">$10,000</span>
+                  <span class="bbg-arrow">→</span>
+                  <span class="bbg-accent-gold" id="moneyEnd">$10,000</span>
+                </div>
+                <div class="bbg-pnl-banner" id="moneyPnlWrap">
+                  <span class="bbg-pnl-tag">NET PNL</span>
+                  <span class="bbg-pnl-val" id="moneyPnl">+$0.00 USDT (+0.0%)</span>
+                </div>
               </div>
-              <div class="bb-term-status" id="navLine">
-                <span class="bb-term-stat"><em data-i18n="lblStart">START</em><b id="navStart">$10,000.00</b></span>
-                <span class="bb-term-stat"><em data-i18n="lblCurrent">CURRENT</em><b id="navNow">$10,000.00</b></span>
-                <span class="bb-term-stat"><em data-i18n="lblNetPnl">NET PNL</em><b id="navPnl" class="val up">+0.00%</b></span>
-                <span class="bb-term-stat"><em data-i18n="lblMaxDd">MAX DD</em><b id="navDd" class="val down">0.0%</b></span>
-                <span class="bb-term-stat"><em data-i18n="lblPeriod">PERIOD</em><b id="navDur" class="val">30 DAYS</b></span>
+              <div class="bbg-metrics-matrix">
+                <div class="bbg-metric-cell">
+                  <span class="bbg-metric-title" data-i18n="statWr">WIN RATE / 勝率</span>
+                  <span class="bbg-metric-number bbg-accent-gold" id="mWr">—</span>
+                </div>
+                <div class="bbg-metric-cell">
+                  <span class="bbg-metric-title" data-i18n="statPf">PROFIT FACTOR / 盈虧比</span>
+                  <span class="bbg-metric-number bbg-bright-white" id="mPf">—</span>
+                </div>
+                <div class="bbg-metric-cell">
+                  <span class="bbg-metric-title" data-i18n="statTrades">TOTAL TRADES / 總筆數</span>
+                  <span class="bbg-metric-number bbg-bright-white" id="mTrades">—</span>
+                </div>
+                <div class="bbg-metric-cell">
+                  <span class="bbg-metric-title" data-i18n="statBars">SAMPLE SIZE / 樣本數</span>
+                  <span class="bbg-metric-number bbg-bright-white" id="mBars">—</span>
+                </div>
               </div>
-              <section class="bb-term-trades">
-                <div class="bb-term-section-hd" data-i18n="gmTrades">TRADES</div>
-                <div class="trade-pills money-trade-pills" id="tradePills"></div>
-              </section>
             </div>
-          </article>
+            <div class="bbg-status-strip" id="navLine">
+              <div class="bbg-strip-item"><span>START:</span> <strong id="navStart">$10,000.00</strong></div>
+              <div class="bbg-strip-item"><span>CURRENT:</span> <strong id="navNow">$10,000.00</strong></div>
+              <div class="bbg-strip-item"><span>MAX DD:</span> <strong id="navDd" class="bbg-loss-text">0.0%</strong></div>
+              <div class="bbg-strip-item"><span>PERIOD:</span> <strong id="navDur" class="bbg-win-text">30 DAYS</strong></div>
+            </div>
+            <div class="bbg-trades-section">
+              <div class="bbg-section-header">
+                <span data-i18n="bbgExecLogs">EXECUTION LOGS / 實盤成交記錄</span>
+                <span class="bbg-tag-live">LIVE EXEC</span>
+              </div>
+              <div class="bbg-trades-grid" id="tradePills"></div>
+            </div>
+            <div class="bbg-footer-bar">
+              <span id="bbgFooterRange">BACKTEST RANGE: —</span>
+              <span id="bbgFooterMeta">TIMEFRAME: — · SAMPLES: —</span>
+            </div>
+          </div>
           <p class="muted sample-hint desk-only" id="sampleHint" data-i18n="btAwaitRun">設定幣種、周期與回測區間後，點擊「執行回測」</p>
           <div class="perf-block">
             <h3 class="zone-title" data-i18n="gmEquity">淨值曲線</h3>
