@@ -116,6 +116,29 @@
           <button type="button" class="seg-btn" data-tf="1w">1W</button>
         </div>
 
+        <div class="bt-param-grid">
+          <label class="bt-param">
+            <span class="exec-label" data-i18n="dockCoin">幣種</span>
+            <select id="btSymbol">
+              <option value="BTCUSDT">BTCUSDT</option>
+              <option value="ETHUSDT">ETHUSDT</option>
+              <option value="SOLUSDT">SOLUSDT</option>
+              <option value="BNBUSDT">BNBUSDT</option>
+              <option value="XRPUSDT">XRPUSDT</option>
+              <option value="DOGEUSDT">DOGEUSDT</option>
+            </select>
+          </label>
+          <label class="bt-param">
+            <span class="exec-label" data-i18n="lookback">回測時間區間</span>
+            <select id="btLookback">
+              <option value="90" data-i18n="look3m">近3個月</option>
+              <option value="180" data-i18n="look6m">近6個月</option>
+              <option value="365" selected data-i18n="look1y">近1年</option>
+              <option value="1095" data-i18n="look3y">近3年</option>
+            </select>
+          </label>
+        </div>
+
         <div class="exec-bar">
           <label class="muted exec-label" for="stratSelect" data-i18n="engineLabel">策略引擎選擇</label>
           <select id="stratSelect"></select>
@@ -161,7 +184,7 @@
               <span class="nav-sep">|</span>
               <span id="navDur" class="nav-chip nav-dur" data-i18n="navDurIdle">回測用時: 僅 14 天</span>
             </p>
-            <p class="muted sample-hint desk-only" id="sampleHint" data-i18n="sampleHintIdle">近 1000 根 K 線累積信號</p>
+            <p class="muted sample-hint desk-only" id="sampleHint" data-i18n="btAwaitRun">設定幣種、周期與回測區間後，點擊「執行回測」</p>
 
             <div class="perf-block">
               <h3 class="zone-title desk-only" data-i18n="gmSummary">績效摘要</h3>

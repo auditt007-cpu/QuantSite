@@ -16,6 +16,8 @@ let SYMBOL = "BTCUSDT";
 let interval = "1h";
 let engineId = "dual";
 let bars = [];
+let allBars = [];
+let lastCtx = null;
 let stream = null;
 let candleChart = null;
 let equityChart = null;
@@ -144,6 +146,75 @@ function addLine(chart, color) {
 
 const START_EQ = 10000;
 const BAR_LIMIT = 1000;
+const WARMUP_BARS = 250;
+
+function lookbackDays() {
+  const n = Number(($("btLookback") || {}).value || 365);
+  return isFinite(n) && n > 0 ? n : 365;
+}
+
+function barsPerDay(iv) {
+  const step = intervalStep(iv);
+  return step ? 86400 / step : 24;
+}
+
+function fetchLimitForLookback(days, iv) {
+  const need = WARMUP_BARS + Math.ceil(days * barsPerDay(iv));
+  return Math.min(2000, Math.max(BAR_LIMIT, need));
+}
+
+function fmtDateLabel(ts) {
+  const d = new Date(Number(ts) * 1000);
+  if (!isFinite(d.getTime())) return "—";
+  const p = (n) => String(n).padStart(2, "0");
+  return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+}
+
+function buildBacktestContext(sourceBars, lookDays, iv) {
+  if (!sourceBars || !sourceBars.length) return null;
+  const lastT = sourceBars[sourceBars.length - 1].time;
+  const startT = lastT - lookDays * 86400;
+  let winIdx = sourceBars.findIndex((b) => b.time >= startT);
+  if (winIdx < 0) winIdx = 0;
+  const runStart = Math.max(0, winIdx - WARMUP_BARS);
+  const runBars = sourceBars.slice(runStart);
+  const windowStartT = sourceBars[winIdx].time;
+  const winBars = sourceBars.slice(winIdx);
+  return {
+    runBars,
+    winBars,
+    runStart,
+    winIdx,
+    windowStartT,
+    windowEndT: lastT,
+    windowBarCount: winBars.length,
+    windowDays: spanDays(winBars),
+    fromLabel: fmtDateLabel(windowStartT),
+    toLabel: fmtDateLabel(lastT),
+    lookDays,
+    tf: iv,
+  };
+}
+
+function remapWindowTrades(trades, winOffset) {
+  return trades
+    .filter((tr) => tr.i0 >= winOffset)
+    .map((tr) => ({
+      ...tr,
+      i0: tr.i0 - winOffset,
+      i1: tr.i1 - winOffset,
+    }));
+}
+
+function paintSampleHint(ctx) {
+  if (!$("sampleHint") || !ctx) return;
+  $("sampleHint").textContent = t("btRangeTpl")
+    .replace("{from}", ctx.fromLabel)
+    .replace("{to}", ctx.toLabel)
+    .replace("{days}", String(ctx.lookDays))
+    .replace("{tf}", ctx.tf)
+    .replace("{n}", String(ctx.windowBarCount));
+}
 
 function fmtUsd(n) {
   return Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -158,7 +229,7 @@ function fmtSignedPct(x) {
 function paintPine() {
   const s = spec();
   $("stratSelect").value = engineId;
-  if ($("sampleHint")) $("sampleHint").textContent = t("sampleHintTpl").replace("{n}", String(bars.length || 1000));
+  if ($("sampleHint") && !lastCtx) $("sampleHint").textContent = t("btAwaitRun");
   const locked = isMasterSpec(s) || (s && s.id === "ai");
   const gate = $("masterGate");
   if (gate) {
@@ -267,8 +338,31 @@ function closeSheet() {
 function syncDock() {
   const ds = $("dockSymbol");
   const dt = $("dockTf");
+  const bs = $("btSymbol");
+  const bl = $("btLookback");
   if (ds) ds.value = SYMBOL;
   if (dt) dt.value = interval;
+  if (bs) bs.value = SYMBOL;
+  if (bl && !bl.value) bl.value = "365";
+}
+
+function bindBacktestParams() {
+  const bs = $("btSymbol");
+  const bl = $("btLookback");
+  if (bs && bs.getAttribute("data-bound") !== "1") {
+    bs.setAttribute("data-bound", "1");
+    bs.addEventListener("change", () => {
+      SYMBOL = bs.value || SYMBOL;
+      syncDock();
+      load(interval).catch((e) => toast(e.message, "warn"));
+    });
+  }
+  if (bl && bl.getAttribute("data-bound") !== "1") {
+    bl.setAttribute("data-bound", "1");
+    bl.addEventListener("change", () => {
+      load(interval).catch((e) => toast(e.message, "warn"));
+    });
+  }
 }
 
 function fmtUsd0(n) {
@@ -291,13 +385,13 @@ function tradePillsHtml(trades) {
     .join("");
 }
 
-function paintRetail(eq, st, trades) {
+function paintRetail(eq, st, trades, ctx) {
   const scale = 1000 / START_EQ;
   const end = eq && eq.length ? eq[eq.length - 1] : START_EQ;
   const end1k = end * scale;
   const profit = (end - START_EQ) * scale;
   const pct = st ? st.ret : 0;
-  const days = spanDays(bars);
+  const days = ctx ? ctx.windowDays : spanDays(bars);
   const closed = (trades || []).filter((tr) => !tr.open);
   const wins = closed.filter((tr) => Number(tr.pnlAbs) > 0).length;
   const losses = closed.length - wins;
@@ -335,7 +429,7 @@ function paintRetail(eq, st, trades) {
   if (shareSub) shareSub.textContent = fmtSignedPct(pct) + " · " + days + "d";
 }
 
-function paintNav(eq, st) {
+function paintNav(eq, st, ctx) {
   const now = eq && eq.length ? eq[eq.length - 1] : START_EQ;
   const down = !!(st && st.ret < 0);
   if ($("navNow")) {
@@ -353,7 +447,7 @@ function paintNav(eq, st) {
     if (window.QAUi) window.QAUi.flash($("navDd"), true);
   }
   if ($("navDur")) {
-    const n = spanDays(bars);
+    const n = ctx ? ctx.windowDays : spanDays(bars);
     $("navDur").textContent = t("navDurTpl").replace("{n}", String(n));
     $("navDur").className = "nav-chip nav-dur";
     if (window.QAUi) window.QAUi.flash($("navDur"), false);
@@ -420,18 +514,22 @@ async function load(iv) {
   setBtLoading(true);
   feed.setFeedStatus($("wsStatus"), "connecting");
 
+  const limit = fetchLimitForLookback(lookbackDays(), interval);
   try {
-    bars = await feed.fetchKlines(SYMBOL, interval, BAR_LIMIT);
+    allBars = await feed.fetchKlines(SYMBOL, interval, limit);
+    bars = allBars;
     feed.lastMeta.source = "live";
     mountCandles();
-    run(true);
+    paintPine();
+    if ($("sampleHint")) $("sampleHint").textContent = t("btAwaitRun");
     feed.setFeedStatus($("wsStatus"), "live");
   } catch {
-    bars = offlineBars(interval);
+    allBars = offlineBars(interval);
+    bars = allBars;
     feed.lastMeta.source = "offline";
     if (bars.length) {
       mountCandles();
-      run(true);
+      paintPine();
       feed.setFeedStatus($("wsStatus"), "offline", { updatedAt: feed.lastMeta.updatedAt });
     } else {
       feed.setFeedStatus($("wsStatus"), "retry");
@@ -445,7 +543,6 @@ async function load(iv) {
     return;
   }
 
-  paintPine();
   stream = feed.createLiveStream({
     symbol: SYMBOL,
     interval,
@@ -459,9 +556,10 @@ async function load(iv) {
 }
 
 function upsert(bar) {
-  if (!bars.length || bar.time > bars[bars.length - 1].time) bars.push(bar);
-  else if (bar.time === bars[bars.length - 1].time) bars[bars.length - 1] = bar;
+  if (!allBars.length || bar.time > allBars[allBars.length - 1].time) allBars.push(bar);
+  else if (bar.time === allBars[allBars.length - 1].time) allBars[allBars.length - 1] = bar;
   else return;
+  bars = allBars;
   if (!candleSeries) return;
   candleSeries.update({ time: bar.time, open: bar.open, high: bar.high, low: bar.low, close: bar.close });
   volSeries.update({
@@ -500,19 +598,28 @@ function fmtPf(pf) {
 }
 
 function run(silent) {
-  if (!bars.length) {
+  if (!allBars.length) {
     if (!silent) toast(t("needBars") || "請先載入 K 線", "warn");
     return;
   }
+  const ctx = buildBacktestContext(allBars, lookbackDays(), interval);
+  if (!ctx || !ctx.runBars.length || !ctx.winBars.length) {
+    if (!silent) toast(t("needBars") || "請先載入 K 線", "warn");
+    return;
+  }
+  lastCtx = ctx;
   const t0 = performance.now();
-  const trades = spec().run(bars);
+  const winOffset = ctx.winIdx - ctx.runStart;
+  const rawTrades = spec().run(ctx.runBars);
+  const trades = remapWindowTrades(rawTrades, winOffset);
+  const winBars = ctx.winBars;
   const GM = window.Grademark;
-  const eq = GM ? GM.computeEquityCurve(trades, bars, START_EQ) : catalog.equityFrom(bars, trades);
+  const eq = GM ? GM.computeEquityCurve(trades, winBars, START_EQ) : catalog.equityFrom(winBars, trades);
   const ddSeries = GM ? GM.computeDrawdown(eq) : [];
-  const st = catalog.performanceOf(trades, eq, catalog.barsPerYear(interval), bars);
-  if ($("sampleHint")) $("sampleHint").textContent = t("sampleHintTpl").replace("{n}", String(bars.length));
-  paintNav(eq, st);
-  paintRetail(eq, st, trades);
+  const st = catalog.performanceOf(trades, eq, catalog.barsPerYear(interval), winBars);
+  paintSampleHint(ctx);
+  paintNav(eq, st, ctx);
+  paintRetail(eq, st, trades, ctx);
   if ($("mWr")) {
     $("mWr").textContent = (st.hit * 100).toFixed(1) + "%";
     if (window.QAUi) window.QAUi.flash($("mWr"), st.hit < 0.5);
@@ -526,7 +633,7 @@ function run(silent) {
     if (window.QAUi) window.QAUi.flash($("mTrades"), false);
   }
   if ($("mBars")) {
-    $("mBars").textContent = String(bars.length);
+    $("mBars").textContent = String(ctx.windowBarCount);
     if (window.QAUi) window.QAUi.flash($("mBars"), false);
   }
   if ($("tradeRows")) $("tradeRows").innerHTML = tradeRowsHtml(trades, eq);
@@ -543,7 +650,7 @@ function run(silent) {
   const size = chartBoxSize(eEl, 220);
   equityChart = LC.createChart(eEl, feed.chartOptions(eEl, size.height, interval));
   equityChart.applyOptions({ width: size.width, height: size.height });
-  addLine(equityChart, "#00873c").setData(bars.map((b, i) => ({ time: b.time, value: eq[i] })));
+  addLine(equityChart, "#00873c").setData(winBars.map((b, i) => ({ time: b.time, value: eq[i] })));
   equityChart.timeScale().fitContent();
   const dEl = $("ddChart");
   const ddVisible = dEl && window.getComputedStyle(dEl).display !== "none";
@@ -552,12 +659,12 @@ function run(silent) {
     const ds = chartBoxSize(dEl, 180);
     ddChart = LC.createChart(dEl, feed.chartOptions(dEl, ds.height, interval));
     ddChart.applyOptions({ width: ds.width, height: ds.height });
-    addLine(ddChart, "#d0021b").setData(bars.map((b, i) => ({ time: b.time, value: (ddSeries[i] || 0) * 100 })));
+    addLine(ddChart, "#d0021b").setData(winBars.map((b, i) => ({ time: b.time, value: (ddSeries[i] || 0) * 100 })));
     ddChart.timeScale().fitContent();
   }
   scheduleFit();
   if (!silent) {
-    toast(t("btDone").replace("{ms}", (performance.now() - t0).toFixed(1)).replace("{n}", String(bars.length)), "ok");
+    toast(t("btDone").replace("{ms}", (performance.now() - t0).toFixed(1)).replace("{n}", String(ctx.windowBarCount)), "ok");
     openSheet();
   }
 }
@@ -574,7 +681,7 @@ function bindDesk() {
   $("stratSelect").addEventListener("change", () => {
     engineId = $("stratSelect").value;
     paintPine();
-    run(true);
+    if (allBars.length) run(true);
   });
   document.querySelectorAll("[data-tf]").forEach((b) => {
     b.addEventListener("click", () => load(b.getAttribute("data-tf")).catch((e) => toast(e.message)));
@@ -608,7 +715,11 @@ function bindDesk() {
   window.addEventListener("resize", resizeCharts);
   window.addEventListener("quant-lang", () => {
     if (typeof feed.resetRegion === "function") feed.resetRegion();
-    load(interval).catch((e) => toast(e.message, "warn"));
+    load(interval)
+      .then(() => {
+        if (allBars.length && lastCtx) run(true);
+      })
+      .catch((e) => toast(e.message, "warn"));
   });
 }
 function refillSelect() {
@@ -622,6 +733,7 @@ function refillSelect() {
 }
 function boot() {
   bindSheetUi();
+  bindBacktestParams();
   bindDesk();
   refillSelect();
   scheduleFit();
@@ -643,15 +755,14 @@ window.QABacktest = {
   open(id, iv) {
     const start = () => {
       bindDesk();
+      bindBacktestParams();
       refillSelect();
       if (id && catalog.get(id)) engineId = id;
       if ($("stratSelect")) $("stratSelect").value = engineId;
       const startIv = INTERVALS_OK(iv) ? iv : interval || "1h";
       setBtLoading(true);
       return load(startIv)
-        .then(() => {
-          run(false);
-        })
+        .then(() => run(false))
         .catch((e) => toast(e.message, "warn"))
         .finally(() => setBtLoading(false));
     };
@@ -697,6 +808,7 @@ function bindChrome() {
     $("dockSymbol").setAttribute("data-bound", "1");
     $("dockSymbol").addEventListener("change", () => {
       SYMBOL = $("dockSymbol").value;
+      if ($("btSymbol")) $("btSymbol").value = SYMBOL;
       if ($("viewBacktest") && !$("viewBacktest").hidden) {
         load(interval).catch((e) => toast(e.message));
       }

@@ -1444,6 +1444,27 @@ input.is-focused, textarea.is-focused, select.is-focused {
   gap: 8px;
   margin: 0;
 }
+.bt-param-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 10px;
+}
+.bt-param {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+.bt-param select {
+  width: 100%;
+  margin: 0;
+  background: #ffffff;
+  border: 1px solid #000000;
+  color: #000000;
+  padding: 10px;
+  font-family: inherit;
+  font-size: 13px;
+}
 .exec-label { margin: 0; font-size: 11px; letter-spacing: 0.08em; font-weight: 700; }
 .exec-bar select {
   width: 100%;
@@ -1541,6 +1562,7 @@ input.is-focused, textarea.is-focused, select.is-focused {
   .ai-chip { flex: 0 0 auto; white-space: nowrap; font-size: 12px; padding: 8px 12px; }
   .tf-bar, .exec-run { display: none; }
   .exec-bar { margin-bottom: 8px; }
+  .bt-param-grid { grid-template-columns: 1fr; }
   .lab-flow .result-sheet { margin: 0; }
   .thumb-dock { display: flex; }
   body, .wrap, .wrap.wide, .main-container { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
