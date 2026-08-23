@@ -22,7 +22,8 @@ TIMEOUT = te.TIMEOUT
 SSL_CTX = te.SSL_CTX
 OUT_PATH = os.path.join(ROOT, "leaderboard.json")
 STATIC_PATH = os.environ.get("LEADERBOARD_STATIC", os.path.join(ROOT, "leaderboard.json"))
-START_CAPITAL = 10000.0
+INITIAL_CAPITAL = 10000.0
+START_CAPITAL = INITIAL_CAPITAL  # backward-compatible alias
 MIN_TRADES_RANK = 10
 BAYES_PRIOR_A = 8.0  # Beta prior ≈ mean 50%
 BAYES_PRIOR_B = 8.0
@@ -198,11 +199,11 @@ def fmt_trade_ts(ms):
 
 
 def backtest(eval_fn, data, days):
-    """Long/flat backtest: LONG opens, SHORT closes. ATR trailing exit after 24 bars."""
+    """Long/flat backtest with fixed INITIAL_CAPITAL sizing (non-compounding ROI)."""
     start = warmup_index(data, days)
     rets = []
     trade_log = []
-    eq = START_CAPITAL
+    eq = INITIAL_CAPITAL
     peak = eq
     max_dd = 0.0
     in_pos = False
@@ -215,12 +216,9 @@ def backtest(eval_fn, data, days):
     t_arr = data["t"]
     atr_series = te.atr(h, l, c, 14) if len(c) > 20 else [0.0] * len(c)
 
-    def close_trade(i, reason="signal"):
+    def apply_exit(r, exit_px, bar_ts, reason):
         nonlocal in_pos, entry, entry_ts, entry_i, eq, peak, max_dd
-        px = c[i]
-        bar_ts = t_arr[i] if i < len(t_arr) else 0
-        r = (px - entry) / entry if entry else 0.0
-        pnl_abs = eq * r
+        pnl_abs = INITIAL_CAPITAL * r
         eq += pnl_abs
         rets.append(r)
         trade_log.append(
@@ -229,7 +227,7 @@ def backtest(eval_fn, data, days):
                 "entry_ts": entry_ts,
                 "exit_ts": bar_ts,
                 "entry_px": round(entry, 6),
-                "exit_px": round(px, 6),
+                "exit_px": round(exit_px, 6),
                 "pnl_pct": round(r * 100.0, 2),
                 "pnl_abs": round(pnl_abs, 2),
                 "entry_label": fmt_trade_ts(entry_ts),
@@ -242,6 +240,12 @@ def backtest(eval_fn, data, days):
         in_pos = False
         entry = 0.0
 
+    def close_trade(i, reason="signal"):
+        px = c[i]
+        bar_ts = t_arr[i] if i < len(t_arr) else 0
+        r = (px - entry) / entry if entry else 0.0
+        apply_exit(r, px, bar_ts, reason)
+
     for i in range(start, len(c)):
         d = slice_data(data, i)
         try:
@@ -250,34 +254,12 @@ def backtest(eval_fn, data, days):
             side = None
         bar_ts = t_arr[i] if i < len(t_arr) else 0
         if in_pos:
-            # time stop: force exit after ~48 bars to increase sample turnover
             held = i - entry_i
             risk = atr_series[i] if i < len(atr_series) else 0.0
             stop = entry - 1.5 * risk if risk > 0 else entry * 0.985
             if l[i] <= stop:
-                # approximate stop fill
                 r = (stop - entry) / entry if entry else 0.0
-                pnl_abs = eq * r
-                eq += pnl_abs
-                rets.append(r)
-                trade_log.append(
-                    {
-                        "side": "LONG",
-                        "entry_ts": entry_ts,
-                        "exit_ts": bar_ts,
-                        "entry_px": round(entry, 6),
-                        "exit_px": round(stop, 6),
-                        "pnl_pct": round(r * 100.0, 2),
-                        "pnl_abs": round(pnl_abs, 2),
-                        "entry_label": fmt_trade_ts(entry_ts),
-                        "exit_label": fmt_trade_ts(bar_ts),
-                        "reason": "stop",
-                    }
-                )
-                peak = max(peak, eq)
-                max_dd = min(max_dd, (eq - peak) / peak if peak else 0.0)
-                in_pos = False
-                entry = 0.0
+                apply_exit(r, stop, bar_ts, "stop")
                 continue
             if held >= 48 or side == "SHORT":
                 close_trade(i, "time" if held >= 48 else "signal")
@@ -298,13 +280,18 @@ def backtest(eval_fn, data, days):
     gp = sum(wins)
     gl = abs(sum(losses))
     pf = gp / gl if gl > 1e-12 else (9.99 if gp > 0 else 0.0)
-    net_pct = (eq / START_CAPITAL) - 1.0
+    net_pnl = sum(INITIAL_CAPITAL * r for r in rets)
+    roi_pct = (net_pnl / INITIAL_CAPITAL) * 100.0
+    apr_pct = roi_pct * (365.0 / float(days)) if days else roi_pct
     return {
         "win_rate": round(wr, 4),
         "profit_factor": round(min(pf, 99.0), 2),
         "max_drawdown": round(max_dd, 4),
-        "net_profit_pct": round(net_pct, 4),
-        "net_profit_usd": round(eq - START_CAPITAL, 2),
+        "roi_pct": round(roi_pct, 1),
+        "apr_pct": round(apr_pct, 1),
+        "net_pnl_usd": round(net_pnl, 2),
+        "net_profit_pct": round(roi_pct / 100.0, 4),  # fraction alias for older clients
+        "net_profit_usd": round(net_pnl, 2),
         "trades": n,
         "wins": len(wins),
         "losses": len(losses),
@@ -330,8 +317,8 @@ def family_id(strat_id):
     return strat_id
 
 
-def merge_stats(parts):
-    """Merge multiple symbol/tf backtests into one pooled sample."""
+def merge_stats(parts, days):
+    """Merge multiple symbol/tf backtests into one pooled sample (fixed-capital ROI)."""
     all_rets = []
     all_logs = []
     for p in parts:
@@ -346,14 +333,31 @@ def merge_stats(parts):
     gp = sum(wins)
     gl = abs(sum(losses))
     pf = gp / gl if gl > 1e-12 else (9.99 if gp > 0 else 0.0)
-    # reconstruct equity path for DD / net
-    eq = START_CAPITAL
+    # Fixed notional equity path for drawdown (no compounding)
+    eq = INITIAL_CAPITAL
     peak = eq
     max_dd = 0.0
     for r in all_rets:
-        eq *= 1.0 + r
+        eq += INITIAL_CAPITAL * r
         peak = max(peak, eq)
         max_dd = min(max_dd, (eq - peak) / peak if peak else 0.0)
+    # Trade-weighted mean of per-leg ROI so multi-symbol pooling does not inflate %
+    w_roi = 0.0
+    w_n = 0
+    for p in parts:
+        tn = int(p.get("trades") or len(p.get("rets") or []))
+        if tn < 1:
+            continue
+        if "roi_pct" in p:
+            leg_roi = float(p["roi_pct"])
+        else:
+            leg_pnl = sum(INITIAL_CAPITAL * r for r in (p.get("rets") or []))
+            leg_roi = (leg_pnl / INITIAL_CAPITAL) * 100.0
+        w_roi += leg_roi * tn
+        w_n += tn
+    roi_pct = (w_roi / w_n) if w_n else 0.0
+    net_pnl = INITIAL_CAPITAL * (roi_pct / 100.0)
+    apr_pct = roi_pct * (365.0 / float(days)) if days else roi_pct
     wr_s = bayesian_win_rate(len(wins), n)
     score = ranking_score(wr_s, n, max_dd)
     eligible = n >= MIN_TRADES_RANK
@@ -364,8 +368,11 @@ def merge_stats(parts):
         "eligible": eligible,
         "profit_factor": round(min(pf, 99.0), 2),
         "max_drawdown": round(max_dd, 4),
-        "net_profit_pct": round((eq / START_CAPITAL) - 1.0, 4),
-        "net_profit_usd": round(eq - START_CAPITAL, 2),
+        "roi_pct": round(roi_pct, 1),
+        "apr_pct": round(apr_pct, 1),
+        "net_pnl_usd": round(net_pnl, 2),
+        "net_profit_pct": round(roi_pct / 100.0, 4),
+        "net_profit_usd": round(net_pnl, 2),
         "trades": n,
         "wins": len(wins),
         "losses": len(losses),
@@ -416,6 +423,9 @@ def run_all(days, full=False):
                     "win_rate": stats["win_rate"],
                     "profit_factor": stats["profit_factor"],
                     "max_drawdown": stats["max_drawdown"],
+                    "roi_pct": stats["roi_pct"],
+                    "apr_pct": stats["apr_pct"],
+                    "net_pnl_usd": stats["net_pnl_usd"],
                     "net_profit_pct": stats["net_profit_pct"],
                     "net_profit_usd": stats["net_profit_usd"],
                     "trades": stats["trades"],
@@ -437,7 +447,7 @@ def run_all(days, full=False):
 
     by_engine = {}
     for eng, bundle in engine_parts.items():
-        merged = merge_stats(bundle["chunks"])
+        merged = merge_stats(bundle["chunks"], days)
         if not merged:
             continue
         strat = bundle["meta"]
@@ -461,19 +471,25 @@ def run_all(days, full=False):
             "eligible": merged["eligible"],
             "profit_factor": merged["profit_factor"],
             "max_drawdown": merged["max_drawdown"],
+            "max_dd": round(abs(merged["max_drawdown"]) * 100.0, 1),
+            "roi_pct": merged["roi_pct"],
+            "apr_pct": merged["apr_pct"],
+            "net_pnl_usd": merged["net_pnl_usd"],
             "net_profit_pct": merged["net_profit_pct"],
             "net_profit_usd": merged["net_profit_usd"],
             "trades": merged["trades"],
+            "total_trades": merged["trades"],
             "wins": merged["wins"],
             "losses": merged["losses"],
             "trade_log": merged["trade_log"][-80:],
         }
         log(
-            "engine {0} trades={1} wr={2:.1%} smooth={3:.1%} score={4:.4f} eligible={5}".format(
+            "engine {0} trades={1} wr={2:.1%} roi={3:.1f}% apr={4:.1f}% score={5:.4f} eligible={6}".format(
                 eng,
                 merged["trades"],
                 merged["win_rate"],
-                merged["win_rate_smooth"],
+                merged["roi_pct"],
+                merged["apr_pct"],
                 merged["rank_score"],
                 merged["eligible"],
             )
@@ -487,7 +503,7 @@ def run_all(days, full=False):
     )
     pnl_board = sorted(
         [v for v in by_engine.values() if v["trades"] >= 5],
-        key=lambda x: x["net_profit_usd"],
+        key=lambda x: x["roi_pct"],
         reverse=True,
     )
 
@@ -497,7 +513,8 @@ def run_all(days, full=False):
         "period_label": "{0} DAYS".format(days),
         "period_label_zh": "近 {0} 天".format(days),
         "period_label_tw": "近 {0} 天".format(days),
-        "ranking_model": "bayesian_smoothed_v1",
+        "ranking_model": "fixed_capital_roi_v1",
+        "initial_capital": INITIAL_CAPITAL,
         "min_trades": MIN_TRADES_RANK,
         "symbols": SYMBOLS,
         "timeframes": list(tfs),
@@ -521,12 +538,19 @@ def run_all(days, full=False):
         "pnl_board": [
             {
                 "engine": r["engine"],
+                "id": r.get("strategy_id") or r["engine"],
                 "name_zh": r["name_zh"],
                 "name_en": r["name_en"],
-                "net_profit_usd": r["net_profit_usd"],
+                "roi_pct": r["roi_pct"],
+                "apr_pct": r["apr_pct"],
+                "net_pnl_usd": r["net_pnl_usd"],
+                "net_profit_usd": r["net_pnl_usd"],
                 "net_profit_pct": r["net_profit_pct"],
                 "profit_factor": r["profit_factor"],
+                "win_rate": round(r["win_rate"] * 100.0, 1),
+                "total_trades": r["trades"],
                 "trades": r["trades"],
+                "max_dd": r["max_dd"],
             }
             for r in pnl_board
         ],

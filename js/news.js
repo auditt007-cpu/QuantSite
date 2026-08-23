@@ -302,7 +302,9 @@
         .map((row) => ({
           id: row.engine,
           name: row.name_zh || row.name_en || row.engine,
-          pct: Number(row.net_profit_pct || 0) * 100,
+          pct: Number.isFinite(Number(row.roi_pct))
+            ? Number(row.roi_pct)
+            : Number(row.net_profit_pct || 0) * 100,
         }))
         .filter((row) => row.id && Number.isFinite(row.pct))
         .sort((a, b) => b.pct - a.pct)

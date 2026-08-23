@@ -1,7 +1,13 @@
 (function (root) {
   const cfg = root.QUANT_CONFIG || {};
   const FALLBACK = {
-    period_days: 7,
+    period_days: 60,
+    initial_capital: 10000,
+    pnl_board: [
+      { engine: "dual", name_zh: "EMA雙均交叉", name_en: "EMA Double Cross", roi_pct: 14.8, profit_factor: 2.4, trades: 42 },
+      { engine: "ribbon", name_zh: "EMA快線交叉", name_en: "EMA Fast Cross", roi_pct: 12.1, profit_factor: 2.1, trades: 55 },
+      { engine: "squeeze", name_zh: "布林擠壓突破", name_en: "BB Squeeze Break", roi_pct: 9.6, profit_factor: 1.9, trades: 38 },
+    ],
     by_engine: {
       dual: {
         engine: "dual",
@@ -10,8 +16,9 @@
         win_rate: 0.714,
         profit_factor: 2.4,
         max_drawdown: -0.062,
+        roi_pct: 14.8,
         net_profit_pct: 0.148,
-        net_profit_usd: 1480,
+        net_pnl_usd: 1480,
         trades: 42,
       },
       ribbon: {
@@ -21,8 +28,9 @@
         win_rate: 0.682,
         profit_factor: 2.1,
         max_drawdown: -0.071,
+        roi_pct: 12.1,
         net_profit_pct: 0.121,
-        net_profit_usd: 1210,
+        net_pnl_usd: 1210,
         trades: 55,
       },
       squeeze: {
@@ -32,8 +40,9 @@
         win_rate: 0.658,
         profit_factor: 1.9,
         max_drawdown: -0.085,
+        roi_pct: 9.6,
         net_profit_pct: 0.096,
-        net_profit_usd: 960,
+        net_pnl_usd: 960,
         trades: 38,
       },
       atr: {
@@ -43,8 +52,9 @@
         win_rate: 0.641,
         profit_factor: 1.8,
         max_drawdown: -0.054,
+        roi_pct: 8.8,
         net_profit_pct: 0.088,
-        net_profit_usd: 880,
+        net_pnl_usd: 880,
         trades: 61,
       },
       rsi: {
@@ -54,8 +64,9 @@
         win_rate: 0.623,
         profit_factor: 1.7,
         max_drawdown: -0.079,
+        roi_pct: 7.2,
         net_profit_pct: 0.072,
-        net_profit_usd: 720,
+        net_pnl_usd: 720,
         trades: 47,
       },
     },
@@ -102,10 +113,26 @@
     return v.toFixed(2);
   }
 
+  function fmtRoiPct(x) {
+    const n = Number(x);
+    if (!Number.isFinite(n)) return "—";
+    const sign = n > 0 ? "+" : "";
+    return sign + n.toFixed(1) + "%";
+  }
+
+  function roiOf(row) {
+    if (!row) return NaN;
+    if (Number.isFinite(Number(row.roi_pct))) return Number(row.roi_pct);
+    const frac = Number(row.net_profit_pct);
+    if (Number.isFinite(frac)) return frac * 100;
+    return NaN;
+  }
+
   function rowsFrom(payload) {
     const map = (payload && payload.by_engine) || {};
     return Object.keys(map).map((k) => {
       const r = map[k] || {};
+      const roi = roiOf(r);
       return {
         engine: r.engine || k,
         name_zh: r.name_zh || k,
@@ -116,8 +143,9 @@
         eligible: r.eligible !== false,
         profit_factor: Number(r.profit_factor) || 0,
         max_drawdown: Number(r.max_drawdown) || 0,
-        net_profit_pct: Number(r.net_profit_pct) || 0,
-        net_profit_usd: Number(r.net_profit_usd) || 0,
+        roi_pct: Number.isFinite(roi) ? roi : 0,
+        net_profit_pct: Number.isFinite(roi) ? roi / 100 : Number(r.net_profit_pct) || 0,
+        net_pnl_usd: Number(r.net_pnl_usd != null ? r.net_pnl_usd : r.net_profit_usd) || 0,
         trades: Number(r.trades) || 0,
       };
     });
@@ -127,20 +155,12 @@
     if (payload && Array.isArray(payload.pnl_board) && payload.pnl_board.length) {
       return payload.pnl_board
         .slice()
-        .sort((a, b) => Number(b.net_profit_pct) - Number(a.net_profit_pct))[0];
+        .sort((a, b) => roiOf(b) - roiOf(a))[0];
     }
     const pool = rows.filter((r) => r.trades >= 5);
     const use = pool.length ? pool : rows;
     if (!use.length) return null;
-    return use.slice().sort((a, b) => Number(b.net_profit_pct) - Number(a.net_profit_pct))[0];
-  }
-
-  function fmtSignedPct(x) {
-    const n = Number(x);
-    if (!Number.isFinite(n)) return "—";
-    const pct = n * 100;
-    const sign = pct > 0 ? "+" : "";
-    return sign + pct.toFixed(1) + "%";
+    return use.slice().sort((a, b) => roiOf(b) - roiOf(a))[0];
   }
 
   function paintKpis(rows, periodDays, payload) {
@@ -154,13 +174,17 @@
     );
     const top = topReturnRow(rows, payload);
     const wrEl = document.getElementById("kpiWinVal");
+    const nameEl = document.getElementById("kpiWinName");
     const ddEl = document.getElementById("kpiDdVal");
     const pfEl = document.getElementById("kpiPfVal");
     if (wrEl && top) {
-      const pct = Number(top.net_profit_pct);
-      wrEl.textContent = fmtSignedPct(pct);
-      wrEl.classList.toggle("is-up", pct > 0);
-      wrEl.classList.toggle("is-down", pct < 0);
+      const roi = roiOf(top);
+      wrEl.textContent = fmtRoiPct(roi);
+      wrEl.classList.toggle("is-up", roi > 0);
+      wrEl.classList.toggle("is-down", roi < 0);
+    }
+    if (nameEl && top) {
+      nameEl.textContent = modelName(top);
     }
     if (ddEl) ddEl.textContent = fmtPct(Math.abs(worstDd));
     if (pfEl) {
@@ -168,9 +192,10 @@
       if (avgPf >= 1) pfEl.classList.add("is-up");
     }
     const periodLabel = t("hbPeriodTpl").replace("{n}", String(periodDays || 60));
-    document.querySelectorAll("#hbWrPeriod, #hbPnlPeriod").forEach((el) => {
-      el.textContent = periodLabel;
-    });
+    const wrPeriod = document.getElementById("hbWrPeriod");
+    if (wrPeriod) wrPeriod.textContent = periodLabel;
+    const pnlPeriod = document.getElementById("hbPnlPeriod");
+    if (pnlPeriod) pnlPeriod.textContent = t("hbPeriodPnl").replace("60", String(periodDays || 60));
     const kpiWinLabel = document.querySelector('.home-kpi .kpi [data-i18n="kpiWin"]');
     if (kpiWinLabel) {
       kpiWinLabel.textContent = t("kpiWinTpl").replace("{n}", String(periodDays || 60));
@@ -234,12 +259,15 @@
   function pnlRowsHtml(rows, payload) {
     let top = [];
     if (payload && Array.isArray(payload.pnl_board) && payload.pnl_board.length) {
-      top = payload.pnl_board.slice(0, 10);
+      top = payload.pnl_board
+        .slice()
+        .sort((a, b) => roiOf(b) - roiOf(a))
+        .slice(0, 10);
     } else {
       top = rows
         .filter((r) => r.trades >= 5)
         .slice()
-        .sort((a, b) => b.net_profit_usd - a.net_profit_usd)
+        .sort((a, b) => roiOf(b) - roiOf(a))
         .slice(0, 10);
     }
     if (!top.length) {
@@ -247,10 +275,8 @@
     }
     return top
       .map((r, i) => {
-        const profit = Number(r.net_profit_usd) > 0;
-        const pnl = r.net_profit_usd
-          ? fmtUsd(r.net_profit_usd)
-          : (r.net_profit_pct >= 0 ? "+" : "") + fmtPct(r.net_profit_pct);
+        const roi = roiOf(r);
+        const profit = roi > 0;
         return (
           '<tr class="' +
           (profit ? "is-profit" : "") +
@@ -268,7 +294,7 @@
           '<td class="hb-num ' +
           (profit ? "is-up" : "is-down") +
           '">' +
-          pnl +
+          fmtRoiPct(roi) +
           "</td>" +
           '<td class="hb-num">' +
           fmtPf(r.profit_factor) +
