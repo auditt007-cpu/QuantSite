@@ -56,55 +56,9 @@ FAMILY_ENGINE = {
 }
 
 # Exact 45 frontend strategy IDs used by terminal.html (FALLBACK_ENGINES order).
-def frontend_strategy_specs():
-    E = te
-    return [
-        ("dual", "ATR雙SuperTrend", "Dual SuperTrend", lambda d: E.eval_supertrend_break(d, 10, 2.2)),
-        ("ribbon", "EMA多周期共振", "Multi-Horizon EMA", lambda d: E.eval_ema_cross(d, 8, 21)),
-        ("rsi", "RSI閾值交叉", "RSI Threshold Cross", lambda d: E.eval_rsi_cross(d, 35, 65)),
-        ("squeeze", "布林擠壓突破", "BB Squeeze Break", lambda d: E.eval_bb_squeeze_break(d, 20)),
-        ("atr", "ATR波動網格", "ATR Volatility Grid", lambda d: E.eval_atr_grid(d, 1.2)),
-        ("qe", "短周期動量交叉", "Short-Horizon Momentum", lambda d: E.eval_ema_cross(d, 9, 21)),
-        ("dm", "RSI背離代理", "RSI Divergence Proxy", E.eval_rsi_div_proxy),
-        ("sn", "布林均值回歸", "Bollinger Rebound", lambda d: E.eval_bb_rebound(d, 20, 1.8)),
-        ("eh", "EMA三均共振", "EMA Triple Stack", E.eval_ema_triple),
-        ("gw", "唐奇安突破20", "Donchian 20 Break", lambda d: E.eval_donchian(d, 16)),
-        ("ns", "MACD柱翻轉", "MACD Histogram Flip", E.eval_macd_hist_cross),
-        ("sf", "MACD信號交叉", "MACD Signal Cross", E.eval_macd_signal_cross),
-        ("qk", "肯特納突破", "Keltner Breakout", E.eval_keltner_break),
-        ("hs", "樞軸點突破", "Pivot Point Break", E.eval_pivot_break),
-        ("hg", "Dual Thrust", "Dual Thrust Break", lambda d: E.eval_dual_thrust(d, 3)),
-        ("strat-001", "唐奇安突破", "Donchian Breakout", lambda d: E.eval_donchian(d, 12)),
-        ("strat-002", "EMA雙均交叉", "EMA Crossover", lambda d: E.eval_ema_cross(d, 12, 26)),
-        ("strat-003", "ATR超級趨勢", "SuperTrend Following", lambda d: E.eval_supertrend_break(d, 10, 2.5)),
-        ("strat-004", "多周期動量", "Multi-Horizon Trend", lambda d: E.eval_ema_cross(d, 20, 50)),
-        ("strat-005", "成交量價差VSA", "Volume Spread Analysis", lambda d: E.eval_vsa_spike(d, 1.3)),
-        ("strat-006", "MACD動量", "MACD Momentum", E.eval_macd_signal_cross),
-        ("strat-007", "ROC動能", "ROC Momentum", lambda d: E.eval_roc(d, 10, 0.25)),
-        ("strat-008", "肯特納通道", "Keltner Channel", E.eval_keltner_break),
-        ("strat-009", "樞軸點", "Pivot Points", E.eval_pivot_break),
-        ("strat-010", "量均突破", "Volume MA Break", E.eval_vol_ma_break),
-        ("strat-011", "複合動能", "Composite Momentum", E.eval_composite_mom),
-        ("strat-012", "EMA快線交叉", "EMA Fast Cross", lambda d: E.eval_ema_cross(d, 5, 13)),
-        ("strat-013", "布林寬帶回歸", "BB Wide Rebound", lambda d: E.eval_bb_rebound(d, 20, 2.2)),
-        ("strat-014", "ROC20動能", "ROC-20 Momentum", lambda d: E.eval_roc(d, 20, 0.35)),
-        ("strat-015", "唐奇安10", "Donchian 10", lambda d: E.eval_donchian(d, 10)),
-        ("strat-016", "RSI超賣修復", "RSI Oversold Repair", lambda d: E.eval_rsi_cross(d, 32, 68)),
-        ("strat-017", "ATR網格1.0", "ATR Grid Tight", lambda d: E.eval_atr_grid(d, 1.0)),
-        ("strat-018", "MACD柱翻轉", "MACD Hist Flip", E.eval_macd_hist_cross),
-        ("strat-019", "布林擠壓", "BB Squeeze", lambda d: E.eval_bb_squeeze_break(d, 18)),
-        ("strat-020", "Dual Thrust快", "Dual Thrust Fast", lambda d: E.eval_dual_thrust(d, 3)),
-        ("strat-021", "量價突破", "Vol Price Break", E.eval_vol_ma_break),
-        ("strat-022", "EMA8/21", "EMA 8/21 Cross", lambda d: E.eval_ema_cross(d, 8, 21)),
-        ("strat-023", "RSI背離", "RSI Divergence", E.eval_rsi_div_proxy),
-        ("strat-024", "唐奇安14", "Donchian 14", lambda d: E.eval_donchian(d, 14)),
-        ("strat-025", "肯特納快", "Keltner Fast", E.eval_keltner_break),
-        ("strat-026", "複合動能B", "Composite Mom B", E.eval_composite_mom),
-        ("strat-027", "ROC8動能", "ROC-8 Momentum", lambda d: E.eval_roc(d, 8, 0.2)),
-        ("strat-028", "ATR趨勢", "ATR Trend Break", lambda d: E.eval_supertrend_break(d, 8, 2.0)),
-        ("strat-029", "布林回歸1.6", "BB Rebound Soft", lambda d: E.eval_bb_rebound(d, 20, 1.6)),
-        ("strat-030", "樞軸快線", "Pivot Fast", E.eval_pivot_break),
-    ]
+# Canonical definition now lives in tg_engine.py (single source of truth shared
+# with the live 60s VPS matrix scan / live_feed.json).
+frontend_strategy_specs = te.frontend_strategy_specs
 
 
 def log(msg):
@@ -226,8 +180,25 @@ def load_klines(sym, tf, days):
         return fetch_klines_okx_paged(sym, tf, days)
 
 
+# Bound the trailing window handed to eval_fn on each walk-forward step.
+# Without this, slice_data(data, i) returns data[:i+1] — a prefix that grows
+# with i — and every indicator inside eval_fn (ema/rsi/sma/stdev, all O(len))
+# gets recomputed from scratch on that ever-larger prefix on EVERY bar, which
+# is an O(n^2) blowup over a long backtest (this is what made the 8-window
+# hero scan dramatically slower than expected: iterations near the end of a
+# ~1400-bar pool were each recomputing indicators over ~1400 bars, even for
+# short 3-day windows with a warm start near the end of the array). None of
+# the 45 eval_* strategies need more than ~55 bars of lookback (the longest
+# EMA period in use), so a 400-bar trailing cap gives ~7x headroom for
+# indicator convergence while keeping every iteration's cost constant
+# instead of growing with position — the live 60s scan already effectively
+# does this since it always calls eval_fn with a short, fixed-size window.
+BACKTEST_LOOKBACK_CAP = 400
+
+
 def slice_data(data, i):
-    return {k: data[k][: i + 1] for k in ("h", "l", "c", "v", "t")}
+    start = max(0, i + 1 - BACKTEST_LOOKBACK_CAP)
+    return {k: data[k][start : i + 1] for k in ("h", "l", "c", "v", "t")}
 
 
 def warmup_index(data, days):
@@ -630,6 +601,192 @@ def run_all(days, full=False):
     return payload
 
 
+# ---------------------------------------------------------------------------
+# Multi-window "hero" champion scan — heavier, cron-scheduled, deliberately
+# separate from both the normal single-period run_all() daily job AND the
+# lightweight 60s live_feed.json path in tg_engine.py. Invoked explicitly via
+# `calc_rankings.py --hero-scan` so it never blocks a fast deploy.
+# ---------------------------------------------------------------------------
+HERO_PERIODS = [3, 7, 10, 20, 30, 60, 100, 180]
+HERO_TF = "1h"
+# ~125 days of 1h bars in one pass. Genuinely covers periods up to 100d; the
+# 180d window clamps to this same depth via warmup_index() (falls back to the
+# earliest available bar), so it will report the same champion as the
+# deepest genuinely-covered window rather than silently lying about depth.
+# Chosen as a bounded compromise: deep enough to be meaningful, shallow
+# enough that a 20-symbol x 45-strategy x 8-window scan finishes in low
+# single-digit minutes instead of tens of minutes.
+HERO_MAX_BARS = 3000
+
+
+def fetch_klines_binance_deep(sym, tf, want):
+    url = (
+        "https://api.binance.com/api/v3/klines?symbol={0}&interval={1}&limit={2}"
+    ).format(sym, tf, min(want, 1000))
+    rows = http_json(url)
+    now_ms = int(time.time() * 1000)
+    if rows and int(rows[-1][6]) > now_ms:
+        rows = rows[:-1]
+    if len(rows) < 60:
+        raise RuntimeError("binance insufficient bars")
+    return pack_binance(rows, tf)
+
+
+def fetch_klines_okx_deep(sym, tf, want):
+    """Pull up to `want` bars via OKX pagination — bypasses the module-level
+    MAX_BARS cap used by the normal daily run, for the deeper hero scan."""
+    inst = te.okx_inst(sym)
+    collected = []
+    after = None
+    pages = 0
+    max_pages = max(1, (want // 100) + 2)
+    while len(collected) < want and pages < max_pages:
+        pages += 1
+        url = (
+            "https://www.okx.com/api/v5/market/candles?instId={0}&bar={1}&limit=100"
+        ).format(inst, okx_bar(tf))
+        if after is not None:
+            url += "&after={0}".format(after)
+        data = http_json(url)
+        chunk = data.get("data") or []
+        if not chunk:
+            break
+        collected.extend(chunk)
+        after = int(chunk[-1][0])
+        if len(chunk) < 100:
+            break
+        time.sleep(0.08)
+    by_ts = {}
+    for r in collected:
+        by_ts[int(r[0])] = r
+    rows = [by_ts[k] for k in sorted(by_ts.keys())]
+    now_ms = int(time.time() * 1000)
+    if rows and int(rows[-1][0]) + bar_ms(tf) > now_ms:
+        rows = rows[:-1]
+    if len(rows) > want:
+        rows = rows[-want:]
+    if len(rows) < 60:
+        raise RuntimeError("okx insufficient bars")
+    return pack_okx(rows, tf)
+
+
+def load_klines_deep(sym, tf, want):
+    """Deep single-timeframe fetch for the hero scan: try Binance's single
+    request first (fast), fall back to paginated OKX if Binance can't supply
+    the requested depth (its public klines endpoint caps a single response
+    at ~1000 bars) or errors out."""
+    try:
+        data = fetch_klines_binance_deep(sym, tf, want)
+        if len(data["c"]) >= min(want, 1000) * 0.95:
+            return data
+        log(
+            "{0} {1} binance shallow ({2} < {3}); fallback okx paged".format(
+                sym, tf, len(data["c"]), want
+            )
+        )
+    except Exception as exc:
+        log("{0} {1} binance fail: {2}; fallback okx paged".format(sym, tf, exc))
+    return fetch_klines_okx_deep(sym, tf, want)
+
+
+def run_hero_scan():
+    """Fetch each symbol's 1h klines ONCE (deepest window needed), then
+    backtest all 8 periods against that single fetched pool (no refetching
+    per window) to find the single (strategy, period) pair with the globally
+    highest ROI. Returns (hero_highlight, hero_by_period, elapsed_seconds)."""
+    t0 = time.time()
+    pool = {}
+    for sym in SYMBOLS:
+        try:
+            pool[sym] = load_klines_deep(sym, HERO_TF, HERO_MAX_BARS)
+            log(
+                "hero pool loaded {0} bars={1} src={2}".format(
+                    sym, len(pool[sym]["c"]), pool[sym]["src"]
+                )
+            )
+        except Exception as exc:
+            log("hero pool skip {0}: {1}".format(sym, exc))
+    fetch_elapsed = time.time() - t0
+
+    specs = frontend_strategy_specs()
+    best = None
+    per_period_best = {}
+    for days in HERO_PERIODS:
+        engine_best = {}
+        for eng, zht, en, eval_fn in specs:
+            parts = []
+            for sym in SYMBOLS:
+                data = pool.get(sym)
+                if not data or len(data["c"]) < 60:
+                    continue
+                stats = backtest_with_floor(eval_fn, data, days, min_trades=10)
+                if stats["trades"] < 1:
+                    continue
+                parts.append(stats)
+            if not parts:
+                continue
+            merged = merge_stats(parts, days)
+            if not merged or merged["trades"] < 3:
+                continue
+            engine_best[eng] = {"zht": zht, "en": en, "merged": merged}
+        if not engine_best:
+            log("hero window {0}d: no eligible engines".format(days))
+            continue
+        top_eng, top_bundle = max(
+            engine_best.items(), key=lambda kv: kv[1]["merged"]["roi_pct"]
+        )
+        top_merged = top_bundle["merged"]
+        entry = {
+            "period_days": days,
+            "engine": top_eng,
+            "name_zh": top_bundle["zht"],
+            "name_en": top_bundle["en"],
+            "roi_pct": top_merged["roi_pct"],
+            "max_drawdown": top_merged["max_drawdown"],
+            "profit_factor": top_merged["profit_factor"],
+            "trades": top_merged["trades"],
+        }
+        per_period_best[str(days)] = entry
+        if best is None or entry["roi_pct"] > best["roi_pct"]:
+            best = entry
+        log(
+            "hero window {0}d champion={1} roi={2:.1f}% dd={3:.1%} pf={4:.2f} trades={5}".format(
+                days,
+                top_eng,
+                top_merged["roi_pct"],
+                top_merged["max_drawdown"],
+                top_merged["profit_factor"],
+                top_merged["trades"],
+            )
+        )
+
+    total_elapsed = time.time() - t0
+    log(
+        "hero scan done in {0:.1f}s (fetch={1:.1f}s) champion={2}".format(
+            total_elapsed, fetch_elapsed, best
+        )
+    )
+    return best, per_period_best, total_elapsed
+
+
+def merge_hero_into_leaderboard(hero_highlight, hero_by_period, elapsed):
+    """Read-modify-write leaderboard.json with the hero scan results, without
+    re-running the (separate, already-written) single-period run_all()."""
+    payload = {}
+    if os.path.exists(OUT_PATH):
+        try:
+            with open(OUT_PATH, "r", encoding="utf-8") as fh:
+                payload = json.load(fh)
+        except Exception as exc:
+            log("hero merge: could not read existing leaderboard.json: {0}".format(exc))
+    payload["hero_highlight"] = hero_highlight
+    payload["hero_by_period"] = hero_by_period
+    payload["hero_scan_periods"] = HERO_PERIODS
+    payload["hero_scan_elapsed_sec"] = round(elapsed, 1)
+    payload["hero_scan_updated_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    write_outputs(payload)
+
+
 def write_outputs(payload):
     raw = json.dumps(payload, ensure_ascii=False, indent=2)
     with open(OUT_PATH, "w", encoding="utf-8") as fh:
@@ -655,6 +812,21 @@ def parse_args(argv):
         action="store_true",
         help="Deep sample mode: 15m+1h across all symbols, up to 1000 bars",
     )
+    parser.add_argument(
+        "--hero-scan",
+        action="store_true",
+        help=(
+            "Run the heavier multi-window (3/7/10/20/30/60/100/180d) champion "
+            "scan and merge hero_highlight into leaderboard.json. Separate, "
+            "explicit, opt-in step — does not run the normal single-period "
+            "run_all() job unless also requested."
+        ),
+    )
+    parser.add_argument(
+        "--hero-only",
+        action="store_true",
+        help="With --hero-scan: skip the normal run_all() job entirely.",
+    )
     return parser.parse_args(argv)
 
 
@@ -662,16 +834,24 @@ def main(argv=None):
     args = parse_args(argv or sys.argv[1:])
     days = max(1, min(int(args.days), 180))
     full = bool(args.full) or days >= 60
-    log("calc_rankings start period={0}d full={1}".format(days, full))
-    payload = run_all(days, full=full)
-    write_outputs(payload)
-    log(
-        "calc_rankings done period={0}d engines={1} eligible={2}".format(
-            days,
-            len(payload["by_engine"]),
-            sum(1 for v in payload["by_engine"].values() if v.get("eligible")),
+
+    if not (args.hero_scan and args.hero_only):
+        log("calc_rankings start period={0}d full={1}".format(days, full))
+        payload = run_all(days, full=full)
+        write_outputs(payload)
+        log(
+            "calc_rankings done period={0}d engines={1} eligible={2}".format(
+                days,
+                len(payload["by_engine"]),
+                sum(1 for v in payload["by_engine"].values() if v.get("eligible")),
+            )
         )
-    )
+
+    if args.hero_scan:
+        log("hero scan start periods={0}".format(HERO_PERIODS))
+        hero_highlight, hero_by_period, elapsed = run_hero_scan()
+        merge_hero_into_leaderboard(hero_highlight, hero_by_period, elapsed)
+        log("hero scan merged into leaderboard.json in {0:.1f}s".format(elapsed))
 
 
 if __name__ == "__main__":

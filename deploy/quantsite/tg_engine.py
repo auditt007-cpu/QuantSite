@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 """Event-driven Telegram signal engine — shared kline pool, 45-strategy matrix."""
 
+import asyncio
+import concurrent.futures as cf
+import hashlib
 import json
 import math
 import os
 import ssl
+import threading
 import time
 import traceback
 import urllib.error
@@ -12,16 +16,35 @@ import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta, timezone
 
+try:
+    import edge_tts
+except ImportError:  # pragma: no cover - edge-tts not installed yet on this host
+    edge_tts = None
+
 BOT_TOKEN = os.environ.get("TG_BOT_TOKEN", "").strip()
 CHANNEL = (
     os.environ.get("TG_CHANNEL_ID", "").strip()
     or os.environ.get("TG_CHANNEL", "").strip()
     or "@quant_alpha_signals"
 )
-SYMBOLS = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "DOGEUSDT"]
+# 20-symbol monitoring universe — mirrors the frontend's top ticker + live.html
+# coin picker so every surface (TG alerts, leaderboard, war room) watches the
+# same pool.
+SYMBOLS = [
+    "BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "DOGEUSDT",
+    "ADAUSDT", "AVAXUSDT", "LINKUSDT", "SUIUSDT", "NEARUSDT", "APTUSDT",
+    "OPUSDT", "ARBUSDT", "PEPEUSDT", "SHIBUSDT", "TIAUSDT", "INJUSDT",
+    "RENDERUSDT", "FETUSDT",
+]
 TIMEFRAMES = ("15m", "1h")
 POLL_SEC = 60
 KLINE_LIMIT = 200
+POOL_WORKERS = 10
+LIVE_FEED_WORKERS = 8
+LIVE_FEED_TF = "1h"
+LIVE_FEED_WINDOW_SEC = 3 * 3600
+LIVE_FEED_LOOKBACK_BARS = 4  # small margin over the 3h window in 1h bars
+LIVE_FEED_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "live_feed.json")
 UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
@@ -33,6 +56,8 @@ SSL_CTX.verify_mode = ssl.CERT_NONE
 
 SIGNAL_STATE = {}
 KLINE_POOL = {}
+LIVE_POSITION_STATE = {}
+LIVE_POSITION_LOCK = threading.Lock()
 
 SIDE_ZHT = {"LONG": "做多", "SHORT": "做空"}
 SIDE_EN = {"LONG": "LONG", "SHORT": "SHORT"}
@@ -128,14 +153,24 @@ def load_klines(sym, tf):
 
 
 def refresh_pool():
+    """Parallel-fetch every (symbol, timeframe) pair so a 20-symbol pool still
+    refreshes comfortably inside the 60s poll budget."""
     global KLINE_POOL
-    for sym in SYMBOLS:
-        for tf in TIMEFRAMES:
-            key = (sym, tf)
-            try:
-                KLINE_POOL[key] = load_klines(sym, tf)
-            except Exception as exc:
-                log("pool skip {0} {1}: {2}".format(sym, tf, exc))
+    pairs = [(sym, tf) for sym in SYMBOLS for tf in TIMEFRAMES]
+
+    def fetch_one(pair):
+        sym, tf = pair
+        try:
+            return pair, load_klines(sym, tf), None
+        except Exception as exc:
+            return pair, None, exc
+
+    with cf.ThreadPoolExecutor(max_workers=POOL_WORKERS) as ex:
+        for pair, data, exc in ex.map(fetch_one, pairs):
+            if data is not None:
+                KLINE_POOL[pair] = data
+            else:
+                log("pool skip {0} {1}: {2}".format(pair[0], pair[1], exc))
 
 
 def ema(vals, n):
@@ -477,6 +512,445 @@ def build_strategy_matrix():
 STRATEGY_MATRIX = build_strategy_matrix()
 
 
+# ---------------------------------------------------------------------------
+# Canonical 45 frontend strategy IDs (must stay byte-identical to
+# js/engine-list.js / terminal.js FALLBACK_ENGINES and calc_rankings.py's
+# by_engine keys). This is the single source of truth — calc_rankings.py
+# calls te.frontend_strategy_specs() instead of keeping its own copy.
+# ---------------------------------------------------------------------------
+def frontend_strategy_specs():
+    return [
+        ("dual", "ATR雙SuperTrend", "Dual SuperTrend", lambda d: eval_supertrend_break(d, 10, 2.2)),
+        ("ribbon", "EMA多周期共振", "Multi-Horizon EMA", lambda d: eval_ema_cross(d, 8, 21)),
+        ("rsi", "RSI閾值交叉", "RSI Threshold Cross", lambda d: eval_rsi_cross(d, 35, 65)),
+        ("squeeze", "布林擠壓突破", "BB Squeeze Break", lambda d: eval_bb_squeeze_break(d, 20)),
+        ("atr", "ATR波動網格", "ATR Volatility Grid", lambda d: eval_atr_grid(d, 1.2)),
+        ("qe", "短周期動量交叉", "Short-Horizon Momentum", lambda d: eval_ema_cross(d, 9, 21)),
+        ("dm", "RSI背離代理", "RSI Divergence Proxy", eval_rsi_div_proxy),
+        ("sn", "布林均值回歸", "Bollinger Rebound", lambda d: eval_bb_rebound(d, 20, 1.8)),
+        ("eh", "EMA三均共振", "EMA Triple Stack", eval_ema_triple),
+        ("gw", "唐奇安突破20", "Donchian 20 Break", lambda d: eval_donchian(d, 16)),
+        ("ns", "MACD柱翻轉", "MACD Histogram Flip", eval_macd_hist_cross),
+        ("sf", "MACD信號交叉", "MACD Signal Cross", eval_macd_signal_cross),
+        ("qk", "肯特納突破", "Keltner Breakout", eval_keltner_break),
+        ("hs", "樞軸點突破", "Pivot Point Break", eval_pivot_break),
+        ("hg", "Dual Thrust", "Dual Thrust Break", lambda d: eval_dual_thrust(d, 3)),
+        ("strat-001", "唐奇安突破", "Donchian Breakout", lambda d: eval_donchian(d, 12)),
+        ("strat-002", "EMA雙均交叉", "EMA Crossover", lambda d: eval_ema_cross(d, 12, 26)),
+        ("strat-003", "ATR超級趨勢", "SuperTrend Following", lambda d: eval_supertrend_break(d, 10, 2.5)),
+        ("strat-004", "多周期動量", "Multi-Horizon Trend", lambda d: eval_ema_cross(d, 20, 50)),
+        ("strat-005", "成交量價差VSA", "Volume Spread Analysis", lambda d: eval_vsa_spike(d, 1.3)),
+        ("strat-006", "MACD動量", "MACD Momentum", eval_macd_signal_cross),
+        ("strat-007", "ROC動能", "ROC Momentum", lambda d: eval_roc(d, 10, 0.25)),
+        ("strat-008", "肯特納通道", "Keltner Channel", eval_keltner_break),
+        ("strat-009", "樞軸點", "Pivot Points", eval_pivot_break),
+        ("strat-010", "量均突破", "Volume MA Break", eval_vol_ma_break),
+        ("strat-011", "複合動能", "Composite Momentum", eval_composite_mom),
+        ("strat-012", "EMA快線交叉", "EMA Fast Cross", lambda d: eval_ema_cross(d, 5, 13)),
+        ("strat-013", "布林寬帶回歸", "BB Wide Rebound", lambda d: eval_bb_rebound(d, 20, 2.2)),
+        ("strat-014", "ROC20動能", "ROC-20 Momentum", lambda d: eval_roc(d, 20, 0.35)),
+        ("strat-015", "唐奇安10", "Donchian 10", lambda d: eval_donchian(d, 10)),
+        ("strat-016", "RSI超賣修復", "RSI Oversold Repair", lambda d: eval_rsi_cross(d, 32, 68)),
+        ("strat-017", "ATR網格1.0", "ATR Grid Tight", lambda d: eval_atr_grid(d, 1.0)),
+        ("strat-018", "MACD柱翻轉", "MACD Hist Flip", eval_macd_hist_cross),
+        ("strat-019", "布林擠壓", "BB Squeeze", lambda d: eval_bb_squeeze_break(d, 18)),
+        ("strat-020", "Dual Thrust快", "Dual Thrust Fast", lambda d: eval_dual_thrust(d, 3)),
+        ("strat-021", "量價突破", "Vol Price Break", eval_vol_ma_break),
+        ("strat-022", "EMA8/21", "EMA 8/21 Cross", lambda d: eval_ema_cross(d, 8, 21)),
+        ("strat-023", "RSI背離", "RSI Divergence", eval_rsi_div_proxy),
+        ("strat-024", "唐奇安14", "Donchian 14", lambda d: eval_donchian(d, 14)),
+        ("strat-025", "肯特納快", "Keltner Fast", eval_keltner_break),
+        ("strat-026", "複合動能B", "Composite Mom B", eval_composite_mom),
+        ("strat-027", "ROC8動能", "ROC-8 Momentum", lambda d: eval_roc(d, 8, 0.2)),
+        ("strat-028", "ATR趨勢", "ATR Trend Break", lambda d: eval_supertrend_break(d, 8, 2.0)),
+        ("strat-029", "布林回歸1.6", "BB Rebound Soft", lambda d: eval_bb_rebound(d, 20, 1.6)),
+        ("strat-030", "樞軸快線", "Pivot Fast", eval_pivot_break),
+    ]
+
+
+def _slice_tail(data, i):
+    return {
+        "h": data["h"][: i + 1],
+        "l": data["l"][: i + 1],
+        "c": data["c"][: i + 1],
+        "v": data["v"][: i + 1],
+        "t": data["t"][: i + 1],
+    }
+
+
+def _scan_recent_signal(eval_fn, data, now_sec):
+    """Walk the last few closed bars (newest first) and return the most recent
+    LONG/SHORT hit still inside the live-feed window, or None."""
+    c = data["c"]
+    n = len(c)
+    if n < 30:
+        return None
+    floor_i = max(29, n - 1 - LIVE_FEED_LOOKBACK_BARS)
+    for i in range(n - 1, floor_i - 1, -1):
+        bar_ts_sec = data["t"][i] / 1000.0
+        if bar_ts_sec < now_sec - LIVE_FEED_WINDOW_SEC:
+            break
+        try:
+            side = eval_fn(_slice_tail(data, i))
+        except Exception:
+            continue
+        if side in ("LONG", "SHORT"):
+            return {"side": side, "bar_ts": bar_ts_sec, "price": c[i]}
+    return None
+
+
+LIVE_FEED_KLINE_LIMIT = 150
+# Dedicated fast-path limit for the live-feed matrix. Deliberately small so
+# the fetch (20 symbols x 1h, parallelized) finishes in a couple seconds and
+# never depends on the heavier KLINE_LIMIT=200 x (15m+1h) x 20-symbol pool
+# used by the legacy TG-alert scanner. It must still be >~58 bars though,
+# since the hungriest eval_* strategy (eval_ema_triple, EMA-55 stack) needs
+# that much warmup to ever produce a signal — literally fetching only the
+# last few hours of candles would make almost every strategy return None
+# forever (they safely guard with `if len(c) < N: return None`, so nothing
+# crashes, but the feed would look permanently empty). 150 x 1h bars (~6
+# days) is the sweet spot: fast to fetch, deep enough for every strategy.
+
+
+# ---------------------------------------------------------------------------
+# Edge-TTS sweet-voice audio pipeline
+#
+# Design constraints: TTS generation must NEVER block the fast live_feed.json
+# write cycle. Every generation call runs on a small dedicated background
+# thread pool; callers get the public URL immediately if the mp3 already
+# exists on disk (from an earlier cycle), or None otherwise while generation
+# continues in the background — the next 60s cycle will pick up the finished
+# file naturally since signals keep the same cache key until their bar ages
+# out of the lookback window.
+# ---------------------------------------------------------------------------
+AUDIO_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "audio")
+AUDIO_VOICE = "zh-CN-XiaoxiaoNeural"
+# Site is served by GitHub Pages from the repo root (see CNAME -> quantalpha.space).
+# _ssh_push.py fetches everything under AUDIO_DIR back into <repo>/audio/ so it
+# becomes reachable at https://quantalpha.space/audio/<file>.mp3 once pushed.
+AUDIO_PUBLIC_PREFIX = "/audio"
+AUDIO_EXECUTOR = cf.ThreadPoolExecutor(max_workers=2)
+AUDIO_INFLIGHT = set()
+AUDIO_INFLIGHT_LOCK = threading.Lock()
+
+WELCOME_TEXTS = [
+    "哥哥，歡迎來到實時作戰室～策略和信號都幫你盯好啦，今天也要精準踩點，跟著我一起吃大波段喔～",
+    "哈囉～歡迎進入量化作戰室！算力矩陣已經就位囉，帶好止損，剩下的拐點信號就交給我來抓吧～",
+    "您好呀，作戰室已為您連線全球節點。行情波動很大，記得看好我的信號提醒，祝您今天交易順利、穩穩收米喔～",
+]
+
+
+def _tts_generate_sync(text, out_path):
+    if edge_tts is None:
+        raise RuntimeError("edge_tts not installed")
+    tmp = out_path + ".tmp"
+
+    async def _run():
+        communicate = edge_tts.Communicate(text, AUDIO_VOICE)
+        await communicate.save(tmp)
+
+    asyncio.run(_run())
+    os.replace(tmp, out_path)
+
+
+def audio_public_url(filename):
+    return "{0}/{1}".format(AUDIO_PUBLIC_PREFIX, filename)
+
+
+def ensure_welcome_audio():
+    """Pre-generate the 3 welcome MP3s once; skip regeneration if already
+    present on disk (so a service restart doesn't re-hit the TTS API)."""
+    os.makedirs(AUDIO_DIR, exist_ok=True)
+    for i, text in enumerate(WELCOME_TEXTS, start=1):
+        path = os.path.join(AUDIO_DIR, "welcome_{0}.mp3".format(i))
+        if os.path.exists(path) and os.path.getsize(path) > 1000:
+            continue
+        try:
+            _tts_generate_sync(text, path)
+            log("welcome audio generated: welcome_{0}.mp3".format(i))
+        except Exception as exc:
+            log("welcome audio failed ({0}): {1}".format(i, exc))
+
+
+def ensure_funnel_audio():
+    """Pre-generate one 'monitoring created' confirmation clip per canonical
+    frontend strategy id (45 total) — lets live.html's checkbox funnel play
+    a per-strategy voice line after its 500ms debounce without needing any
+    on-demand TTS HTTP endpoint (this bot has no HTTP server)."""
+    os.makedirs(AUDIO_DIR, exist_ok=True)
+    for sid, zht, en, _fn in frontend_strategy_specs():
+        path = os.path.join(AUDIO_DIR, "funnel_{0}.mp3".format(sid))
+        if os.path.exists(path) and os.path.getsize(path) > 500:
+            continue
+        text = "策略（{0}）監控已生成，請注意語音播報喔～".format(zht)
+        try:
+            _tts_generate_sync(text, path)
+            log("funnel audio generated: funnel_{0}.mp3".format(sid))
+        except Exception as exc:
+            log("funnel audio failed ({0}): {1}".format(sid, exc))
+
+
+def request_signal_audio(cache_key, text):
+    """Fire-and-forget TTS generation keyed by a stable content hash. Returns
+    the public URL immediately if the mp3 is already on disk; otherwise
+    schedules background generation and returns None (a later cycle attaches
+    the URL once the file exists)."""
+    if edge_tts is None:
+        return None
+    filename = "sig_{0}.mp3".format(cache_key)
+    path = os.path.join(AUDIO_DIR, filename)
+    if os.path.exists(path) and os.path.getsize(path) > 500:
+        return audio_public_url(filename)
+    with AUDIO_INFLIGHT_LOCK:
+        if cache_key in AUDIO_INFLIGHT:
+            return None
+        AUDIO_INFLIGHT.add(cache_key)
+
+    def _job():
+        try:
+            os.makedirs(AUDIO_DIR, exist_ok=True)
+            _tts_generate_sync(text, path)
+            log("signal audio ready: {0}".format(filename))
+        except Exception as exc:
+            log("signal audio failed {0}: {1}".format(filename, exc))
+        finally:
+            with AUDIO_INFLIGHT_LOCK:
+                AUDIO_INFLIGHT.discard(cache_key)
+
+    AUDIO_EXECUTOR.submit(_job)
+    return None
+
+
+def open_signal_text(zht, sym, side, price):
+    coin = sym.replace("USDT", "")
+    side_zh = "做多" if side == "LONG" else "做空"
+    return "叮～策略【{0}】在 {1} 出現{2}訊號，參考價位 {3}，記得及時關注喔～".format(
+        zht, coin, side_zh, fmt_px(price)
+    )
+
+
+def close_signal_text(zht, pnl_pct):
+    return "哥哥～【{0}】已經獲利出場囉，本次為您鎖定獲利百分之{1:.1f}，超厲害的～".format(
+        zht, pnl_pct
+    )
+
+
+def fetch_klines_light(sym):
+    interval = binance_interval(LIVE_FEED_TF)
+    url = (
+        "https://api.binance.com/api/v3/klines?symbol={0}&interval={1}&limit={2}"
+    ).format(sym, interval, LIVE_FEED_KLINE_LIMIT)
+    rows = http_json(url)
+    now_ms = int(time.time() * 1000)
+    if rows and int(rows[-1][6]) > now_ms:
+        rows = rows[:-1]
+    if len(rows) < 30:
+        raise RuntimeError("binance insufficient bars")
+    return pack_rows(rows, "binance", binance=True, tf=LIVE_FEED_TF)
+
+
+def fetch_klines_light_okx(sym):
+    url = (
+        "https://www.okx.com/api/v5/market/candles?instId={0}&bar={1}&limit={2}"
+    ).format(okx_inst(sym), okx_bar(LIVE_FEED_TF), LIVE_FEED_KLINE_LIMIT)
+    data = http_json(url)
+    rows = list(reversed(data.get("data") or []))
+    now_ms = int(time.time() * 1000)
+    if rows and int(rows[-1][0]) + bar_duration_ms(LIVE_FEED_TF) > now_ms:
+        rows = rows[:-1]
+    if len(rows) < 30:
+        raise RuntimeError("okx insufficient bars")
+    return pack_rows(rows, "okx", binance=False, tf=LIVE_FEED_TF)
+
+
+def load_klines_light(sym):
+    try:
+        return fetch_klines_light(sym)
+    except Exception as exc:
+        log("{0} live-feed light fetch binance fail: {1}; fallback okx".format(sym, exc))
+        return fetch_klines_light_okx(sym)
+
+
+def refresh_live_feed_pool():
+    """Fast, independent fetch: 20 symbols x 1h only, small limit, parallelized
+    via a thread pool. Kept separate from refresh_pool()/KLINE_POOL so
+    live_feed.json generation never waits on the heavier legacy TG pool."""
+    pool = {}
+
+    def fetch_one(sym):
+        try:
+            return sym, load_klines_light(sym), None
+        except Exception as exc:
+            return sym, None, exc
+
+    with cf.ThreadPoolExecutor(max_workers=LIVE_FEED_WORKERS) as ex:
+        for sym, data, exc in ex.map(fetch_one, SYMBOLS):
+            if data is not None:
+                pool[sym] = data
+            else:
+                log("live_feed pool skip {0}: {1}".format(sym, exc))
+    return pool
+
+
+def _position_key(sid, sym):
+    return "{0}_{1}".format(sid, sym)
+
+
+def _pnl_pct(side, entry_px, exit_px):
+    if not entry_px:
+        return 0.0
+    if side == "LONG":
+        return (exit_px - entry_px) / entry_px * 100.0
+    return (entry_px - exit_px) / entry_px * 100.0
+
+
+def scan_one(spec, pool, now_sec):
+    """20-symbol scan for one strategy. Also drives the in-memory open/close
+    position tracker (LIVE_POSITION_STATE) so close events can be detected —
+    the eval_* functions only return a fresh point-in-time LONG/SHORT/None
+    per call, they are not stateful positions, so a small tracker keyed by
+    strategy+symbol is needed to know when a signal flips direction (= a
+    close of the prior leg) and to compute its pnl_pct."""
+    sid, zht, en, fn = spec
+    hits = []
+    closes = []
+    for sym in SYMBOLS:
+        data = pool.get(sym)
+        if not data or len(data["c"]) < 30:
+            continue
+        hit = _scan_recent_signal(fn, data, now_sec)
+        if not hit:
+            continue
+        key = _position_key(sid, sym)
+        bar_ts_i = int(hit["bar_ts"])
+        price = hit["price"]
+        side = hit["side"]
+
+        is_new_bar = True
+        flipped_from = None
+        with LIVE_POSITION_LOCK:
+            prev = LIVE_POSITION_STATE.get(key)
+            if prev and prev.get("bar_ts") == bar_ts_i:
+                is_new_bar = False
+            else:
+                if prev and prev.get("side") != side:
+                    flipped_from = dict(prev)
+                LIVE_POSITION_STATE[key] = {"side": side, "price": price, "bar_ts": bar_ts_i}
+
+        if not is_new_bar:
+            # Same bar as last cycle: signal persists in the window, just
+            # keep it visible with whatever audio_url is (by now) cached.
+            cache_key = hashlib.md5(
+                "{0}|{1}|{2}|{3}".format(sid, sym, side, bar_ts_i).encode("utf-8")
+            ).hexdigest()[:20]
+            audio_url = None
+            path = os.path.join(AUDIO_DIR, "sig_{0}.mp3".format(cache_key))
+            if os.path.exists(path) and os.path.getsize(path) > 500:
+                audio_url = audio_public_url("sig_{0}.mp3".format(cache_key))
+            hits.append(
+                {
+                    "strategy_id": sid,
+                    "name_zh": zht,
+                    "name_en": en,
+                    "symbol": sym,
+                    "interval": LIVE_FEED_TF,
+                    "event": "open",
+                    "side": side,
+                    "price": round(price, 8),
+                    "bar_ts": bar_ts_i,
+                    "audio_url": audio_url,
+                }
+            )
+            continue
+
+        # Brand-new bar signal this cycle: kick off open-signal TTS.
+        cache_key = hashlib.md5(
+            "{0}|{1}|{2}|{3}".format(sid, sym, side, bar_ts_i).encode("utf-8")
+        ).hexdigest()[:20]
+        audio_url = request_signal_audio(cache_key, open_signal_text(zht, sym, side, price))
+        hits.append(
+            {
+                "strategy_id": sid,
+                "name_zh": zht,
+                "name_en": en,
+                "symbol": sym,
+                "interval": LIVE_FEED_TF,
+                "event": "open",
+                "side": side,
+                "price": round(price, 8),
+                "bar_ts": bar_ts_i,
+                "audio_url": audio_url,
+            }
+        )
+
+        if flipped_from is not None:
+            pnl_pct = _pnl_pct(flipped_from["side"], flipped_from["price"], price)
+            close_audio_url = None
+            if pnl_pct > 0:
+                close_cache_key = hashlib.md5(
+                    "close|{0}|{1}|{2}".format(sid, sym, bar_ts_i).encode("utf-8")
+                ).hexdigest()[:20]
+                close_audio_url = request_signal_audio(
+                    close_cache_key, close_signal_text(zht, pnl_pct)
+                )
+            closes.append(
+                {
+                    "strategy_id": sid,
+                    "name_zh": zht,
+                    "name_en": en,
+                    "symbol": sym,
+                    "interval": LIVE_FEED_TF,
+                    "event": "close",
+                    "side": "CLOSE_" + flipped_from["side"],
+                    "entry_price": round(flipped_from["price"], 8),
+                    "exit_price": round(price, 8),
+                    "pnl_pct": round(pnl_pct, 2),
+                    "bar_ts": bar_ts_i,
+                    "audio_url": close_audio_url if pnl_pct > 0 else None,
+                }
+            )
+    return hits, closes
+
+
+def build_live_feed_matrix():
+    """20 symbols x 45 canonical strategies, multi-threaded. Uses its own
+    lightweight kline fetch (see refresh_live_feed_pool) — no dependency on
+    the heavier full pool refresh, so this step alone stays fast (a few
+    seconds) regardless of what else is happening in the poll cycle."""
+    now_sec = time.time()
+    specs = frontend_strategy_specs()
+    pool = refresh_live_feed_pool()
+
+    signals = []
+    closed = []
+    with cf.ThreadPoolExecutor(max_workers=LIVE_FEED_WORKERS) as ex:
+        futs = [ex.submit(scan_one, spec, pool, now_sec) for spec in specs]
+        for fut in futs:
+            hits, closes = fut.result()
+            signals.extend(hits)
+            closed.extend(closes)
+    signals.sort(key=lambda x: x["bar_ts"], reverse=True)
+    closed.sort(key=lambda x: x["bar_ts"], reverse=True)
+
+    return {
+        "updated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "period_hours": 3,
+        "symbols": SYMBOLS,
+        "strategy_count": len(specs),
+        "signal_count": len(signals),
+        "active_signals_3h": signals,
+        "closed_signals_3h": closed[:60],
+    }
+
+
+def write_live_feed(payload):
+    raw = json.dumps(payload, ensure_ascii=False, indent=2)
+    tmp = LIVE_FEED_PATH + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        f.write(raw)
+    os.replace(tmp, LIVE_FEED_PATH)
+
+
 def fmt_ts_ms(ms):
     dt = datetime.fromtimestamp(ms / 1000.0, tz=timezone.utc)
     tw = dt.astimezone(timezone(timedelta(hours=8)))
@@ -632,9 +1106,25 @@ def scan_events():
 
 
 def cycle():
+    # Live feed first and on its own fast dedicated fetch (~seconds) — never
+    # blocked by the heavier legacy pool refresh below.
+    t0 = time.time()
+    try:
+        feed = build_live_feed_matrix()
+        write_live_feed(feed)
+        log(
+            "live_feed.json written signals={0} symbols={1} strategies={2} took={3:.1f}s".format(
+                feed["signal_count"], len(SYMBOLS), feed["strategy_count"], time.time() - t0
+            )
+        )
+    except Exception as exc:
+        log("live_feed build/write error: {0}".format(exc))
+        traceback.print_exc()
+
     refresh_pool()
     ok = sum(1 for s in SYMBOLS for t in TIMEFRAMES if (s, t) in KLINE_POOL)
     log("pool refreshed {0}/{1} series".format(ok, len(SYMBOLS) * len(TIMEFRAMES)))
+
     alerts = scan_events()
     if not alerts:
         log("no new events this tick")
@@ -654,6 +1144,11 @@ def main():
     if not BOT_TOKEN:
         log("FATAL: set TG_BOT_TOKEN")
         raise SystemExit(1)
+    if edge_tts is None:
+        log("WARN: edge_tts not installed — sweet-voice audio disabled (pip install edge-tts)")
+    else:
+        AUDIO_EXECUTOR.submit(ensure_welcome_audio)
+        AUDIO_EXECUTOR.submit(ensure_funnel_audio)
     while True:
         try:
             cycle()
