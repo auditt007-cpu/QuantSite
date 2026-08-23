@@ -347,6 +347,46 @@ function closeSheet() {
   document.body.classList.remove("sheet-open");
 }
 
+function resetBacktestResults() {
+  lastCtx = null;
+  closeSheet();
+  if (candleSeries) candleSeries.setMarkers([]);
+  if ($("sampleHint")) $("sampleHint").textContent = t("btAwaitRun");
+  if ($("moneyEnd")) $("moneyEnd").textContent = "$1,000 → $1,000";
+  if ($("moneyPnl")) {
+    $("moneyPnl").textContent = t("moneyPnlIdle");
+    $("moneyPnl").className = "money-pnl";
+  }
+  if ($("moneyDays")) $("moneyDays").textContent = t("moneyDaysIdle");
+  if ($("moneyHit")) $("moneyHit").textContent = t("moneyHitIdle");
+  if ($("moneyRisk")) $("moneyRisk").textContent = t("moneyRiskIdle");
+  if ($("tradePills")) $("tradePills").innerHTML = "";
+  if ($("tradeRows")) $("tradeRows").innerHTML = "";
+  if ($("mWr")) $("mWr").textContent = "—";
+  if ($("mPf")) $("mPf").textContent = "—";
+  if ($("mTrades")) $("mTrades").textContent = "—";
+  if ($("mBars")) $("mBars").textContent = "—";
+  if ($("navNow")) $("navNow").textContent = t("navNowIdle");
+  if ($("navPnl")) {
+    $("navPnl").textContent = t("navPnlIdle");
+    $("navPnl").className = "nav-chip";
+  }
+  if ($("navDd")) $("navDd").textContent = t("navDdIdle");
+  if ($("navDur")) {
+    $("navDur").textContent = t("navDurIdle");
+    $("navDur").className = "nav-chip nav-dur";
+  }
+  if ($("funnelCard")) $("funnelCard").hidden = true;
+  if (equityChart) {
+    equityChart.remove();
+    equityChart = null;
+  }
+  if (ddChart) {
+    ddChart.remove();
+    ddChart = null;
+  }
+}
+
 function syncDock() {
   const ds = $("dockSymbol");
   const dt = $("dockTf");
@@ -530,6 +570,7 @@ async function load(iv) {
     b.classList.toggle("active", b.getAttribute("data-tf") === interval);
   });
   if (stream) stream.close();
+  resetBacktestResults();
   setBtLoading(true);
   feed.setFeedStatus($("wsStatus"), "connecting");
 
@@ -699,8 +740,8 @@ function bindDesk() {
   if ($("stratSelect")) $("stratSelect").setAttribute("data-bound", "1");
   $("stratSelect").addEventListener("change", () => {
     engineId = $("stratSelect").value;
+    resetBacktestResults();
     paintPine();
-    if (allBars.length) run(true);
   });
   document.querySelectorAll("[data-tf]").forEach((b) => {
     b.addEventListener("click", () => load(b.getAttribute("data-tf")).catch((e) => toast(e.message)));
@@ -733,11 +774,7 @@ function bindDesk() {
   });
   window.addEventListener("resize", resizeCharts);
   window.addEventListener("quant-feed-region", () => {
-    load(interval)
-      .then(() => {
-        if (allBars.length && lastCtx) run(true);
-      })
-      .catch((e) => toast(e.message, "warn"));
+    load(interval).catch((e) => toast(e.message, "warn"));
   });
 }
 function refillSelect() {
@@ -778,11 +815,11 @@ window.QABacktest = {
       if (id && catalog.get(id)) engineId = id;
       if ($("stratSelect")) $("stratSelect").value = engineId;
       const startIv = INTERVALS_OK(iv) ? iv : interval || "1h";
-      setBtLoading(true);
-      return load(startIv)
-        .then(() => run(false))
-        .catch((e) => toast(e.message, "warn"))
-        .finally(() => setBtLoading(false));
+      interval = startIv;
+      syncDock();
+      paintPine();
+      resetBacktestResults();
+      return load(startIv).catch((e) => toast(e.message, "warn"));
     };
     if (window.QAPackReady) return window.QAPackReady.then(start);
     return start();
@@ -805,7 +842,7 @@ function bindChrome() {
       if ($("dockSymbol")) SYMBOL = $("dockSymbol").value;
       if (bt && bt.hidden) {
         revealBacktest();
-        Promise.resolve(window.QABacktest.open(engineId || "dual", iv)).then(() => run(false));
+        Promise.resolve(window.QABacktest.open(engineId || "dual", iv));
         return;
       }
       run(false);

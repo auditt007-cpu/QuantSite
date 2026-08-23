@@ -265,9 +265,6 @@
 
   function openEngine(engine, interval) {
     showBacktest();
-    if (window.QABacktest && typeof window.QABacktest.setLoading === "function") {
-      window.QABacktest.setLoading(true);
-    }
     if (window.QABacktest && typeof window.QABacktest.open === "function") {
       window.QABacktest.open(engine, interval || "1h");
     }
