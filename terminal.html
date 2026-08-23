@@ -57,9 +57,10 @@
         <h2 class="ai-lab-h1" data-i18n="aiLabH1">不懂編程？一樣可以擁有自己的專屬量化策略</h2>
         <textarea id="aiPrompt" rows="4" data-ph="aiPromptPh" placeholder="例如：前兩天連續下跌，今天跳空高開且成交量放大，收盤價突破昨日最高價..."></textarea>
         <div class="ai-chips" id="aiChips">
-          <button type="button" class="ai-chip" data-fill="收盤價突破前高，且當根成交量大於近 20 根均量的 1.5 倍，做多；跌破前低則平倉。" data-i18n="chipBreak">突破前高放量</button>
-          <button type="button" class="ai-chip" data-fill="RSI 出現底背離（價格創新低但 RSI 抬高）時抄底做多，RSI 回到 60 以上平倉。" data-i18n="chipRsi">RSI底背離抄底</button>
-          <button type="button" class="ai-chip" data-fill="EMA20、EMA50、EMA200 多頭排列且收盤站上 EMA20 時做多，跌破 EMA50 平倉。" data-i18n="chipEma">均線多頭共振</button>
+          <button type="button" class="ai-chip" data-i18n="chipBreak" data-fill-key="chipBreakFill">💥 破新高追入</button>
+          <button type="button" class="ai-chip" data-i18n="chipDip" data-fill-key="chipDipFill">📉 跌深了抄底</button>
+          <button type="button" class="ai-chip" data-i18n="chipHold" data-fill-key="chipHoldFill">🚀 站上均線死拿</button>
+          <button type="button" class="ai-chip" data-i18n="chipGrid" data-fill-key="chipGridFill">🔄 跌一點買漲一點賣</button>
         </div>
         <button type="button" class="btn-cta lg ai-go action-btn" id="btnAiGo" data-i18n="aiGo">[⚡ 立即生成量化模型並回測]</button>
       </section>
@@ -78,41 +79,32 @@
 
     <div id="viewBacktest" hidden>
       <button type="button" class="btn-back-list action-btn" id="btnBackList" data-i18n="backList">[ &lt; 返回策略列表 ]</button>
-      <section class="lab-top">
-        <div class="lab-top-bar">
+      <section class="lab-flow">
+        <div class="lab-chart-block">
           <div id="wsStatus" class="feed-status wait">● 數據重連中</div>
-          <div class="seg" role="tablist">
-            <button type="button" class="seg-btn active" data-tf="1m">1m</button>
-            <button type="button" class="seg-btn" data-tf="5m">5m</button>
-            <button type="button" class="seg-btn" data-tf="15m">15m</button>
-            <button type="button" class="seg-btn" data-tf="1h">1h</button>
-            <button type="button" class="seg-btn" data-tf="4h">4h</button>
-            <button type="button" class="seg-btn" data-tf="1d">1D</button>
-            <button type="button" class="seg-btn" data-tf="1w">1W</button>
+          <div class="lab-chart-frame">
+            <div id="candleChart" class="lab-canvas chart-container"></div>
+            <a class="tv-chart-badge" href="https://www.tradingview.com/" target="_blank" rel="noopener">Charts by TradingView</a>
           </div>
         </div>
-        <div class="lab-chart-frame">
-          <div id="candleChart" class="lab-canvas chart-container"></div>
-          <a class="tv-chart-badge" href="https://www.tradingview.com/" target="_blank" rel="noopener">Charts by TradingView</a>
+
+        <div class="tf-bar" role="tablist" aria-label="Timeframe">
+          <button type="button" class="seg-btn active" data-tf="1m">1m</button>
+          <button type="button" class="seg-btn" data-tf="5m">5m</button>
+          <button type="button" class="seg-btn" data-tf="15m">15m</button>
+          <button type="button" class="seg-btn" data-tf="1h">1h</button>
+          <button type="button" class="seg-btn" data-tf="4h">4h</button>
+          <button type="button" class="seg-btn" data-tf="1d">1D</button>
+          <button type="button" class="seg-btn" data-tf="1w">1W</button>
         </div>
-      </section>
-      <section class="lab-panel">
-        <div class="engine-box">
-          <label class="muted" for="stratSelect" data-i18n="engineLabel">策略引擎選擇</label>
+
+        <div class="exec-bar">
+          <label class="muted exec-label" for="stratSelect" data-i18n="engineLabel">策略引擎選擇</label>
           <select id="stratSelect"></select>
-          <div class="lab-actions gm-toolbar">
-            <button class="btn-cta gm-btn action-btn" id="btnRun" data-i18n="gmRun">執行回測</button>
-          </div>
+          <button class="btn-cta gm-btn action-btn exec-run" id="btnRun" data-i18n="gmRun">執行回測</button>
           <div class="risk-banner" id="masterGate" hidden></div>
-          <details class="pine-box">
-            <summary data-i18n="pineHead">PineScript v5 策略源代碼</summary>
-            <div class="pine-toolbar">
-              <button type="button" class="btn" id="btnCopyPine" data-i18n="copyPineBtn">一鍵複製 PineScript 代碼</button>
-            </div>
-            <pre id="pineSrc" class="pine-pre"></pre>
-          </details>
         </div>
-        <h3 class="zone-title" data-i18n="gmSummary">績效摘要</h3>
+
         <p class="nav-kpis" id="navLine">
           <span data-i18n="startEq">起始資金: $10,000 USDT</span>
           <span class="nav-sep">|</span>
@@ -124,28 +116,43 @@
           <span class="nav-sep">|</span>
           <span id="navDur" class="nav-chip nav-dur" data-i18n="navDurIdle">回測用時: 僅 14 天</span>
         </p>
-        <p class="muted" id="sampleHint">近 1000 根 K 線累積信號</p>
-        <div class="bt-meta">
-          <div class="stat"><span data-i18n="statWr">勝率</span><b id="mWr">—</b></div>
-          <div class="stat"><span data-i18n="statPf">盈虧比</span><b id="mPf">—</b></div>
-          <div class="stat"><span data-i18n="statTrades">交易筆數</span><b id="mTrades">—</b></div>
-          <div class="stat"><span data-i18n="statBars">樣本</span><b id="mBars">—</b></div>
+        <p class="muted sample-hint" id="sampleHint">近 1000 根 K 線累積信號</p>
+
+        <div class="perf-block">
+          <h3 class="zone-title" data-i18n="gmSummary">績效摘要</h3>
+          <div class="bt-meta">
+            <div class="stat"><span data-i18n="statWr">勝率</span><b id="mWr">—</b></div>
+            <div class="stat"><span data-i18n="statPf">盈虧比</span><b id="mPf">—</b></div>
+            <div class="stat"><span data-i18n="statTrades">交易筆數</span><b id="mTrades">—</b></div>
+            <div class="stat"><span data-i18n="statBars">樣本</span><b id="mBars">—</b></div>
+          </div>
+          <h3 class="zone-title" data-i18n="gmEquity">淨值曲線</h3>
+          <div id="equityChart" class="lc-chart chart-container"></div>
+          <h3 class="zone-title" data-i18n="gmDrawdown">最大回撤</h3>
+          <div id="ddChart" class="lc-chart chart-container dd-chart"></div>
         </div>
-        <h3 class="zone-title" data-i18n="gmEquity">淨值曲線</h3>
-        <div id="equityChart" class="lc-chart chart-container"></div>
-        <h3 class="zone-title" data-i18n="gmDrawdown">最大回撤</h3>
-        <div id="ddChart" class="lc-chart chart-container dd-chart"></div>
-        <h3 class="zone-title" data-i18n="gmTrades">交易紀錄</h3>
-        <div class="table-scroll">
-          <table class="data-table">
-            <thead>
-              <tr><th>#</th><th data-i18n="colAction">交易動作</th><th data-i18n="colTime">信號時間</th><th data-i18n="colPrice">成交價</th><th data-i18n="colPnl">單筆盈虧</th><th data-i18n="colEquity">淨值</th></tr>
-            </thead>
-            <tbody id="tradeRows">
-              <tr><td colspan="6" class="muted">點擊「開始回測」後顯示明細</td></tr>
-            </tbody>
-          </table>
+
+        <div class="trades-block">
+          <h3 class="zone-title" data-i18n="gmTrades">交易紀錄</h3>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
+                <tr><th>#</th><th data-i18n="colAction">交易動作</th><th data-i18n="colTime">信號時間</th><th data-i18n="colPrice">成交價</th><th data-i18n="colPnl">單筆盈虧</th><th data-i18n="colEquity">淨值</th></tr>
+              </thead>
+              <tbody id="tradeRows">
+                <tr><td colspan="6" class="muted">點擊「開始回測」後顯示明細</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
+
+        <details class="pine-box source-module">
+          <summary data-i18n="pineHead">PineScript v5 策略源代碼</summary>
+          <div class="pine-toolbar">
+            <button type="button" class="btn" id="btnCopyPine" data-i18n="copyPineBtn">一鍵複製 PineScript 代碼</button>
+          </div>
+          <pre id="pineSrc" class="pine-pre"></pre>
+        </details>
       </section>
     </div>
       </div>

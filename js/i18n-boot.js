@@ -84,6 +84,9 @@
     document.querySelectorAll("[data-ph]").forEach((el) => {
       el.placeholder = t(el.getAttribute("data-ph"));
     });
+    document.querySelectorAll("[data-fill-key]").forEach((el) => {
+      el.setAttribute("data-fill", t(el.getAttribute("data-fill-key")));
+    });
     document.querySelectorAll("[data-lang]").forEach((b) => {
       const btnPack = packOf(b.getAttribute("data-lang")) || b.getAttribute("data-lang");
       b.classList.toggle("active", btnPack === lang);

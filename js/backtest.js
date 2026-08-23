@@ -226,8 +226,11 @@ function paintNav(eq, st) {
 function chartBoxSize(el, desktopH) {
   const mobile = window.matchMedia("(max-width: 768px)").matches;
   const w = Math.max(el.clientWidth || window.innerWidth - 24, 280);
-  const h = mobile ? 350 : Math.max(el.clientHeight || desktopH, desktopH);
-  return { width: w, height: h };
+  if (!mobile) return { width: w, height: Math.max(el.clientHeight || desktopH, desktopH) };
+  const id = el && el.id;
+  if (id === "candleChart") return { width: w, height: 250 };
+  if (id === "ddChart") return { width: w, height: 140 };
+  return { width: w, height: 180 };
 }
 
 function resizeCharts() {

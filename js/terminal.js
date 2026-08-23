@@ -32,6 +32,7 @@
     const bt = document.getElementById("viewBacktest");
     if (list) list.hidden = false;
     if (bt) bt.hidden = true;
+    document.body.classList.remove("desk-open");
     history.replaceState({}, "", "./terminal.html");
   }
 
@@ -40,6 +41,7 @@
     const bt = document.getElementById("viewBacktest");
     if (list) list.hidden = true;
     if (bt) bt.hidden = false;
+    document.body.classList.add("desk-open");
     requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
   }
 
@@ -265,7 +267,8 @@
       const chip = ev.target.closest("[data-fill]");
       const box = document.getElementById("aiPrompt");
       if (!chip || !box) return;
-      box.value = chip.getAttribute("data-fill") || "";
+      const fillKey = chip.getAttribute("data-fill-key");
+      box.value = (fillKey ? t(fillKey) : "") || chip.getAttribute("data-fill") || "";
       box.focus();
     });
   }
