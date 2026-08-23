@@ -550,7 +550,7 @@
    * countdown for whichever strategy is currently focused.
    * ------------------------------------------------------------------- */
   const statusTextEl = document.getElementById("warStatusText");
-  const tapeListEl = document.getElementById("warTapeList");
+  const matrixRowsEl = document.getElementById("selectedMatrixRows");
   const watchTapeListEl = document.getElementById("watchTapeList");
   const countdownEl = document.getElementById("warCountdown");
   const countdownFillEl = document.getElementById("warCountdownFill");
@@ -570,7 +570,6 @@
   let baselineSet = new Set();
   const legendEl = document.getElementById("warChartLegend");
   const tooltipEl = document.getElementById("warChartTooltip");
-  const matrixPillsEl = document.getElementById("selectedMatrixPills");
 
   let activeSymbolOverride = null;
   function focusCoin() {
@@ -845,29 +844,80 @@
     return (s && s.name) || id;
   }
 
+  function pairPillHtml(coin, sid) {
+    const label = coin.replace("USDT", "") + " · " + strategyLabel(sid);
+    return (
+      `<span class="selected-matrix-pill" data-pair-coin="${escapeHtml(coin)}" data-pair-sid="${escapeHtml(sid)}">` +
+      escapeHtml(label) +
+      `<button type="button" data-remove-pair="${escapeHtml(pairKey(coin, sid))}" aria-label="Remove">✕</button></span>`
+    );
+  }
+
   function renderSelectedMatrix() {
-    if (!matrixPillsEl) return;
+    refreshWarTape();
+  }
+
+  let warTapeRefreshSeq = 0;
+  const TAPE_ROW_MAX = 6;
+
+  async function refreshWarTape() {
+    if (!matrixRowsEl) return;
     const pairs = activePairs();
     if (!pairs.length) {
-      matrixPillsEl.innerHTML = `<span class="muted">${escapeHtml(t("watchTapeEmpty"))}</span>`;
+      matrixRowsEl.innerHTML = `<p class="muted selected-matrix-empty">${escapeHtml(t("watchTapeEmpty"))}</p>`;
       return;
     }
-    matrixPillsEl.innerHTML = pairs
-      .map(({ coin, sid }) => {
-        const label = coin.replace("USDT", "") + " · " + strategyLabel(sid);
+
+    const seq = ++warTapeRefreshSeq;
+    const nowS = Date.now() / 1000;
+    const focus = focusCoin();
+    const focusSid = activeStrategy ? activeStrategy.id : null;
+
+    const rows = await Promise.all(
+      pairs.map(async ({ coin, sid }) => {
+        let recent = [];
+        try {
+          const strat = allStrategies.find((x) => x.id === sid);
+          if (strat) {
+            const bars = await barsOf(coin, strat.interval);
+            const spec = catalog.get(sid);
+            if (spec && typeof spec.run === "function" && bars && bars.length) {
+              const trades = spec.run(bars) || [];
+              recent = trades
+                .filter((tr) => Math.max(tr.t0 || 0, tr.t1 || 0) >= nowS - THREE_HOURS_S)
+                .sort((a, b) => (b.t1 || b.t0) - (a.t1 || a.t0))
+                .slice(0, TAPE_ROW_MAX);
+            }
+          }
+        } catch {
+          recent = [];
+        }
+        return { coin, sid, recent };
+      })
+    );
+    if (seq !== warTapeRefreshSeq) return;
+
+    matrixRowsEl.innerHTML = rows
+      .map(({ coin, sid, recent }) => {
+        const focused = coin === focus && sid === focusSid;
+        const signals =
+          recent.length > 0
+            ? `<ul class="war-tape-list war-tape-inline">${recent.map((tr) => tapeRowHtml(tr, null, coin, sid)).join("")}</ul>`
+            : `<ul class="war-tape-list war-tape-inline"><li class="war-tape-row-empty muted">${escapeHtml(t("warTapeRowEmpty"))}</li></ul>`;
         return (
-          `<span class="selected-matrix-pill" data-pair-coin="${escapeHtml(coin)}" data-pair-sid="${escapeHtml(sid)}">` +
-          escapeHtml(label) +
-          `<button type="button" data-remove-pair="${escapeHtml(pairKey(coin, sid))}" aria-label="Remove">✕</button></span>`
+          `<div class="selected-matrix-row${focused ? " is-focused" : ""}" data-pair-coin="${escapeHtml(coin)}" data-pair-sid="${escapeHtml(sid)}">` +
+          `<div class="selected-matrix-row-pill">${pairPillHtml(coin, sid)}</div>` +
+          signals +
+          `</div>`
         );
       })
       .join("");
   }
 
   function bindMatrixPillClicks() {
-    if (!matrixPillsEl || matrixPillsEl.getAttribute("data-bound") === "1") return;
-    matrixPillsEl.setAttribute("data-bound", "1");
-    matrixPillsEl.addEventListener("click", (ev) => {
+    if (!matrixRowsEl || matrixRowsEl.getAttribute("data-bound") === "1") return;
+    matrixRowsEl.setAttribute("data-bound", "1");
+    matrixRowsEl.addEventListener("click", (ev) => {
       const rm = ev.target.closest("[data-remove-pair]");
       if (rm) {
         watchExcludedPairs.add(rm.getAttribute("data-remove-pair"));
@@ -877,10 +927,12 @@
         refreshActive();
         return;
       }
+      const row = ev.target.closest(".selected-matrix-row[data-pair-coin]");
       const pill = ev.target.closest("[data-pair-coin]");
-      if (!pill) return;
-      activeSymbolOverride = pill.getAttribute("data-pair-coin");
-      selectStrategy(pill.getAttribute("data-pair-sid"), allStrategies);
+      const target = row || pill;
+      if (!target) return;
+      activeSymbolOverride = target.getAttribute("data-pair-coin");
+      selectStrategy(target.getAttribute("data-pair-sid"), allStrategies);
     });
   }
 
@@ -914,18 +966,6 @@
       </li>`;
   }
 
-  function renderTape(trades) {
-    if (!tapeListEl || !activeStrategy) return;
-    const nowS = Date.now() / 1000;
-    const recent = trades.filter((tr) => Math.max(tr.t0 || 0, tr.t1 || 0) >= nowS - THREE_HOURS_S).sort((a, b) => (b.t1 || b.t0) - (a.t1 || a.t0));
-    if (!recent.length) {
-      tapeListEl.innerHTML = `<li class="muted">${escapeHtml(t("warTapeEmpty"))}</li>`;
-      return;
-    }
-    const sym = effectiveSymbol(activeStrategy);
-    const sid = activeStrategy.id;
-    tapeListEl.innerHTML = recent.map((tr) => tapeRowHtml(tr, null, sym, sid)).join("");
-  }
 
   // Clicking any tape row (single-focus or aggregated watchlist) smoothly
   // switches the main chart to that row's symbol + strategy.
@@ -1161,7 +1201,7 @@
       );
     }
 
-    renderTape(trades);
+    renderSelectedMatrix();
 
     const last = trades.length ? trades[trades.length - 1] : null;
     const lastTs = last ? (last.open ? last.t0 : last.t1) : 0;
@@ -1232,7 +1272,7 @@
     renderMatrix(strategies);
     bindCoinPills();
     bindMatrixClicks(strategies);
-    bindTapeRowClicks(tapeListEl);
+    bindTapeRowClicks(matrixRowsEl);
     bindTapeRowClicks(watchTapeListEl);
     bindMuteBtn();
     bindLegendClicks();
