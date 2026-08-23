@@ -9,8 +9,8 @@
   justify-content: flex-end;
   flex-wrap: wrap;
   gap: 8px 14px;
-  margin-bottom: 12px;
-  padding-bottom: 8px;
+  margin: 0;
+  padding: 8px 0;
   border-bottom: 1px solid #000000;
   font-family: var(--mono);
   font-size: 12px;
@@ -44,7 +44,7 @@
    right edge sits 16px left of this column's outer edge — match that here
    so .war-top-status lines up with the chart panel exactly, not the wider
    outer column. */
-.live-room-head { margin-bottom: 4px; padding-right: 16px; }
+.live-room-head { margin: 12px 0 4px; padding-right: 16px; }
 
 /* ---- War Room Terminal (single big view) ---- */
 .war-room {
@@ -493,29 +493,22 @@ body.live-page:not(.has-bb-util) .editorial-rail.vps-exec-rail {
 /* Right rail: DOM-level align with left war-chart-frame top edge */
 body.live-page .war-room-page-grid {
   align-items: start;
+  border-top: none;
 }
 body.live-page .sidebar-rail-inner {
   display: flex;
   flex-direction: column;
   gap: 0;
-  /* live-room-head + war-room pre-chart block (status bar above K-line) */
-  padding-top: var(--vps-chart-align, 196px);
+  padding-top: 12px;
   min-width: 0;
 }
 body.live-page .sidebar-header-aligned {
-  border: 2px solid #000000;
-  background: #ffffff;
-  padding: 10px 12px 11px;
+  border: 1px solid #1f2428;
+  border-bottom: none;
+  background: #0c0d0e;
+  padding: 10px 14px;
   margin-bottom: 0;
-  font-family: var(--mono, Consolas, Monaco, monospace);
-}
-body.live-page .sidebar-header-aligned .small-meta {
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  color: #64748b;
-  margin-bottom: 6px;
-  text-transform: uppercase;
+  font-family: "JetBrains Mono", "Roboto Mono", "SF Pro Display", -apple-system, sans-serif;
 }
 body.live-page .sidebar-header-aligned .main-title-flex {
   display: flex;
@@ -523,25 +516,16 @@ body.live-page .sidebar-header-aligned .main-title-flex {
   justify-content: space-between;
   gap: 10px;
   font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  color: #000000;
-  margin-bottom: 5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #f1f5f9;
 }
 body.live-page .sidebar-header-aligned .status-dot.green {
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: var(--color-up, #16a34a);
+  color: #10b981;
   white-space: nowrap;
-  animation: liveDotPulse 1.5s ease-in-out infinite;
-}
-body.live-page .sidebar-header-aligned .subtitle-text {
-  font-size: 11px;
-  font-weight: 600;
-  color: #334155;
-  letter-spacing: 0.02em;
-  line-height: 1.35;
 }
 
 /* ---- Execution tape: Bloomberg / Binance dark live table ---- */
@@ -549,7 +533,7 @@ body.live-page .sidebar-header-aligned .subtitle-text {
   background: #0c0d0e;
   color: #f1f5f9;
   font-family: "JetBrains Mono", "Roboto Mono", "SF Pro Display", -apple-system, sans-serif;
-  padding: 12px 14px 14px;
+  padding: 10px 14px 14px;
   border: 1px solid #1f2428;
   border-top: none;
 }
@@ -676,6 +660,9 @@ body.live-page .sidebar-header-aligned .subtitle-text {
   }
   body.live-page .sidebar-rail-inner {
     padding-top: 0;
+  }
+  body.live-page .war-top-status {
+    justify-content: flex-start;
   }
   .exec-tape-viewport {
     height: 320px;

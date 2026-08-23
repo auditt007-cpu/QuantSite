@@ -320,19 +320,6 @@
   let lastVpsKeys = new Set();
   let vpsBoardTimer = null;
 
-  function alignVpsSidebarChart() {
-    const chartFrame = document.querySelector(".war-chart-frame");
-    const railInner = document.querySelector(".sidebar-rail-inner");
-    const rail = document.querySelector(".vps-exec-rail");
-    if (!chartFrame || !railInner || !rail) return;
-    if (window.matchMedia("(max-width: 900px)").matches) {
-      railInner.style.removeProperty("--vps-chart-align");
-      return;
-    }
-    const offset = chartFrame.getBoundingClientRect().top - rail.getBoundingClientRect().top;
-    railInner.style.setProperty("--vps-chart-align", Math.max(0, Math.round(offset)) + "px");
-  }
-
   async function refreshVpsExecBoard() {
     const list = document.getElementById("vpsExecList");
     const updatedEl = document.getElementById("vpsExecUpdated");
@@ -934,7 +921,6 @@
       /* range lock optional */
     }
     bindCrosshairTooltip();
-    requestAnimationFrame(alignVpsSidebarChart);
   }
 
   const SIX_HOURS_S = 6 * 3600;
@@ -1453,8 +1439,6 @@
     pollLiveFeedAudio();
     setInterval(pollLiveFeedAudio, 20000);
     bindVpsExecBoard();
-    alignVpsSidebarChart();
-    window.addEventListener("resize", alignVpsSidebarChart);
 
     let savedId = null;
     try {
@@ -1486,7 +1470,6 @@
       renderLegend();
       refreshWatchTape();
       refreshVpsExecBoard();
-      alignVpsSidebarChart();
     });
   }
 
