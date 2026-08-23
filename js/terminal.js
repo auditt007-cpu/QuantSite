@@ -48,25 +48,47 @@
     requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
   }
 
-  async function barsOf(symbol, interval) {
+  async function barsOf(symbol, interval, limit) {
+    const cap = limit || 500;
     if (!feed || typeof feed.fetchKlines !== "function") {
       const off = window.QAOffline && window.QAOffline.forInterval(interval || "1h");
-      if (off && off.length) return off;
+      if (off && off.length) return off.slice(-cap);
       throw new Error("feed unavailable");
     }
-    const key = symbol + ":" + interval;
+    const key = symbol + ":" + interval + ":" + cap;
     if (cache.has(key)) return cache.get(key);
-    const bars = await feed.fetchKlines(symbol, interval, 500);
+    const bars = await feed.fetchKlines(symbol, interval, cap);
     cache.set(key, bars);
     return bars;
   }
 
-  function paintHit(el, hit) {
+  function parsePct(raw) {
+    if (raw == null || raw === "") return null;
+    const m = String(raw).match(/-?\d+(?:\.\d+)?/);
+    if (!m) return null;
+    const n = Number(m[0]);
+    return Number.isFinite(n) ? n / (String(raw).includes("%") || Math.abs(n) > 1 ? 100 : 1) : null;
+  }
+
+  function seedMetrics(s) {
+    const spec = catalog.get(s.engine || s.id) || catalog.get(s.id);
+    const m = (spec && spec.metrics) || s.metrics || {};
+    const wr = parsePct(m.win_rate);
+    const sh = Number(m.sharpe_ratio);
+    const ret = parsePct(m.week_return || m.optimal_return);
+    return {
+      wr: wr != null ? wr : null,
+      sh: Number.isFinite(sh) && sh > 0 ? sh : null,
+      ret: ret != null ? ret : null,
+    };
+  }
+
+  function paintHit(el, hit, soft) {
     if (!el) return;
     el.classList.remove("soft");
-    if (Number.isFinite(hit) && hit > 0) {
+    if (Number.isFinite(hit)) {
       el.textContent = (hit * 100).toFixed(1) + "%";
-      if (window.QAUi) window.QAUi.flash(el, false);
+      if (window.QAUi && !soft) window.QAUi.flash(el, hit < 0.5);
       return;
     }
     el.classList.add("soft");
@@ -192,16 +214,19 @@
   let remote = [];
 
   function asCard(s, tier) {
+    const spec = catalog.get(s.engine || s.id) || catalog.get(s.id);
+    const metrics = (spec && spec.metrics) || s.metrics || null;
     return {
       id: s.id,
       name: s.name,
       symbols: s.symbols && s.symbols.length ? s.symbols : ["BTCUSDT"],
       interval: s.interval || "1h",
       tags: s.tags && s.tags.length ? s.tags : tier === "master" ? ["機構實盤", "BTCUSDT", "1H"] : ["開源"],
-      principle: s.principle || "",
-      description: s.description || "",
+      principle: s.principle || (spec && spec.principle) || "",
+      description: s.description || (spec && spec.description) || "",
       engine: s.engine || s.id,
       tier,
+      metrics,
     };
   }
 
@@ -255,16 +280,27 @@
       : `<button type="button" class="btn-cta compact" data-open="${s.engine || s.id}" data-iv="${s.interval || "1h"}">⚡ ${t("mktOpenBt")}</button>`;
     const badge = master ? `<span class="vip-badge">🔒 機構實盤</span>` : "";
     const principle = s.principle || "";
-    return `<article class="m-card strategy-card${master ? " master" : ""}" data-id="${s.id}" data-tier="${master ? "master" : "free"}" data-kind="${kindOf(s)}" data-wr="" data-ret="" data-mdd="">
+    const seed = seedMetrics(s);
+    const wrPct = seed.wr != null ? (seed.wr * 100).toFixed(1) + "%" : "計算中";
+    const shTxt = seed.sh != null ? seed.sh.toFixed(2) : "計算中";
+    const wrSoft = seed.wr != null ? "" : " soft";
+    const shSoft = seed.sh != null ? "" : " soft";
+    const hitLine =
+      seed.wr != null
+        ? `<p class="card-hit" data-hit-line>👑 ${t("mktWr")} ${wrPct}${seed.ret != null ? " · " + (seed.ret * 100).toFixed(0) + "%" : ""}</p>`
+        : `<p class="card-hit" data-hit-line></p>`;
+    const dataWr = seed.wr != null ? ` data-wr="${seed.wr}"` : "";
+    const dataRet = seed.ret != null ? ` data-ret="${seed.ret}"` : "";
+    return `<article class="m-card strategy-card${master ? " master" : ""}" data-id="${s.id}" data-tier="${master ? "master" : "free"}" data-kind="${kindOf(s)}"${dataWr}${dataRet} data-mdd="">
         ${badge}
         <h3>${s.name}</h3>
-        <p class="card-hit" data-hit-line></p>
+        ${hitLine}
         ${principle ? `<p class="card-principle">${principle}</p>` : ""}
         <p class="muted">${(s.symbols || ["BTCUSDT"]).join(" / ")} · ${String(s.interval || "1h").toUpperCase()}</p>
         <div class="tags">${tags}</div>
         <div class="stat-caps">
-          <div class="stat-cap"><span>${t("mktWr")}</span><b data-wr class="soft">計算中</b></div>
-          <div class="stat-cap"><span>${t("mktSh")}</span><b data-sh class="soft">計算中</b></div>
+          <div class="stat-cap"><span>${t("mktWr")}</span><b data-wr class="${wrSoft.trim()}">${wrPct}</b></div>
+          <div class="stat-cap"><span>${t("mktSh")}</span><b data-sh class="${shSoft.trim()}">${shTxt}</b></div>
         </div>
         <div class="card-actions">${actions}</div>
       </article>`;
@@ -340,6 +376,7 @@
     });
   }
   paintGrid();
+  void fillStats(allList, gridEl, 168, 6).then(() => fillStats(allList, gridEl, 500, 3));
 
   fetchRemoteStrategies(4500).then((rows) => {
     if (!rows.length) return;
@@ -355,47 +392,65 @@
         .join("");
     }
     paintGrid();
-    fillStats(allList, gridEl);
+    void fillStats(allList, gridEl, 168, 6).then(() => fillStats(allList, gridEl, 500, 3));
   });
 
-  async function fillStats(list, rootEl) {
-    if (!rootEl) return;
-    for (const s of list) {
-      const card = rootEl.querySelector(`[data-id="${s.id}"]`);
-      if (!card) continue;
-      const wrEl = card.querySelector("[data-wr]");
-      const shEl = card.querySelector("[data-sh]");
-      const spec = catalog.get(s.engine || s.id) || catalog.get(s.id);
-      if (!spec || typeof spec.run !== "function") {
+  async function statOne(s, rootEl, barLimit) {
+    const card = rootEl.querySelector(`[data-id="${s.id}"]`);
+    if (!card) return;
+    const wrEl = card.querySelector("[data-wr]");
+    const shEl = card.querySelector("[data-sh]");
+    const spec = catalog.get(s.engine || s.id) || catalog.get(s.id);
+    if (!spec || typeof spec.run !== "function") {
+      if (!card.getAttribute("data-wr")) {
         paintHit(wrEl, null);
         paintSharpe(shEl, null);
-        continue;
       }
-      try {
-        const bars = await barsOf((s.symbols && s.symbols[0]) || "BTCUSDT", s.interval || "1h");
-        const trades = spec.run(bars);
-        const eq = catalog.equityFrom(bars, trades);
-        const st = catalog.performanceOf(trades, eq, catalog.barsPerYear(s.interval || "1h"), bars);
-        paintHit(wrEl, st.wr || st.hit);
+      return;
+    }
+    try {
+      const bars = await barsOf((s.symbols && s.symbols[0]) || "BTCUSDT", s.interval || "1h", barLimit);
+      const trades = spec.run(bars);
+      const eq = catalog.equityFrom(bars, trades);
+      const st = catalog.performanceOf(trades, eq, catalog.barsPerYear(s.interval || "1h"), bars);
+      const wr = st.wr || st.hit;
+      if (Number.isFinite(wr) && (st.trades > 0 || wr > 0)) {
+        paintHit(wrEl, wr);
         paintSharpe(shEl, st.sharpe);
-        card.setAttribute("data-wr", String(st.wr || 0));
+        card.setAttribute("data-wr", String(wr));
         card.setAttribute("data-ret", String(st.ret || 0));
         card.setAttribute("data-mdd", String(st.mdd || 0));
         const hitLine = card.querySelector("[data-hit-line]");
         if (hitLine) {
-          const wrPct = ((st.wr || 0) * 100).toFixed(1);
+          const wrPct = (wr * 100).toFixed(1);
           const retPct = ((st.ret || 0) * 100).toFixed(0);
           hitLine.textContent = `👑 ${t("mktWr")} ${wrPct}% · ${retPct}%`;
         }
-      } catch {
+      } else if (!card.getAttribute("data-wr")) {
+        paintHit(wrEl, null);
+        paintSharpe(shEl, null);
+      }
+    } catch {
+      if (!card.getAttribute("data-wr")) {
         paintHit(wrEl, null);
         paintSharpe(shEl, null);
       }
     }
-    applyFilter();
   }
 
-  fillStats(allList, gridEl);
+  async function fillStats(list, rootEl, barLimit, workers) {
+    if (!rootEl || !list.length) return;
+    const queue = list.slice();
+    const n = Math.max(1, workers || 4);
+    async function pump() {
+      while (queue.length) {
+        const s = queue.shift();
+        await statOne(s, rootEl, barLimit);
+      }
+    }
+    await Promise.all(Array.from({ length: n }, pump));
+    applyFilter();
+  }
 
   catalog.register([
     {
