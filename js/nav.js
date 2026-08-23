@@ -1,4 +1,51 @@
 (function () {
+  function ensureBloombergCss() {
+    if (document.querySelector('link[href*="bloomberg-system.css"]')) return;
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = "./css/bloomberg-system.css";
+    document.head.appendChild(link);
+    if (!document.querySelector('link[href*="JetBrains+Mono"]')) {
+      const pre1 = document.createElement("link");
+      pre1.rel = "preconnect";
+      pre1.href = "https://fonts.googleapis.com";
+      const pre2 = document.createElement("link");
+      pre2.rel = "preconnect";
+      pre2.href = "https://fonts.gstatic.com";
+      pre2.crossOrigin = "anonymous";
+      const font = document.createElement("link");
+      font.rel = "stylesheet";
+      font.href = "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap";
+      document.head.appendChild(pre1);
+      document.head.appendChild(pre2);
+      document.head.appendChild(font);
+    }
+  }
+
+  function ensureUtilBar() {
+    if (document.getElementById("bbUtilBar")) return;
+    const bar = document.createElement("div");
+    bar.id = "bbUtilBar";
+    bar.className = "bb-util-bar";
+    bar.innerHTML =
+      '<div class="bb-util-left">' +
+      '<span class="bb-util-node"><i class="bb-util-dot" aria-hidden="true"></i>' +
+      '<span data-i18n="bbUtilNode">NODE READY · 24ms</span></span>' +
+      '<span class="bb-util-tz">UTC+8 / TW</span>' +
+      "</div>" +
+      '<div class="bb-util-right" id="bbUtilRight"></div>';
+    const wrap = document.querySelector(".wrap");
+    if (wrap && wrap.parentNode) {
+      wrap.parentNode.insertBefore(bar, wrap);
+    } else {
+      document.body.insertBefore(bar, document.body.firstChild);
+    }
+    document.body.classList.add("has-bb-util");
+    const host = bar.querySelector("#bbUtilRight");
+    const lang = document.querySelector(".topbar .nav-actions > .lang-pills");
+    if (host && lang) host.appendChild(lang);
+  }
+
   function ensureFlashMarquee() {
     const topbar = document.querySelector(".topbar");
     if (!topbar || document.getElementById("bloomberg-marquee-bar")) return;
@@ -7,18 +54,9 @@
     bar.className = "bb-marquee";
     bar.setAttribute("aria-label", "Flash news ticker");
     bar.innerHTML =
-      '<span class="bb-tag" data-i18n="flashMarqueeTag">⚡ FLASH</span>' +
+      '<span class="bb-tag" data-i18n="flashMarqueeTag">LIVE</span>' +
       '<div class="bb-track-wrap"><div class="bb-track" id="bbMarqueeTrack"></div></div>';
     topbar.insertAdjacentElement("afterend", bar);
-    const applyI18n = () => {
-      if (window.QALang && typeof window.QALang.apply === "function") {
-        try {
-          window.QALang.apply(bar);
-        } catch (_) {}
-      }
-    };
-    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", applyI18n);
-    else applyI18n();
   }
 
   function loadFlashMarquee() {
@@ -32,7 +70,16 @@
     document.head.appendChild(s);
   }
 
+  function normalizeMarqueeTag() {
+    const tag = document.querySelector("#bloomberg-marquee-bar .bb-tag");
+    if (!tag) return;
+    if (!tag.getAttribute("data-i18n")) tag.setAttribute("data-i18n", "flashMarqueeTag");
+  }
+
+  ensureBloombergCss();
+  ensureUtilBar();
   ensureFlashMarquee();
+  normalizeMarqueeTag();
   loadFlashMarquee();
 
   const toggle = document.getElementById("navToggle");
@@ -48,7 +95,6 @@
       });
     });
   }
-
 
   function fmtPx(n) {
     const x = Number(n);

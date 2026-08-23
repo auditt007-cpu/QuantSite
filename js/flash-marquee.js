@@ -9,7 +9,7 @@
 
   const COPY = {
     en: {
-      marqueeTag: "⚡ FLASH",
+      marqueeTag: "LIVE",
       flashFb: [
         "Fed rate decision and its impact on Bitcoin liquidity",
         "Ethereum L2 active addresses hit a new high",
@@ -19,7 +19,7 @@
       ],
     },
     "zh-Hans": {
-      marqueeTag: "⚡ 快讯",
+      marqueeTag: "即时快讯",
       flashFb: [
         "美联储利率决议对比特币流动性和风险资产定价的影响",
         "以太坊 L2 活跃地址再创新高，链上手续费维持低位",
@@ -29,7 +29,7 @@
       ],
     },
     "zh-Hant": {
-      marqueeTag: "⚡ 快訊",
+      marqueeTag: "即時快訊",
       flashFb: [
         "聯準會利率決議牽動比特幣流動性與風險資產定價",
         "以太坊 L2 活躍地址再創新高，鏈上手續費維持低檔",
