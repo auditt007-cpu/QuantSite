@@ -908,9 +908,34 @@ input.is-focused, textarea.is-focused, select.is-focused {
 .ai-chip:hover { background: var(--bg-pill); color: var(--text-inverse); }
 .ai-lab .ai-go {
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   margin-top: 12px;
   animation: none;
   box-shadow: none;
+  background: #000000;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  border: 1px solid #000000;
+  border-radius: 4px;
+  padding: 14px 20px;
+}
+.ai-lab .ai-go:hover {
+  background: #1a1a1a;
+  border-color: #1a1a1a;
+  color: #ffffff;
+}
+.ai-lab .ai-go:active {
+  transform: translateY(1px);
+  filter: none;
+}
+#aiHint { display: none !important; }
+.nav-chip.nav-dur, #navDur {
+  color: #00873c !important;
+  font-weight: 700;
 }
 .btn-back-list {
   margin-top: 12px;

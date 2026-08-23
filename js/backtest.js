@@ -190,6 +190,14 @@ function paintPine() {
   }
 }
 
+function spanDays(barList) {
+  if (!barList || barList.length < 2) return 14;
+  const t0 = Number(barList[0].time);
+  const t1 = Number(barList[barList.length - 1].time);
+  if (!isFinite(t0) || !isFinite(t1) || t1 === t0) return 14;
+  return Math.max(1, Math.round(Math.abs(t1 - t0) / 86400));
+}
+
 function paintNav(eq, st) {
   const now = eq && eq.length ? eq[eq.length - 1] : START_EQ;
   const down = !!(st && st.ret < 0);
@@ -206,6 +214,12 @@ function paintNav(eq, st) {
   if ($("navDd")) {
     $("navDd").textContent = t("navDdTpl").replace("{v}", (dd * 100).toFixed(1) + "%");
     if (window.QAUi) window.QAUi.flash($("navDd"), true);
+  }
+  if ($("navDur")) {
+    const n = spanDays(bars);
+    $("navDur").textContent = t("navDurTpl").replace("{n}", String(n));
+    $("navDur").className = "nav-chip nav-dur";
+    if (window.QAUi) window.QAUi.flash($("navDur"), false);
   }
 }
 

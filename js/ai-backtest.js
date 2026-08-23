@@ -61,6 +61,24 @@
   let ddChart = null;
   let lastMatrix = [];
   let lastCount = 0;
+  let lastSliced = [];
+  let lastSt = null;
+  let lastEqNow = 0;
+
+  function spanDays(barList) {
+    if (!barList || barList.length < 2) return 14;
+    const t0 = Number(barList[0].time);
+    const t1 = Number(barList[barList.length - 1].time);
+    if (!isFinite(t0) || !isFinite(t1) || t1 === t0) return 14;
+    return Math.max(1, Math.round(Math.abs(t1 - t0) / 86400));
+  }
+
+  function paintDur(barList) {
+    if (!$("navDur")) return;
+    $("navDur").textContent = t("navDurTpl").replace("{n}", String(spanDays(barList)));
+    $("navDur").className = "nav-chip nav-dur";
+    if (window.QAUi) window.QAUi.flash($("navDur"), false);
+  }
 
   function chartBox(el, h) {
     const mobile = window.matchMedia("(max-width: 768px)").matches;
@@ -231,10 +249,14 @@
         window.QAUi.flash($("mBars"), false);
       }
       const now = bt.equity[bt.equity.length - 1] || 10000;
+      lastSliced = sliced;
+      lastSt = st;
+      lastEqNow = now;
       $("navNow").textContent = t("navNowTpl").replace("{v}", "$" + now.toFixed(2));
       $("navPnl").textContent = t("navPnlTpl").replace("{v}", pct(st.ret));
       $("navPnl").className = "nav-chip " + (st.ret < 0 ? "down" : "up");
       $("navDd").textContent = t("navDdTpl").replace("{v}", (st.mdd * 100).toFixed(1) + "%");
+      paintDur(sliced);
       if (window.QAUi) {
         window.QAUi.flash($("navNow"), st.ret < 0);
         window.QAUi.flash($("navPnl"), st.ret < 0);
@@ -298,6 +320,12 @@
   });
   window.addEventListener("quant-lang", () => {
     if (lastMatrix.length) paintExec(lastMatrix, lastCount);
+    if (lastSt) {
+      $("navNow").textContent = t("navNowTpl").replace("{v}", "$" + lastEqNow.toFixed(2));
+      $("navPnl").textContent = t("navPnlTpl").replace("{v}", pct(lastSt.ret));
+      $("navDd").textContent = t("navDdTpl").replace("{v}", (lastSt.mdd * 100).toFixed(1) + "%");
+      paintDur(lastSliced);
+    }
   });
   bootPrompt();
   if (window.QAApplyI18n) window.QAApplyI18n();

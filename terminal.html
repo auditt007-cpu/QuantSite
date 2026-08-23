@@ -61,8 +61,7 @@
           <button type="button" class="ai-chip" data-fill="RSI 出現底背離（價格創新低但 RSI 抬高）時抄底做多，RSI 回到 60 以上平倉。" data-i18n="chipRsi">RSI底背離抄底</button>
           <button type="button" class="ai-chip" data-fill="EMA20、EMA50、EMA200 多頭排列且收盤站上 EMA20 時做多，跌破 EMA50 平倉。" data-i18n="chipEma">均線多頭共振</button>
         </div>
-        <button type="button" class="btn-cta lg ai-go action-btn" id="btnAiGo" data-i18n="aiGo">🧠 立即生成並回測</button>
-        <p class="muted" id="aiHint" data-i18n="aiHint">訪客每日 3 次 · 綁定 Telegram 10 次 · VIP 100 次</p>
+        <button type="button" class="btn-cta lg ai-go action-btn" id="btnAiGo" data-i18n="aiGo">[⚡ 立即生成量化模型並回測]</button>
       </section>
 
       <section class="desk">
@@ -102,7 +101,7 @@
           <label class="muted" for="stratSelect" data-i18n="engineLabel">策略引擎選擇</label>
           <select id="stratSelect"></select>
           <div class="lab-actions gm-toolbar">
-            <button class="btn-cta gm-btn action-btn" id="btnRun" data-i18n="gmRun">Run Backtest</button>
+            <button class="btn-cta gm-btn action-btn" id="btnRun" data-i18n="gmRun">執行回測</button>
           </div>
           <div class="risk-banner" id="masterGate" hidden></div>
           <details class="pine-box">
@@ -113,7 +112,7 @@
             <pre id="pineSrc" class="pine-pre"></pre>
           </details>
         </div>
-        <h3 class="zone-title" data-i18n="gmSummary">Performance Summary</h3>
+        <h3 class="zone-title" data-i18n="gmSummary">績效摘要</h3>
         <p class="nav-kpis" id="navLine">
           <span data-i18n="startEq">起始資金: $10,000 USDT</span>
           <span class="nav-sep">|</span>
@@ -122,6 +121,8 @@
           <span id="navPnl" class="nav-chip">累計淨利: 0.0%</span>
           <span class="nav-sep">|</span>
           <span id="navDd" class="nav-chip">最大回撤: 0.0%</span>
+          <span class="nav-sep">|</span>
+          <span id="navDur" class="nav-chip nav-dur" data-i18n="navDurIdle">回測用時: 僅 14 天</span>
         </p>
         <p class="muted" id="sampleHint">近 1000 根 K 線累積信號</p>
         <div class="bt-meta">
@@ -130,10 +131,11 @@
           <div class="stat"><span data-i18n="statTrades">交易筆數</span><b id="mTrades">—</b></div>
           <div class="stat"><span data-i18n="statBars">樣本</span><b id="mBars">—</b></div>
         </div>
-        <h3 class="zone-title" data-i18n="gmEquity">Equity Curve</h3>
+        <h3 class="zone-title" data-i18n="gmEquity">淨值曲線</h3>
         <div id="equityChart" class="lc-chart chart-container"></div>
-        <h3 class="zone-title" data-i18n="gmDrawdown">Drawdown Plot</h3>
+        <h3 class="zone-title" data-i18n="gmDrawdown">最大回撤</h3>
         <div id="ddChart" class="lc-chart chart-container dd-chart"></div>
+        <h3 class="zone-title" data-i18n="gmTrades">交易紀錄</h3>
         <div class="table-scroll">
           <table class="data-table">
             <thead>
