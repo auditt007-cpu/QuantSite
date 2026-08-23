@@ -1,8 +1,7 @@
 (function (root) {
   const POLL_MS = 60000;
   const CC = "https://min-api.cryptocompare.com/data/v2/news/?extraParams=quantalpha&lang=";
-  const RSS =
-    "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent("https://cointelegraph.com/rss");
+  const RSS = "https://api.rss2json.com/v1/api.json?rss_url=";
 
   const S =
     "国对发会时这来对过经现为学体产内说们用电同长机实战进与从开关问题点动头面条只无条系气声车门马风云龙万与丑专业丛东丝两严丧个丰临为丽举么义乌乐乔习乡书买乱争于亏云亚产亩亲亵亿仅从仑仓仪们价众优会伛伞伟传伤伥伦伧伪伫体余佣佥侠侣侥侦侧侨侩侪侬俣俦俨俩俪俭债倾偻偿傥傧储傩儿兑兖兰关兴养兽冈册军农冯冻净凄凉凌减凑凛几凤凫凭凯击凿刍划刘则刚创删别刭刹刽刿剀剂剐剑剖剥剧劝办务劢动劲劳势勋勐励勋劝匀匦匮区医华协单卖卢卤卧卫却卷厂厅历厉压厌厍厕厢厫厦厨厮县叁参双发变叙叠叶号叹叽吁后吓吕吗吣吨听启吴呒呓呕呖呗员呙呛呜咏咙咛咝咤响哑哒哓哔哕哗哙哜哝哟唛唝唠唡唢唤啧啬啭啮啰啴啸喷喽喾嗫嗳嘘嘤嘱噜噼嚣团园围囵国图圆圣场坏块坚坛坜坝坞坟坠垄垅垆垒垦垩垫垭垯垱垲埘埙埚埝埯堑堕墙墒增墟墚垦壁壕壤壮声壳壶处备复够头夸夹夺奁奂奋奖妆妪妩娅娆娇娈娘娱娲娴婳婴婵婶媪嫒嫔嫱嬷孙学孪宁宝实宠审宪宫宽宾对寻导寿将尔尘尝尧尴尸尽层屃屉届属屡屦屿岁岂岖岗岘岚岛岗岭崃崄崭嵘嵚嵝巅巩币帅师帐帜带帧帮帱帻帼幂干并广庄庆庐庑库应庙庞废庼廪开异弃张弥弯弹强归当录彟彦彻征径徕御忆忏忧忾怀态怂怃怄怅怆总怼怿恋恳恶恸恹恺恻恼恽悦悫悬悭悯惊惧惨惩惫惬惭惮惯愠愤愦愿慑憷懑懒懔戆戋戏戗战戬户扎扑扒打扔扩扪扫扬扰抚抛抟抠抡抢护报担拟拢拣拥拦拧拨择挂挚挛挜挝挞挟挠挡挢挣挤挥挦捞损捡换捣据捻掳掴掷掸掺掼揽揿搀搁搂搅携摄摅摆摇摈摊撄撑撵撷撸撺擞攒敌敁数斋斓斩断旋无时旷旸昙昼昽显晋晒晓晔晕晖暂暧术机杀杂权条来杨杩杰松板极构枞枢枣枥枧枨枪枫枭柜柠柽栀栅标栈栉栊栋栌栎栏树栖样栾桊桠桡桢档桤桥桦桧桨桩梦梼梾检棂椁椟椠椭楼榄榅榆榇榈榉槚槛槟槠横樯樱橥橱橹橼檐檩欢欤欧歼殇残殒殓殚殡殴毂毕毙毡毵氇气氢氩氲氽汇汉污汤汹沈沟没沣沤沥沦沧沨沩沪沵泞注泪泶泷泸泺泻泼泽泾洁洒洼浃浅浆浇浊测浍济浏浑浒浓浔涛涝涞涟涠涡涣涤润涧涨涩淀渊渌渍渎渐渑渔渖渗温湾湿溃溅溆滗滚滞滟滠满滢滤滥滦滨滩滪漤潆潇潋潍潜潴澜濑濒灏灭灯灵灾灿炀炉炖炜炝点炼炽烁烂烃烛烟烦烧烨烩烫烬热焕焖焘煅煳熘爱爷牍牦牵牺犊犋犭状犷犸犹狈狍狝狞独狭狮狯狰狱狲猃猎猕猡猪猫猬献獭玑玙玚玛玮环现玱玺珐珑珰珲琎琏琐琼瑶瑷璇璎瓒瓮瓯电画畅畴疖疗疟疠疡疬疮疯疱疴痈痉痒痖痨痫痰痴瘅瘆瘗瘘瘪瘫瘾瘿癞癣癫皑皱皲盏盐监盖盗盘眍眦睑睁睐睑瞒瞩矫矶矾矿砀码砖砗砚砜砺砻砾础硕硖硗硙硚确硷碍碛碜碱碹磙磁磅礴礼祎祯祷祸禀禄禅离秃秆种积称秽秾稆税稣稳穑穷窃窍窑窜窝窥窦窭竖竞笃笋笔笕笺笼笾筑筚筛筜筝筹筼签简箓箦箧箨箩箪箫篑篓篮篱簖籁籴类籼粜粝粤粪粮糁糇紧絷纟纠纡红纣纤纥约级纨纩纪纫纬纭纮纯纰纱纲纳纴纵纶纷纸纹纺纻纼纽纾线绀绁绂练组绅细织终绉绊绋绌绍绎经绐绑绒结绔绕绖绗绘给绚绛络绝绞统绠绡绢绣绤绥绦继绨绩绪绫续绮绯绰绱绲绳维绵绶绷绸绹绺绻综绽绾绿缀缁缂缃缄缅缆缇缈缉缊缋缌缎缏缐缑缒缓缔缕编缗缘缙缚缛缜缝缟缠缡缢缣缤缥缦缧缨缩缪缫缬缭缮缯缰缱缲缳缴缵罂网罗罚罢罴羁羟翘耢耧耸聂聋职聍联聩聪肃肠肤肷肾肿胀胁胆背胧胨胪胫胶脉脍脏脐脑脓脔脚脱脶脸脾腊腋腌腐腑腘腭腻腼腽腾膑腭膪臌臜临台与兴举旧时会机权亲观见观规觅视觇览觉觊觋觌觎觏觐觑觞触觯讠计订讣认讥讦讧讨让讪讫训议讯记讲讳讴讵讶讷许讹论讼讽设访诀证诂诃评诅识诈诉诊诋诌词诎诏译诒诓诔试诖诗诘诙诚诛诜话诞诟诠诡询诣诤该详诧诨诩诫诬语诮误诰诱诲诳说诵请诸诹诺读诼诽课诿谀谁谂调谄谅谆谇谈谊谋谌谍谎谏谐谑谒谓谔谕谖谗谘谙谚谛谜谝谟谠谡谢谣谤谥谦谧谨谩谪谫谬谭谮谯谰谱谲谳谴谵谶谷豉豚贝贞负贡财责贤败账货质贩贪贫贬购贮贯贰贱贲贳贴贵贶贷贸费贺贻贼贽贾贿赀赁赂赃资赅赆赇赈赉赊赋赌赍赎赏赐赑赒赓赔赕赖赗赘赙赚赛赜赝赞赠赡赢赣赵赶起趋趱趸跃跄跖跞跻踊踌踪踬踯蹑蹒蹰蹿躏轧轨轩轪轫转轭轮软轰轱轲轳轴轵轶轷轸轹轺轻轼载轾轿辀辁辂较辄辅辆辇辈辉辊辋辌辍辎辏辐辑辒输辔辕辖辗辘辙辚辞辟辩辫边辽达迁过迈运还这进远违连迟迩迳迹选逊递逦逻遗遥邓邝邬邮邹邺邻郁郏郑郓郦郧郸酝酦酱酽酾酿释鉴銮錾针钉钊钋钌钍钎钏钐钒钓钔钕钶钗钙钚钛钝钞钟钠钡钢钣钤钥钦钧钨钩钪钫钬钭钮钯钰钱钲钳钴钵钷钹钺钻钼钽钾钿铀铁铂铃铄铅铆铈铉铊铋铌铍铎铏铐铑铒铕铗铘铙铚铛铜铝铞铟铠铡铢铣铤铥铦铧铨铩铪铫铬铭铮铯铰铱铲铳铴铵银铷铸铹铺铻铼铽链铿销锁锂锃锄锅锆锇锈锉锊锋锌锎锏锐锑锒锓锔锕锖锗错锚锛锜锝锞锟锡锢锣锤锥锦锨锩锪锫锬锭键锯锰锱锲锳锴锵锶锷锸锹锺锻锼锽锾锿镀镁镂镃镄镅镆镇镈镉镊镋镌镍镎镏镐镑镒镓镔镕镖镗镘镚镛镜镝镞镟镠镡镢镣镤镥镦镧镨镩镪镫镬镭镯镰镱镲镳镶长门闩闪闫闬闭问闯闰闱闲闳间闵闶闷闸闹闺闻闼闽闾闿阀阁阂阃阄阅阆阇阈阉阊阋阌阍阎阏阐阑阒阓阔阕阖阗阘阙阚阛队阳阴阵阶际陆陇陈陉陕陧陨险随隐隶隽难雏雠雳雾霁霉霭靓静面靥鞑鞒鞯韦韧韩韪韫韬韵页顶顷顸项顺须顼顽顾顿颀颁颂颃预颅领颇颈颉颊颋颌颍颎颏颐频颓颔颖颗题颙颚颛颜额颞颟颠颡颢颥颤颒风飏飐飑飒飓飔飕飖飗飘飙飚飞飨餍饣饤饥饦饧饨饩饪饫饬饭饮饯饰饱饲饳饴饵饶饷饸饹饺饻饼饽饾饿馀馁馂馃馄馅馆馇馈馉馊馋馌馍馎馏馐馑馒馓馔馕马驭驮驯驰驱驲驳驴驵驶驷驸驹驺驻驼驽驾驿骀骁骂骃骄骅骆骇骈骉骊骋验骍骎骏骐骑骒骓骔骕骖骗骘骙骚骛骜骝骞骟骠骡骢骣骤骥骧骨髅髋髌鬓鬶鱼鱽鱾鱿鲀鲁鲂鲃鲅鲆鲇鲈鲉鲊鲋鲌鲍鲎鲏鲐鲑鲒鲔鲕鲖鲗鲘鲙鲚鲛鲜鲝鲟鲠鲡鲢鲣鲤鲥鲦鲧鲨鲩鲪鲫鲬鲭鲮鲯鲰鲱鲲鲳鲴鲵鲷鲸鲹鲺鲻鲼鲽鲾鲿鳀鳁鳂鳃鳄鳅鳆鳇鳈鳉鳊鳋鳌鳍鳎鳏鳐鳑鳒鳓鳔鳕鳖鳗鳘鳙鳛鳜鳝鳞鳟鳠鳡鳢鳣鸟鸠鸡鸢鸣鸤鸥鸦鸧鸨鸩鸪鸫鸬鸭鸮鸯鸰鸱鸲鸳鸴鸵鸶鸷鸸鸹鸺鸻鸼鸽鸾鸿鹀鹁鹂鹃鹄鹅鹆鹇鹈鹉鹊鹋鹌鹍鹎鹏鹑鹒鹓鹔鹕鹖鹗鹘鹙鹚鹛鹜鹝鹞鹟鹠鹡鹢鹣鹤鹥鹦鹧鹨鹩鹪鹫鹬鹭鹮鹯鹰鹱鹲鹳鹴卤鹾麦麸黄黉黡黩黪黾齐齑齿龀龁龂龃龄龅龆龇龈龉龊龋龌龙龚龛龟";
@@ -22,16 +21,64 @@
   }
   root.toTraditional = toTraditional;
 
-  function t(key) {
-    if (root.QALang && typeof root.QALang.t === "function") return root.QALang.t(key);
-    return key;
-  }
+  const COPY = {
+    en: {
+      weekTitle: "📊 Weekly Return Top 5",
+      weekEmpty: "Collecting sample…",
+      marqueeTag: "⚡ FLASH",
+      flashFb: [
+        "Fed rate decision and its impact on Bitcoin liquidity",
+        "Ethereum L2 active addresses hit a new high",
+        "Weaker dollar: gold and crypto attract defensive flows",
+        "Spot ETF inflows rebound as institutions turn net long",
+        "Asia open: BTC volatility compresses ahead of the next move",
+      ],
+    },
+    "zh-Hans": {
+      weekTitle: "📊 本周收益榜 TOP 5",
+      weekEmpty: "样本累积中",
+      marqueeTag: "⚡ 快讯",
+      flashFb: [
+        "美联储利率决议对比特币流动性和风险资产定价的影响",
+        "以太坊 L2 活跃地址再创新高，链上手续费维持低位",
+        "美元指数走弱，黄金与数字货币同步吸引避险资金",
+        "现货 ETF 净流入回升，机构仓位重新偏多",
+        "亚太盘开市，BTC 波动率收敛后等待方向选择",
+      ],
+    },
+    "zh-Hant": {
+      weekTitle: "📊 本周收益榜 TOP 5",
+      weekEmpty: "樣本累積中",
+      marqueeTag: "⚡ 快訊",
+      flashFb: [
+        "聯準會利率決議牽動比特幣流動性與風險資產定價",
+        "以太坊 L2 活躍地址再創新高，鏈上手續費維持低檔",
+        "美元指數走弱，黃金與加密貨幣同步吸引避險資金",
+        "現貨 ETF 淨流入回升，機構部位重新偏多",
+        "亞太盤開市，BTC 波動率收斂後等待方向選擇",
+      ],
+    },
+  };
 
   function newsKey() {
     const pack = root.QALang && root.QALang.current ? root.QALang.current() : "en";
     if (pack === "zh-CN" || pack === "zh-Hans") return "zh-Hans";
     if (pack === "zh-Hant" || pack === "zh-TW") return "zh-Hant";
     return "en";
+  }
+
+  function copyOf(key) {
+    return COPY[key] || COPY.en;
+  }
+
+  function t(key) {
+    const live = root.QALang && typeof root.QALang.t === "function" ? root.QALang.t(key) : "";
+    if (live && live !== key) return live;
+    const pack = copyOf(newsKey());
+    if (key === "weekBoardTitle" || key === "weekBoardTitle") return pack.weekTitle;
+    if (key === "weekBoardEmpty" || key === "weekBoardEmpty") return pack.weekEmpty;
+    if (key === "flashMarqueeTag" || key === "flashMarqueeTag") return pack.marqueeTag;
+    return live || pack[key] || key;
   }
 
   function localeFor(key) {
@@ -45,9 +92,9 @@
     const now = isFinite(d.getTime()) ? d : new Date();
     try {
       return now.toLocaleTimeString(localeFor(key), { hour: "2-digit", minute: "2-digit", hour12: false });
-    } catch {
-      const p = (n) => String(n).padStart(2, "0");
-      return p(now.getHours()) + ":" + p(now.getMinutes());
+    } catch (err) {
+      const pad = (n) => String(n).padStart(2, "0");
+      return pad(now.getHours()) + ":" + pad(now.getMinutes());
     }
   }
 
@@ -59,89 +106,153 @@
       .replace(/"/g, "&quot;");
   }
 
-  const NEWS_SOURCES = {
-    en: {
-      endpoint: CC + "EN",
-      parser: (data) =>
-        (data.Data || []).slice(0, 10).map((item) => ({
-          time: item.published_on,
-          title: item.title,
-          url: item.url,
-          source: (item.source_info && item.source_info.name) || "CryptoCompare",
-        })),
-    },
-    "zh-Hans": {
-      endpoint: CC + "ZH",
-      parser: (data) =>
-        (data.Data || []).slice(0, 10).map((item) => ({
-          time: item.published_on,
-          title: item.title,
-          url: item.url,
-          source: (item.source_info && item.source_info.name) || "中文快讯",
-        })),
-    },
-    "zh-Hant": {
-      endpoint: CC + "ZH",
-      parser: (data) =>
-        (data.Data || []).slice(0, 10).map((item) => ({
-          time: item.published_on,
-          title: toTraditional(item.title),
-          url: item.url,
-          source: "動區即時快訊",
-        })),
-    },
-  };
+  function localizeTitle(title, key) {
+    let out = String(title || "").replace(/\s+/g, " ").trim();
+    if (key === "zh-Hant") out = toTraditional(out);
+    return out;
+  }
 
-  function fallbackItems(key) {
-    return [1, 2, 3, 4, 5].map((n, i) => ({
-      title: key === "zh-Hant" ? toTraditional(t("flashFb" + n)) : t("flashFb" + n),
-      url: "https://www.coindesk.com/",
-      time: Date.now() / 1000 - i * 600,
-      source: key === "en" ? "Desk" : key === "zh-Hans" ? "中文快讯" : "動區即時快訊",
-    }));
+  function fetchJson(url, ms) {
+    const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+    const timer = setTimeout(() => {
+      if (ctrl) ctrl.abort();
+    }, ms || 7000);
+    return fetch(url, { cache: "no-store", signal: ctrl ? ctrl.signal : undefined })
+      .then((res) => {
+        if (!res.ok) throw new Error(String(res.status));
+        return res.json();
+      })
+      .finally(() => clearTimeout(timer));
+  }
+
+  function mustRows(rows) {
+    if (!rows || !rows.length) throw new Error("empty");
+    return rows.filter((row) => row && row.title).slice(0, 10);
   }
 
   async function pullCc(key) {
-    const src = NEWS_SOURCES[key] || NEWS_SOURCES.en;
-    const res = await fetch(src.endpoint, { cache: "no-store" });
-    if (!res.ok) throw new Error("cc");
-    const json = await res.json();
-    return src.parser(json).filter((x) => x.title);
+    const lang = key === "en" ? "EN" : "ZH";
+    const json = await fetchJson(CC + lang);
+    const data = json && json.Data ? json.Data : [];
+    return mustRows(
+      data.map((item) => ({
+        title: localizeTitle(item.title, key),
+        url: item.url,
+        time: item.published_on,
+        source: (item.source_info && item.source_info.name) || "CryptoCompare",
+      }))
+    );
   }
 
-  async function pullRss(key) {
-    const res = await fetch(RSS, { cache: "no-store" });
-    if (!res.ok) throw new Error("rss");
-    const json = await res.json();
+  async function pullCoinGecko(key) {
+    const json = await fetchJson("https://api.coingecko.com/api/v3/news");
+    const data = (json && (json.data || json.news || json)) || [];
+    const list = Array.isArray(data) ? data : [];
+    return mustRows(
+      list.map((item) => ({
+        title: localizeTitle(item.title || (item.attributes && item.attributes.title), key),
+        url: item.url || item.news_url || (item.attributes && item.attributes.url) || "https://www.coingecko.com/news",
+        time: item.updated_at || item.created_at ? new Date(item.updated_at || item.created_at).getTime() / 1000 : Date.now() / 1000,
+        source: item.news_site || item.author || "CoinGecko",
+      }))
+    );
+  }
+
+  async function pullRss(key, feed) {
+    const json = await fetchJson(RSS + encodeURIComponent(feed));
     const rows = Array.isArray(json.items) ? json.items : [];
-    return rows.slice(0, 10).map((row) => {
-      let title = row.title || "";
-      if (key === "zh-Hant") title = toTraditional(title);
-      return {
-        title,
+    return mustRows(
+      rows.map((row) => ({
+        title: localizeTitle(row.title, key),
         url: row.link || row.url || "#",
         time: row.pubDate ? new Date(row.pubDate).getTime() / 1000 : Date.now() / 1000,
         source: row.author || "RSS",
-      };
-    }).filter((x) => x.title);
+      }))
+    );
+  }
+
+  function nodesFor(key) {
+    const binance =
+      key === "en"
+        ? "https://www.binance.com/en/support/announcement"
+        : "https://www.binance.com/zh-CN/support/announcement";
+    const extra =
+      key === "zh-Hant"
+        ? "https://www.blocktempo.com/feed/"
+        : key === "zh-Hans"
+          ? "https://www.jinse.cn/rss"
+          : "https://cointelegraph.com/rss";
+    return [
+      () => pullCc(key),
+      () => pullCoinGecko(key),
+      () => pullRss(key, binance).catch(() => pullRss(key, extra)),
+    ];
+  }
+
+  function firstOk(factories) {
+    const jobs = factories.map((fn) =>
+      Promise.resolve()
+        .then(fn)
+        .then((rows) => {
+          if (!rows || !rows.length) throw new Error("empty");
+          return rows;
+        })
+    );
+    if (typeof Promise.any === "function") return Promise.any(jobs);
+    return new Promise((resolve, reject) => {
+      let left = jobs.length;
+      jobs.forEach((job) => {
+        job.then(resolve).catch(() => {
+          left -= 1;
+          if (!left) reject(new Error("all"));
+        });
+      });
+    });
+  }
+
+  function fallbackItems(key) {
+    const pack = copyOf(key);
+    return pack.flashFb.map((title, i) => ({
+      title,
+      url: "https://www.coindesk.com/",
+      time: Date.now() / 1000 - i * 600,
+      source: key === "en" ? "Desk" : key === "zh-Hans" ? "宏观快讯" : "宏觀快訊",
+    }));
+  }
+
+  function paintMarquee(items, key) {
+    const track = document.getElementById("bbMarqueeTrack");
+    const tag = document.querySelector("#bloomberg-marquee-bar .bb-tag");
+    if (tag) tag.textContent = t("flashMarqueeTag");
+    if (!track) return;
+    const rows = items && items.length ? items : fallbackItems(key);
+    const bits = rows
+      .map((it) => {
+        const clock = typeof it.time === "string" ? it.time : hhmm(it.time, key);
+        return (
+          `<a href="${escapeHtml(it.url)}" target="_blank" rel="noopener noreferrer">` +
+          `[ ${clock} ] ${escapeHtml(it.title)}` +
+          `</a>`
+        );
+      })
+      .join('<span class="bb-gap"> · </span>');
+    track.innerHTML = bits + '<span class="bb-gap"> · </span>' + bits;
   }
 
   function paintNews(items, key) {
-    const list = document.getElementById("flashNews");
-    if (!list) return;
     const live = items && items.length;
     const rows = live ? items : fallbackItems(key);
+    paintMarquee(rows, key);
+    const list = document.getElementById("flashNews");
+    if (!list) return;
     list.dataset.fallback = live ? "0" : "1";
-    list.dataset.lang = key;
     list.innerHTML = rows
       .map((it) => {
         const clock = typeof it.time === "string" ? it.time : hhmm(it.time, key);
         const src = it.source ? `<em class="flash-src">${escapeHtml(it.source)}</em>` : "";
         return (
           `<li><a class="flash-row" href="${escapeHtml(it.url)}" target="_blank" rel="noopener noreferrer">` +
-          `<time>[ ${clock} ]</time>` +
-          `<span>${escapeHtml(it.title)}</span>${src}` +
-          `</a></li>`
+          `<time>[ ${clock} ]</time><span>${escapeHtml(it.title)}</span>${src}</a></li>`
         );
       })
       .join("");
@@ -155,15 +266,10 @@
     const key = newsKey();
     const req = ++newsReq;
     try {
-      let items = [];
-      try {
-        items = await pullCc(key);
-      } catch {
-        items = await pullRss(key);
-      }
+      const items = await firstOk(nodesFor(key));
       if (req !== newsReq) return;
       paintNews(items.slice(0, 10), key);
-    } catch {
+    } catch (err) {
       if (req !== newsReq) return;
       paintNews(fallbackItems(key), key);
     }
@@ -190,7 +296,7 @@
   }
 
   function weekRows() {
-    const cards = document.querySelectorAll("#gridAll .m-card");
+    const cards = document.querySelectorAll("#gridAll .m-card, #gridAll .m-card, #gridAll .strategy-card");
     const live = [];
     cards.forEach((card) => {
       const ret = Number(card.getAttribute("data-ret"));
@@ -222,36 +328,54 @@
             return (
               `<li><button type="button" class="week-row" data-open-week="${escapeHtml(row.id)}">` +
               `<b>${i + 1}</b><span>${escapeHtml(row.name)}</span>` +
-              `<em class="${cls}">${sign}${row.pct.toFixed(1)}%</em>` +
-              `</button></li>`
+              `<em class="${cls}">${sign}${row.pct.toFixed(1)}%</em></button></li>`
             );
           })
           .join("")
       : `<li class="muted">${escapeHtml(t("weekBoardEmpty"))}</li>`;
+    document.querySelectorAll("[data-week-title]").forEach((el) => {
+      el.textContent = t("weekBoardTitle");
+    });
     document.querySelectorAll("[data-week-board]").forEach((el) => {
       el.innerHTML = html;
     });
   }
 
   function bindWeekClicks() {
+    if (document.documentElement.dataset.weekBound === "1") return;
+    document.documentElement.dataset.weekBound = "1";
     document.addEventListener("click", (e) => {
       const btn = e.target && e.target.closest && e.target.closest("[data-open-week]");
       if (!btn) return;
       const id = btn.getAttribute("data-open-week");
-      const open = document.querySelector('#gridAll [data-open="' + id + '"]');
+      const open = document.querySelector('#gridAll [data-open="' + id + '"], #gridAll [data-open="' + id + '"]');
       if (open) open.click();
     });
   }
 
   function watchWeek() {
-    const grid = document.getElementById("gridAll");
+    const grid = document.getElementById("gridAll") || document.getElementById("gridAll");
     if (!grid || typeof MutationObserver === "undefined") return;
     const ob = new MutationObserver(() => paintWeek());
     ob.observe(grid, { subtree: true, attributes: true, attributeFilter: ["data-ret"], childList: true });
   }
 
+  function bindMarqueePause() {
+    const bar = document.getElementById("bloomberg-marquee-bar");
+    if (!bar || bar.dataset.bound === "1") return;
+    bar.dataset.bound = "1";
+    const pause = () => bar.classList.add("is-paused");
+    const resume = () => bar.classList.remove("is-paused");
+    bar.addEventListener("mouseenter", pause);
+    bar.addEventListener("mouseleave", resume);
+    bar.addEventListener("touchstart", pause, { passive: true });
+    bar.addEventListener("touchend", resume, { passive: true });
+    bar.addEventListener("touchcancel", resume, { passive: true });
+  }
+
   function bootNews() {
-    if (!document.getElementById("flashNews")) return;
+    if (!document.getElementById("flashNews") && !document.getElementById("bbMarqueeTrack")) return;
+    bindMarqueePause();
     paintNews(fallbackItems(newsKey()), newsKey());
     refreshNews();
     startScroll();
@@ -270,6 +394,10 @@
     setTimeout(paintWeek, 4000);
   }
 
+  root.addEventListener("quant-lang", () => {
+    refreshNews();
+    paintWeek();
+  });
   root.addEventListener("quant-lang", () => {
     refreshNews();
     paintWeek();

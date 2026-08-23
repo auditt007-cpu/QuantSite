@@ -49,6 +49,12 @@
         <span class="ticker-pill" data-sym="DOGEUSDT"><span class="tp-sym">DOGE</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
       </div>
     </div>
+    <div id="bloomberg-marquee-bar" class="bb-marquee" aria-label="Flash news ticker">
+      <span class="bb-tag" data-i18n="flashMarqueeTag">⚡ 快訊</span>
+      <div class="bb-track-wrap">
+        <div class="bb-track" id="bbMarqueeTrack"></div>
+      </div>
+    </div>
 
     <div class="editorial-grid">
       <div class="editorial-main">
@@ -201,8 +207,8 @@
               </article>
             </div>
             <section class="week-board-mobile" aria-label="Weekly ranking">
-              <div class="kicker" data-i18n="weekBoardKicker">ALPHA</div>
-              <h3 class="rail-h" data-i18n="weekBoardTitle">📊 本周收益榜 TOP 5</h3>
+              <div class="kicker kicker-plain">ALPHA</div>
+              <h3 class="rail-h" data-week-title>📊 本周收益榜 TOP 5</h3>
               <ol class="week-list" data-week-board></ol>
             </section>
           </div>
@@ -212,8 +218,8 @@
       </div>
       <aside class="editorial-rail" aria-label="Flash news">
         <section class="rail-block week-board-desk">
-          <div class="kicker" data-i18n="weekBoardKicker">ALPHA</div>
-          <h3 class="rail-h" data-i18n="weekBoardTitle">📊 本周收益榜 TOP 5</h3>
+          <div class="kicker kicker-plain">ALPHA</div>
+          <h3 class="rail-h" data-week-title>📊 本周收益榜 TOP 5</h3>
           <ol class="week-list" data-week-board></ol>
         </section>
         <section class="rail-block flash-desk">

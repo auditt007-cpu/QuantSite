@@ -7,7 +7,10 @@
   const payHref = "./member.html#pay";
 
   function t(key) {
-    if (window.QALang && typeof window.QALang.t === "function") return window.QALang.t(key);
+    if (window.QALang && typeof window.QALang.t === "function") {
+      const live = window.QALang.t(key);
+      if (live && live !== key) return live;
+    }
     const lang = localStorage.getItem("user_lang") || localStorage.getItem("quant_lang") || "en";
     const mapped = lang === "zh-Hans" ? "zh-CN" : lang;
     const pack = (window.I18N && (window.I18N[mapped] || window.I18N.en || window.I18N["zh-Hant"])) || {};

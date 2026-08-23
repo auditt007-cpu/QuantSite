@@ -57,11 +57,23 @@
     return pack;
   }
 
+  function lookup(dict, key) {
+    if (!dict || !key) return "";
+    if (dict[key]) return dict[key];
+    const lower = String(key).toLowerCase();
+    const names = Object.keys(dict);
+    for (let i = 0; i < names.length; i++) {
+      if (names[i].toLowerCase() === lower) return dict[names[i]];
+    }
+    return "";
+  }
+
   function t(key) {
     const pack = (root.I18N && (root.I18N[currentLang()] || root.I18N.en || root.I18N["zh-Hant"])) || {};
     const en = (root.I18N && root.I18N.en) || {};
     const hant = (root.I18N && root.I18N["zh-Hant"]) || {};
-    return pack[key] || en[key] || hant[key] || key;
+    const cn = (root.I18N && root.I18N["zh-CN"]) || {};
+    return lookup(pack, key) || lookup(en, key) || lookup(hant, key) || lookup(cn, key) || key;
   }
 
   function htmlLang(pack) {
@@ -77,9 +89,13 @@
     document.querySelectorAll("[data-i18n]").forEach((el) => {
       if (el.id === "btnAuth" || el.id === "idPill" || el.id === "nodeName" || el.id === "dashLevel" || el.id === "refCount") return;
       const key = el.getAttribute("data-i18n");
-      if (el.classList.contains("hint") || el.hasAttribute("title")) el.setAttribute("title", t(key));
+      const val = t(key);
+      if (!val) return;
+      if (el.classList.contains("hint") || el.hasAttribute("title")) el.setAttribute("title", val === key ? el.getAttribute("title") || val : val);
       if (el.children.length) return;
-      el.textContent = t(key);
+      const cur = (el.textContent || "").trim();
+      if (val === key && cur && cur !== key && cur.toUpperCase() !== String(key).toUpperCase()) return;
+      el.textContent = val;
     });
     document.querySelectorAll("[data-i18n-html]").forEach((el) => {
       el.innerHTML = t(el.getAttribute("data-i18n-html"));
@@ -120,9 +136,9 @@
   };
   root.QAApplyI18n = applyI18nDom;
   root.addEventListener("click", (e) => {
-    const btn = e.target && e.target.closest && e.target.closest("[data-lang]");
+    const btn = e.target && e.target.closest && e.target.closest("[data-lang], [data-lang]");
     if (!btn || !btn.closest(".lang-pills, .lang-pills")) return;
-    setLang(btn.getAttribute("data-lang"));
+    setLang(btn.getAttribute("data-lang") || btn.getAttribute("data-lang"));
   });
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", applyI18nDom);
