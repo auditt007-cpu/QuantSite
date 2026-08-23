@@ -126,6 +126,14 @@
     }
   }
 
+  function localLists() {
+    const free = catalog.list.filter((s) => s.tier !== "master" && s.id !== "ai");
+    const master = catalog.list.filter((s) => s.tier === "master" && s.id !== "ai");
+    return { free, master };
+  }
+
+  let { free: LOCAL_FREE, master: LOCAL_MASTER } = localLists();
+
   const FALLBACK_ENGINES = [
     ["dual", "free"],
     ["ribbon", "free"],
@@ -181,8 +189,6 @@
     }).filter(Boolean);
   }
 
-  const LOCAL_FREE = catalog.list.filter((s) => s.tier !== "master" && s.id !== "ai");
-  const LOCAL_MASTER = catalog.list.filter((s) => s.tier === "master" && s.id !== "ai");
   let remote = [];
 
   function asCard(s, tier) {
@@ -338,6 +344,7 @@
   fetchRemoteStrategies(4500).then((rows) => {
     if (!rows.length) return;
     remote = rows;
+    ({ free: LOCAL_FREE, master: LOCAL_MASTER } = localLists());
     allList = merge("free", LOCAL_FREE).concat(merge("master", LOCAL_MASTER));
     tabDefs[0].label = `${t("tabAll")} (${allList.length})`;
     tabDefs[5].label = `${t("tabFree")} (${merge("free", LOCAL_FREE).length})`;

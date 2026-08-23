@@ -30,5 +30,5 @@ jobs:
         run: |
           git config --local user.email "bot@quantalpha.space"
           git config --local user.name "QuantAlpha Strategy Bot"
-          git add js/strategies_data.json
+          git add js/strategies_data.json js/strategies-pack.js
           git diff --quiet && git diff --staged --quiet || (git commit -m "chore: auto-update quant strategies from open-source pipeline [skip ci]" && git push)

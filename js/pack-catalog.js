@@ -349,26 +349,31 @@
     };
   }
 
-  async function load() {
+  function ingest(rows) {
+    if (!Array.isArray(rows) || !rows.length) return 0;
+    C.register(rows.map(toSpec));
+    return rows.length;
+  }
+
+  let loaded = 0;
+  if (Array.isArray(root.QA_STRATEGY_ROWS) && root.QA_STRATEGY_ROWS.length) {
+    loaded = ingest(root.QA_STRATEGY_ROWS);
+  }
+
+  async function refresh() {
     const urls = ["./js/strategies_data.json", "./gemini-code-1787470320177.json"];
-    let rows = [];
     for (let i = 0; i < urls.length; i++) {
       try {
         const res = await fetch(urls[i], { cache: "no-store" });
         if (!res.ok) continue;
         const data = await res.json();
-        if (Array.isArray(data) && data.length) {
-          rows = data;
-          break;
-        }
+        if (Array.isArray(data) && data.length) return ingest(data);
       } catch {
         /* try next */
       }
     }
-    if (!rows.length) return 0;
-    C.register(rows.map(toSpec));
-    return rows.length;
+    return loaded;
   }
 
-  root.QAPackReady = load();
+  root.QAPackReady = loaded ? Promise.resolve(loaded) : refresh();
 })(typeof window !== "undefined" ? window : globalThis);

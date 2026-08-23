@@ -16,6 +16,7 @@ except ImportError:
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "js" / "strategies_data.json"
+OUT_JS = ROOT / "js" / "strategies-pack.js"
 LOCAL_FEEDS = [
     ROOT / "gemini-code-1787470320177.json",
     ROOT / "js" / "strategies_data.json",
@@ -117,7 +118,14 @@ def main() -> int:
         print(f"unchanged ({len(merged)} strategies)")
         return 0
     OUT.write_text(text, encoding="utf-8")
-    print(f"wrote {OUT} ({len(merged)} strategies)")
+    js_text = (
+        "// Auto-generated from js/strategies_data.json — do not edit by hand.\n"
+        "window.QA_STRATEGY_ROWS = "
+        + json.dumps(merged, ensure_ascii=False, indent=2)
+        + ";\n"
+    )
+    OUT_JS.write_text(js_text, encoding="utf-8")
+    print(f"wrote {OUT} and {OUT_JS} ({len(merged)} strategies)")
     return 0
 
 
