@@ -1,13 +1,15 @@
 (function (root) {
   const INTERVALS = ["1s", "1m", "5m", "15m", "1h", "4h", "1d", "1w"];
   const STALE_MS = 4000;
-  const ALL_VENUES = ["Binance", "Binance-Vision", "OKX", "Bybit", "Worker"];
+  const ALL_VENUES = ["HTX", "MEXC", "Bitget", "Gate", "Binance", "Binance-Vision", "OKX", "Bybit", "Worker"];
+  const CN_RACE = 4;
+  const NO_HISTORY = new Set(["HTX", "OKX", "Bybit"]);
 
-  /** Mainland CN: OKX/Bybit first; Binance often blocked. TW: Binance first. */
+  /** Mainland CN: domestic-friendly venues first + parallel race. TW: Binance first. */
   const VENUE_ORDER = {
-    cn: ["OKX", "Bybit", "Worker", "Binance-Vision", "Binance"],
-    tw: ["Binance", "Binance-Vision", "OKX", "Bybit", "Worker"],
-    intl: ["Binance-Vision", "Binance", "OKX", "Bybit", "Worker"],
+    cn: ["HTX", "MEXC", "Bitget", "Gate", "OKX", "Bybit", "Worker", "Binance-Vision", "Binance"],
+    tw: ["Binance", "Binance-Vision", "OKX", "Bybit", "HTX", "MEXC", "Bitget", "Gate", "Worker"],
+    intl: ["Binance-Vision", "Binance", "OKX", "Bybit", "HTX", "MEXC", "Bitget", "Gate", "Worker"],
   };
 
   let lastMeta = { source: "live", updatedAt: "", venue: "" };
@@ -41,9 +43,44 @@
 
   const OKX_BAR = { "1s": "1s", "1m": "1m", "5m": "5m", "15m": "15m", "1h": "1H", "4h": "4H", "1d": "1D", "1w": "1W" };
   const BYBIT_IV = { "1s": "1", "1m": "1", "5m": "5", "15m": "15", "1h": "60", "4h": "240", "1d": "D", "1w": "W" };
+  const HTX_PERIOD = { "1s": "1min", "1m": "1min", "5m": "5min", "15m": "15min", "1h": "60min", "4h": "4hour", "1d": "1day", "1w": "1week" };
+  const MEXC_IV = { "1s": "1m", "1m": "1m", "5m": "5m", "15m": "15m", "1h": "1h", "4h": "4h", "1d": "1d", "1w": "1W" };
+  const MEXC_WS_IV = { "1s": "Min1", "1m": "Min1", "5m": "Min5", "15m": "Min15", "1h": "Min60", "4h": "Hour4", "1d": "Day1", "1w": "Week1" };
+  const GATE_IV = { "1s": "1m", "1m": "1m", "5m": "5m", "15m": "15m", "1h": "1h", "4h": "4h", "1d": "1d", "1w": "7d" };
+  const BITGET_IV = { "1s": "1min", "1m": "1min", "5m": "5min", "15m": "15min", "1h": "1h", "4h": "4h", "1d": "1day", "1w": "1week" };
+  const BITGET_WS_IV = { "1s": "candle1m", "1m": "candle1m", "5m": "candle5m", "15m": "candle15m", "1h": "candle1H", "4h": "candle4H", "1d": "candle1D", "1w": "candle1W" };
+
+  function htxSym(sym) {
+    return String(sym || "BTCUSDT").toLowerCase();
+  }
+
+  function gatePair(sym) {
+    const s = String(sym || "BTCUSDT").toUpperCase();
+    if (s.includes("_")) return s;
+    if (s.endsWith("USDT")) return s.slice(0, -4) + "_USDT";
+    if (s.endsWith("USDC")) return s.slice(0, -4) + "_USDC";
+    return s + "_USDT";
+  }
+
+  function cnFetchMs() {
+    return feedRegion() === "cn" ? 4000 : 5000;
+  }
+
+  async function parseHtxWsPayload(raw) {
+    if (raw instanceof Blob) {
+      if (typeof DecompressionStream === "undefined") throw new Error("gzip");
+      const stream = raw.stream().pipeThrough(new DecompressionStream("gzip"));
+      return JSON.parse(await new Response(stream).text());
+    }
+    return JSON.parse(String(raw));
+  }
 
   function restTryDefs(sym, iv, lim, endTime, apiBase) {
     return {
+      HTX: { venue: "HTX", run: () => restHtx(sym, iv, lim) },
+      MEXC: { venue: "MEXC", run: () => restMexc(sym, iv, lim, endTime) },
+      Bitget: { venue: "Bitget", run: () => restBitget(sym, iv, lim, endTime) },
+      Gate: { venue: "Gate", run: () => restGate(sym, iv, lim, endTime) },
       OKX: { venue: "OKX", run: () => restOkx(sym, iv, lim) },
       Bybit: { venue: "Bybit", run: () => restBybit(sym, iv, lim) },
       Worker: { venue: "Worker", run: () => restWorker(apiBase, sym, iv, lim) },
@@ -97,9 +134,90 @@
     return out;
   }
 
+  async function restTickerHtx(symbols) {
+    const want = new Set(symbols.map((s) => htxSym(s)));
+    const res = await fetchUrl("https://api.huobi.pro/market/tickers", cnFetchMs());
+    if (!res.ok) throw new Error("http");
+    const data = await res.json();
+    const rows = (data && data.data) || [];
+    const out = rows
+      .filter((r) => want.has(r.symbol))
+      .map((r) => {
+        const open = Number(r.open);
+        const close = Number(r.close);
+        const pct = open ? ((close - open) / open) * 100 : 0;
+        return { symbol: String(r.symbol).toUpperCase(), lastPrice: String(close), priceChangePercent: String(pct) };
+      });
+    if (!out.length) throw new Error("empty");
+    return out;
+  }
+
+  async function restTickerMexc(symbols) {
+    const rows = await Promise.all(
+      symbols.map(async (sym) => {
+        const res = await fetchUrl(`https://api.mexc.com/api/v3/ticker/24hr?symbol=${encodeURIComponent(sym)}`, cnFetchMs());
+        if (!res.ok) return null;
+        const r = await res.json();
+        if (!r || !r.symbol) return null;
+        return { symbol: r.symbol, lastPrice: r.lastPrice, priceChangePercent: r.priceChangePercent };
+      }),
+    );
+    const out = rows.filter(Boolean);
+    if (!out.length) throw new Error("empty");
+    return out;
+  }
+
+  async function restTickerGate(symbols) {
+    const rows = await Promise.all(
+      symbols.map(async (sym) => {
+        const pair = gatePair(sym);
+        const res = await fetchUrl(
+          `https://api.gateio.ws/api/v4/spot/tickers?currency_pair=${encodeURIComponent(pair)}`,
+          cnFetchMs(),
+        );
+        if (!res.ok) return null;
+        const data = await res.json();
+        const r = Array.isArray(data) ? data[0] : null;
+        if (!r) return null;
+        const pct = Number(r.change_percentage);
+        return {
+          symbol: String(sym).toUpperCase(),
+          lastPrice: String(r.last),
+          priceChangePercent: String(Number.isFinite(pct) ? pct : 0),
+        };
+      }),
+    );
+    const out = rows.filter(Boolean);
+    if (!out.length) throw new Error("empty");
+    return out;
+  }
+
+  async function restTickerBitget(symbols) {
+    const rows = await Promise.all(
+      symbols.map(async (sym) => {
+        const res = await fetchUrl(
+          `https://api.bitget.com/api/v2/spot/market/tickers?symbol=${encodeURIComponent(sym)}`,
+          cnFetchMs(),
+        );
+        if (!res.ok) return null;
+        const data = await res.json();
+        const r = data && data.data && data.data[0];
+        if (!r) return null;
+        return {
+          symbol: String(sym).toUpperCase(),
+          lastPrice: String(r.lastPr || r.close),
+          priceChangePercent: String(Number(r.change24h || r.changeUtc24h || 0) * 100),
+        };
+      }),
+    );
+    const out = rows.filter(Boolean);
+    if (!out.length) throw new Error("empty");
+    return out;
+  }
+
   async function restTickerBybit(symbols) {
     const want = new Set(symbols.map((s) => String(s).toUpperCase()));
-    const res = await fetchUrl("https://api.bybit.com/v5/market/tickers?category=linear", 5000);
+    const res = await fetchUrl("https://api.bybit.com/v5/market/tickers?category=linear", cnFetchMs());
     if (!res.ok) throw new Error("http");
     const data = await res.json();
     const rows = (data && data.result && data.result.list) || [];
@@ -121,6 +239,10 @@
     if (!syms.length) return [];
     const apiBase = (root.QUANT_CONFIG && root.QUANT_CONFIG.apiBase) || "";
     const tries = {
+      HTX: () => restTickerHtx(syms),
+      MEXC: () => restTickerMexc(syms),
+      Bitget: () => restTickerBitget(syms),
+      Gate: () => restTickerGate(syms),
       OKX: () => restTickerOkx(syms),
       Bybit: () => restTickerBybit(syms),
       Worker: async () => {
@@ -136,7 +258,28 @@
       "Binance-Vision": () => restTickerBinance("https://data-api.binance.vision", syms),
       Binance: () => restTickerBinance("https://api.binance.com", syms),
     };
-    for (const venue of orderedVenues()) {
+    const order = orderedVenues();
+    if (feedRegion() === "cn") {
+      const cnRuns = order
+        .slice(0, CN_RACE)
+        .map((venue) => ({ venue, run: tries[venue] }))
+        .filter((x) => x.run);
+      try {
+        const winner = await Promise.any(
+          cnRuns.map(async ({ venue, run }) => {
+            const rows = await run();
+            if (!rows || !rows.length) throw new Error("empty");
+            return { venue, rows };
+          }),
+        );
+        lastMeta.venue = winner.venue;
+        return winner.rows;
+      } catch {
+        /* fall through */
+      }
+    }
+    for (let i = 0; i < order.length; i++) {
+      const venue = order[i];
       const run = tries[venue];
       if (!run) continue;
       try {
@@ -255,11 +398,121 @@
     const url =
       `${base}/api/klines?symbol=${encodeURIComponent(symbol)}` +
       `&interval=${encodeURIComponent(interval)}&limit=${Math.min(1000, limit)}`;
-    const res = await fetchUrl(url, 5000);
+    const res = await fetchUrl(url, cnFetchMs());
     if (!res.ok) throw new Error("http");
     const data = await res.json();
     if (!Array.isArray(data) || !data.length) throw new Error("empty");
     return data.map(parseKlineRow);
+  }
+
+  async function restHtx(symbol, interval, limit) {
+    const sym = htxSym(symbol);
+    const period = HTX_PERIOD[interval] || "60min";
+    const size = Math.min(2000, Math.max(1, Number(limit) || 200));
+    const url =
+      `https://api.huobi.pro/market/history/kline?symbol=${encodeURIComponent(sym)}` +
+      `&period=${encodeURIComponent(period)}&size=${size}`;
+    const res = await fetchUrl(url, cnFetchMs());
+    if (!res.ok) throw new Error("http");
+    const data = await res.json();
+    const rows = (data && data.data) || [];
+    if (data.status !== "ok" || !rows.length) throw new Error("empty");
+    return rows
+      .map((b) => ({
+        time: Number(b.id),
+        open: Number(b.open),
+        high: Number(b.high),
+        low: Number(b.low),
+        close: Number(b.close),
+        volume: Number(b.vol),
+      }))
+      .sort((a, b) => a.time - b.time);
+  }
+
+  async function restMexc(symbol, interval, limit, endTime) {
+    const iv = MEXC_IV[interval] || "1m";
+    let qs = `symbol=${encodeURIComponent(symbol)}&interval=${encodeURIComponent(iv)}&limit=${Math.min(1000, limit)}`;
+    if (endTime) qs += "&endTime=" + encodeURIComponent(String(endTime));
+    const res = await fetchUrl(`https://api.mexc.com/api/v3/klines?${qs}`, cnFetchMs());
+    if (!res.ok) throw new Error("http");
+    const data = await res.json();
+    if (!Array.isArray(data) || !data.length) throw new Error("empty");
+    return data.map(parseKlineRow);
+  }
+
+  async function restGate(symbol, interval, limit, endTime) {
+    const pair = gatePair(symbol);
+    const iv = GATE_IV[interval] || "1h";
+    let url =
+      `https://api.gateio.ws/api/v4/spot/candlesticks?currency_pair=${encodeURIComponent(pair)}` +
+      `&interval=${encodeURIComponent(iv)}&limit=${Math.min(1000, limit)}`;
+    if (endTime) url += "&to=" + encodeURIComponent(String(Math.floor(Number(endTime) / 1000)));
+    const res = await fetchUrl(url, cnFetchMs());
+    if (!res.ok) throw new Error("http");
+    const data = await res.json();
+    if (!Array.isArray(data) || !data.length) throw new Error("empty");
+    return data
+      .map((r) => ({
+        time: Number(r[0]),
+        open: Number(r[5]),
+        high: Number(r[3]),
+        low: Number(r[4]),
+        close: Number(r[2]),
+        volume: Number(r[6] || r[1] || 0),
+      }))
+      .sort((a, b) => a.time - b.time);
+  }
+
+  async function restBitget(symbol, interval, limit, endTime) {
+    const iv = BITGET_IV[interval] || "1h";
+    let url =
+      `https://api.bitget.com/api/v2/spot/market/candles?symbol=${encodeURIComponent(symbol)}` +
+      `&granularity=${encodeURIComponent(iv)}&limit=${Math.min(1000, limit)}`;
+    if (endTime) url += "&endTime=" + encodeURIComponent(String(endTime));
+    const res = await fetchUrl(url, cnFetchMs());
+    if (!res.ok) throw new Error("http");
+    const data = await res.json();
+    const rows = (data && data.data) || [];
+    if (!rows.length) throw new Error("empty");
+    return rows
+      .slice()
+      .reverse()
+      .map((r) => ({
+        time: Math.floor(Number(r[0]) / 1000),
+        open: Number(r[1]),
+        high: Number(r[2]),
+        low: Number(r[3]),
+        close: Number(r[4]),
+        volume: Number(r[5]),
+      }));
+  }
+
+  function filterRestTries(tries, endTime, apiBase) {
+    return tries.filter((item) => {
+      if (item.venue === "Worker" && !String(apiBase).startsWith("http")) return false;
+      if (endTime && NO_HISTORY.has(item.venue)) return false;
+      return true;
+    });
+  }
+
+  async function raceRestTries(tries) {
+    const racers = tries.slice(0, CN_RACE);
+    if (racers.length < 2) return null;
+    try {
+      const winner = await Promise.any(
+        racers.map(async (item) => {
+          const rows = await item.run();
+          if (!rows || !rows.length) throw new Error("empty");
+          return { rows, venue: item.venue };
+        }),
+      );
+      lastMeta.source = "live";
+      lastMeta.venue = winner.venue;
+      lastMeta.updatedAt = "";
+      return winner.rows;
+    } catch {
+      return null;
+    }
   }
 
   async function fetchKlines(symbol, interval, limit) {
@@ -268,10 +521,12 @@
     const need = Math.min(2000, Math.max(1, Number(limit) || 1000));
     const apiBase = (root.QUANT_CONFIG && root.QUANT_CONFIG.apiBase) || "";
     async function once(lim, endTime) {
-      const tries = buildRestTries(sym, iv, lim, endTime, apiBase);
+      const tries = filterRestTries(buildRestTries(sym, iv, lim, endTime, apiBase), endTime, apiBase);
+      if (feedRegion() === "cn" && !endTime) {
+        const raced = await raceRestTries(tries);
+        if (raced && raced.length) return raced;
+      }
       for (const item of tries) {
-        if (item.venue === "Worker" && !String(apiBase).startsWith("http")) continue;
-        if ((item.venue === "OKX" || item.venue === "Bybit") && endTime) continue;
         try {
           const rows = await item.run();
           if (rows && rows.length) {
@@ -378,13 +633,24 @@
         ws = new WebSocket(`wss://data-stream.binance.vision/ws/${sym.toLowerCase()}@kline_${iv}`);
       } else if (venue === "OKX") {
         ws = new WebSocket("wss://ws.okx.com:8443/ws/v5/business");
-      } else {
+      } else if (venue === "Bybit") {
         ws = new WebSocket("wss://stream.bybit.com/v5/public/linear");
+      } else if (venue === "HTX") {
+        ws = new WebSocket("wss://api.huobi.pro/ws");
+      } else if (venue === "MEXC") {
+        ws = new WebSocket("wss://wbs-api.mexc.com/ws");
+      } else if (venue === "Bitget") {
+        ws = new WebSocket("wss://ws.bitget.com/v2/ws/public");
+      } else {
+        die();
+        return { close: die };
       }
     } catch {
       die();
       return { close: die };
     }
+
+    const htxTopic = venue === "HTX" ? `market.${htxSym(sym)}.kline.${HTX_PERIOD[iv] || "1min"}` : "";
 
     ws.onopen = () => {
       touch();
@@ -408,10 +674,60 @@
           }
         }, 15000);
       }
+      if (venue === "HTX") {
+        ws.send(JSON.stringify({ sub: htxTopic, id: "qa" + Date.now() }));
+      }
+      if (venue === "MEXC") {
+        ws.send(
+          JSON.stringify({
+            method: "SUBSCRIPTION",
+            params: [`spot@public.kline.v3.api@${sym.toUpperCase()}@${MEXC_WS_IV[iv] || "Min1"}`],
+          }),
+        );
+      }
+      if (venue === "Bitget") {
+        ws.send(
+          JSON.stringify({
+            op: "subscribe",
+            args: [{ instType: "SPOT", channel: BITGET_WS_IV[iv] || "candle1m", instId: sym.toUpperCase() }],
+          }),
+        );
+        ping = setInterval(() => {
+          try {
+            ws.send("ping");
+          } catch {
+            /* */
+          }
+        }, 15000);
+      }
     };
 
     ws.onmessage = (ev) => {
       try {
+        if (venue === "HTX") {
+          parseHtxWsPayload(ev.data)
+            .then((msg) => {
+              if (msg.ping) {
+                ws.send(JSON.stringify({ pong: msg.ping }));
+                touch();
+                return;
+              }
+              const tick = msg.tick;
+              if (tick) {
+                emit({
+                  time: Number(tick.id),
+                  open: Number(tick.open),
+                  high: Number(tick.high),
+                  low: Number(tick.low),
+                  close: Number(tick.close),
+                  volume: Number(tick.vol),
+                  closed: false,
+                });
+              } else touch();
+            })
+            .catch(() => touch());
+          return;
+        }
         if (typeof ev.data === "string" && ev.data === "pong") {
           touch();
           return;
@@ -436,6 +752,40 @@
             volume: Number(row[5]),
             closed: String(row[8]) === "1",
           });
+          return;
+        }
+        if (venue === "MEXC") {
+          const k = msg.d && msg.d.k;
+          if (k) {
+            emit({
+              time: Math.floor(Number(k.t) / 1000),
+              open: Number(k.o),
+              high: Number(k.h),
+              low: Number(k.l),
+              close: Number(k.c),
+              volume: Number(k.v),
+              closed: Boolean(k.x),
+            });
+          } else touch();
+          return;
+        }
+        if (venue === "Bitget") {
+          if (msg.event === "error") {
+            die();
+            return;
+          }
+          const row = msg.data && msg.data[0];
+          if (Array.isArray(row)) {
+            emit({
+              time: Math.floor(Number(row[0]) / 1000),
+              open: Number(row[1]),
+              high: Number(row[2]),
+              low: Number(row[3]),
+              close: Number(row[4]),
+              volume: Number(row[5]),
+              closed: false,
+            });
+          } else touch();
           return;
         }
         const k = msg.data && msg.data[0];
