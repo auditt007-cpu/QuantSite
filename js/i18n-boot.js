@@ -98,7 +98,7 @@
     if (ws && root.QAFeed) {
       root.QAFeed.setFeedStatus(ws, ws.classList.contains("live") ? "live" : "reconnect");
     }
-    const page = document.body && document.body.getAttribute("data-title-key");
+    const page = document.body && (document.body.getAttribute("data-title-key") || document.body.getAttribute("data-title-key"));
     if (page) document.title = t(page);
   }
 
