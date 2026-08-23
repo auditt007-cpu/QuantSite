@@ -375,6 +375,7 @@
 
   function bootNews() {
     if (!document.getElementById("flashNews") && !document.getElementById("bbMarqueeTrack")) return;
+    root.__qaFlashMarqueeBooted = true;
     bindMarqueePause();
     paintNews(fallbackItems(newsKey()), newsKey());
     refreshNews();

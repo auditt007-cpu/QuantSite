@@ -1,4 +1,40 @@
 (function () {
+  function ensureFlashMarquee() {
+    const topbar = document.querySelector(".topbar");
+    if (!topbar || document.getElementById("bloomberg-marquee-bar")) return;
+    const bar = document.createElement("div");
+    bar.id = "bloomberg-marquee-bar";
+    bar.className = "bb-marquee";
+    bar.setAttribute("aria-label", "Flash news ticker");
+    bar.innerHTML =
+      '<span class="bb-tag" data-i18n="flashMarqueeTag">⚡ FLASH</span>' +
+      '<div class="bb-track-wrap"><div class="bb-track" id="bbMarqueeTrack"></div></div>';
+    topbar.insertAdjacentElement("afterend", bar);
+    const applyI18n = () => {
+      if (window.QALang && typeof window.QALang.apply === "function") {
+        try {
+          window.QALang.apply(bar);
+        } catch (_) {}
+      }
+    };
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", applyI18n);
+    else applyI18n();
+  }
+
+  function loadFlashMarquee() {
+    if (window.__qaFlashMarqueeLoaded) return;
+    const hasNewsJs = Array.prototype.some.call(document.scripts, (s) => (s.src || "").includes("news.js"));
+    if (hasNewsJs) return;
+    window.__qaFlashMarqueeLoaded = true;
+    const s = document.createElement("script");
+    s.src = "./js/flash-marquee.js";
+    s.defer = true;
+    document.head.appendChild(s);
+  }
+
+  ensureFlashMarquee();
+  loadFlashMarquee();
+
   const toggle = document.getElementById("navToggle");
   const bar = document.querySelector(".topbar");
   if (toggle && bar) {
