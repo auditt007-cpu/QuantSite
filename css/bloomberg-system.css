@@ -133,6 +133,14 @@ body.has-bb-util .wrap.wide {
 
 body.has-bb-util .topbar {
   top: 28px;
+  z-index: 35;
+  background: #ffffff;
+}
+
+.ticker-bar {
+  position: relative;
+  z-index: 1;
+  background: #f8fafc;
 }
 
 /* ---- Header / Topbar ---- */
@@ -296,6 +304,10 @@ body.has-bb-util .topbar {
   background: #ffffff;
   font-family: var(--bb-mono);
   font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
 .ticker-pill .tp-px,
@@ -783,6 +795,16 @@ textarea,
 }
 
 @media (max-width: 768px) {
+  /* Sticky header stack was painting over the ticker bar on mobile */
+  .bb-util-bar {
+    position: relative !important;
+    top: auto !important;
+  }
+  body.has-bb-util .topbar,
+  .topbar {
+    position: relative !important;
+    top: auto !important;
+  }
   .bb-util-bar {
     padding: 0 10px;
     gap: 8px;
@@ -790,12 +812,18 @@ textarea,
   .bb-util-tz {
     display: none;
   }
-  body.has-bb-util .topbar {
-    top: 28px;
-  }
   body.home-boards .ticker-bar,
-  body.home-boards .bb-marquee {
+  body.home-boards .bb-marquee,
+  .ticker-bar,
+  .bb-marquee {
     display: flex !important;
+  }
+  .ticker-bar {
+    overflow-x: auto !important;
+    height: auto !important;
+    min-height: 36px !important;
+    position: relative;
+    z-index: 2;
   }
   .bbg-capital-panel {
     border-right: 0;

@@ -302,11 +302,19 @@
 }
 
 @media (max-width: 768px) {
-  body.home-boards .ticker-bar {
-    display: block !important;
+  body.home-boards .ticker-bar,
+  .ticker-bar {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    height: auto !important;
+    min-height: 36px !important;
+    padding: 6px 10px !important;
   }
 
-  body.home-boards .bb-marquee {
+  body.home-boards .bb-marquee,
+  .bb-marquee {
     display: flex !important;
   }
 

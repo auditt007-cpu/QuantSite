@@ -52,8 +52,7 @@ body::before { content: none; }
   position: relative;
   z-index: 1;
   flex: 1 0 auto;
-  display: flex;
-  flex-direction: column;
+  display: block; /* block avoids sticky topbar overlapping following siblings in a flex column */
   width: 100%;
   max-width: 80rem;
   margin: 0 auto;
@@ -669,7 +668,8 @@ input.is-focused, textarea.is-focused, select.is-focused {
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
     gap: 8px;
-    top: 0;
+    position: relative !important;
+    top: auto !important;
     padding: 8px 0;
     background: var(--bg-main);
     border: 0;
@@ -774,11 +774,33 @@ input.is-focused, textarea.is-focused, select.is-focused {
   }
   #candleChart, #candleChart, .lab-canvas {
     width: 100% !important;
-    height: 250px !important;
-    min-height: 250px !important;
-    max-height: 260px !important;
+    height: 380px !important;
+    min-height: 380px !important;
+    max-height: 400px !important;
     display: block !important;
     flex: none !important;
+    margin-bottom: 0 !important;
+  }
+  .lab-chart-frame,
+  .lab-chart-block,
+  .chart-container,
+  .tradingview-widget-container {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: hidden !important;
+    margin-bottom: 12px !important;
+  }
+  .lab-chart-frame {
+    height: 380px !important;
+    max-height: 400px !important;
+    margin-bottom: 12px !important;
+  }
+  .lab-chart-frame #candleChart {
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: none !important;
   }
   #equityChart, #equityChart {
     width: 100% !important;
@@ -823,9 +845,14 @@ input.is-focused, textarea.is-focused, select.is-focused {
 .hero-cta { display: flex; flex-wrap: wrap; gap: 10px; }
 .lab-chart-frame, .chart-shell { position: relative; }
 .lab-chart-frame {
-  min-height: 480px;
+  min-height: 0;
+  height: auto;
+  overflow: hidden;
 }
 @media (min-width: 769px) {
+  .lab-chart-frame {
+    min-height: 480px;
+  }
   #candleChart, #candleChart.lab-canvas {
     width: 100% !important;
     height: 480px !important;
@@ -878,49 +905,63 @@ input.is-focused, textarea.is-focused, select.is-focused {
 .kpi-note { margin-top: 8px; }
 .ticker, .ticker-bar {
   margin-top: 0;
-  height: 36px;
-  overflow: hidden;
+  min-height: 36px;
+  height: auto;
+  overflow-x: auto;
+  overflow-y: hidden;
   white-space: nowrap;
   border: 0;
-  border-bottom: 1px solid #000000;
+  border-bottom: 1px solid #e2e8f0;
   background: #ffffff;
   color: #000000;
   font-size: 12px;
-  padding: 0;
+  padding: 6px 10px;
   border-radius: 0;
   display: flex;
   align-items: center;
+  box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.ticker-bar::-webkit-scrollbar,
+.ticker::-webkit-scrollbar {
+  display: none;
 }
 .ticker { padding: 4px 8px; overflow: hidden; text-overflow: ellipsis; max-width: 100%; box-sizing: border-box; }
 .ticker-track {
   display: flex;
+  flex-wrap: nowrap;
   align-items: center;
-  height: 36px;
-  width: 100%;
-  overflow-x: auto;
+  min-height: 28px;
+  height: auto;
+  width: max-content;
+  min-width: 100%;
+  overflow: visible;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
 .ticker-track::-webkit-scrollbar { display: none; }
 .ticker-pill {
-  display: inline-grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  display: inline-flex;
   align-items: center;
-  gap: 0;
-  padding: 4px 8px;
-  min-width: 168px;
-  height: 28px;
+  gap: 6px;
+  padding: 4px 10px;
+  min-width: 0;
+  height: auto;
+  min-height: 28px;
   border-right: 1px solid #e2e8f0;
   font-variant-numeric: tabular-nums;
   font-size: 11px;
   font-weight: 700;
   flex: 0 0 auto;
+  white-space: nowrap;
 }
 .ticker-pill .tp-sym,
 .ticker-pill .tp-px,
 .ticker-pill .tp-chg {
   text-align: center;
   min-width: 0;
+  display: inline-block;
 }
 .ticker-pill .tp-chg.up, .rail-quote.up em { color: var(--color-up); }
 .ticker-pill .tp-chg.down, .rail-quote.down em { color: var(--color-down); }
@@ -1625,7 +1666,9 @@ body.sheet-open { overflow: hidden; }
 
 @media (max-width: 768px) {
   .lab-flow { gap: 6px; margin-top: 6px; }
-  .lab-flow > * { margin: 6px 0; }
+  .lab-flow > * { margin: 4px 0; }
+  .lab-flow .lab-chart-block { margin-bottom: 0; }
+  .lab-flow .tf-bar { margin-top: 0; }
   .btn-back-list {
     margin: 6px 0;
     padding: 10px 12px;
@@ -1669,7 +1712,42 @@ body.sheet-open { overflow: hidden; }
   body.desk-open .editorial-rail { display: none !important; }
   body.desk-open .week-board-mobile,
   body.desk-open .week-board-mobile { display: block; }
-  .ticker-bar, .ticker-bar, .desk-only, .desk-only { display: none !important; }
+  .ticker-bar,
+  .ticker-bar {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap !important;
+    padding: 6px 10px !important;
+    min-height: 36px !important;
+    height: auto !important;
+    max-height: none !important;
+    box-sizing: border-box !important;
+    border-bottom: 1px solid #e2e8f0;
+    scrollbar-width: none;
+  }
+  .desk-only, .desk-only { display: none !important; }
+  .ticker-bar::-webkit-scrollbar { display: none; }
+  .ticker-track {
+    height: auto !important;
+    min-height: 28px !important;
+    flex-wrap: nowrap !important;
+    width: max-content !important;
+    overflow: visible !important;
+  }
+  .ticker-pill,
+  .ticker-item {
+    flex-shrink: 0 !important;
+    margin-right: 0 !important;
+    min-width: 0 !important;
+    width: auto !important;
+    height: auto !important;
+    font-size: 11px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    white-space: nowrap !important;
+  }
   .disc-mini { display: block; margin: 16px 0 8px; font-size: 11px; color: #94a3b8; text-align: center; }
   .ai-lab-h1 { font-size: 22px; line-height: 1.25; margin: 4px 0 6px; }
   .ai-lab-sub { margin: 0 0 10px; font-size: 13px; color: #475569; }
@@ -1711,10 +1789,14 @@ body.sheet-open { overflow: hidden; }
     display: block;
     margin-top: 20px;
   }
-  #candleChart, #candleChart { height: 240px !important; min-height: 240px !important; }
+  #candleChart, #candleChart { height: 380px !important; min-height: 380px !important; max-height: 400px !important; }
   #equityChart, #equityChart { height: 150px !important; min-height: 150px !important; }
-  .ticker-track { height: auto; flex-wrap: wrap; }
-  .ticker-pill { min-width: 50%; }
+  .lab-chart-frame {
+    height: 380px !important;
+    min-height: 0 !important;
+    max-height: 400px !important;
+    margin-bottom: 12px !important;
+  }
   .bt-sheet-portal {
     display: none;
     height: 0;

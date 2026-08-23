@@ -572,7 +572,7 @@ function chartBoxSize(el, desktopH) {
     };
   }
   const id = el && el.id;
-  if (id === "candleChart") return { width: w, height: 250 };
+  if (id === "candleChart") return { width: w, height: 380 };
   return { width: w, height: 180 };
 }
 
