@@ -143,6 +143,7 @@ function addLine(chart, color) {
 }
 
 const START_EQ = 10000;
+const BAR_LIMIT = 1000;
 
 function fmtUsd(n) {
   return Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -410,11 +411,51 @@ function offlineBars(iv) {
   return off && off.length ? off.slice() : [];
 }
 
-async function fetchBarsWithTimeout(sym, iv, limit, ms) {
-  return Promise.race([
-    feed.fetchKlines(sym, iv, limit),
-    new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), ms || 9000)),
-  ]);
+async function load(iv) {
+  interval = iv || interval;
+  document.querySelectorAll("[data-tf]").forEach((b) => {
+    b.classList.toggle("active", b.getAttribute("data-tf") === interval);
+  });
+  if (stream) stream.close();
+  setBtLoading(true);
+  feed.setFeedStatus($("wsStatus"), "connecting");
+
+  try {
+    bars = await feed.fetchKlines(SYMBOL, interval, BAR_LIMIT);
+    feed.lastMeta.source = "live";
+    mountCandles();
+    run(true);
+    feed.setFeedStatus($("wsStatus"), "live");
+  } catch {
+    bars = offlineBars(interval);
+    feed.lastMeta.source = "offline";
+    if (bars.length) {
+      mountCandles();
+      run(true);
+      feed.setFeedStatus($("wsStatus"), "offline", { updatedAt: feed.lastMeta.updatedAt });
+    } else {
+      feed.setFeedStatus($("wsStatus"), "retry");
+    }
+  } finally {
+    setBtLoading(false);
+  }
+
+  if (!bars.length) {
+    toast(t("aiNetErr") || t("needBars") || "K line load failed", "warn");
+    return;
+  }
+
+  paintPine();
+  stream = feed.createLiveStream({
+    symbol: SYMBOL,
+    interval,
+    preferRest: feed.lastMeta.source === "offline",
+    onStatus(s, extra) {
+      feed.setFeedStatus($("wsStatus"), s, extra);
+    },
+    onKline: upsert,
+  });
+  syncDock();
 }
 
 function upsert(bar) {
@@ -451,73 +492,6 @@ function mountCandles() {
   );
   candleChart.timeScale().fitContent();
   scheduleFit();
-}
-
-async function load(iv) {
-  interval = iv || interval;
-  document.querySelectorAll("[data-tf]").forEach((b) => {
-    b.classList.toggle("active", b.getAttribute("data-tf") === interval);
-  });
-  if (stream) stream.close();
-  setBtLoading(true);
-  feed.setFeedStatus($("wsStatus"), "connecting");
-
-  const seed = offlineBars(interval);
-  if (seed.length) {
-    bars = seed;
-    feed.lastMeta.source = "offline";
-    mountCandles();
-    paintPine();
-    requestAnimationFrame(() => run(true));
-    feed.setFeedStatus($("wsStatus"), "connecting");
-  }
-
-  try {
-    const live = await fetchBarsWithTimeout(SYMBOL, interval, 420, 9000);
-    if (live && live.length) {
-      bars = live;
-      feed.lastMeta.source = "live";
-      mountCandles();
-      run(true);
-      feed.setFeedStatus($("wsStatus"), "live");
-    } else if (!bars.length) {
-      throw new Error("empty");
-    }
-  } catch {
-    if (!bars.length) {
-      bars = offlineBars(interval);
-      feed.lastMeta.source = "offline";
-      if (bars.length) {
-        mountCandles();
-        paintPine();
-        run(true);
-      }
-    }
-    if (feed.lastMeta.source === "offline") {
-      feed.setFeedStatus($("wsStatus"), "offline", { updatedAt: feed.lastMeta.updatedAt });
-    } else {
-      feed.setFeedStatus($("wsStatus"), "retry");
-    }
-  } finally {
-    setBtLoading(false);
-  }
-
-  if (!bars.length) {
-    toast(t("aiNetErr") || t("needBars") || "K line load failed", "warn");
-    return;
-  }
-
-  paintPine();
-  stream = feed.createLiveStream({
-    symbol: SYMBOL,
-    interval,
-    preferRest: true,
-    onStatus(s, extra) {
-      feed.setFeedStatus($("wsStatus"), s, extra);
-    },
-    onKline: upsert,
-  });
-  syncDock();
 }
 
 function fmtPf(pf) {
