@@ -257,15 +257,6 @@ function wire() {
       location.href = "./member.html";
     });
   }
-  const tick = $("signalTicker");
-  if (tick) {
-    const spin = () => {
-      const px = ($("lastPx") && $("lastPx").textContent) || "64,200";
-      tick.textContent = t("tickerTpl").replace("{px}", px);
-    };
-    spin();
-    setInterval(spin, 8000);
-  }
   window.addEventListener("quant-lang", () => {
     lang = detectLang();
     applyI18n();
@@ -277,7 +268,6 @@ function wire() {
   document.querySelectorAll("[data-close]").forEach((b) => {
     b.addEventListener("click", () => closeModal(b.getAttribute("data-close")));
   });
-  if (window.QALiveDesk) window.QALiveDesk.start();
 }
 
 wire();

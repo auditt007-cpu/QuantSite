@@ -529,34 +529,76 @@ def tg_send(text):
     return out
 
 
-def format_alert(strat, sym, side, px, sl, tp, bar_ts, src):
+def fmt_tw_time_ms(ms):
+    tw = datetime.fromtimestamp(ms / 1000.0, tz=timezone(timedelta(hours=8)))
+    return time.strftime("%Y-%m-%d %H:%M", tw.timetuple())
+
+
+def sl_tp_display_pcts(side, px, sl, tp):
+    if px <= 0:
+        return 0.0, 0.0
+    if side == "LONG":
+        sl_pct = -abs((px - sl) / px * 100.0)
+        tp_pct = abs((tp - px) / px * 100.0)
+    else:
+        sl_pct = -abs((sl - px) / px * 100.0)
+        tp_pct = abs((px - tp) / px * 100.0)
+    return sl_pct, tp_pct
+
+
+def side_banner(side):
+    if side == "LONG":
+        return "🟢 【看多 · 做多 LONG】"
+    return "🔴 【看空 · 做空 SHORT】"
+
+
+def send_tg_signal(strat, sym, side, px, sl, tp, bar_ts, src):
+    """Build Taiwan-friendly + institutional bilingual TG alert card (HTML)."""
     coin = sym.replace("USDT", "")
-    zht_side = SIDE_ZHT[side]
-    en_side = SIDE_EN[side]
+    tf_label = strat["tf"].upper()
+    sl_pct, tp_pct = sl_tp_display_pcts(side, px, sl, tp)
+    tw_time = fmt_tw_time_ms(bar_ts)
+    terminal_url = "https://quantalpha.space/terminal.html"
     return (
-        "<b>QUANT ALPHA · EVENT SIGNAL</b>\n"
-        "<b>{0} / {1}</b>\n"
-        "【{2}】 {3}\n"
-        "{4} / {5} · <b>{6}</b> · {7}\n"
-        "Entry <b>{8}</b> USDT\n"
-        "SL <b>{9}</b> · TP <b>{10}</b>\n"
-        "Bar {11} · Feed {12}\n"
-        "<i>Event-driven · RR 1:2 · Research only</i>"
+        "<b>⚡ QUANT ALPHA · LIVE SIGNAL</b>\n"
+        "【 量化異動訊號 · 即時推播 】\n"
+        "\n"
+        "{0}\n"
+        "\n"
+        "📌 標的 <b>{1}</b> · 週期 <b>{2}</b>\n"
+        "📊 策略 <b>{3}</b>\n"
+        "<i>{4}</i>\n"
+        "\n"
+        "💰 建議進場點 (Entry): <b>{5}</b> USDT\n"
+        "🛑 風控止損位 (Stop Loss): <b>{6}</b> ({7:.2f}%)\n"
+        "🎯 目標止盈位 (Take Profit): <b>{8}</b> ({9:+.2f}%)\n"
+        "⚖️ 盈虧比 (Risk/Reward): <b>1 : 2.0</b>\n"
+        "\n"
+        "🕐 台灣時間 (UTC+8): <b>{10}</b>\n"
+        "📡 行情來源 (Feed): {11}\n"
+        "\n"
+        '🔗 <a href="{12}">Quant Alpha 策略終端 · Terminal</a>\n'
+        "\n"
+        "⚠️ 提醒：量化模型訊號僅供參考，請嚴格執行止損止盈，切勿重倉抗單。"
     ).format(
+        side_banner(side),
+        coin,
+        tf_label,
         strat["zht"],
         strat["en"],
-        coin,
-        strat["tf"].upper(),
-        zht_side,
-        en_side,
-        side,
-        coin,
         fmt_px(px),
         fmt_px(sl),
+        sl_pct,
         fmt_px(tp),
-        fmt_ts_ms(bar_ts),
-        src,
+        tp_pct,
+        tw_time,
+        src.upper(),
+        terminal_url,
     )
+
+
+def format_alert(strat, sym, side, px, sl, tp, bar_ts, src):
+    return send_tg_signal(strat, sym, side, px, sl, tp, bar_ts, src)
 
 
 def scan_events():

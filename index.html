@@ -5,8 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>QUANT ALPHA</title>
   <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./css/home-boards.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
 </head>
-<body>
+<body class="editorial-light home-boards">
   <div class="wrap">
     <header class="topbar">
       <a class="brand" href="./index.html">
@@ -36,6 +40,23 @@
       </div>
     </header>
 
+    <div class="ticker-bar" id="tickerBar" aria-label="Market ticker">
+      <div class="ticker-track" id="tickerTrack">
+        <span class="ticker-pill" data-sym="BTCUSDT"><span class="tp-sym">BTC</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
+        <span class="ticker-pill" data-sym="ETHUSDT"><span class="tp-sym">ETH</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
+        <span class="ticker-pill" data-sym="SOLUSDT"><span class="tp-sym">SOL</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
+        <span class="ticker-pill" data-sym="BNBUSDT"><span class="tp-sym">BNB</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
+        <span class="ticker-pill" data-sym="XRPUSDT"><span class="tp-sym">XRP</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
+        <span class="ticker-pill" data-sym="DOGEUSDT"><span class="tp-sym">DOGE</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
+      </div>
+    </div>
+    <div id="bloomberg-marquee-bar" class="bb-marquee" aria-label="Flash news ticker">
+      <span class="bb-tag" data-i18n="flashMarqueeTag">⚡ 快訊</span>
+      <div class="bb-track-wrap">
+        <div class="bb-track" id="bbMarqueeTrack"></div>
+      </div>
+    </div>
+
     <div id="onboardBanner" class="onboard" hidden>
       <p id="onboardHi"></p>
       <p id="onboardNeed"></p>
@@ -47,40 +68,73 @@
       <button type="button" class="btn-cta" id="btnOnboardInvite" data-i18n="onboardCta">🔥 立即獲取專屬邀請鏈接</button>
     </div>
 
-    <section class="hero">
-      <h1 class="hero-h1" data-i18n="heroH1">捕捉 BTC 趨勢拐點 · 研究樣本勝率 68%+</h1>
-      <p class="hero-h2" data-i18n="heroH2">無需盯盤，Dual SuperTrend 於瀏覽器本地標定，並可推送到你的 Telegram。</p>
+    <section class="hero home-hero">
+      <h1 class="hero-h1" data-i18n="heroH1">捕捉加密貨幣趨勢拐點 · 多策略量化矩陣</h1>
+      <p class="hero-h2" data-i18n="heroH2">真實行情驅動 · 事件型訊號推播 · 一鍵進入策略終端驗算</p>
       <div class="hero-cta">
-        <a id="btnChannel2" class="btn-cta pulse lg" href="https://t.me/quant_alpha_signals" target="_blank" rel="noopener" data-i18n="heroCta">🔥 免費加入 TG 信號頻道（零門檻獲取推送）</a>
+        <a id="btnChannel2" class="btn-cta pulse lg" href="https://t.me/quant_alpha_signals" target="_blank" rel="noopener" data-i18n="heroCta">🔥 免費加入 TG 信號頻道</a>
         <a class="btn ghost lg" href="./terminal.html" data-i18n="heroSub">⚡ 進入策略終端</a>
       </div>
-      <p class="open-src" data-i18n="openSrc">100% 邏輯開源透明 · 支援一鍵導入 TradingView 自行復現與驗證</p>
-      <div class="kpi-row">
-        <div class="kpi"><span data-i18n="kpiWin">近 30 天信號勝率</span><b>71.4%</b></div>
-        <div class="kpi"><span data-i18n="kpiDd">樣本最大回撤</span><b>6.2%</b></div>
-        <div class="kpi"><span data-i18n="kpiPf">平均盈虧比</span><b>2.4:1</b></div>
+      <div class="kpi-row home-kpi" id="homeKpiRow">
+        <div class="kpi"><span data-i18n="kpiWin">近 30 天勝率</span><b id="kpiWinVal">—</b></div>
+        <div class="kpi"><span data-i18n="kpiDd">樣本最大回撤</span><b id="kpiDdVal">—</b></div>
+        <div class="kpi"><span data-i18n="kpiPf">平均盈虧比</span><b id="kpiPfVal">—</b></div>
       </div>
       <p class="muted kpi-note" data-i18n="kpiNote">樣本統計僅供研究，不代表未來收益</p>
     </section>
 
-    <div class="ticker" id="signalTicker"></div>
+    <section class="home-boards-section" aria-label="Strategy leaderboards">
+      <div class="home-boards-grid">
+        <article class="hb-card" id="wrBoardCard">
+          <header class="hb-head">
+            <div>
+              <p class="hb-kicker" data-i18n="hbWrKicker">WIN RATE</p>
+              <h2 class="hb-title" data-i18n="hbWrTitle">策略勝率排行榜</h2>
+            </div>
+            <span class="hb-period" id="hbWrPeriod" data-i18n="hbPeriod">近 7 天</span>
+          </header>
+          <div class="hb-scroll">
+            <table class="hb-table" id="wrBoardTable">
+              <thead>
+                <tr>
+                  <th data-i18n="hbColRank">排名</th>
+                  <th data-i18n="hbColModel">策略模型</th>
+                  <th data-i18n="hbColWr">勝率</th>
+                  <th data-i18n="hbColTrades">總筆數</th>
+                  <th data-i18n="hbColDd">最大回撤</th>
+                  <th class="hb-col-go" aria-hidden="true"></th>
+                </tr>
+              </thead>
+              <tbody id="wrBoardBody"></tbody>
+            </table>
+          </div>
+        </article>
 
-    <section class="desk">
-      <div class="desk-head">
-        <div class="desk-status-row">
-          <div id="wsStatus" class="feed-status wait">● 數據重連中</div>
-          <div class="kicker">BTCUSDT · 1m</div>
-        </div>
+        <article class="hb-card" id="pnlBoardCard">
+          <header class="hb-head">
+            <div>
+              <p class="hb-kicker" data-i18n="hbPnlKicker">PNL</p>
+              <h2 class="hb-title" data-i18n="hbPnlTitle">策略收益排行榜</h2>
+            </div>
+            <span class="hb-period" id="hbPnlPeriod" data-i18n="hbPeriodPnl">30D / 近窗淨利</span>
+          </header>
+          <div class="hb-scroll">
+            <table class="hb-table" id="pnlBoardTable">
+              <thead>
+                <tr>
+                  <th data-i18n="hbColRank">排名</th>
+                  <th data-i18n="hbColModel">策略模型</th>
+                  <th data-i18n="hbColPnl">淨利</th>
+                  <th data-i18n="hbColPf">盈虧比</th>
+                  <th class="hb-col-go" aria-hidden="true"></th>
+                </tr>
+              </thead>
+              <tbody id="pnlBoardBody"></tbody>
+            </table>
+          </div>
+        </article>
       </div>
-      <div class="chart-shell live">
-        <div id="tvChart" class="tv-chart chart-container"></div>
-        <a class="tv-chart-badge" href="https://www.tradingview.com/" target="_blank" rel="noopener">Charts by TradingView</a>
-        <div class="chart-meta">
-          <div>BTCUSDT · <span id="lastPx">—</span></div>
-          <div id="legendLine" data-i18n="legend">SuperTrend (10, 3) · Dual</div>
-          <div id="ohlcLine" class="ohlc">OHLC —</div>
-        </div>
-      </div>
+      <p class="muted hb-foot-note" data-i18n="hbFootNote">數據來自 VPS 每日真實回測 · 點擊任一列進入策略終端</p>
     </section>
 
     <div class="risk-banner" data-i18n="riskBanner">⚠️ 免責聲明：歷史回測數據不代表未來實盤收益，未計入滑點與手續費。本站信號僅供技術研究與量化編程參考，不構成任何投資建議。</div>
@@ -163,12 +217,9 @@
   <script src="./js/money.js"></script>
   <script src="./js/clipboard.js"></script>
   <script src="./js/identity.js"></script>
-  <script src="./js/offline-klines.js"></script>
-  <script src="./js/indicators.js"></script>
-  <script src="./js/strategy-catalog.js"></script>
   <script src="./js/binance-feed.js"></script>
-  <script src="./js/lightweight-charts.standalone.production.js"></script>
-  <script src="./js/live-chart.js"></script>
+  <script src="./js/news.js"></script>
+  <script src="./js/home-boards.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>
