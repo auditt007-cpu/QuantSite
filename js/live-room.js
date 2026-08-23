@@ -4,8 +4,13 @@
   const ENGINES = window.QA_ENGINE_LIST || [];
   const MUTE_KEY = "qa_live_mute";
   const ACTIVE_KEY = "qa_live_active_id";
+  const WATCH_COINS_KEY = "qa_live_watch_coins";
+  const WATCH_STRATS_KEY = "qa_live_watch_strategies";
   const SYMS = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "DOGEUSDT"];
+  const COIN_LIST = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "DOGEUSDT", "XRPUSDT", "SUIUSDT", "PEPEUSDT"];
   const THREE_HOURS_S = 3 * 3600;
+  const MAX_WATCH_PAIRS = 24;
+  const TAPE_MAX = 50;
 
   function t(key) {
     if (window.QALang && typeof window.QALang.t === "function") {
@@ -41,10 +46,26 @@
       .replace(/>/g, "&gt;");
   }
 
+  function loadJsonArray(key, fallback) {
+    try {
+      const raw = JSON.parse(localStorage.getItem(key) || "null");
+      return Array.isArray(raw) ? raw : fallback;
+    } catch {
+      return fallback;
+    }
+  }
+  function saveJsonArray(key, arr) {
+    try {
+      localStorage.setItem(key, JSON.stringify(arr));
+    } catch {
+      /* private mode */
+    }
+  }
+
   /* ---------------------------------------------------------------------
    * Sound + voice engine. All audio is synthesized (Web Audio) or spoken
    * (Web Speech API) — no binary assets. A single toggle gates both the
-   * hammer SFX and the Taiwanese-accent voice narration.
+   * ambient heartbeat / hammer SFX and the Taiwanese sweet-voice narration.
    * ------------------------------------------------------------------- */
   let audioCtx = null;
   function isMuted() {
@@ -110,41 +131,67 @@
     }
   }
 
-  let heartbeat = null;
-  function startHeartbeat() {
-    if (heartbeat || isMuted()) return;
+  // Copart-style tension bed: a sub-bass thump layered with a faint metallic
+  // radar tick, both synthesized. Cadence self-schedules so it can double
+  // from 60 BPM (1000ms) to 120 BPM (500ms) during the countdown's last 15s.
+  let heartbeatRunning = false;
+  let heartbeatFast = false;
+  let heartbeatTimeoutId = null;
+
+  function playSubBass() {
     const ctx = ensureAudioCtx();
     if (!ctx) return;
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = 60;
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.05, now + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.55);
+  }
+
+  function playRadarTick() {
+    const ctx = ensureAudioCtx();
+    if (!ctx) return;
+    const now = ctx.currentTime + 0.06;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = 2800;
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.018, now + 0.004);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.06);
+  }
+
+  function heartbeatLoop() {
+    if (!heartbeatRunning) return;
     try {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.value = 54;
-      gain.gain.value = 0.0001;
-      osc.connect(gain).connect(ctx.destination);
-      osc.start();
-      const timer = setInterval(() => {
-        if (!audioCtx) return;
-        const now = ctx.currentTime;
-        gain.gain.cancelScheduledValues(now);
-        gain.gain.setValueAtTime(0.0001, now);
-        gain.gain.exponentialRampToValueAtTime(0.045, now + 0.06);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.55);
-      }, 1300);
-      heartbeat = { osc, gain, timer };
+      playSubBass();
+      playRadarTick();
     } catch {
       /* ambient bed is optional */
     }
+    const interval = heartbeatFast ? 500 : 1000;
+    heartbeatTimeoutId = setTimeout(heartbeatLoop, interval);
+  }
+  function startHeartbeat() {
+    if (heartbeatRunning || isMuted()) return;
+    if (!ensureAudioCtx()) return;
+    heartbeatRunning = true;
+    heartbeatLoop();
   }
   function stopHeartbeat() {
-    if (!heartbeat) return;
-    clearInterval(heartbeat.timer);
-    try {
-      heartbeat.osc.stop();
-    } catch {
-      /* already stopped */
-    }
-    heartbeat = null;
+    heartbeatRunning = false;
+    heartbeatFast = false;
+    if (heartbeatTimeoutId) clearTimeout(heartbeatTimeoutId);
+    heartbeatTimeoutId = null;
   }
 
   let cachedVoices = [];
@@ -162,7 +209,8 @@
   }
   function pickSweetVoice() {
     if (!cachedVoices.length) return null;
-    const byName = cachedVoices.find((v) => /zh-TW|zh-HK/i.test(v.lang) && /美|雅婷|Yating|Meijia|Sinji|Zhiwei|Female/i.test(v.name));
+    const sweetName = /Xiaoxiao|Mei-?Jia|Yating|Han|美嘉|雅婷|曉曉|小曉|HsiaoChen|HsiaoYu/i;
+    const byName = cachedVoices.find((v) => sweetName.test(v.name));
     if (byName) return byName;
     const tw = cachedVoices.find((v) => /zh-TW/i.test(v.lang));
     if (tw) return tw;
@@ -176,8 +224,8 @@
       window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
       u.lang = "zh-TW";
-      u.pitch = 1.15;
-      u.rate = 1.05;
+      u.pitch = 1.4;
+      u.rate = 1.08;
       const v = pickSweetVoice();
       if (v) u.voice = v;
       window.speechSynthesis.speak(u);
@@ -415,9 +463,13 @@
   }
 
   /* ---------------------------------------------------------------------
-   * Strategy checkbox matrix (single active selection).
+   * Step 1 + Step 2 selection funnel (both multi-select, persisted).
    * ------------------------------------------------------------------- */
   const matrixListEl = document.getElementById("matrixList");
+  const coinPillsEl = document.getElementById("coinPills");
+  let allStrategies = [];
+  let watchCoins = loadJsonArray(WATCH_COINS_KEY, []);
+  let watchStrategyIds = loadJsonArray(WATCH_STRATS_KEY, []);
   let activeStrategy = null;
 
   function hotBucket() {
@@ -427,40 +479,88 @@
     return (hashStr(id) + hotBucket()) % 3 === 0;
   }
 
+  function coinPillHtml(sym) {
+    const checked = watchCoins.includes(sym);
+    return `<label class="coin-pill${checked ? " is-checked" : ""}" data-coin-row="${sym}">
+        <input type="checkbox" data-coin="${sym}" ${checked ? "checked" : ""} />
+        ${escapeHtml(sym.replace("USDT", ""))}
+      </label>`;
+  }
+  function renderCoinPills() {
+    if (!coinPillsEl) return;
+    coinPillsEl.innerHTML = COIN_LIST.map(coinPillHtml).join("");
+  }
+  function bindCoinPills() {
+    if (!coinPillsEl) return;
+    coinPillsEl.addEventListener("change", (ev) => {
+      const input = ev.target.closest("[data-coin]");
+      if (!input) return;
+      const sym = input.getAttribute("data-coin");
+      if (input.checked) {
+        if (!watchCoins.includes(sym)) watchCoins.push(sym);
+      } else {
+        watchCoins = watchCoins.filter((c) => c !== sym);
+      }
+      saveJsonArray(WATCH_COINS_KEY, watchCoins);
+      const row = input.closest(".coin-pill");
+      if (row) row.classList.toggle("is-checked", input.checked);
+      refreshWatchTape();
+    });
+  }
+
   function matrixRowHtml(s) {
-    return `<label class="matrix-row" data-row="${s.id}">
-        <input type="checkbox" class="matrix-check" data-select="${s.id}" ${activeStrategy && activeStrategy.id === s.id ? "checked" : ""} />
+    const checked = watchStrategyIds.includes(s.id);
+    return `<label class="matrix-row${checked ? " is-checked" : ""}" data-row="${s.id}">
+        <input type="checkbox" class="matrix-check" data-select="${s.id}" ${checked ? "checked" : ""} />
         <span class="matrix-dot${isHot(s.id) ? " is-hot" : ""}" data-dot="${s.id}" aria-hidden="true"></span>
         <span class="matrix-name">${escapeHtml(s.name)}</span>
       </label>`;
   }
-
   function renderMatrix(strategies) {
     if (!matrixListEl) return;
     matrixListEl.innerHTML = strategies.map(matrixRowHtml).join("");
   }
-
   function refreshMatrixDots() {
     document.querySelectorAll("[data-dot]").forEach((dot) => {
       dot.classList.toggle("is-hot", isHot(dot.getAttribute("data-dot")));
     });
   }
-
-  function setActiveRow(id) {
+  function paintFocusHighlight(id) {
     document.querySelectorAll(".matrix-row").forEach((row) => {
-      const isActive = row.getAttribute("data-row") === id;
-      row.classList.toggle("is-active", isActive);
-      const box = row.querySelector(".matrix-check");
-      if (box) box.checked = isActive;
+      row.classList.toggle("is-focused", row.getAttribute("data-row") === id);
+    });
+  }
+  function bindMatrixClicks(strategies) {
+    if (!matrixListEl) return;
+    matrixListEl.addEventListener("change", (ev) => {
+      const input = ev.target.closest("[data-select]");
+      if (!input) return;
+      const id = input.getAttribute("data-select");
+      const row = input.closest(".matrix-row");
+      if (input.checked) {
+        if (!watchStrategyIds.includes(id)) watchStrategyIds.push(id);
+        if (row) row.classList.add("is-checked");
+        selectStrategy(id, strategies);
+      } else {
+        watchStrategyIds = watchStrategyIds.filter((x) => x !== id);
+        if (row) row.classList.remove("is-checked");
+        if (activeStrategy && activeStrategy.id === id) {
+          const fallback = watchStrategyIds[watchStrategyIds.length - 1] || (strategies[0] && strategies[0].id);
+          if (fallback) selectStrategy(fallback, strategies);
+        }
+      }
+      saveJsonArray(WATCH_STRATS_KEY, watchStrategyIds);
+      refreshWatchTape();
     });
   }
 
   /* ---------------------------------------------------------------------
    * War Room Terminal: chart + real trade signals + 3h tape + 60s voice
-   * countdown for whichever strategy is currently selected.
+   * countdown for whichever strategy is currently focused.
    * ------------------------------------------------------------------- */
   const statusTextEl = document.getElementById("warStatusText");
   const tapeListEl = document.getElementById("warTapeList");
+  const watchTapeListEl = document.getElementById("watchTapeList");
   const countdownEl = document.getElementById("warCountdown");
   const countdownFillEl = document.getElementById("warCountdownFill");
   const countdownLabelEl = document.getElementById("warCountdownLabel");
@@ -468,6 +568,7 @@
   let warChart = null;
   let warSeries = null;
   let pollTimer = null;
+  let watchPollTimer = null;
   let countdownTimer = null;
   let lastSeenTs = new Map(); // strategy id -> last known signal ts (seconds)
   let baselineSet = new Set(); // strategy ids whose first poll has been consumed as baseline
@@ -503,6 +604,22 @@
     return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
   }
 
+  function tapeRowHtml(tr, tag) {
+    const pnl = Number(tr.pnlPct);
+    const pnlTxt = tr.open ? "—" : (pnl >= 0 ? "+" : "") + pnl.toFixed(2) + "%";
+    const pnlCls = pnl >= 0 ? "up" : "down";
+    const side = tr.side === "SHORT" ? "sell" : "buy";
+    const label = tr.open ? (tr.side === "SHORT" ? t("warSell") : t("warBuy")) : (tr.side === "SHORT" ? t("warBuy") : t("warSell"));
+    const tagHtml = tag ? `<span class="watch-tape-tag">${escapeHtml(tag)}</span>` : "";
+    return `<li>
+        ${tagHtml}
+        <span class="war-tape-time">${fmtHm(tr.open ? tr.t0 : tr.t1)}</span>
+        <span class="war-tape-side ${side}">${escapeHtml(label)}</span>
+        <span class="war-tape-px">${Number(tr.open ? tr.entry : tr.exit).toLocaleString("en-US", { maximumFractionDigits: 6 })}</span>
+        <span class="war-tape-pnl ${pnlCls}">${pnlTxt}</span>
+      </li>`;
+  }
+
   function renderTape(trades) {
     if (!tapeListEl) return;
     const nowS = Date.now() / 1000;
@@ -511,27 +628,57 @@
       tapeListEl.innerHTML = `<li class="muted">${escapeHtml(t("warTapeEmpty"))}</li>`;
       return;
     }
-    tapeListEl.innerHTML = recent
-      .map((tr) => {
-        const pnl = Number(tr.pnlPct);
-        const pnlTxt = tr.open ? "—" : (pnl >= 0 ? "+" : "") + pnl.toFixed(2) + "%";
-        const pnlCls = pnl >= 0 ? "up" : "down";
-        const side = tr.side === "SHORT" ? "sell" : "buy";
-        const label = tr.open ? (tr.side === "SHORT" ? t("warSell") : t("warBuy")) : (tr.side === "SHORT" ? t("warBuy") : t("warSell"));
-        return `<li>
-            <span class="war-tape-time">${fmtHm(tr.open ? tr.t0 : tr.t1)}</span>
-            <span class="war-tape-side ${side}">${escapeHtml(label)}</span>
-            <span class="war-tape-px">${Number(tr.open ? tr.entry : tr.exit).toLocaleString("en-US", { maximumFractionDigits: 6 })}</span>
-            <span class="war-tape-pnl ${pnlCls}">${pnlTxt}</span>
-          </li>`;
-      })
-      .join("");
+    tapeListEl.innerHTML = recent.map((tr) => tapeRowHtml(tr, null)).join("");
   }
 
-  /* ---- 60s open-window countdown + voice cascade ---- */
+  /* ---- My Watchlist Tape: aggregate selected coins x selected strategies ---- */
+  let watchRefreshSeq = 0;
+  async function refreshWatchTape() {
+    if (!watchTapeListEl) return;
+    const seq = ++watchRefreshSeq;
+    if (!watchCoins.length || !watchStrategyIds.length) {
+      watchTapeListEl.innerHTML = `<li class="muted">${escapeHtml(t("watchTapeEmpty"))}</li>`;
+      return;
+    }
+    const chosen = allStrategies.filter((s) => watchStrategyIds.includes(s.id));
+    const pairs = [];
+    chosen.forEach((s) => {
+      watchCoins.forEach((coin) => pairs.push({ s, coin }));
+    });
+    const capped = pairs.slice(0, MAX_WATCH_PAIRS);
+    const nowS = Date.now() / 1000;
+    const results = await Promise.all(
+      capped.map(async (p) => {
+        try {
+          const bars = await barsOf(p.coin, p.s.interval);
+          const spec = catalog.get(p.s.id);
+          if (!spec || typeof spec.run !== "function" || !bars || !bars.length) return [];
+          const trades = spec.run(bars) || [];
+          return trades
+            .filter((tr) => Math.max(tr.t0 || 0, tr.t1 || 0) >= nowS - THREE_HOURS_S)
+            .map((tr) => ({ tr, tag: p.coin.replace("USDT", "") + " · " + p.s.name }));
+        } catch {
+          return [];
+        }
+      })
+    );
+    if (seq !== watchRefreshSeq) return; // a newer selection change superseded this run
+    const merged = results
+      .flat()
+      .sort((a, b) => (b.tr.t1 || b.tr.t0) - (a.tr.t1 || a.tr.t0))
+      .slice(0, TAPE_MAX);
+    if (!merged.length) {
+      watchTapeListEl.innerHTML = `<li class="muted">${escapeHtml(t("warTapeEmpty"))}</li>`;
+      return;
+    }
+    watchTapeListEl.innerHTML = merged.map(({ tr, tag }) => tapeRowHtml(tr, tag)).join("");
+  }
+
+  /* ---- 60s open-window countdown + sweet voice cascade ---- */
   function clearCountdown() {
     if (countdownTimer) clearInterval(countdownTimer);
     countdownTimer = null;
+    heartbeatFast = false;
     if (countdownEl) {
       countdownEl.hidden = true;
       countdownEl.classList.remove("is-warn", "is-danger", "is-locked");
@@ -557,7 +704,7 @@
   function runOpenWindowCountdown(strategyName) {
     clearCountdown();
     playHammerSound();
-    speak(`叮咚！${strategyName}已經可以開倉囉，進入一分鐘窗口期！`);
+    speak(`叮咚！哥哥～${strategyName}已經可以開倉囉，快跟上嘛～窗口期只有一分鐘喔！`);
     pushCrowdToast(crowdLockEventText(activeStrategy ? activeStrategy.symbol : "BTCUSDT"));
     signalsToday += 1;
     paintCounters();
@@ -565,7 +712,6 @@
     const total = 60000;
     const startTs = Date.now();
     let said30 = false;
-    let said10 = false;
     updateCountdownUi(total, total, "normal");
     countdownTimer = setInterval(() => {
       const elapsed = Date.now() - startTs;
@@ -573,8 +719,9 @@
       if (remain <= 0) {
         clearInterval(countdownTimer);
         countdownTimer = null;
+        heartbeatFast = false;
         playHammerSound();
-        speak(`${strategyName}開倉窗口期已結束，點位已鎖定！`);
+        speak(`噹！落槌囉～${strategyName}開倉窗口期已結束，點位鎖定！`);
         updateCountdownUi(0, total, "locked");
         setTimeout(() => {
           if (countdownEl) countdownEl.hidden = true;
@@ -582,19 +729,16 @@
         return;
       }
       const phase = remain <= 10000 ? "danger" : remain <= 30000 ? "warn" : "normal";
+      heartbeatFast = remain <= 15000;
       updateCountdownUi(remain, total, phase);
       if (remain <= 30000 && !said30) {
         said30 = true;
-        speak(`注意，距離${strategyName}開倉窗口期僅剩三十秒！`);
-      }
-      if (remain <= 10000 && !said10) {
-        said10 = true;
-        speak("最後十秒，即將鎖定點位！");
+        speak(`注意注意！${strategyName}只剩下最後三十秒囉！`);
       }
     }, 200);
   }
 
-  /* ---- Poll the active strategy for fresh bars + trade signals ---- */
+  /* ---- Poll the focused strategy for fresh bars + trade signals ---- */
   async function refreshActive() {
     if (!activeStrategy) return;
     const s = activeStrategy;
@@ -657,7 +801,7 @@
     const s = strategies.find((x) => x.id === id);
     if (!s) return;
     activeStrategy = s;
-    setActiveRow(id);
+    paintFocusHighlight(id);
     paintStatus();
     clearCountdown();
     try {
@@ -667,16 +811,6 @@
     }
     mountChart();
     refreshActive();
-  }
-
-  function bindMatrixClicks(strategies) {
-    if (!matrixListEl) return;
-    matrixListEl.addEventListener("click", (ev) => {
-      const row = ev.target.closest("[data-row]");
-      if (!row) return;
-      ev.preventDefault();
-      selectStrategy(row.getAttribute("data-row"), strategies);
-    });
   }
 
   /* ---------------------------------------------------------------------
@@ -695,11 +829,21 @@
       return;
     }
     const strategies = buildStrategies();
+    allStrategies = strategies;
     if (!strategies.length) {
       if (matrixListEl) matrixListEl.innerHTML = `<p class="muted">${t("mktEmpty")}</p>`;
       return;
     }
+
+    watchStrategyIds = watchStrategyIds.filter((id) => strategies.some((s) => s.id === id));
+    if (!watchStrategyIds.length) watchStrategyIds = [strategies[0].id];
+    if (!watchCoins.length) watchCoins = ["BTCUSDT"];
+    saveJsonArray(WATCH_STRATS_KEY, watchStrategyIds);
+    saveJsonArray(WATCH_COINS_KEY, watchCoins);
+
+    renderCoinPills();
     renderMatrix(strategies);
+    bindCoinPills();
     bindMatrixClicks(strategies);
     bindMuteBtn();
     unlockAudioOnce();
@@ -716,16 +860,25 @@
     } catch {
       savedId = null;
     }
-    const startId = (savedId && strategies.some((s) => s.id === savedId) && savedId) || strategies[0].id;
+    const startId =
+      (savedId && watchStrategyIds.includes(savedId) && savedId) ||
+      watchStrategyIds[watchStrategyIds.length - 1] ||
+      strategies[0].id;
     selectStrategy(startId, strategies);
 
     clearInterval(pollTimer);
     pollTimer = setInterval(refreshActive, 20000);
 
+    refreshWatchTape();
+    clearInterval(watchPollTimer);
+    watchPollTimer = setInterval(refreshWatchTape, 25000);
+
     window.addEventListener("quant-lang", () => {
+      renderCoinPills();
       renderMatrix(strategies);
-      if (activeStrategy) setActiveRow(activeStrategy.id);
+      paintFocusHighlight(activeStrategy ? activeStrategy.id : null);
       paintStatus();
+      refreshWatchTape();
     });
   }
 

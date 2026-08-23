@@ -1,43 +1,43 @@
 /* Live War Room — Top-20 marquee lives in styles.css; this file covers the
    single War Room terminal + compact strategy checkbox matrix + crowd toast. */
 
-.live-status-bar {
+/* ---- Right-aligned status row, sits above the LIVE WAR ROOM title and
+   lines up with the chart panel's right edge below it (same column). ---- */
+.war-top-status {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   flex-wrap: wrap;
-  gap: 10px 16px;
-  padding: 9px 14px;
-  background: #000000;
-  color: #ffffff;
+  gap: 8px 14px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
   border-bottom: 1px solid #000000;
   font-family: var(--mono);
   font-size: 12px;
-  letter-spacing: 0.02em;
 }
 .live-status-item { display: inline-flex; align-items: baseline; gap: 6px; white-space: nowrap; }
 .live-status-item b {
   font-variant-numeric: tabular-nums;
-  color: #4ade80;
+  color: var(--color-up);
   font-weight: 800;
 }
-.live-status-sep { color: #475569; }
+.live-status-sep { color: var(--text-muted); }
 .live-dot,
 .war-status-dot {
-  width: 8px; height: 8px; border-radius: 50%; background: #4ade80;
+  width: 8px; height: 8px; border-radius: 50%; background: var(--color-up);
   display: inline-block; margin-right: 2px;
   animation: liveDotPulse 1.5s ease-in-out infinite;
 }
 @keyframes liveDotPulse {
-  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.55); }
-  50% { opacity: 0.6; box-shadow: 0 0 0 5px rgba(74, 222, 128, 0); }
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.45); }
+  50% { opacity: 0.6; box-shadow: 0 0 0 5px rgba(22, 163, 74, 0); }
 }
-.live-status-spacer { flex: 1 1 auto; }
 .live-mute-btn {
-  font-family: inherit; font-size: 11px; font-weight: 700; letter-spacing: 0.04em;
-  color: #ffffff; background: transparent; border: 1px solid #475569; padding: 5px 10px;
+  font-family: inherit; font-size: 11px; font-weight: 700; letter-spacing: 0.02em;
+  color: var(--text-main); background: #ffffff; border: 1px solid var(--border-line); padding: 5px 10px;
   cursor: pointer; white-space: nowrap;
 }
-.live-mute-btn:hover { border-color: #ffffff; }
+.live-mute-btn:hover { background: var(--bg-surface); }
 
 /* ---- Head ---- */
 .live-room-head { margin-bottom: 4px; }
@@ -126,12 +126,14 @@
 .war-tape-pnl.up { color: var(--color-up); }
 .war-tape-pnl.down { color: var(--color-down); }
 
-/* ---- Strategy checkbox matrix ---- */
-.strategy-matrix {
+/* ---- Two-step selection funnel: coins (multi) -> strategies (multi) ---- */
+.watch-funnel {
   margin: 4px 0 26px;
   border-top: 2px solid #000000;
   padding-top: 14px;
 }
+.funnel-step { margin-bottom: 20px; }
+.funnel-step:last-child { margin-bottom: 0; }
 .matrix-h {
   margin: 0 0 10px;
   font-size: 12px;
@@ -139,6 +141,26 @@
   text-transform: uppercase;
   color: var(--text-muted);
 }
+.coin-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.coin-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid var(--border-line);
+  background: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+.coin-pill input { position: absolute; opacity: 0; width: 0; height: 0; }
+.coin-pill.is-checked { background: #000000; color: #ffffff; }
+.coin-pill:hover { background: var(--bg-surface); }
+.coin-pill.is-checked:hover { background: #1f2937; }
+
 .matrix-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -155,7 +177,7 @@
   user-select: none;
 }
 .matrix-row:hover { background: var(--bg-surface); }
-.matrix-row.is-active {
+.matrix-row.is-checked {
   font-weight: 800;
   background: #fffdf5;
   box-shadow: inset 2px 0 0 #c9a227;
@@ -167,6 +189,19 @@
   animation: liveDotPulse 1.4s ease-in-out infinite;
 }
 .matrix-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.matrix-row.is-focused .matrix-name::after { content: " 👁"; }
+
+.watch-tape-block { margin-top: 18px; }
+.watch-tape-list .war-tape-side.buy,
+.watch-tape-list .war-tape-side.sell { min-width: 34px; }
+.watch-tape-tag {
+  flex: 0 0 auto;
+  font-size: 10.5px;
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+  padding: 1px 6px;
+  margin-right: 4px;
+}
 
 /* ---- Crowd activity toast capsules (bottom-left, Copart style) ---- */
 .crowd-toast-stack {
@@ -196,13 +231,14 @@
 .crowd-toast.is-out { opacity: 0; transform: translateY(-6px); }
 
 @media (max-width: 768px) {
-  .live-status-bar { font-size: 11px; padding: 8px 12px; }
+  .war-top-status { font-size: 11px; justify-content: space-between; }
   .live-mute-btn { padding: 4px 8px; font-size: 10px; }
 
   .war-room { padding: 12px; margin: 14px 0 16px; }
   .war-chart { height: 280px; }
   .war-room-status { font-size: 12px; }
 
+  .coin-pill { padding: 6px 10px; font-size: 11px; }
   .matrix-list { grid-template-columns: 1fr 1fr; gap: 0 10px; }
   .matrix-row { font-size: 12px; padding: 8px 2px; }
 

@@ -577,7 +577,7 @@ def send_tg_signal(strat, sym, side, px, sl, tp, bar_ts, src):
         "🕐 台灣時間 (UTC+8): <b>{10}</b>\n"
         "📡 行情來源 (Feed): {11}\n"
         "\n"
-        '🔗 <a href="{12}">Quant Alpha 策略終端 · Terminal</a>\n'
+        '🔗 <a href="{12}">Quant Alpha 策略廣場 · Strategy Plaza</a>\n'
         "\n"
         "⚠️ 提醒：量化模型訊號僅供參考，請嚴格執行止損止盈，切勿重倉抗單。"
     ).format(
