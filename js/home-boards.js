@@ -111,6 +111,9 @@
         name_zh: r.name_zh || k,
         name_en: r.name_en || k,
         win_rate: Number(r.win_rate) || 0,
+        win_rate_smooth: Number(r.win_rate_smooth != null ? r.win_rate_smooth : r.win_rate) || 0,
+        rank_score: Number(r.rank_score) || 0,
+        eligible: r.eligible !== false,
         profit_factor: Number(r.profit_factor) || 0,
         max_drawdown: Number(r.max_drawdown) || 0,
         net_profit_pct: Number(r.net_profit_pct) || 0,
@@ -121,12 +124,14 @@
   }
 
   function paintKpis(rows, periodDays) {
-    if (!rows.length) return;
-    const avgWr = rows.reduce((s, r) => s + r.win_rate, 0) / rows.length;
-    const avgPf = rows.reduce((s, r) => s + r.profit_factor, 0) / rows.length;
+    const eligible = rows.filter((r) => r.eligible && r.trades >= 10);
+    const use = eligible.length ? eligible : rows;
+    if (!use.length) return;
+    const avgWr = use.reduce((s, r) => s + (r.win_rate_smooth || r.win_rate), 0) / use.length;
+    const avgPf = use.reduce((s, r) => s + r.profit_factor, 0) / use.length;
     const worstDd = Math.min.apply(
       null,
-      rows.map((r) => r.max_drawdown),
+      use.map((r) => r.max_drawdown),
     );
     const wrEl = document.getElementById("kpiWinVal");
     const ddEl = document.getElementById("kpiDdVal");
@@ -140,24 +145,42 @@
       pfEl.textContent = fmtPf(avgPf) + ":1";
       if (avgPf >= 1) pfEl.classList.add("is-up");
     }
-    const periodLabel = t("hbPeriodTpl").replace("{n}", String(periodDays || 7));
+    const periodLabel = t("hbPeriodTpl").replace("{n}", String(periodDays || 60));
     document.querySelectorAll("#hbWrPeriod, #hbPnlPeriod").forEach((el) => {
       el.textContent = periodLabel;
     });
     const kpiWinLabel = document.querySelector('.home-kpi .kpi [data-i18n="kpiWin"]');
     if (kpiWinLabel) {
-      kpiWinLabel.textContent = t("kpiWinTpl").replace("{n}", String(periodDays || 7));
+      kpiWinLabel.textContent = t("kpiWinTpl").replace("{n}", String(periodDays || 60));
     }
   }
 
-  function wrRowsHtml(rows) {
-    const top = rows.slice().sort((a, b) => b.win_rate - a.win_rate).slice(0, 10);
+  function wrRowsHtml(rows, payload) {
+    let top = [];
+    if (payload && Array.isArray(payload.wr_board) && payload.wr_board.length) {
+      top = payload.wr_board.slice(0, 10).map((r) => ({
+        engine: r.engine,
+        name_zh: r.name_zh,
+        name_en: r.name_en,
+        win_rate: r.win_rate,
+        win_rate_smooth: r.win_rate_smooth != null ? r.win_rate_smooth : r.win_rate,
+        trades: r.trades,
+        max_drawdown: r.max_drawdown,
+      }));
+    } else {
+      top = rows
+        .filter((r) => r.eligible && r.trades >= 10)
+        .slice()
+        .sort((a, b) => (b.rank_score || b.win_rate_smooth) - (a.rank_score || a.win_rate_smooth))
+        .slice(0, 10);
+    }
     if (!top.length) {
       return '<tr><td class="hb-empty" colspan="6">' + t("hbEmpty") + "</td></tr>";
     }
     return top
       .map((r, i) => {
         const dd = Math.abs(r.max_drawdown);
+        const wrShow = r.win_rate_smooth != null ? r.win_rate_smooth : r.win_rate;
         return (
           '<tr data-engine="' +
           r.engine +
@@ -171,7 +194,7 @@
           (r.name_en || "") +
           "</span></td>" +
           '<td class="hb-num is-up">' +
-          fmtPct(r.win_rate) +
+          fmtPct(wrShow) +
           "</td>" +
           '<td class="hb-num">' +
           r.trades +
@@ -186,14 +209,23 @@
       .join("");
   }
 
-  function pnlRowsHtml(rows) {
-    const top = rows.slice().sort((a, b) => b.net_profit_usd - a.net_profit_usd).slice(0, 10);
+  function pnlRowsHtml(rows, payload) {
+    let top = [];
+    if (payload && Array.isArray(payload.pnl_board) && payload.pnl_board.length) {
+      top = payload.pnl_board.slice(0, 10);
+    } else {
+      top = rows
+        .filter((r) => r.trades >= 5)
+        .slice()
+        .sort((a, b) => b.net_profit_usd - a.net_profit_usd)
+        .slice(0, 10);
+    }
     if (!top.length) {
       return '<tr><td class="hb-empty" colspan="5">' + t("hbEmpty") + "</td></tr>";
     }
     return top
       .map((r, i) => {
-        const profit = r.net_profit_usd > 0;
+        const profit = Number(r.net_profit_usd) > 0;
         const pnl = r.net_profit_usd
           ? fmtUsd(r.net_profit_usd)
           : (r.net_profit_pct >= 0 ? "+" : "") + fmtPct(r.net_profit_pct);
@@ -228,12 +260,12 @@
 
   function paint(payload) {
     const rows = rowsFrom(payload);
-    const days = (payload && payload.period_days) || 7;
+    const days = (payload && payload.period_days) || 60;
     paintKpis(rows, days);
     const wrBody = document.getElementById("wrBoardBody");
     const pnlBody = document.getElementById("pnlBoardBody");
-    if (wrBody) wrBody.innerHTML = wrRowsHtml(rows);
-    if (pnlBody) pnlBody.innerHTML = pnlRowsHtml(rows);
+    if (wrBody) wrBody.innerHTML = wrRowsHtml(rows, payload);
+    if (pnlBody) pnlBody.innerHTML = pnlRowsHtml(rows, payload);
   }
 
   async function loadLeaderboard() {
