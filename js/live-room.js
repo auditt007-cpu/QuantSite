@@ -262,7 +262,8 @@
   function fmtVpsTime(barTs) {
     const d = new Date(Number(barTs) * 1000);
     if (!isFinite(d.getTime())) return "—";
-    return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+    const p = (n) => String(n).padStart(2, "0");
+    return p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
   }
 
   function vpsSortTs(sig) {
@@ -284,27 +285,26 @@
 
   function vpsRowHtml(sig, isNew) {
     const isClose = sig.event === "close";
-    const evt = isClose ? t("vpsEventClose") : t("vpsEventOpen");
-    const evtCls = isClose ? "vps-evt-close" : "vps-evt-open";
-    const sym = String(sig.symbol || "").replace("USDT", "") + "·" + String(sig.interval || "1h").toUpperCase();
-    let sideText;
-    let sideCls;
+    let evtText;
+    let evtCls;
     if (isClose) {
-      const pnl = Number(sig.pnl_pct);
-      sideText = (pnl >= 0 ? "+" : "") + (Number.isFinite(pnl) ? pnl.toFixed(2) : "0.00") + "%";
-      sideCls = pnl >= 0 ? "vps-up" : "vps-down";
+      const leg = String(sig.side || "").includes("LONG") ? t("vpsCloseLong") : t("vpsCloseShort");
+      evtText = leg;
+      evtCls = "vps-evt-close-leg";
+    } else if (sig.side === "SHORT") {
+      evtText = t("warSell");
+      evtCls = "vps-evt-sell";
     } else {
-      sideText = sig.side === "SHORT" ? t("vpsShort") : t("vpsLong");
-      sideCls = sig.side === "SHORT" ? "vps-down" : "vps-up";
+      evtText = t("warBuy");
+      evtCls = "vps-evt-buy";
     }
+    const sym = String(sig.symbol || "").replace("USDT", "");
     const px = isClose ? sig.exit_price : sig.price;
     return (
-      `<li class="vps-exec-row${isNew ? " is-new" : ""}">` +
-      `<span class="vps-t">${fmtVpsTime(sig.logged_at || sig.bar_ts)}</span>` +
-      `<span class="vps-evt ${evtCls}">${escapeHtml(evt)}</span>` +
-      `<span class="vps-sym" title="${escapeHtml(sig.name_zh || sig.name_en || "")}">${escapeHtml(sym)}</span>` +
-      `<span class="vps-side ${sideCls}">${escapeHtml(sideText)}</span>` +
-      `<span class="vps-px">${escapeHtml(fmtVpsPx(px))}</span>` +
+      `<li class="vps-exec-item${isNew ? " is-new" : ""}">` +
+      `<span class="vps-t">${fmtVpsTime(sig.logged_at || sig.bar_ts)}</span> ` +
+      `<span class="${evtCls}">${escapeHtml(evtText)}</span> ` +
+      `<span class="vps-sym">${escapeHtml(sym + " " + fmtVpsPx(px))}</span>` +
       `</li>`
     );
   }

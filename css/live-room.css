@@ -488,63 +488,59 @@ body.live-page:not(.has-bb-util) .editorial-rail.vps-exec-rail {
   max-height: calc(100vh - 140px);
 }
 
-/* ---- VPS airport-style exec board (Bloomberg palette) ---- */
+/* ---- VPS terminal exec board (Bloomberg black / amber) ---- */
 .vps-exec-board {
-  background: #0a0e14;
-  border: 1px solid #1e293b;
-  color: #e2e8f0;
-  font-family: var(--mono, "JetBrains Mono", monospace);
-  box-shadow: inset 0 0 0 1px rgba(255, 153, 0, 0.08);
-}
-.vps-exec-head {
-  padding: 10px 12px 8px;
-  border-bottom: 1px solid #334155;
-  background: linear-gradient(180deg, #111827 0%, #0a0e14 100%);
+  background: #000000;
+  color: #ff9900;
+  font-family: Consolas, Monaco, "Courier New", var(--mono, monospace);
+  padding: 20px;
+  border: 1px solid #333333;
 }
 .vps-exec-kicker {
   display: block;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
   color: #ff9900;
-  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 5px;
+  letter-spacing: 0.06em;
 }
 .vps-exec-title {
-  margin: 4px 0 2px;
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  color: #f8fafc;
+  margin: 0 0 10px;
+  color: #ff9900;
+  font-weight: 700;
+  font-size: 1.1em;
+  letter-spacing: 0.02em;
 }
-.vps-exec-updated {
-  display: block;
+.vps-exec-divider {
+  color: #ff9900;
+  margin-bottom: 5px;
+  letter-spacing: 0.2em;
+}
+.vps-exec-meta {
+  color: #ff9900;
   font-size: 10px;
-  color: #64748b;
-  font-variant-numeric: tabular-nums;
+  margin-bottom: 8px;
+  line-height: 1.4;
+  opacity: 0.85;
 }
 .vps-exec-cols {
-  display: grid;
-  grid-template-columns: 42px 44px 44px 52px 1fr;
-  gap: 4px;
-  padding: 6px 10px;
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
   color: #ff9900;
-  border-bottom: 1px solid #1e293b;
-  background: #0f172a;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 4px;
 }
 .vps-exec-viewport {
   max-height: min(560px, calc(100vh - 240px));
   overflow: hidden;
   position: relative;
-  mask-image: linear-gradient(180deg, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%);
 }
 .vps-exec-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+  list-style-type: disc;
+  margin: 10px 0 0 20px;
+  padding-left: 0;
+  color: #ff9900;
   animation: vpsBoardScroll 48s linear infinite;
 }
 .vps-exec-list.vps-exec-static {
@@ -554,35 +550,40 @@ body.live-page:not(.has-bb-util) .editorial-rail.vps-exec-rail {
 .vps-exec-viewport.is-paused .vps-exec-list {
   animation-play-state: paused;
 }
-.vps-exec-row {
-  display: grid;
-  grid-template-columns: 42px 44px 44px 52px 1fr;
-  gap: 4px;
-  align-items: center;
-  padding: 7px 10px;
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
-  border-bottom: 1px solid rgba(30, 41, 59, 0.85);
+.vps-exec-item {
+  margin-bottom: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  padding-left: 2px;
 }
-.vps-exec-row:nth-child(even) {
-  background: rgba(15, 23, 42, 0.55);
-}
-.vps-exec-row.is-new {
+.vps-exec-item.is-new {
   animation: vpsRowFlash 1.2s ease;
 }
-.vps-t { color: #94a3b8; }
-.vps-evt-open { color: #38bdf8; font-weight: 800; }
-.vps-evt-close { color: #ff9900; font-weight: 800; }
-.vps-sym { color: #f8fafc; font-weight: 800; }
-.vps-side.vps-up { color: #22c55e; font-weight: 800; }
-.vps-side.vps-down { color: #ef4444; font-weight: 800; }
-.vps-px { color: #cbd5e1; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vps-exec-item .vps-t {
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+}
+.vps-exec-item .vps-evt-buy {
+  color: #00ff00;
+  font-weight: 700;
+}
+.vps-exec-item .vps-evt-sell {
+  color: #ff3333;
+  font-weight: 700;
+}
+.vps-exec-item .vps-evt-close-leg {
+  color: #cccccc;
+}
+.vps-exec-item .vps-sym {
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+}
 .vps-exec-empty {
-  padding: 18px 12px;
-  text-align: center;
-  color: #64748b;
-  font-size: 11px;
-  letter-spacing: 0.04em;
+  list-style: none;
+  margin-left: 0;
+  color: #ffffff;
+  font-size: 12px;
+  padding: 4px 0;
 }
 @keyframes vpsBoardScroll {
   0% { transform: translateY(0); }
@@ -590,7 +591,7 @@ body.live-page:not(.has-bb-util) .editorial-rail.vps-exec-rail {
 }
 @keyframes vpsRowFlash {
   0%, 100% { background: transparent; }
-  30% { background: rgba(255, 153, 0, 0.18); }
+  30% { background: rgba(255, 153, 0, 0.15); }
 }
 @media (max-width: 900px) {
   body.live-page .editorial-rail.vps-exec-rail {
