@@ -1815,20 +1815,29 @@ body.sheet-open { overflow: hidden; }
   .bb-sheet .money-pnl { font-size: 14px; font-weight: 800; }
   .bb-sheet .money-facts {
     font-size: 12px;
-    line-height: 1.55;
+    line-height: 1.45;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   }
-  .bb-sheet .funnel-card {
-    margin-bottom: 10px;
-    padding: 12px;
-    border: 1px solid #000000;
-    background: #ffffff;
-  }
-  .bb-sheet .funnel-lead {
-    font-size: 12px;
-    letter-spacing: 0.04em;
+  .bb-sheet .money-trades-label {
+    margin: 8px 0 4px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
+    color: #64748b;
   }
+  .bb-sheet .money-trade-pills {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 8px;
+    margin: 0;
+  }
+  .bb-sheet .money-trade-pills .trade-pill {
+    font-size: 11px;
+    padding: 3px 6px;
+    white-space: nowrap;
+  }
+  .bb-sheet .funnel-card { display: none !important; }
   .bb-sheet .zone-title {
     font-size: 11px;
     margin: 8px 0 6px;
@@ -1864,16 +1873,22 @@ body.sheet-open { overflow: hidden; }
 .money-end { margin: 6px 0 4px; font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
 .money-pnl { margin: 0 0 8px; font-size: 15px; font-weight: 700; color: #00873c; }
 .money-pnl.down { color: #d0021b; }
-.money-facts { margin: 0; padding: 0; list-style: none; font-size: 13px; line-height: 1.7; }
-.funnel-card {
-  border: 1px solid #000000;
-  padding: 12px;
-  margin: 0 0 12px;
-  background: #ffffff;
+.money-facts { margin: 0; padding: 0; list-style: none; font-size: 13px; line-height: 1.55; }
+.money-trades-label {
+  margin: 10px 0 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
 }
-.funnel-lead { margin: 0 0 4px; font-weight: 800; }
-.funnel-tg { display: block; text-align: center; margin: 10px 0 8px; }
-.trade-pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.money-trade-pills {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+  gap: 6px 8px;
+  margin: 0 0 4px;
+}
+.funnel-card { display: none !important; }
 .trade-pill {
   font-size: 12px; font-weight: 700; padding: 4px 8px; border: 1px solid #000;
 }

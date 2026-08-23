@@ -194,13 +194,9 @@
               <li id="moneyHit" data-i18n="moneyHitIdle">🎯 勝率：—</li>
               <li id="moneyRisk" data-i18n="moneyRiskIdle">🛡️ 最大扛單風險：—</li>
             </ul>
+            <p class="money-trades-label" data-i18n="gmTrades">交易紀錄</p>
+            <div class="trade-pills money-trade-pills" id="tradePills"></div>
           </article>
-          <div class="funnel-card" id="funnelCard" hidden>
-            <p class="funnel-lead" data-i18n="funnelLead">不想每天手動盯盤？</p>
-            <p class="muted" data-i18n="funnelBody">當前策略已接入 Telegram 機器人，每日自動推送買賣預警。</p>
-            <a class="btn-cta compact funnel-tg" id="funnelTg" href="https://t.me/quant_alpha_signals" target="_blank" rel="noopener" data-i18n="funnelCta">🚀 免費訂閱此策略實盤信號</a>
-            <button type="button" class="btn ghost" id="btnShareCard" data-i18n="shareCard">📸 生成戰績卡片</button>
-          </div>
           <p class="nav-kpis desk-only" id="navLine">
             <span data-i18n="startEq">起始資金: $10,000 USDT</span>
             <span class="nav-sep">|</span>
@@ -226,9 +222,8 @@
             <h3 class="zone-title desk-only" data-i18n="gmDrawdown">最大回撤</h3>
             <div id="ddChart" class="lc-chart chart-container dd-chart desk-only"></div>
           </div>
-          <div class="trades-block">
+          <div class="trades-block desk-only">
             <h3 class="zone-title" data-i18n="gmTrades">交易紀錄</h3>
-            <div class="trade-pills" id="tradePills"></div>
             <details class="raw-log sheet-extra">
               <summary data-i18n="rawLog">展開逐筆原始紀錄</summary>
               <div class="table-scroll">

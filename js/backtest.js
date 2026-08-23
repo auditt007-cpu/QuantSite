@@ -376,7 +376,6 @@ function resetBacktestResults() {
     $("navDur").textContent = t("navDurIdle");
     $("navDur").className = "nav-chip nav-dur";
   }
-  if ($("funnelCard")) $("funnelCard").hidden = true;
   if (equityChart) {
     equityChart.remove();
     equityChart = null;
@@ -429,9 +428,9 @@ function tradePillsHtml(trades) {
       const win = Number(tr.pnlAbs) > 0;
       const d = new Date(Number(tr.t1) * 1000);
       const md = isFinite(d.getTime()) ? d.getMonth() + 1 + "/" + d.getDate() : "";
-      const sign = win ? "+" : "";
       const scale = 1000 / START_EQ;
-      const usd = fmtUsd0(Number(tr.pnlAbs) * scale);
+      const usd = fmtUsd0(Math.abs(Number(tr.pnlAbs) * scale));
+      const sign = win ? "+" : "-";
       return `<span class="trade-pill ${win ? "up" : "down"}">${win ? "🟢" : "🔴"} ${sign}$${usd} (${md})</span>`;
     })
     .join("");
@@ -473,8 +472,6 @@ function paintRetail(eq, st, trades, ctx) {
       .replace("{amt}", fmtUsd0(riskUsd));
   }
   if ($("tradePills")) $("tradePills").innerHTML = tradePillsHtml(trades);
-  const funnel = $("funnelCard");
-  if (funnel) funnel.hidden = !(profit > 0);
   const shareLine = $("shareLine");
   const shareSub = $("shareSub");
   if (shareLine) shareLine.textContent = "$1,000 → $" + fmtUsd0(end1k);
@@ -873,21 +870,12 @@ function bindChrome() {
   if ($("sheetDoneBtn")) $("sheetDoneBtn").addEventListener("click", closeSheet);
   if ($("sheetScrim")) $("sheetScrim").addEventListener("click", closeSheet);
   bindSheetUi();
-  if ($("btnShareCard")) {
-    $("btnShareCard").addEventListener("click", () => {
-      const ov = $("shareOverlay");
-      if (ov) ov.hidden = false;
-    });
-  }
   if ($("shareClose")) {
     $("shareClose").addEventListener("click", () => {
       const ov = $("shareOverlay");
       if (ov) ov.hidden = true;
     });
   }
-  const tg = $("funnelTg");
-  const cfg = window.QUANT_CONFIG;
-  if (tg && cfg && cfg.tgChannelUrl) tg.href = cfg.tgChannelUrl;
   syncDock();
 }
 bindChrome();
