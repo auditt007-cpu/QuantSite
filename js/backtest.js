@@ -274,11 +274,23 @@ function isMobile() {
 
 function ensureSheetPortal() {
   if (window.__QA_SHEET_PORTAL) return;
+  const host = $("btSheetPortal");
   const scrim = $("sheetScrim");
   const sheet = $("resultSheet");
   if (!scrim || !sheet) return;
-  document.body.appendChild(scrim);
-  document.body.appendChild(sheet);
+  if (host) {
+    if (scrim.parentNode !== host) host.appendChild(scrim);
+    if (sheet.parentNode !== host) host.appendChild(sheet);
+  } else {
+    const foot = document.querySelector("footer.site-foot");
+    if (foot && foot.parentNode) {
+      foot.parentNode.insertBefore(scrim, foot);
+      foot.parentNode.insertBefore(sheet, foot);
+    } else {
+      document.body.appendChild(scrim);
+      document.body.appendChild(sheet);
+    }
+  }
   window.__QA_SHEET_PORTAL = true;
 }
 

@@ -145,111 +145,6 @@
           <button class="btn-cta gm-btn action-btn exec-run" id="btnRun" data-i18n="gmRun">執行回測</button>
           <div class="risk-banner" id="masterGate" hidden></div>
         </div>
-
-        <div class="sheet-scrim" id="sheetScrim" hidden aria-hidden="true"></div>
-        <div class="result-sheet bb-sheet" id="resultSheet" aria-hidden="true">
-          <header class="sheet-head">
-            <span class="sheet-grab" aria-hidden="true"></span>
-            <div class="sheet-head-row">
-              <h3 class="sheet-title" data-i18n="sheetTitle">回測戰績</h3>
-              <button type="button" class="sheet-x" id="sheetCloseBtn" aria-label="關閉">✕</button>
-            </div>
-            <p class="sheet-hint" data-i18n="sheetHint">輕觸背景或 ✕ 關閉，繼續查看 K 線</p>
-          </header>
-          <div class="sheet-body">
-            <article class="money-card" id="moneyCard">
-              <p class="money-kicker" data-i18n="moneyAssume">假設投入 $1,000 USDT</p>
-              <p class="money-end" id="moneyEnd">$1,000 → $1,000</p>
-              <p class="money-pnl" id="moneyPnl" data-i18n="moneyPnlIdle">📈 歷史淨賺：+$0 USDT (0%)</p>
-              <ul class="money-facts">
-                <li id="moneyDays" data-i18n="moneyDaysIdle">⏱️ 執行周期：—</li>
-                <li id="moneyHit" data-i18n="moneyHitIdle">🎯 勝率：—</li>
-                <li id="moneyRisk" data-i18n="moneyRiskIdle">🛡️ 最大扛單風險：—</li>
-              </ul>
-            </article>
-            <div class="funnel-card" id="funnelCard" hidden>
-              <p class="funnel-lead" data-i18n="funnelLead">不想每天手動盯盤？</p>
-              <p class="muted" data-i18n="funnelBody">當前策略已接入 Telegram 機器人，每日自動推送買賣預警。</p>
-              <a class="btn-cta compact funnel-tg" id="funnelTg" href="https://t.me/quant_alpha_signals" target="_blank" rel="noopener" data-i18n="funnelCta">🚀 免費訂閱此策略實盤信號</a>
-              <button type="button" class="btn ghost" id="btnShareCard" data-i18n="shareCard">📸 生成戰績卡片</button>
-            </div>
-            <p class="nav-kpis desk-only" id="navLine">
-              <span data-i18n="startEq">起始資金: $10,000 USDT</span>
-              <span class="nav-sep">|</span>
-              <span id="navNow" data-i18n="navNowIdle">當前淨值: $10,000.00 USDT</span>
-              <span class="nav-sep">|</span>
-              <span id="navPnl" class="nav-chip" data-i18n="navPnlIdle">累計淨利: 0.0%</span>
-              <span class="nav-sep">|</span>
-              <span id="navDd" class="nav-chip" data-i18n="navDdIdle">最大回撤: 0.0%</span>
-              <span class="nav-sep">|</span>
-              <span id="navDur" class="nav-chip nav-dur" data-i18n="navDurIdle">回測用時: 僅 14 天</span>
-            </p>
-            <p class="muted sample-hint desk-only" id="sampleHint" data-i18n="btAwaitRun">設定幣種、周期與回測區間後，點擊「執行回測」</p>
-
-            <div class="perf-block">
-              <h3 class="zone-title desk-only" data-i18n="gmSummary">績效摘要</h3>
-              <div class="bt-meta desk-only">
-                <div class="stat"><span data-i18n="statWr">勝率</span><b id="mWr">—</b></div>
-                <div class="stat"><span data-i18n="statPf">盈虧比</span><span class="hint" data-i18n="statPfHint" title="賺的總額 ÷ 虧的總額。大於 1 表示賺比虧多。">❓</span><b id="mPf">—</b></div>
-                <div class="stat"><span data-i18n="statTrades">交易筆數</span><b id="mTrades">—</b></div>
-                <div class="stat"><span data-i18n="statBars">樣本</span><b id="mBars">—</b></div>
-              </div>
-              <h3 class="zone-title" data-i18n="gmEquity">淨值曲線</h3>
-              <div id="equityChart" class="lc-chart chart-container"></div>
-              <h3 class="zone-title desk-only" data-i18n="gmDrawdown">最大回撤</h3>
-              <div id="ddChart" class="lc-chart chart-container dd-chart desk-only"></div>
-            </div>
-
-            <div class="trades-block">
-              <h3 class="zone-title" data-i18n="gmTrades">交易紀錄</h3>
-              <div class="trade-pills" id="tradePills"></div>
-              <details class="raw-log sheet-extra">
-                <summary data-i18n="rawLog">展開逐筆原始紀錄</summary>
-                <div class="table-scroll">
-                  <table class="data-table">
-                    <thead>
-                      <tr><th>#</th><th data-i18n="colAction">交易動作</th><th data-i18n="colTime">信號時間</th><th data-i18n="colPrice">成交價</th><th data-i18n="colPnl">單筆盈虧</th><th data-i18n="colEquity">淨值</th></tr>
-                    </thead>
-                    <tbody id="tradeRows">
-                      <tr><td colspan="6" class="muted" data-i18n="tradeEmpty">點擊「執行回測」後顯示明細</td></tr>
-                    </tbody>
-                  </table>
-                </div>
-              </details>
-            </div>
-
-            <details class="pine-box source-module sheet-extra">
-              <summary data-i18n="pineHead">💻 查看底層原始碼 (PineScript) ▾</summary>
-              <div class="pine-toolbar">
-                <button type="button" class="btn" id="btnCopyPine" data-i18n="copyPineBtn">一鍵複製 PineScript 程式碼</button>
-              </div>
-              <pre id="pineSrc" class="pine-pre"></pre>
-            </details>
-
-            <div class="trust-bar sheet-extra" id="trustBar">
-              <article class="trust-card">
-                <h4 data-i18n="trustLocalTitle">🛡️ 純本地計算 (Zero-Custody Engine)</h4>
-                <p data-i18n="trustLocalBody">回測邏輯與參數 100% 於本地瀏覽器運算，絕不索取用戶 API 交易密鑰，程式碼開源透明。</p>
-              </article>
-              <article class="trust-card">
-                <h4 data-i18n="trustFeedTitle">📡 毫秒級真實行情 (Institutional Feed)</h4>
-                <p data-i18n="trustFeedBody">直連 Binance 官方公開行情接口，毫秒級歷史 K 線數據對齊，杜絕伺服器插針造假。</p>
-              </article>
-              <article class="trust-card">
-                <h4 data-i18n="trustStressTitle">📊 嚴謹壓力測試 (Stress-Tested Models)</h4>
-                <p data-i18n="trustStressBody">全站策略均經過 2023-2026 極端牛熊行情回測檢驗，內建最大回撤與停損熔斷機制。</p>
-              </article>
-            </div>
-            <section class="week-board-mobile sheet-extra" aria-label="Weekly ranking">
-              <div class="kicker kicker-plain">ALPHA</div>
-              <h3 class="rail-h" data-week-title>📊 本周收益榜 TOP 5</h3>
-              <ol class="week-list" data-week-board></ol>
-            </section>
-          </div>
-          <footer class="sheet-foot">
-            <button type="button" class="btn ghost sheet-done" id="sheetDoneBtn" data-i18n="sheetDone">收起戰績，返回 K 線</button>
-          </footer>
-        </div>
       </section>
     </div>
       </div>
@@ -276,6 +171,109 @@
           <p class="muted rail-note" data-i18n="mktQuoteNote">報價來自公開行情接口，僅供研究對照。</p>
         </section>
       </aside>
+    </div>
+
+    <div class="bt-sheet-portal" id="btSheetPortal" aria-hidden="true">
+      <div class="sheet-scrim" id="sheetScrim" hidden aria-hidden="true"></div>
+      <div class="result-sheet bb-sheet" id="resultSheet" aria-hidden="true">
+        <header class="sheet-head">
+          <span class="sheet-grab" aria-hidden="true"></span>
+          <div class="sheet-head-row">
+            <h3 class="sheet-title" data-i18n="sheetTitle">回測戰績</h3>
+            <button type="button" class="sheet-x" id="sheetCloseBtn" aria-label="關閉">✕</button>
+          </div>
+          <p class="sheet-hint" data-i18n="sheetHint">輕觸背景或 ✕ 關閉，繼續查看 K 線</p>
+        </header>
+        <div class="sheet-body">
+          <article class="money-card" id="moneyCard">
+            <p class="money-kicker" data-i18n="moneyAssume">假設投入 $1,000 USDT</p>
+            <p class="money-end" id="moneyEnd">$1,000 → $1,000</p>
+            <p class="money-pnl" id="moneyPnl" data-i18n="moneyPnlIdle">📈 歷史淨賺：+$0 USDT (0%)</p>
+            <ul class="money-facts">
+              <li id="moneyDays" data-i18n="moneyDaysIdle">⏱️ 執行周期：—</li>
+              <li id="moneyHit" data-i18n="moneyHitIdle">🎯 勝率：—</li>
+              <li id="moneyRisk" data-i18n="moneyRiskIdle">🛡️ 最大扛單風險：—</li>
+            </ul>
+          </article>
+          <div class="funnel-card" id="funnelCard" hidden>
+            <p class="funnel-lead" data-i18n="funnelLead">不想每天手動盯盤？</p>
+            <p class="muted" data-i18n="funnelBody">當前策略已接入 Telegram 機器人，每日自動推送買賣預警。</p>
+            <a class="btn-cta compact funnel-tg" id="funnelTg" href="https://t.me/quant_alpha_signals" target="_blank" rel="noopener" data-i18n="funnelCta">🚀 免費訂閱此策略實盤信號</a>
+            <button type="button" class="btn ghost" id="btnShareCard" data-i18n="shareCard">📸 生成戰績卡片</button>
+          </div>
+          <p class="nav-kpis desk-only" id="navLine">
+            <span data-i18n="startEq">起始資金: $10,000 USDT</span>
+            <span class="nav-sep">|</span>
+            <span id="navNow" data-i18n="navNowIdle">當前淨值: $10,000.00 USDT</span>
+            <span class="nav-sep">|</span>
+            <span id="navPnl" class="nav-chip" data-i18n="navPnlIdle">累計淨利: 0.0%</span>
+            <span class="nav-sep">|</span>
+            <span id="navDd" class="nav-chip" data-i18n="navDdIdle">最大回撤: 0.0%</span>
+            <span class="nav-sep">|</span>
+            <span id="navDur" class="nav-chip nav-dur" data-i18n="navDurIdle">回測用時: 僅 14 天</span>
+          </p>
+          <p class="muted sample-hint desk-only" id="sampleHint" data-i18n="btAwaitRun">設定幣種、周期與回測區間後，點擊「執行回測」</p>
+          <div class="perf-block">
+            <h3 class="zone-title desk-only" data-i18n="gmSummary">績效摘要</h3>
+            <div class="bt-meta desk-only">
+              <div class="stat"><span data-i18n="statWr">勝率</span><b id="mWr">—</b></div>
+              <div class="stat"><span data-i18n="statPf">盈虧比</span><span class="hint" data-i18n="statPfHint" title="賺的總額 ÷ 虧的總額。大於 1 表示賺比虧多。">❓</span><b id="mPf">—</b></div>
+              <div class="stat"><span data-i18n="statTrades">交易筆數</span><b id="mTrades">—</b></div>
+              <div class="stat"><span data-i18n="statBars">樣本</span><b id="mBars">—</b></div>
+            </div>
+            <h3 class="zone-title" data-i18n="gmEquity">淨值曲線</h3>
+            <div id="equityChart" class="lc-chart chart-container"></div>
+            <h3 class="zone-title desk-only" data-i18n="gmDrawdown">最大回撤</h3>
+            <div id="ddChart" class="lc-chart chart-container dd-chart desk-only"></div>
+          </div>
+          <div class="trades-block">
+            <h3 class="zone-title" data-i18n="gmTrades">交易紀錄</h3>
+            <div class="trade-pills" id="tradePills"></div>
+            <details class="raw-log sheet-extra">
+              <summary data-i18n="rawLog">展開逐筆原始紀錄</summary>
+              <div class="table-scroll">
+                <table class="data-table">
+                  <thead>
+                    <tr><th>#</th><th data-i18n="colAction">交易動作</th><th data-i18n="colTime">信號時間</th><th data-i18n="colPrice">成交價</th><th data-i18n="colPnl">單筆盈虧</th><th data-i18n="colEquity">淨值</th></tr>
+                  </thead>
+                  <tbody id="tradeRows">
+                    <tr><td colspan="6" class="muted" data-i18n="tradeEmpty">點擊「執行回測」後顯示明細</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </details>
+          </div>
+          <details class="pine-box source-module sheet-extra">
+            <summary data-i18n="pineHead">💻 查看底層原始碼 (PineScript) ▾</summary>
+            <div class="pine-toolbar">
+              <button type="button" class="btn" id="btnCopyPine" data-i18n="copyPineBtn">一鍵複製 PineScript 程式碼</button>
+            </div>
+            <pre id="pineSrc" class="pine-pre"></pre>
+          </details>
+          <div class="trust-bar sheet-extra" id="trustBar">
+            <article class="trust-card">
+              <h4 data-i18n="trustLocalTitle">🛡️ 純本地計算 (Zero-Custody Engine)</h4>
+              <p data-i18n="trustLocalBody">回測邏輯與參數 100% 於本地瀏覽器運算，絕不索取用戶 API 交易密鑰，程式碼開源透明。</p>
+            </article>
+            <article class="trust-card">
+              <h4 data-i18n="trustFeedTitle">📡 毫秒級真實行情 (Institutional Feed)</h4>
+              <p data-i18n="trustFeedBody">直連 Binance 官方公開行情接口，毫秒級歷史 K 線數據對齊，杜絕伺服器插針造假。</p>
+            </article>
+            <article class="trust-card">
+              <h4 data-i18n="trustStressTitle">📊 嚴謹壓力測試 (Stress-Tested Models)</h4>
+              <p data-i18n="trustStressBody">全站策略均經過 2023-2026 極端牛熊行情回測檢驗，內建最大回撤與停損熔斷機制。</p>
+            </article>
+          </div>
+          <section class="week-board-mobile sheet-extra" aria-label="Weekly ranking">
+            <div class="kicker kicker-plain">ALPHA</div>
+            <h3 class="rail-h" data-week-title>📊 本周收益榜 TOP 5</h3>
+            <ol class="week-list" data-week-board></ol>
+          </section>
+        </div>
+        <footer class="sheet-foot">
+          <button type="button" class="btn ghost sheet-done" id="sheetDoneBtn" data-i18n="sheetDone">收起戰績，返回 K 線</button>
+        </footer>
+      </div>
     </div>
 
     <footer class="site-foot">
