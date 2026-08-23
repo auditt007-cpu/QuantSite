@@ -1821,6 +1821,30 @@ body.sheet-open { overflow: hidden; }
     font-variant-numeric: tabular-nums;
   }
   .bb-sheet .money-pnl { font-size: 13px; font-weight: 800; margin: 4px 0 0; }
+  .bb-sheet .money-nav {
+    margin: 6px 0 0;
+    padding: 5px 6px;
+    font-size: 9px;
+    line-height: 1.4;
+    background: #f1f5f9;
+    color: #0f172a;
+    border: 1px solid #cbd5e1;
+    gap: 3px 5px;
+  }
+  .bb-sheet .money-nav .nav-sep { color: #94a3b8; }
+  .bb-sheet .money-nav .nav-chip { color: #334155; }
+  .bb-sheet .money-nav .nav-chip.up { color: #00873c; }
+  .bb-sheet .money-nav .nav-chip.down { color: #d0021b; }
+  .bb-sheet .money-mid {
+    margin: 8px 0 0;
+    padding-top: 8px;
+    border-top: 1px solid #cbd5e1;
+  }
+  .bb-sheet .money-mid .money-facts {
+    margin: 0;
+    padding: 0;
+    border: none;
+  }
   .bb-sheet .money-stats {
     flex: 0 0 auto;
     width: 132px;
@@ -1932,6 +1956,30 @@ body.sheet-open { overflow: hidden; }
 .money-end { margin: 6px 0 4px; font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
 .money-pnl { margin: 0; font-size: 15px; font-weight: 700; color: #00873c; }
 .money-pnl.down { color: #d0021b; }
+.money-card .money-nav {
+  margin: 8px 0 0;
+  padding: 7px 10px;
+  font-size: 11px;
+  line-height: 1.45;
+  background: #f1f5f9;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  gap: 4px 8px;
+}
+.money-card .money-nav .nav-sep { color: #94a3b8; }
+.money-card .money-nav .nav-chip { color: #334155; }
+.money-card .money-nav .nav-chip.up { color: #00873c; }
+.money-card .money-nav .nav-chip.down { color: #d0021b; }
+.money-mid {
+  margin: 10px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid #cbd5e1;
+}
+.money-mid .money-facts {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
 .money-stats {
   flex: 0 0 auto;
   width: 168px;
@@ -1975,7 +2023,7 @@ body.sheet-open { overflow: hidden; }
   color: #0f172a;
   line-height: 1.15;
 }
-.money-facts { margin: 0; padding: 10px 0 0; border-top: 1px solid #cbd5e1; list-style: none; font-size: 13px; line-height: 1.55; }
+.money-facts { margin: 0; list-style: none; font-size: 13px; line-height: 1.55; }
 .money-trades-label {
   margin: 10px 0 6px;
   font-size: 11px;

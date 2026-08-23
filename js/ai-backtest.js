@@ -58,7 +58,6 @@
   }
 
   let equityChart = null;
-  let ddChart = null;
   let lastMatrix = [];
   let lastCount = 0;
   let lastSliced = [];
@@ -94,9 +93,8 @@
       : chart.addSeries(LC.LineSeries, { color: color, lineWidth: 2 });
   }
 
-  function paintCharts(bars, eq, dd) {
+  function paintCharts(bars, eq) {
     const eEl = $("equityChart");
-    const dEl = $("ddChart");
     if (!LC || !feed || !eEl) return;
     if (equityChart) equityChart.remove();
     const es = chartBox(eEl, 220);
@@ -104,14 +102,6 @@
     equityChart.applyOptions({ width: es.width, height: es.height });
     addLine(equityChart, "#00873c").setData(bars.map((b, i) => ({ time: b.time, value: eq[i] })));
     equityChart.timeScale().fitContent();
-    if (dEl) {
-      if (ddChart) ddChart.remove();
-      const ds = chartBox(dEl, 180);
-      ddChart = LC.createChart(dEl, feed.chartOptions(dEl, ds.height, "1d"));
-      ddChart.applyOptions({ width: ds.width, height: ds.height });
-      addLine(ddChart, "#d0021b").setData(bars.map((b, i) => ({ time: b.time, value: (dd[i] || 0) * 100 })));
-      ddChart.timeScale().fitContent();
-    }
   }
 
   const QUOTA_KEY = "qa_ai_quota";
@@ -459,7 +449,7 @@
         window.QAUi.flash($("navPnl"), st.ret < 0);
         window.QAUi.flash($("navDd"), true);
       }
-      paintCharts(sliced, bt.equity, bt.drawdown);
+      paintCharts(sliced, bt.equity);
       if (!entries.length) toast(t("noSignals"), "warn");
       else toast(t("btDone").replace("{ms}", "—").replace("{n}", String(sliced.length)), "ok");
     } catch (e) {
@@ -509,10 +499,6 @@
     if (equityChart && $("equityChart")) {
       const s = chartBox($("equityChart"), 220);
       equityChart.applyOptions({ width: s.width, height: s.height });
-    }
-    if (ddChart && $("ddChart")) {
-      const s = chartBox($("ddChart"), 180);
-      ddChart.applyOptions({ width: s.width, height: s.height });
     }
   });
   window.addEventListener("quant-lang", () => {

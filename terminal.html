@@ -188,9 +188,20 @@
           <article class="money-card" id="moneyCard">
             <div class="money-head">
               <div class="money-head-main">
-                <p class="money-kicker" data-i18n="moneyAssume">假設投入 $1,000 USDT</p>
-                <p class="money-end" id="moneyEnd">$1,000 → $1,000</p>
+                <p class="money-kicker" data-i18n="moneyAssume">假設投入 $10,000 USDT</p>
+                <p class="money-end" id="moneyEnd">$10,000 → $10,000</p>
                 <p class="money-pnl" id="moneyPnl" data-i18n="moneyPnlIdle">📈 歷史淨賺：+$0 USDT (0%)</p>
+                <p class="nav-kpis money-nav" id="navLine">
+                  <span data-i18n="startEq">起始資金: $10,000 USDT</span>
+                  <span class="nav-sep">|</span>
+                  <span id="navNow" data-i18n="navNowIdle">當前淨值: $10,000.00 USDT</span>
+                  <span class="nav-sep">|</span>
+                  <span id="navPnl" class="nav-chip" data-i18n="navPnlIdle">累計淨利: 0.0%</span>
+                  <span class="nav-sep">|</span>
+                  <span id="navDd" class="nav-chip" data-i18n="navDdIdle">最大回撤: 0.0%</span>
+                  <span class="nav-sep">|</span>
+                  <span id="navDur" class="nav-chip nav-dur" data-i18n="navDurIdle">回測用時: 僅 14 天</span>
+                </p>
               </div>
               <aside class="money-stats" aria-label="Performance stats">
                 <p class="money-stats-label" data-i18n="gmSummary">參數指標</p>
@@ -202,31 +213,20 @@
                 </div>
               </aside>
             </div>
-            <ul class="money-facts">
-              <li id="moneyDays" data-i18n="moneyDaysIdle">⏱️ 執行周期：—</li>
-              <li id="moneyHit" data-i18n="moneyHitIdle">🎯 勝率：—</li>
-              <li id="moneyRisk" data-i18n="moneyRiskIdle">🛡️ 最大扛單風險：—</li>
-            </ul>
+            <div class="money-mid">
+              <ul class="money-facts">
+                <li id="moneyDays" data-i18n="moneyDaysIdle">⏱️ 執行周期：—</li>
+                <li id="moneyHit" data-i18n="moneyHitIdle">🎯 勝率：—</li>
+                <li id="moneyRisk" data-i18n="moneyRiskIdle">🛡️ 最大扛單風險：—</li>
+              </ul>
+            </div>
             <p class="money-trades-label" data-i18n="gmTrades">交易紀錄</p>
             <div class="trade-pills money-trade-pills" id="tradePills"></div>
           </article>
-          <p class="nav-kpis desk-only" id="navLine">
-            <span data-i18n="startEq">起始資金: $10,000 USDT</span>
-            <span class="nav-sep">|</span>
-            <span id="navNow" data-i18n="navNowIdle">當前淨值: $10,000.00 USDT</span>
-            <span class="nav-sep">|</span>
-            <span id="navPnl" class="nav-chip" data-i18n="navPnlIdle">累計淨利: 0.0%</span>
-            <span class="nav-sep">|</span>
-            <span id="navDd" class="nav-chip" data-i18n="navDdIdle">最大回撤: 0.0%</span>
-            <span class="nav-sep">|</span>
-            <span id="navDur" class="nav-chip nav-dur" data-i18n="navDurIdle">回測用時: 僅 14 天</span>
-          </p>
           <p class="muted sample-hint desk-only" id="sampleHint" data-i18n="btAwaitRun">設定幣種、周期與回測區間後，點擊「執行回測」</p>
           <div class="perf-block">
             <h3 class="zone-title" data-i18n="gmEquity">淨值曲線</h3>
             <div id="equityChart" class="lc-chart chart-container"></div>
-            <h3 class="zone-title desk-only" data-i18n="gmDrawdown">最大回撤</h3>
-            <div id="ddChart" class="lc-chart chart-container dd-chart desk-only"></div>
           </div>
           <div class="trades-block desk-only">
             <h3 class="zone-title" data-i18n="gmTrades">交易紀錄</h3>
@@ -326,7 +326,7 @@
   <div class="share-overlay" id="shareOverlay" hidden>
     <div class="share-poster" id="sharePoster">
       <p class="share-brand">QUANT ALPHA</p>
-      <p class="share-line" id="shareLine">$1,000 → $1,000</p>
+      <p class="share-line" id="shareLine">$10,000 → $10,000</p>
       <p class="share-sub" id="shareSub"></p>
       <p class="share-qr muted">t.me/quant_alpha_signals</p>
     </div>

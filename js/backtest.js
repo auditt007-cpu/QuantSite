@@ -21,7 +21,6 @@ let lastCtx = null;
 let stream = null;
 let candleChart = null;
 let equityChart = null;
-let ddChart = null;
 let candleSeries = null;
 let volSeries = null;
 
@@ -352,7 +351,7 @@ function resetBacktestResults() {
   closeSheet();
   if (candleSeries) candleSeries.setMarkers([]);
   if ($("sampleHint")) $("sampleHint").textContent = t("btAwaitRun");
-  if ($("moneyEnd")) $("moneyEnd").textContent = "$1,000 → $1,000";
+  if ($("moneyEnd")) $("moneyEnd").textContent = "$10,000 → $10,000";
   if ($("moneyPnl")) {
     $("moneyPnl").textContent = t("moneyPnlIdle");
     $("moneyPnl").className = "money-pnl";
@@ -379,10 +378,6 @@ function resetBacktestResults() {
   if (equityChart) {
     equityChart.remove();
     equityChart = null;
-  }
-  if (ddChart) {
-    ddChart.remove();
-    ddChart = null;
   }
 }
 
@@ -428,8 +423,7 @@ function tradePillsHtml(trades) {
       const win = Number(tr.pnlAbs) > 0;
       const d = new Date(Number(tr.t1) * 1000);
       const md = isFinite(d.getTime()) ? d.getMonth() + 1 + "/" + d.getDate() : "";
-      const scale = 1000 / START_EQ;
-      const usd = fmtUsd0(Math.abs(Number(tr.pnlAbs) * scale));
+      const usd = fmtUsd0(Math.abs(Number(tr.pnlAbs)));
       const sign = win ? "+" : "-";
       return `<span class="trade-pill ${win ? "up" : "down"}">${win ? "🟢" : "🔴"} ${sign}$${usd} (${md})</span>`;
     })
@@ -437,10 +431,8 @@ function tradePillsHtml(trades) {
 }
 
 function paintRetail(eq, st, trades, ctx) {
-  const scale = 1000 / START_EQ;
   const end = eq && eq.length ? eq[eq.length - 1] : START_EQ;
-  const end1k = end * scale;
-  const profit = (end - START_EQ) * scale;
+  const profit = end - START_EQ;
   const pct = st ? st.ret : 0;
   const days = ctx ? ctx.windowDays : spanDays(bars);
   const closed = (trades || []).filter((tr) => !tr.open);
@@ -448,9 +440,9 @@ function paintRetail(eq, st, trades, ctx) {
   const losses = closed.length - wins;
   const wr = closed.length ? wins / closed.length : 0;
   const mdd = st ? st.mdd : 0;
-  const riskUsd = Math.abs(mdd) * 1000;
+  const riskUsd = Math.abs(mdd) * START_EQ;
   const sign = profit >= 0 ? "+" : "-";
-  if ($("moneyEnd")) $("moneyEnd").textContent = "$1,000 → $" + fmtUsd0(end1k);
+  if ($("moneyEnd")) $("moneyEnd").textContent = "$" + fmtUsd0(START_EQ) + " → $" + fmtUsd0(end);
   if ($("moneyPnl")) {
     $("moneyPnl").textContent = t("moneyPnlTpl")
       .replace("{sign}", sign)
@@ -474,7 +466,7 @@ function paintRetail(eq, st, trades, ctx) {
   if ($("tradePills")) $("tradePills").innerHTML = tradePillsHtml(trades);
   const shareLine = $("shareLine");
   const shareSub = $("shareSub");
-  if (shareLine) shareLine.textContent = "$1,000 → $" + fmtUsd0(end1k);
+  if (shareLine) shareLine.textContent = "$" + fmtUsd0(START_EQ) + " → $" + fmtUsd0(end);
   if (shareSub) shareSub.textContent = fmtSignedPct(pct) + " · " + days + "d";
 }
 
@@ -509,14 +501,12 @@ function chartBoxSize(el, desktopH) {
   if (!mobile) return { width: w, height: Math.max(el.clientHeight || desktopH, desktopH) };
   const id = el && el.id;
   if (id === "candleChart") return { width: w, height: 250 };
-  if (id === "ddChart") return { width: w, height: 140 };
   return { width: w, height: 180 };
 }
 
 function resizeCharts() {
   const cEl = $("candleChart");
   const eEl = $("equityChart");
-  const dEl = $("ddChart");
   if (candleChart && cEl) {
     const s = chartBoxSize(cEl, 480);
     candleChart.applyOptions({ width: s.width, height: s.height });
@@ -526,11 +516,6 @@ function resizeCharts() {
     const s = chartBoxSize(eEl, 220);
     equityChart.applyOptions({ width: s.width, height: s.height });
     equityChart.timeScale().fitContent();
-  }
-  if (ddChart && dEl) {
-    const s = chartBoxSize(dEl, 180);
-    ddChart.applyOptions({ width: s.width, height: s.height });
-    ddChart.timeScale().fitContent();
   }
 }
 
@@ -672,7 +657,6 @@ function run(silent) {
   const winBars = ctx.winBars;
   const GM = window.Grademark;
   const eq = GM ? GM.computeEquityCurve(trades, winBars, START_EQ) : catalog.equityFrom(winBars, trades);
-  const ddSeries = GM ? GM.computeDrawdown(eq) : [];
   const st = catalog.performanceOf(trades, eq, catalog.barsPerYear(interval), winBars);
   paintSampleHint(ctx);
   paintNav(eq, st, ctx);
@@ -711,16 +695,6 @@ function run(silent) {
   equityChart.applyOptions({ width: size.width, height: size.height });
   addLine(equityChart, "#00873c").setData(winBars.map((b, i) => ({ time: b.time, value: eq[i] })));
   equityChart.timeScale().fitContent();
-  const dEl = $("ddChart");
-  const ddVisible = dEl && window.getComputedStyle(dEl).display !== "none";
-  if (dEl && LC && ddSeries.length && ddVisible) {
-    if (ddChart) ddChart.remove();
-    const ds = chartBoxSize(dEl, 180);
-    ddChart = LC.createChart(dEl, feed.chartOptions(dEl, ds.height, interval));
-    ddChart.applyOptions({ width: ds.width, height: ds.height });
-    addLine(ddChart, "#d0021b").setData(winBars.map((b, i) => ({ time: b.time, value: (ddSeries[i] || 0) * 100 })));
-    ddChart.timeScale().fitContent();
-  }
   scheduleFit();
   if (!silent) {
     toast(t("btDone").replace("{ms}", (performance.now() - t0).toFixed(1)).replace("{n}", String(ctx.windowBarCount)), "ok");
