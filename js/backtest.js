@@ -335,11 +335,32 @@ function closeSheet() {
 let btChartLockRange = null;
 let btChartRangeGuard = false;
 
-function chartVisibleRange(ctx) {
+function chartWindowBars(sourceBars, ctx) {
+  if (!sourceBars || !sourceBars.length) return [];
+  if (!ctx) return sourceBars.slice();
+  const fromTarget = ctx.windowEndT - (ctx.lookDays + 1) * 86400;
+  return sourceBars.filter((b) => b.time >= fromTarget && b.time <= ctx.windowEndT);
+}
+
+function chartVisibleRange(ctx, sourceBars) {
   if (!ctx) return null;
   const to = ctx.windowEndT;
-  const from = to - (ctx.lookDays + 1) * 86400;
-  return { from, to };
+  const fromTarget = to - (ctx.lookDays + 1) * 86400;
+  const windowBars = chartWindowBars(sourceBars || allBars, ctx);
+  if (!windowBars.length) return { from: fromTarget, to };
+  return { from: windowBars[0].time, to: windowBars[windowBars.length - 1].time };
+}
+
+function candleDataFromBars(list) {
+  return (list || []).map((b) => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close }));
+}
+
+function volumeDataFromBars(list) {
+  return (list || []).map((b) => ({
+    time: b.time,
+    value: b.volume,
+    color: b.close >= b.open ? "rgba(0,135,60,0.45)" : "rgba(208,2,27,0.45)",
+  }));
 }
 
 function lockBtChartRange(chart, from, to) {
@@ -348,7 +369,11 @@ function lockBtChartRange(chart, from, to) {
   try {
     chart.timeScale().setVisibleRange({ from, to });
   } catch {
-    /* ignore */
+    try {
+      chart.timeScale().fitContent();
+    } catch {
+      /* ignore */
+    }
   }
   btChartRangeGuard = false;
 }
@@ -388,7 +413,7 @@ function bindBtChartInteractionLock(chart) {
 }
 
 function applyBtChartLock(chart, ctx) {
-  const range = chartVisibleRange(ctx);
+  const range = chartVisibleRange(ctx, allBars);
   if (!chart || !range) return;
   btChartLockRange = range;
   lockBtChartRange(chart, range.from, range.to);
@@ -799,7 +824,7 @@ async function fetchBars(iv, opts) {
     allBars = await feed.fetchKlines(SYMBOL, interval, limit);
     bars = allBars;
     feed.lastMeta.source = "live";
-    if (shouldMount) mountCandles();
+    if (shouldMount) await mountCandles();
     paintPine();
     if ($("sampleHint")) $("sampleHint").textContent = t("btAwaitRun");
     if ($("wsStatus")) feed.setFeedStatus($("wsStatus"), "live");
@@ -808,7 +833,7 @@ async function fetchBars(iv, opts) {
     bars = allBars;
     feed.lastMeta.source = "offline";
     if (bars.length) {
-      if (shouldMount) mountCandles();
+      if (shouldMount) await mountCandles();
       paintPine();
       if ($("wsStatus")) feed.setFeedStatus($("wsStatus"), "offline", { updatedAt: feed.lastMeta.updatedAt });
     } else if ($("wsStatus")) {
@@ -846,6 +871,10 @@ function upsert(bar) {
   else return;
   bars = allBars;
   if (!candleSeries) return;
+  if (lastCtx) {
+    const fromTarget = lastCtx.windowEndT - (lastCtx.lookDays + 1) * 86400;
+    if (bar.time < fromTarget || bar.time > lastCtx.windowEndT) return;
+  }
   candleSeries.update({ time: bar.time, open: bar.open, high: bar.high, low: bar.low, close: bar.close });
   volSeries.update({
     time: bar.time,
@@ -857,39 +886,42 @@ function upsert(bar) {
 function mountCandles() {
   const el = $("candleChart");
   const Charts = window.LightweightCharts;
-  if (!el || !Charts || !feed || !bars.length) return;
-  if (!chartPanelOpen()) return;
+  if (!el || !Charts || !feed || !bars.length) return Promise.resolve(false);
+  if (!chartPanelOpen()) return Promise.resolve(false);
 
-  const draw = () => {
-    if (!chartPanelOpen()) return;
-    const size = chartBoxSize(el, 480);
-    if (size.width < 80) {
-      requestAnimationFrame(draw);
-      return;
-    }
-    if (candleChart) {
-      candleChart.remove();
-      candleChart = null;
-    }
-    candleChart = Charts.createChart(el, feed.chartOptions(el, size.height, interval));
-    candleChart.applyOptions({ width: size.width, height: size.height });
-    bindBtChartInteractionLock(candleChart);
-    candleSeries = addCandle(candleChart);
-    volSeries = addHist(candleChart);
-    candleSeries.setData(bars.map((b) => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close })));
-    volSeries.setData(
-      bars.map((b) => ({
-        time: b.time,
-        value: b.volume,
-        color: b.close >= b.open ? "rgba(0,135,60,0.45)" : "rgba(208,2,27,0.45)",
-      })),
-    );
-    if (lastCtx) applyBtChartLock(candleChart, lastCtx);
-    else candleChart.timeScale().fitContent();
-    scheduleFit();
-  };
+  return new Promise((resolve) => {
+    const draw = () => {
+      if (!chartPanelOpen()) {
+        resolve(false);
+        return;
+      }
+      const size = chartBoxSize(el, 480);
+      if (size.width < 80) {
+        requestAnimationFrame(draw);
+        return;
+      }
+      if (candleChart) {
+        candleChart.remove();
+        candleChart = null;
+        candleSeries = null;
+        volSeries = null;
+      }
+      candleChart = Charts.createChart(el, feed.chartOptions(el, size.height, interval));
+      candleChart.applyOptions({ width: size.width, height: size.height });
+      bindBtChartInteractionLock(candleChart);
+      candleSeries = addCandle(candleChart);
+      volSeries = addHist(candleChart);
+      const displayBars = lastCtx ? chartWindowBars(bars, lastCtx) : bars;
+      candleSeries.setData(candleDataFromBars(displayBars));
+      volSeries.setData(volumeDataFromBars(displayBars));
+      if (lastCtx) applyBtChartLock(candleChart, lastCtx);
+      else candleChart.timeScale().fitContent();
+      scheduleFit();
+      resolve(true);
+    };
 
-  requestAnimationFrame(draw);
+    requestAnimationFrame(draw);
+  });
 }
 
 function fmtPf(pf) {
@@ -954,6 +986,9 @@ function run(silent) {
     if (window.QAUi) window.QAUi.flash($("mBars"), false);
   }
   if (candleSeries) {
+    const displayBars = chartWindowBars(allBars, ctx);
+    candleSeries.setData(candleDataFromBars(displayBars));
+    if (volSeries) volSeries.setData(volumeDataFromBars(displayBars));
     candleSeries.setMarkers(
       trades.flatMap((tr) => [
         { time: tr.t0, position: "belowBar", color: "#00873c", shape: "arrowUp", text: "BUY" },
@@ -966,20 +1001,25 @@ function run(silent) {
   if (equityChart) equityChart.remove();
   const Charts = window.LightweightCharts;
   if (!Charts || !eEl) return;
-  const paintEq = () => {
-    const size = chartBoxSize(eEl, 220);
-    if (size.width < 80) {
-      requestAnimationFrame(paintEq);
-      return;
-    }
-    equityChart = Charts.createChart(eEl, feed.chartOptions(eEl, size.height, interval));
-    equityChart.applyOptions({ width: size.width, height: size.height });
-    bindBtChartInteractionLock(equityChart);
-    addLine(equityChart, "#00873c").setData(winBars.map((b, i) => ({ time: b.time, value: eq[i] })));
-    applyBtChartLock(equityChart, ctx);
-    scheduleFit();
-  };
-  requestAnimationFrame(paintEq);
+  const paintEq = () =>
+    new Promise((resolve) => {
+      const tick = () => {
+        const size = chartBoxSize(eEl, 220);
+        if (size.width < 80) {
+          requestAnimationFrame(tick);
+          return;
+        }
+        equityChart = Charts.createChart(eEl, feed.chartOptions(eEl, size.height, interval));
+        equityChart.applyOptions({ width: size.width, height: size.height });
+        bindBtChartInteractionLock(equityChart);
+        addLine(equityChart, "#00873c").setData(winBars.map((b, i) => ({ time: b.time, value: eq[i] })));
+        applyBtChartLock(equityChart, ctx);
+        scheduleFit();
+        resolve(true);
+      };
+      requestAnimationFrame(tick);
+    });
+  void paintEq();
   if (!silent) {
     toast(t("btDone").replace("{ms}", (performance.now() - t0).toFixed(1)).replace("{n}", String(ctx.windowBarCount)), "ok");
     revealBtChart();
@@ -999,14 +1039,9 @@ async function executeBacktest() {
   if (!allBars.length) {
     const ok = await fetchBars(interval, { mount: true, reset: true });
     if (!ok) return;
-  } else {
-    mountCandles();
   }
-  if (!candleSeries && allBars.length) {
-    await waitChartLayout();
-    mountCandles();
-  }
-  if (!candleSeries) {
+  const mounted = await mountCandles();
+  if (!mounted || !candleSeries) {
     toast(t("needBars") || "K 線渲染失敗", "warn");
     return;
   }

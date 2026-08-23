@@ -352,14 +352,14 @@
   let pageN = PAGE;
   let activeFilter = "all";
 
-  function openEngine(engine, interval) {
+  async function openEngine(engine, interval) {
     showBacktest();
     requestAnimationFrame(() => {
       window.dispatchEvent(new Event("resize"));
       setTimeout(() => window.dispatchEvent(new Event("resize")), 120);
     });
     if (window.QABacktest && typeof window.QABacktest.open === "function") {
-      window.QABacktest.open(engine, interval || "1h");
+      await window.QABacktest.open(engine, interval || "1h");
     }
   }
 
