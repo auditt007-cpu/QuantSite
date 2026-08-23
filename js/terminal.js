@@ -49,6 +49,11 @@
   }
 
   async function barsOf(symbol, interval) {
+    if (!feed || typeof feed.fetchKlines !== "function") {
+      const off = window.QAOffline && window.QAOffline.forInterval(interval || "1h");
+      if (off && off.length) return off;
+      throw new Error("feed unavailable");
+    }
     const key = symbol + ":" + interval;
     if (cache.has(key)) return cache.get(key);
     const bars = await feed.fetchKlines(symbol, interval, 500);
@@ -118,6 +123,31 @@
     : Promise.resolve(0);
   void packReady;
 
+  const FALLBACK_ENGINES = [
+    ["dual", "free"],
+    ["ribbon", "free"],
+    ["rsi", "free"],
+    ["squeeze", "free"],
+    ["atr", "free"],
+    ["qe", "master"],
+    ["dm", "master"],
+    ["sn", "master"],
+    ["eh", "master"],
+    ["gw", "master"],
+    ["ns", "master"],
+    ["sf", "master"],
+    ["qk", "master"],
+    ["hs", "master"],
+    ["hg", "master"],
+  ];
+
+  function buildFallbackList() {
+    return FALLBACK_ENGINES.map(([id, tier]) => {
+      const spec = catalog.get(id);
+      return spec ? asCard(spec, tier) : null;
+    }).filter(Boolean);
+  }
+
   const LOCAL_FREE = catalog.list.filter((s) => s.tier !== "master" && s.id !== "ai");
   const LOCAL_MASTER = catalog.list.filter((s) => s.tier === "master");
   let remote = [];
@@ -153,24 +183,21 @@
     return Array.from(byId.values());
   }
 
-  const freeList = merge("free", LOCAL_FREE);
-  const masterList = merge("master", LOCAL_MASTER);
+  let freeList = merge("free", LOCAL_FREE);
+  let masterList = merge("master", LOCAL_MASTER);
   let allList = freeList.concat(masterList);
-
-  function bindOpenButtons(root) {
-    (root || document).querySelectorAll("[data-open]").forEach((b) => {
-      if (b.dataset.bound === "1") return;
-      b.dataset.bound = "1";
-      b.addEventListener("click", () => openEngine(b.getAttribute("data-open"), b.getAttribute("data-iv")));
-    });
+  if (!allList.length) allList = buildFallbackList();
+  if (!allList.length) {
+    const gridFail = document.getElementById("gridAll");
+    if (gridFail) gridFail.innerHTML = `<p class="muted">${t("mktEmpty")}</p>`;
+    return;
   }
 
-  function paintGrid() {
-    if (!gridEl) return;
-    gridEl.innerHTML = allList.map((s) => cardHtml(s, s.tier === "master")).join("") || `<p class="muted">${t("mktEmpty")}</p>`;
-    bindOpenButtons(gridEl);
-    applyFilter();
-  }
+  const gridEl = document.getElementById("gridAll");
+  const tabsEl = document.getElementById("termTabs");
+  const PAGE = 999;
+  let pageN = PAGE;
+  let activeFilter = "all";
 
   function openEngine(engine, interval) {
     showBacktest();
@@ -204,11 +231,21 @@
       </article>`;
   }
 
-  const gridEl = document.getElementById("gridAll");
-  const tabsEl = document.getElementById("termTabs");
-  const PAGE = 8;
-  let pageN = PAGE;
-  let activeFilter = "all";
+  function bindOpenButtons(root) {
+    (root || document).querySelectorAll("[data-open]").forEach((b) => {
+      if (b.dataset.bound === "1") return;
+      b.dataset.bound = "1";
+      b.addEventListener("click", () => openEngine(b.getAttribute("data-open"), b.getAttribute("data-iv")));
+    });
+  }
+
+  function paintGrid() {
+    if (!gridEl) return;
+    gridEl.innerHTML = allList.map((s) => cardHtml(s, s.tier === "master")).join("") || `<p class="muted">${t("mktEmpty")}</p>`;
+    bindOpenButtons(gridEl);
+    applyFilter();
+  }
+
   const tabDefs = [
     { id: "all", label: `${t("tabAll")} (${allList.length})` },
     { id: "hot", label: t("tabHot") },
@@ -239,9 +276,9 @@
       card.classList.toggle("is-hidden", !cardMatches(card, activeFilter));
     });
     const visible = cards.filter((c) => !c.classList.contains("is-hidden"));
-    visible.forEach((c, i) => c.classList.toggle("is-paged", i >= pageN));
+    visible.forEach((c) => c.classList.remove("is-paged"));
     const more = document.getElementById("gridMore");
-    if (more) more.hidden = visible.length <= pageN;
+    if (more) more.hidden = true;
   }
   if (tabsEl && gridEl) {
     tabsEl.innerHTML = tabDefs
@@ -263,7 +300,6 @@
       applyFilter();
     });
   }
-  applyFilter();
   paintGrid();
 
   fetchRemoteStrategies(4500).then((rows) => {

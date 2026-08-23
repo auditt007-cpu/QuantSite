@@ -107,6 +107,18 @@
       }));
   }
 
+  async function restWorker(apiBase, symbol, interval, limit) {
+    const base = String(apiBase || "").replace(/\/$/, "");
+    const url =
+      `${base}/api/klines?symbol=${encodeURIComponent(symbol)}` +
+      `&interval=${encodeURIComponent(interval)}&limit=${Math.min(1000, limit)}`;
+    const res = await fetchUrl(url, 5000);
+    if (!res.ok) throw new Error("http");
+    const data = await res.json();
+    if (!Array.isArray(data) || !data.length) throw new Error("empty");
+    return data.map(parseKlineRow);
+  }
+
   async function fetchKlines(symbol, interval, limit) {
     const sym = String(symbol || "BTCUSDT").toUpperCase();
     const iv = INTERVALS.includes(interval) ? interval : "1m";
@@ -116,7 +128,7 @@
       const tries = [
         { venue: "OKX", run: () => restOkx(sym, iv, lim) },
         { venue: "Bybit", run: () => restBybit(sym, iv, lim) },
-        { venue: "Worker", run: () => restBinance(apiBase, sym, iv, lim, endTime) },
+        { venue: "Worker", run: () => restWorker(apiBase, sym, iv, lim) },
         { venue: "Binance-Vision", run: () => restBinance("https://data-api.binance.vision", sym, iv, lim, endTime) },
         { venue: "Binance", run: () => restBinance("https://api.binance.com", sym, iv, lim, endTime) },
       ];
