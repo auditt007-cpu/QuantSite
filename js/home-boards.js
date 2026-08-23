@@ -123,22 +123,44 @@
     });
   }
 
-  function paintKpis(rows, periodDays) {
+  function topReturnRow(rows, payload) {
+    if (payload && Array.isArray(payload.pnl_board) && payload.pnl_board.length) {
+      return payload.pnl_board
+        .slice()
+        .sort((a, b) => Number(b.net_profit_pct) - Number(a.net_profit_pct))[0];
+    }
+    const pool = rows.filter((r) => r.trades >= 5);
+    const use = pool.length ? pool : rows;
+    if (!use.length) return null;
+    return use.slice().sort((a, b) => Number(b.net_profit_pct) - Number(a.net_profit_pct))[0];
+  }
+
+  function fmtSignedPct(x) {
+    const n = Number(x);
+    if (!Number.isFinite(n)) return "—";
+    const pct = n * 100;
+    const sign = pct > 0 ? "+" : "";
+    return sign + pct.toFixed(1) + "%";
+  }
+
+  function paintKpis(rows, periodDays, payload) {
     const eligible = rows.filter((r) => r.eligible && r.trades >= 10);
     const use = eligible.length ? eligible : rows;
     if (!use.length) return;
-    const avgWr = use.reduce((s, r) => s + (r.win_rate_smooth || r.win_rate), 0) / use.length;
     const avgPf = use.reduce((s, r) => s + r.profit_factor, 0) / use.length;
     const worstDd = Math.min.apply(
       null,
       use.map((r) => r.max_drawdown),
     );
+    const top = topReturnRow(rows, payload);
     const wrEl = document.getElementById("kpiWinVal");
     const ddEl = document.getElementById("kpiDdVal");
     const pfEl = document.getElementById("kpiPfVal");
-    if (wrEl) {
-      wrEl.textContent = fmtPct(avgWr);
-      wrEl.classList.add("is-up");
+    if (wrEl && top) {
+      const pct = Number(top.net_profit_pct);
+      wrEl.textContent = fmtSignedPct(pct);
+      wrEl.classList.toggle("is-up", pct > 0);
+      wrEl.classList.toggle("is-down", pct < 0);
     }
     if (ddEl) ddEl.textContent = fmtPct(Math.abs(worstDd));
     if (pfEl) {
@@ -261,7 +283,7 @@
   function paint(payload) {
     const rows = rowsFrom(payload);
     const days = (payload && payload.period_days) || 60;
-    paintKpis(rows, days);
+    paintKpis(rows, days, payload);
     const wrBody = document.getElementById("wrBoardBody");
     const pnlBody = document.getElementById("pnlBoardBody");
     if (wrBody) wrBody.innerHTML = wrRowsHtml(rows, payload);
