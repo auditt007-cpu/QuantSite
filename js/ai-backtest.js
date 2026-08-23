@@ -114,12 +114,112 @@
     }
   }
 
-  function showLimit(msg, href) {
+  const QUOTA_KEY = "qa_ai_quota";
+
+  function aiTier() {
+    const id = window.QAIdentity;
+    if (!id || typeof id.loggedIn !== "function" || !id.loggedIn()) return "guest";
+    return id.seat && id.seat() === "vip" ? "vip" : "free";
+  }
+
+  function quotaCap(tier) {
+    if (tier === "vip") return 100;
+    if (tier === "free") return 10;
+    return 3;
+  }
+
+  function todayKey() {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  function readQuota() {
+    try {
+      const raw = localStorage.getItem(QUOTA_KEY);
+      if (!raw) return null;
+      const q = JSON.parse(raw);
+      if (!q || q.day !== todayKey()) return null;
+      return q;
+    } catch {
+      return null;
+    }
+  }
+
+  function saveQuota(patch) {
+    const tier = patch.tier || aiTier();
+    const next = {
+      day: todayKey(),
+      tier,
+      cap: patch.cap != null ? patch.cap : quotaCap(tier),
+      used: patch.used != null ? patch.used : 0,
+      code: patch.code || "",
+    };
+    try {
+      localStorage.setItem(QUOTA_KEY, JSON.stringify(next));
+    } catch {
+      /* private mode */
+    }
+    return next;
+  }
+
+  function quotaBlocked() {
+    const tier = aiTier();
+    const q = readQuota();
+    const cap = quotaCap(tier);
+    if (!q) return null;
+    if (q.used >= (q.cap || cap)) {
+      return q.code || (tier === "guest" ? "limit_guest" : tier === "vip" ? "limit_vip" : "limit_free");
+    }
+    return null;
+  }
+
+  function limitPlan(code, serverMsg) {
+    const tier = aiTier();
+    const resolved =
+      code ||
+      (tier === "guest" ? "limit_guest" : tier === "vip" ? "limit_vip" : "limit_free");
+    if (resolved === "limit_guest") {
+      return {
+        title: t("aiLimitGuestTitle"),
+        msg: serverMsg || t("aiLimitGuestMsg"),
+        href: "./member.html#login",
+        cta: t("aiLimitGuestCta"),
+      };
+    }
+    if (resolved === "limit_vip") {
+      return {
+        title: t("aiLimitTitle"),
+        msg: serverMsg || t("aiLimitVipMsg"),
+        href: "./member.html",
+        cta: t("aiLimitVipCta"),
+      };
+    }
+    return {
+      title: t("aiLimitFreeTitle"),
+      msg: serverMsg || t("aiLimitFreeMsg"),
+      href: "./member.html#pay",
+      cta: t("aiLimitFreeCta"),
+    };
+  }
+
+  function isFetchError(err) {
+    const msg = String((err && err.message) || err || "").toLowerCase();
+    return (
+      err instanceof TypeError ||
+      /failed to fetch|networkerror|network error|load failed|fetch failed|timeout|aborted|cors/i.test(msg)
+    );
+  }
+
+  function showLimitPlan(plan, hrefOverride) {
     const modal = $("aiLimitModal");
+    const title = $("aiLimitTitle");
     const text = $("aiLimitMsg");
     const cta = $("aiLimitCta");
-    if (text) text.textContent = msg;
-    if (cta) cta.href = href || "./member.html";
+    if (title) title.textContent = (plan && plan.title) || t("aiLimitTitle");
+    if (text) text.textContent = (plan && plan.msg) || t("aiLimitTitle");
+    if (cta) {
+      cta.href = hrefOverride || (plan && plan.href) || "./member.html";
+      cta.textContent = (plan && plan.cta) || t("goMember");
+    }
     if (modal) modal.classList.add("show");
   }
 
@@ -191,6 +291,11 @@
       toast(t("aiNeedPrompt"), "warn");
       return;
     }
+    const blocked = quotaBlocked();
+    if (blocked) {
+      showLimitPlan(limitPlan(blocked));
+      return;
+    }
     const btn = $("btnDeep");
     const prev = btn.textContent;
     btn.disabled = true;
@@ -198,18 +303,60 @@
     try {
       const tg =
         (window.QAIdentity && window.QAIdentity.loggedIn && window.QAIdentity.loggedIn() && localStorage.getItem("quant_tg")) || "";
-      const res = await fetch(cfg.apiBase + "/api/ai-backtest", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ prompt: prompt, tg_id: tg }),
-      });
-      const data = await res.json().catch(() => ({}));
+      let res;
+      try {
+        res = await fetch(cfg.apiBase + "/api/ai-backtest", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ prompt: prompt, tg_id: tg }),
+        });
+      } catch (netErr) {
+        if (isFetchError(netErr)) {
+          const blockedCode = quotaBlocked();
+          if (blockedCode) {
+            showLimitPlan(limitPlan(blockedCode));
+            return;
+          }
+          if (!window.QAIdentity || !window.QAIdentity.loggedIn || !window.QAIdentity.loggedIn()) {
+            showLimitPlan(limitPlan("limit_guest"));
+            return;
+          }
+          if (!window.QAIdentity.seat || window.QAIdentity.seat() !== "vip") {
+            showLimitPlan(limitPlan("limit_free"));
+            return;
+          }
+        }
+        throw netErr;
+      }
+      let data = {};
+      try {
+        data = await res.json();
+      } catch {
+        data = {};
+      }
       if (res.status === 429) {
-        const href = data.code === "limit_guest" ? "./member.html" : "./member.html#pay";
-        showLimit(data.error || t("aiLimitTitle"), href);
+        saveQuota({
+          tier: data.tier || aiTier(),
+          cap: data.cap || quotaCap(data.tier || aiTier()),
+          used: data.used != null ? data.used : data.cap || quotaCap(data.tier || aiTier()),
+          code: data.code || "limit_guest",
+        });
+        showLimitPlan(limitPlan(data.code, data.error));
         return;
       }
-      if (!res.ok || !data.code) throw new Error(data.error || "AI failed");
+      if (!res.ok || !data.code) {
+        if (res.status === 401 || res.status === 403) {
+          showLimitPlan(limitPlan("limit_guest", data.error));
+          return;
+        }
+        throw new Error(data.error || t("aiNetErr"));
+      }
+      saveQuota({
+        tier: data.tier || aiTier(),
+        cap: data.cap || quotaCap(data.tier || aiTier()),
+        used: data.used || 0,
+        code: "",
+      });
       lastSource = wrapCode(data.code);
       let fn;
       try {
@@ -266,7 +413,14 @@
       if (!entries.length) toast(t("noSignals"), "warn");
       else toast(t("btDone").replace("{ms}", "—").replace("{n}", String(sliced.length)), "ok");
     } catch (e) {
-      toast(e.message || "err", "err");
+      if (isFetchError(e)) {
+        const code = quotaBlocked() || (aiTier() === "guest" ? "limit_guest" : aiTier() === "vip" ? "limit_vip" : "limit_free");
+        if (code === "limit_guest" || code === "limit_free" || code === "limit_vip") {
+          showLimitPlan(limitPlan(code));
+          return;
+        }
+      }
+      toast((e && e.message) || t("aiNetErr"), "err");
     } finally {
       btn.disabled = false;
       btn.textContent = prev;
