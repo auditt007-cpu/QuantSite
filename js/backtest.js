@@ -351,6 +351,27 @@ function scheduleFit() {
   });
 }
 
+function setBtLoading(on) {
+  const el = $("btLoading");
+  if (!el) return;
+  el.classList.toggle("show", !!on);
+  if (on && el.querySelector("p")) {
+    el.querySelector("p").textContent = t("btLoading");
+  }
+}
+
+function offlineBars(iv) {
+  const off = window.QAOffline && window.QAOffline.forInterval(iv || interval);
+  return off && off.length ? off.slice() : [];
+}
+
+async function fetchBarsWithTimeout(sym, iv, limit, ms) {
+  return Promise.race([
+    feed.fetchKlines(sym, iv, limit),
+    new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), ms || 9000)),
+  ]);
+}
+
 function upsert(bar) {
   if (!bars.length || bar.time > bars[bars.length - 1].time) bars.push(bar);
   else if (bar.time === bars[bars.length - 1].time) bars[bars.length - 1] = bar;
@@ -393,28 +414,64 @@ async function load(iv) {
     b.classList.toggle("active", b.getAttribute("data-tf") === interval);
   });
   if (stream) stream.close();
+  setBtLoading(true);
   feed.setFeedStatus($("wsStatus"), "connecting");
-  try {
-    bars = await feed.fetchKlines(SYMBOL, interval, 1000);
-  } catch {
-    bars = (window.QAOffline && window.QAOffline.forInterval(interval)) || [];
+
+  const seed = offlineBars(interval);
+  if (seed.length) {
+    bars = seed;
     feed.lastMeta.source = "offline";
+    mountCandles();
+    paintPine();
+    requestAnimationFrame(() => run(true));
+    feed.setFeedStatus($("wsStatus"), "connecting");
   }
-  mountCandles();
-  if (feed.lastMeta.source === "offline") {
-    feed.setFeedStatus($("wsStatus"), "offline", { updatedAt: feed.lastMeta.updatedAt });
+
+  try {
+    const live = await fetchBarsWithTimeout(SYMBOL, interval, 420, 9000);
+    if (live && live.length) {
+      bars = live;
+      feed.lastMeta.source = "live";
+      mountCandles();
+      run(true);
+      feed.setFeedStatus($("wsStatus"), "live");
+    } else if (!bars.length) {
+      throw new Error("empty");
+    }
+  } catch {
+    if (!bars.length) {
+      bars = offlineBars(interval);
+      feed.lastMeta.source = "offline";
+      if (bars.length) {
+        mountCandles();
+        paintPine();
+        run(true);
+      }
+    }
+    if (feed.lastMeta.source === "offline") {
+      feed.setFeedStatus($("wsStatus"), "offline", { updatedAt: feed.lastMeta.updatedAt });
+    } else {
+      feed.setFeedStatus($("wsStatus"), "retry");
+    }
+  } finally {
+    setBtLoading(false);
   }
+
+  if (!bars.length) {
+    toast(t("aiNetErr") || t("needBars") || "K line load failed", "warn");
+    return;
+  }
+
   paintPine();
   stream = feed.createLiveStream({
     symbol: SYMBOL,
     interval,
-    preferRest: feed.preferRest || feed.lastMeta.source === "offline",
+    preferRest: true,
     onStatus(s, extra) {
       feed.setFeedStatus($("wsStatus"), s, extra);
     },
     onKline: upsert,
   });
-  run(true);
   syncDock();
 }
 
@@ -561,6 +618,7 @@ function INTERVALS_OK(iv) {
   return ["1s", "1m", "5m", "15m", "1h", "4h", "1d", "1w"].includes(iv);
 }
 window.QABacktest = {
+  setLoading: setBtLoading,
   open(id, iv) {
     const start = () => {
       bindDesk();
@@ -568,11 +626,13 @@ window.QABacktest = {
       if (id && catalog.get(id)) engineId = id;
       if ($("stratSelect")) $("stratSelect").value = engineId;
       const startIv = INTERVALS_OK(iv) ? iv : interval || "1h";
+      setBtLoading(true);
       return load(startIv)
         .then(() => {
           run(false);
         })
-        .catch((e) => toast(e.message, "warn"));
+        .catch((e) => toast(e.message, "warn"))
+        .finally(() => setBtLoading(false));
     };
     if (window.QAPackReady) return window.QAPackReady.then(start);
     return start();

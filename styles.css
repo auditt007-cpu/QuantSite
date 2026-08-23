@@ -587,6 +587,24 @@ input.is-focused, textarea.is-focused, select.is-focused {
   .price-grid { grid-template-columns: 1fr; }
   .trust-bar, .about-pillars { grid-template-columns: 1fr; }
   .status-pill { display: none; }
+  .status-pill-desk { display: none !important; }
+  .term-home-link {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #000;
+    background: #fff;
+    color: #000;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 5px 10px;
+    white-space: nowrap;
+    text-decoration: none;
+    max-width: 46vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .term-home-link:active { background: #f1f5f9; }
   .nav-end { min-width: 0; max-width: 100%; }
   .editorial-grid { width: 100%; min-width: 0; }
   .ticker-bar, .ticker-track { max-width: 100%; }
@@ -1680,6 +1698,36 @@ input.is-focused, textarea.is-focused, select.is-focused {
 .share-sub { margin: 0 0 16px; color: #86efac; }
 .share-qr { margin: 0; font-size: 12px; color: #94a3b8; }
 
+.status-pill-desk {
+  display: inline-flex;
+}
+.term-home-link { display: none; }
+@media (min-width: 769px) {
+  .term-home-link { display: none; }
+}
+.bt-loading {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  margin: 12px 0;
+  padding: 24px 16px;
+  border: 1px dashed #94a3b8;
+  background: #f8fafc;
+  text-align: center;
+}
+.bt-loading.show { display: flex; }
+.bt-loading p {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+  letter-spacing: 0.04em;
+}
+body.desk-open #btLoading.show ~ .lab-flow .lab-chart-block,
+body.desk-open #btLoading.show ~ .lab-flow .lab-chart-block .lab-chart-frame {
+  min-height: 120px;
+}
 .status-pill {
   display: inline-flex;
   align-items: center;

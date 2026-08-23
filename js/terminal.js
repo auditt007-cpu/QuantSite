@@ -265,6 +265,9 @@
 
   function openEngine(engine, interval) {
     showBacktest();
+    if (window.QABacktest && typeof window.QABacktest.setLoading === "function") {
+      window.QABacktest.setLoading(true);
+    }
     if (window.QABacktest && typeof window.QABacktest.open === "function") {
       window.QABacktest.open(engine, interval || "1h");
     }
@@ -376,7 +379,13 @@
     });
   }
   paintGrid();
-  void fillStats(allList, gridEl, 168, 6).then(() => fillStats(allList, gridEl, 500, 3));
+  setTimeout(() => {
+    if (document.body.classList.contains("desk-open")) return;
+    void fillStats(allList, gridEl, 168, 4).then(() => {
+      if (document.body.classList.contains("desk-open")) return;
+      return fillStats(allList, gridEl, 500, 2);
+    });
+  }, 1200);
 
   fetchRemoteStrategies(4500).then((rows) => {
     if (!rows.length) return;
@@ -392,7 +401,13 @@
         .join("");
     }
     paintGrid();
-    void fillStats(allList, gridEl, 168, 6).then(() => fillStats(allList, gridEl, 500, 3));
+    setTimeout(() => {
+      if (document.body.classList.contains("desk-open")) return;
+      void fillStats(allList, gridEl, 168, 4).then(() => {
+        if (document.body.classList.contains("desk-open")) return;
+        return fillStats(allList, gridEl, 500, 2);
+      });
+    }, 1200);
   });
 
   async function statOne(s, rootEl, barLimit) {
