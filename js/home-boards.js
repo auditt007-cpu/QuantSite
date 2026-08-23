@@ -172,7 +172,16 @@
       null,
       use.map((r) => r.max_drawdown),
     );
-    const top = topReturnRow(rows, payload);
+
+    // Prefer the multi-window hero_highlight (single strategy+period with the
+    // globally highest ROI across 3/7/10/20/30/60/100/180d) when the daily
+    // cron's hero scan has populated it — falls back to the pool-heuristic
+    // topReturnRow()/avgPf/worstDd if leaderboard.json predates that field.
+    const hero = payload && payload.hero_highlight;
+    const heroPeriod = hero && Number(hero.period_days);
+    const cardPeriod = heroPeriod || periodDays || 60;
+
+    const top = hero || topReturnRow(rows, payload);
     const wrEl = document.getElementById("kpiWinVal");
     const nameEl = document.getElementById("kpiWinName");
     const ddEl = document.getElementById("kpiDdVal");
@@ -186,20 +195,43 @@
     if (nameEl && top) {
       nameEl.textContent = modelName(top);
     }
-    if (ddEl) ddEl.textContent = fmtPct(Math.abs(worstDd));
+    if (ddEl) {
+      const dd = hero ? Math.abs(Number(hero.max_drawdown) || 0) : Math.abs(worstDd);
+      ddEl.textContent = fmtPct(dd);
+    }
     if (pfEl) {
-      pfEl.textContent = fmtPf(avgPf) + ":1";
-      if (avgPf >= 1) pfEl.classList.add("is-up");
+      const pf = hero ? Number(hero.profit_factor) || 0 : avgPf;
+      pfEl.textContent = fmtPf(pf) + ":1";
+      pfEl.classList.toggle("is-up", pf >= 1);
     }
     const periodLabel = t("hbPeriodTpl").replace("{n}", String(periodDays || 60));
     const wrPeriod = document.getElementById("hbWrPeriod");
     if (wrPeriod) wrPeriod.textContent = periodLabel;
+    // Pnl board "period tab" label — default-activates to the hero window's
+    // period when present so the ROI board's header matches the KPI cards.
     const pnlPeriod = document.getElementById("hbPnlPeriod");
-    if (pnlPeriod) pnlPeriod.textContent = t("hbPeriodPnl").replace("60", String(periodDays || 60));
+    if (pnlPeriod) pnlPeriod.textContent = String(cardPeriod) + "D / ROI %";
     const kpiWinLabel = document.querySelector('.home-kpi .kpi [data-i18n="kpiWin"]');
     if (kpiWinLabel) {
-      kpiWinLabel.textContent = t("kpiWinTpl").replace("{n}", String(periodDays || 60));
+      kpiWinLabel.textContent = t("kpiWinTpl").replace("{n}", String(cardPeriod));
     }
+    const kpiDdLabel = document.querySelector('.home-kpi .kpi [data-i18n="kpiDd"]');
+    if (kpiDdLabel) {
+      kpiDdLabel.textContent = hero
+        ? t("kpiDdTpl").replace("{n}", String(cardPeriod))
+        : t("kpiDd");
+    }
+    const kpiPfLabel = document.querySelector('.home-kpi .kpi [data-i18n="kpiPf"]');
+    if (kpiPfLabel) {
+      kpiPfLabel.textContent = hero
+        ? t("kpiPfTpl").replace("{n}", String(cardPeriod))
+        : t("kpiPf");
+    }
+    // Mark the corresponding period tab (if the pnl board ever grows a tab
+    // switcher) as the default-active one for the hero window.
+    document.querySelectorAll("[data-period-tab]").forEach((el) => {
+      el.classList.toggle("active", Number(el.getAttribute("data-period-tab")) === cardPeriod);
+    });
   }
 
   function wrRowsHtml(rows, payload) {

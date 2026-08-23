@@ -678,8 +678,18 @@ input.is-focused, textarea.is-focused, select.is-focused {
   }
   .brand { grid-column: 1; grid-row: 1; min-width: 0; overflow: hidden; }
   .brand-text { overflow: hidden; }
-  .nav-toggle { display: inline-flex; padding: 6px 10px; flex-shrink: 0; }
-  .nav-end { grid-column: 2; grid-row: 1; gap: 6px; }
+  .nav-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+    padding: 0 12px;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  .nav-end { grid-column: 2; grid-row: 1; gap: 6px; height: 36px; align-items: center; }
+  .auth-dock { height: 36px; align-items: center; }
   .brand h1 { font-size: 11px; letter-spacing: 0.1em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .brand span { display: none; }
   .site-slogan {
@@ -691,13 +701,19 @@ input.is-focused, textarea.is-focused, select.is-focused {
     max-width: 100%;
   }
   .auth-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+    box-sizing: border-box;
     font-size: 10px;
-    padding: 6px 8px;
+    padding: 0 8px;
     max-width: 46vw;
     overflow: hidden;
     text-overflow: ellipsis;
+    line-height: 1;
   }
-  .auth-btn::after { margin-left: 6px; }
+  .auth-btn::after { margin-left: 6px; flex-shrink: 0; }
   .id-pill { font-size: 10px; padding: 6px 8px; max-width: 40vw; }
   .hero-cta { flex-direction: column; align-items: stretch; }
   .hero-cta .btn-cta,
@@ -829,7 +845,15 @@ input.is-focused, textarea.is-focused, select.is-focused {
   .bt-meta { grid-template-columns: 1fr 1fr; }
   .stats-row { grid-template-columns: 1fr; }
   .rules { grid-template-columns: 1fr; }
-  .nav-actions .nav-link { width: 100%; text-align: center; }
+  .nav-actions .nav-link {
+    width: 100%;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    box-sizing: border-box;
+  }
   .micro-tag { align-self: center; }
   .hero-h1 { font-size: 20px; overflow-wrap: anywhere; }
   .hero-h2, .open-src, .muted { overflow-wrap: anywhere; }

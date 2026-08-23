@@ -40,7 +40,11 @@
 .live-mute-btn:hover { background: var(--bg-surface); }
 
 /* ---- Head ---- */
-.live-room-head { margin-bottom: 4px; }
+/* .war-room below has 16px of its own padding, so its inner chart frame's
+   right edge sits 16px left of this column's outer edge — match that here
+   so .war-top-status lines up with the chart panel exactly, not the wider
+   outer column. */
+.live-room-head { margin-bottom: 4px; padding-right: 16px; }
 
 /* ---- War Room Terminal (single big view) ---- */
 .war-room {
@@ -117,6 +121,12 @@
   font-family: var(--mono);
 }
 .war-tape-list li:last-child { border-bottom: 0; }
+.war-tape-list li[data-symbol] { cursor: pointer; }
+.war-tape-list li[data-symbol]:hover,
+.war-tape-list li[data-symbol]:focus-visible {
+  background: var(--bg-surface);
+  outline: none;
+}
 .war-tape-time { color: var(--text-muted); flex: 0 0 auto; }
 .war-tape-side { flex: 0 0 auto; font-weight: 800; }
 .war-tape-side.buy { color: var(--color-up); }
@@ -234,6 +244,7 @@
   .war-top-status { font-size: 11px; justify-content: space-between; }
   .live-mute-btn { padding: 4px 8px; font-size: 10px; }
 
+  .live-room-head { padding-right: 12px; }
   .war-room { padding: 12px; margin: 14px 0 16px; }
   .war-chart { height: 280px; }
   .war-room-status { font-size: 12px; }

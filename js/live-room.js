@@ -63,11 +63,13 @@
   }
 
   /* ---------------------------------------------------------------------
-   * Sound + voice engine. All audio is synthesized (Web Audio) or spoken
-   * (Web Speech API) — no binary assets. A single toggle gates both the
-   * ambient heartbeat / hammer SFX and the Taiwanese sweet-voice narration.
+   * Sound + voice engine — native <audio> playback of backend-generated
+   * MP3s only (edge-tts, see deploy/quantsite/tg_engine.py). No Web Speech
+   * API, no synthesized Web Audio ambience/SFX: the page is silent unless a
+   * real backend voice line or the welcome clip is playing. A single mute
+   * toggle gates all of it.
    * ------------------------------------------------------------------- */
-  let audioCtx = null;
+  const WELCOME_AUDIO_URLS = ["./audio/welcome_1.mp3", "./audio/welcome_2.mp3", "./audio/welcome_3.mp3"];
   function isMuted() {
     try {
       return localStorage.getItem(MUTE_KEY) === "1";
@@ -82,170 +84,33 @@
       /* private mode */
     }
   }
-  function ensureAudioCtx() {
-    if (audioCtx) return audioCtx;
-    const Ctor = window.AudioContext || window.webkitAudioContext;
-    if (!Ctor) return null;
-    audioCtx = new Ctor();
-    return audioCtx;
-  }
 
-  function playHammerSound() {
-    if (isMuted()) return;
-    const ctx = ensureAudioCtx();
-    if (!ctx) return;
+  function playUrl(url) {
+    if (!url || isMuted()) return;
     try {
-      if (ctx.state === "suspended") ctx.resume().catch(() => {});
-      const now = ctx.currentTime;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(190, now);
-      osc.frequency.exponentialRampToValueAtTime(46, now + 0.16);
-      gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.exponentialRampToValueAtTime(0.5, now + 0.008);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.26);
-      osc.connect(gain).connect(ctx.destination);
-      osc.start(now);
-      osc.stop(now + 0.28);
-
-      const bufSize = Math.max(1, Math.floor(ctx.sampleRate * 0.045));
-      const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
-      const data = buf.getChannelData(0);
-      for (let i = 0; i < bufSize; i++) {
-        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufSize, 2);
-      }
-      const noise = ctx.createBufferSource();
-      noise.buffer = buf;
-      const hp = ctx.createBiquadFilter();
-      hp.type = "highpass";
-      hp.frequency.value = 1400;
-      const noiseGain = ctx.createGain();
-      noiseGain.gain.setValueAtTime(0.32, now);
-      noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
-      noise.connect(hp).connect(noiseGain).connect(ctx.destination);
-      noise.start(now);
-      noise.stop(now + 0.06);
+      const audio = new Audio(url);
+      audio.volume = 1.0;
+      audio.play().catch(() => {
+        /* autoplay blocked until a user gesture — funnel/mute clicks satisfy this */
+      });
     } catch {
-      /* audio blocked — visuals still convey the confirmation */
+      /* audio element unsupported */
     }
   }
 
-  // Copart-style tension bed: a sub-bass thump layered with a faint metallic
-  // radar tick, both synthesized. Cadence self-schedules so it can double
-  // from 60 BPM (1000ms) to 120 BPM (500ms) during the countdown's last 15s.
-  let heartbeatRunning = false;
-  let heartbeatFast = false;
-  let heartbeatTimeoutId = null;
-
-  function playSubBass() {
-    const ctx = ensureAudioCtx();
-    if (!ctx) return;
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "sine";
-    osc.frequency.value = 60;
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(0.05, now + 0.05);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
-    osc.connect(gain).connect(ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.55);
+  let welcomePlayed = false;
+  function maybePlayWelcome() {
+    if (welcomePlayed || isMuted()) return;
+    welcomePlayed = true;
+    playUrl(WELCOME_AUDIO_URLS[Math.floor(Math.random() * WELCOME_AUDIO_URLS.length)]);
   }
 
-  function playRadarTick() {
-    const ctx = ensureAudioCtx();
-    if (!ctx) return;
-    const now = ctx.currentTime + 0.06;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "sine";
-    osc.frequency.value = 2800;
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(0.018, now + 0.004);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
-    osc.connect(gain).connect(ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.06);
-  }
-
-  function heartbeatLoop() {
-    if (!heartbeatRunning) return;
-    try {
-      playSubBass();
-      playRadarTick();
-    } catch {
-      /* ambient bed is optional */
-    }
-    const interval = heartbeatFast ? 500 : 1000;
-    heartbeatTimeoutId = setTimeout(heartbeatLoop, interval);
-  }
-  function startHeartbeat() {
-    if (heartbeatRunning || isMuted()) return;
-    if (!ensureAudioCtx()) return;
-    heartbeatRunning = true;
-    heartbeatLoop();
-  }
-  function stopHeartbeat() {
-    heartbeatRunning = false;
-    heartbeatFast = false;
-    if (heartbeatTimeoutId) clearTimeout(heartbeatTimeoutId);
-    heartbeatTimeoutId = null;
-  }
-
-  let cachedVoices = [];
-  function refreshVoices() {
-    if (!("speechSynthesis" in window)) return;
-    try {
-      cachedVoices = window.speechSynthesis.getVoices() || [];
-    } catch {
-      cachedVoices = [];
-    }
-  }
-  if ("speechSynthesis" in window) {
-    refreshVoices();
-    window.speechSynthesis.onvoiceschanged = refreshVoices;
-  }
-  function pickSweetVoice() {
-    if (!cachedVoices.length) return null;
-    const sweetName = /Xiaoxiao|Mei-?Jia|Yating|Han|美嘉|雅婷|曉曉|小曉|HsiaoChen|HsiaoYu/i;
-    const byName = cachedVoices.find((v) => sweetName.test(v.name));
-    if (byName) return byName;
-    const tw = cachedVoices.find((v) => /zh-TW/i.test(v.lang));
-    if (tw) return tw;
-    const hk = cachedVoices.find((v) => /zh-HK/i.test(v.lang));
-    if (hk) return hk;
-    return cachedVoices.find((v) => /^zh/i.test(v.lang)) || null;
-  }
-  function speak(text) {
-    if (isMuted() || !("speechSynthesis" in window) || !text) return;
-    try {
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = "zh-TW";
-      u.pitch = 1.4;
-      u.rate = 1.08;
-      const v = pickSweetVoice();
-      if (v) u.voice = v;
-      window.speechSynthesis.speak(u);
-    } catch {
-      /* speech synthesis unsupported */
-    }
-  }
-
-  function unlockAudioOnce() {
-    const unlock = () => {
-      const ctx = ensureAudioCtx();
-      if (ctx && ctx.state === "suspended") ctx.resume().catch(() => {});
-      if (!isMuted()) startHeartbeat();
-      document.removeEventListener("click", unlock);
-      document.removeEventListener("touchstart", unlock);
-      document.removeEventListener("keydown", unlock);
-    };
-    document.addEventListener("click", unlock, { once: true });
-    document.addEventListener("touchstart", unlock, { once: true, passive: true });
-    document.addEventListener("keydown", unlock, { once: true });
+  // Dedupe so the same backend-generated signal clip never plays twice.
+  const playedAudioUrls = new Set();
+  function maybePlaySignalAudio(sig) {
+    if (!sig || !sig.audio_url || playedAudioUrls.has(sig.audio_url)) return;
+    playedAudioUrls.add(sig.audio_url);
+    playUrl(sig.audio_url);
   }
 
   function bindMuteBtn() {
@@ -260,16 +125,40 @@
       const nowMuted = !isMuted();
       setMuted(nowMuted);
       paint();
-      if (nowMuted) {
-        stopHeartbeat();
-        if ("speechSynthesis" in window) window.speechSynthesis.cancel();
-      } else {
-        playHammerSound();
-        startHeartbeat();
-      }
+      if (!nowMuted) maybePlayWelcome();
     });
     paint();
     window.addEventListener("quant-lang", paint);
+  }
+
+  // 500ms debounce after any coin/strategy checkbox change: play a backend
+  // pre-generated "monitoring created" confirmation clip for the currently
+  // focused strategy (see tg_engine.py's ensure_funnel_audio(), one MP3 per
+  // canonical strategy id — no on-demand TTS endpoint needed).
+  let funnelVoiceTimer = null;
+  function scheduleFunnelVoice() {
+    if (funnelVoiceTimer) clearTimeout(funnelVoiceTimer);
+    funnelVoiceTimer = setTimeout(() => {
+      if (activeStrategy) playUrl("./audio/funnel_" + activeStrategy.id + ".mp3");
+    }, 500);
+  }
+
+  // Best-effort poll of the backend's live_feed.json for open/close signal
+  // audio relevant to the user's current watch-scope (checked coins +
+  // checked strategies). Never blocks chart/tape rendering.
+  async function pollLiveFeedAudio() {
+    try {
+      const res = await fetch("./live_feed.json", { cache: "no-store" });
+      if (!res.ok) return;
+      const data = await res.json();
+      const coinBases = new Set(watchCoins.map((c) => String(c).replace("USDT", "")));
+      const relevant = (sig) =>
+        sig && watchStrategyIds.includes(sig.strategy_id) && coinBases.has(String(sig.symbol || "").replace("USDT", ""));
+      (data.active_signals_3h || []).filter(relevant).forEach(maybePlaySignalAudio);
+      (data.closed_signals_3h || []).filter(relevant).forEach(maybePlaySignalAudio);
+    } catch {
+      /* live_feed.json optional for this decorative layer */
+    }
   }
 
   /* ---------------------------------------------------------------------
@@ -314,18 +203,10 @@
   }
 
   /* ---------------------------------------------------------------------
-   * Crowd activity toast capsules (Copart-style social proof).
+   * Crowd activity toast capsules (Copart-style social proof). Identity is
+   * shown as a masked, synthetic TG ID (decorative — not real user data),
+   * never a city/node name: "TG ID: 62***891".
    * ------------------------------------------------------------------- */
-  const NODES = {
-    "zh-Hant": ["台北", "新加坡", "香港", "東京", "首爾", "紐約", "倫敦", "法蘭克福", "雪梨", "多倫多"],
-    "zh-CN": ["台北", "新加坡", "香港", "东京", "首尔", "纽约", "伦敦", "法兰克福", "悉尼", "多伦多"],
-    en: ["Taipei", "Singapore", "Hong Kong", "Tokyo", "Seoul", "New York", "London", "Frankfurt", "Sydney", "Toronto"],
-  };
-  const ROLES = {
-    "zh-Hant": ["用戶", "會員", "節點", "機構"],
-    "zh-CN": ["用户", "会员", "节点", "机构"],
-    en: ["User", "Member", "Node", "Institution"],
-  };
   const DIR_TXT = {
     "zh-Hant": { LONG: "做多", SHORT: "做空" },
     "zh-CN": { LONG: "做多", SHORT: "做空" },
@@ -333,21 +214,27 @@
   };
   const TOAST_TPL = {
     "zh-Hant": {
-      follow: (n, r, sym) => `⚡ [${n}·${r}] 正在跟隨 #${sym} 突破策略`,
-      sync: (n, r, sym, tf, dir) => `⚡ [${n}·${r}] 已同步執行 #${sym} ${tf} ${dir} 訊號`,
-      lock: (n, r, sym, pct) => `⚡ [${n}·${r}] 成功鎖定 ${sym} 止盈點位 +${pct}%`,
+      follow: (id, sym) => `⚡ [TG ID: ${id}] 正在跟隨 #${sym} 突破策略`,
+      sync: (id, sym, tf, dir) => `⚡ [TG ID: ${id}] 已同步執行 #${sym} ${tf} ${dir} 訊號`,
+      lock: (id, sym, pct) => `⚡ [TG ID: ${id}] 成功鎖定 #${sym} 止盈點位 +${pct}%`,
     },
     "zh-CN": {
-      follow: (n, r, sym) => `⚡ [${n}·${r}] 正在跟随 #${sym} 突破策略`,
-      sync: (n, r, sym, tf, dir) => `⚡ [${n}·${r}] 已同步执行 #${sym} ${tf} ${dir} 信号`,
-      lock: (n, r, sym, pct) => `⚡ [${n}·${r}] 成功锁定 ${sym} 止盈点位 +${pct}%`,
+      follow: (id, sym) => `⚡ [TG ID: ${id}] 正在跟随 #${sym} 突破策略`,
+      sync: (id, sym, tf, dir) => `⚡ [TG ID: ${id}] 已同步执行 #${sym} ${tf} ${dir} 信号`,
+      lock: (id, sym, pct) => `⚡ [TG ID: ${id}] 成功锁定 #${sym} 止盈点位 +${pct}%`,
     },
     en: {
-      follow: (n, r, sym) => `⚡ [${n} · ${r}] is following the #${sym} breakout strategy`,
-      sync: (n, r, sym, tf, dir) => `⚡ [${n} · ${r}] synced a #${sym} ${tf} ${dir} signal`,
-      lock: (n, r, sym, pct) => `⚡ [${n} · ${r}] locked in +${pct}% on ${sym}`,
+      follow: (id, sym) => `⚡ [TG ID: ${id}] is following the #${sym} breakout strategy`,
+      sync: (id, sym, tf, dir) => `⚡ [TG ID: ${id}] synced a #${sym} ${tf} ${dir} signal`,
+      lock: (id, sym, pct) => `⚡ [TG ID: ${id}] locked in +${pct}% on #${sym}`,
     },
   };
+
+  function randomMaskedTgId() {
+    const prefix = String(Math.floor(10 + Math.random() * 90));
+    const suffix = String(Math.floor(100 + Math.random() * 900));
+    return prefix + "***" + suffix;
+  }
 
   const crowdStack = document.createElement("div");
   crowdStack.className = "crowd-toast-stack";
@@ -381,24 +268,21 @@
 
   function spawnRandomCrowdEvent() {
     const key = langKey();
-    const nodes = NODES[key] || NODES.en;
-    const roles = ROLES[key] || ROLES.en;
     const dirs = DIR_TXT[key] || DIR_TXT.en;
     const tpl = TOAST_TPL[key] || TOAST_TPL.en;
     const kind = randomFrom(["follow", "sync", "sync", "lock"]);
-    const node = randomFrom(nodes);
-    const role = randomFrom(roles);
+    const id = randomMaskedTgId();
     const sym = randomFrom(SYMS).replace("USDT", "");
     let text;
     if (kind === "follow") {
-      text = tpl.follow(node, role, sym);
+      text = tpl.follow(id, sym);
     } else if (kind === "sync") {
       const tf = randomFrom(["15M", "1H", "4H"]);
       const dir = Math.random() < 0.5 ? dirs.LONG : dirs.SHORT;
-      text = tpl.sync(node, role, sym, tf, dir);
+      text = tpl.sync(id, sym, tf, dir);
     } else {
       const pct = (0.6 + Math.random() * 4.4).toFixed(1);
-      text = tpl.lock(node, role, sym, pct);
+      text = tpl.lock(id, sym, pct);
     }
     pushCrowdToast(text);
   }
@@ -413,11 +297,9 @@
 
   function crowdLockEventText(sym) {
     const key = langKey();
-    const nodes = NODES[key] || NODES.en;
-    const roles = ROLES[key] || ROLES.en;
     const tpl = TOAST_TPL[key] || TOAST_TPL.en;
     const pct = (0.8 + Math.random() * 4.6).toFixed(1);
-    return tpl.lock(randomFrom(nodes), randomFrom(roles), sym.replace("USDT", ""), pct);
+    return tpl.lock(randomMaskedTgId(), sym.replace("USDT", ""), pct);
   }
 
   /* ---------------------------------------------------------------------
@@ -498,6 +380,13 @@
       const sym = input.getAttribute("data-coin");
       if (input.checked) {
         if (!watchCoins.includes(sym)) watchCoins.push(sym);
+        // "Last activated" rule: the coin the user just checked immediately
+        // takes over the main War Room chart, regardless of how many other
+        // coins are already checked for the watchlist aggregation below.
+        activeSymbolOverride = sym;
+        paintStatus();
+        clearCountdown();
+        refreshActive();
       } else {
         watchCoins = watchCoins.filter((c) => c !== sym);
       }
@@ -505,6 +394,7 @@
       const row = input.closest(".coin-pill");
       if (row) row.classList.toggle("is-checked", input.checked);
       refreshWatchTape();
+      scheduleFunnelVoice();
     });
   }
 
@@ -551,6 +441,7 @@
       }
       saveJsonArray(WATCH_STRATS_KEY, watchStrategyIds);
       refreshWatchTape();
+      scheduleFunnelVoice();
     });
   }
 
@@ -572,6 +463,13 @@
   let countdownTimer = null;
   let lastSeenTs = new Map(); // strategy id -> last known signal ts (seconds)
   let baselineSet = new Set(); // strategy ids whose first poll has been consumed as baseline
+
+  // "Last activated" coin: whichever coin pill was most recently CHECKED wins
+  // and overrides the focused strategy's default symbol on the main chart.
+  let activeSymbolOverride = null;
+  function effectiveSymbol(s) {
+    return activeSymbolOverride || (s && s.symbol) || "BTCUSDT";
+  }
 
   function addCandleSeries(chart) {
     const LC = window.LightweightCharts;
@@ -599,19 +497,37 @@
     }
   }
 
+  const SIX_HOURS_S = 6 * 3600;
+
+  // Lock the War Room chart's visible time range to the last 6 hours of the
+  // just-loaded bars (fetch/compute can still use more bars for indicator
+  // warmup — only the VISIBLE window is constrained).
+  function lockChartToLast6h(bars) {
+    if (!warChart || !bars || !bars.length) return;
+    const lastTime = bars[bars.length - 1].time;
+    const from = lastTime - SIX_HOURS_S;
+    try {
+      warChart.timeScale().setVisibleRange({ from, to: lastTime });
+    } catch {
+      warChart.timeScale().fitContent();
+    }
+  }
+
   function fmtHm(ts) {
     const d = new Date(ts * 1000);
     return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
   }
 
-  function tapeRowHtml(tr, tag) {
+  function tapeRowHtml(tr, tag, symbol, strategyId) {
     const pnl = Number(tr.pnlPct);
     const pnlTxt = tr.open ? "—" : (pnl >= 0 ? "+" : "") + pnl.toFixed(2) + "%";
     const pnlCls = pnl >= 0 ? "up" : "down";
     const side = tr.side === "SHORT" ? "sell" : "buy";
     const label = tr.open ? (tr.side === "SHORT" ? t("warSell") : t("warBuy")) : (tr.side === "SHORT" ? t("warBuy") : t("warSell"));
     const tagHtml = tag ? `<span class="watch-tape-tag">${escapeHtml(tag)}</span>` : "";
-    return `<li>
+    const clickable = symbol && strategyId;
+    const attrs = clickable ? ` data-symbol="${escapeHtml(symbol)}" data-strategy="${escapeHtml(strategyId)}" tabindex="0"` : "";
+    return `<li${attrs}>
         ${tagHtml}
         <span class="war-tape-time">${fmtHm(tr.open ? tr.t0 : tr.t1)}</span>
         <span class="war-tape-side ${side}">${escapeHtml(label)}</span>
@@ -621,14 +537,41 @@
   }
 
   function renderTape(trades) {
-    if (!tapeListEl) return;
+    if (!tapeListEl || !activeStrategy) return;
     const nowS = Date.now() / 1000;
     const recent = trades.filter((tr) => Math.max(tr.t0 || 0, tr.t1 || 0) >= nowS - THREE_HOURS_S).sort((a, b) => (b.t1 || b.t0) - (a.t1 || a.t0));
     if (!recent.length) {
       tapeListEl.innerHTML = `<li class="muted">${escapeHtml(t("warTapeEmpty"))}</li>`;
       return;
     }
-    tapeListEl.innerHTML = recent.map((tr) => tapeRowHtml(tr, null)).join("");
+    const sym = effectiveSymbol(activeStrategy);
+    const sid = activeStrategy.id;
+    tapeListEl.innerHTML = recent.map((tr) => tapeRowHtml(tr, null, sym, sid)).join("");
+  }
+
+  // Clicking any tape row (single-focus or aggregated watchlist) smoothly
+  // switches the main chart to that row's symbol + strategy.
+  function bindTapeRowClicks(el) {
+    if (!el) return;
+    const activate = (li) => {
+      const symbol = li.getAttribute("data-symbol");
+      const strategyId = li.getAttribute("data-strategy");
+      if (!symbol || !strategyId) return;
+      activeSymbolOverride = symbol;
+      selectStrategy(strategyId, allStrategies);
+    };
+    el.addEventListener("click", (ev) => {
+      const li = ev.target.closest("li[data-symbol]");
+      if (li) activate(li);
+    });
+    el.addEventListener("keydown", (ev) => {
+      if (ev.key !== "Enter" && ev.key !== " ") return;
+      const li = ev.target.closest("li[data-symbol]");
+      if (li) {
+        ev.preventDefault();
+        activate(li);
+      }
+    });
   }
 
   /* ---- My Watchlist Tape: aggregate selected coins x selected strategies ---- */
@@ -656,7 +599,7 @@
           const trades = spec.run(bars) || [];
           return trades
             .filter((tr) => Math.max(tr.t0 || 0, tr.t1 || 0) >= nowS - THREE_HOURS_S)
-            .map((tr) => ({ tr, tag: p.coin.replace("USDT", "") + " · " + p.s.name }));
+            .map((tr) => ({ tr, tag: p.coin.replace("USDT", "") + " · " + p.s.name, coin: p.coin, sid: p.s.id }));
         } catch {
           return [];
         }
@@ -671,14 +614,13 @@
       watchTapeListEl.innerHTML = `<li class="muted">${escapeHtml(t("warTapeEmpty"))}</li>`;
       return;
     }
-    watchTapeListEl.innerHTML = merged.map(({ tr, tag }) => tapeRowHtml(tr, tag)).join("");
+    watchTapeListEl.innerHTML = merged.map(({ tr, tag, coin, sid }) => tapeRowHtml(tr, tag, coin, sid)).join("");
   }
 
-  /* ---- 60s open-window countdown + sweet voice cascade ---- */
+  /* ---- 60s open-window countdown (visual only, see runOpenWindowCountdown) ---- */
   function clearCountdown() {
     if (countdownTimer) clearInterval(countdownTimer);
     countdownTimer = null;
-    heartbeatFast = false;
     if (countdownEl) {
       countdownEl.hidden = true;
       countdownEl.classList.remove("is-warn", "is-danger", "is-locked");
@@ -701,17 +643,18 @@
     }
   }
 
+  // Visual-only countdown: spoken narration used to rely on the removed Web
+  // Speech API. The open-signal voice line for this strategy/symbol (if any)
+  // is now sourced from the backend live_feed.json feed via
+  // pollLiveFeedAudio() instead, so there is no duplicate/competing speech.
   function runOpenWindowCountdown(strategyName) {
     clearCountdown();
-    playHammerSound();
-    speak(`叮咚！哥哥～${strategyName}已經可以開倉囉，快跟上嘛～窗口期只有一分鐘喔！`);
     pushCrowdToast(crowdLockEventText(activeStrategy ? activeStrategy.symbol : "BTCUSDT"));
     signalsToday += 1;
     paintCounters();
 
     const total = 60000;
     const startTs = Date.now();
-    let said30 = false;
     updateCountdownUi(total, total, "normal");
     countdownTimer = setInterval(() => {
       const elapsed = Date.now() - startTs;
@@ -719,9 +662,6 @@
       if (remain <= 0) {
         clearInterval(countdownTimer);
         countdownTimer = null;
-        heartbeatFast = false;
-        playHammerSound();
-        speak(`噹！落槌囉～${strategyName}開倉窗口期已結束，點位鎖定！`);
         updateCountdownUi(0, total, "locked");
         setTimeout(() => {
           if (countdownEl) countdownEl.hidden = true;
@@ -729,12 +669,7 @@
         return;
       }
       const phase = remain <= 10000 ? "danger" : remain <= 30000 ? "warn" : "normal";
-      heartbeatFast = remain <= 15000;
       updateCountdownUi(remain, total, phase);
-      if (remain <= 30000 && !said30) {
-        said30 = true;
-        speak(`注意注意！${strategyName}只剩下最後三十秒囉！`);
-      }
     }, 200);
   }
 
@@ -742,9 +677,10 @@
   async function refreshActive() {
     if (!activeStrategy) return;
     const s = activeStrategy;
+    const sym = effectiveSymbol(s);
     let bars;
     try {
-      bars = await barsOf(s.symbol, s.interval);
+      bars = await barsOf(sym, s.interval);
     } catch {
       return;
     }
@@ -752,7 +688,7 @@
 
     if (warSeries) {
       warSeries.setData(bars.map((b) => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close })));
-      if (warChart) warChart.timeScale().fitContent();
+      lockChartToLast6h(bars);
     }
 
     const spec = catalog.get(s.id);
@@ -766,10 +702,14 @@
     if (activeStrategy !== s) return;
 
     if (warSeries) {
+      const lastBarTime = bars[bars.length - 1].time;
+      const windowFrom = lastBarTime - SIX_HOURS_S;
+      const inWindow = (ts) => ts >= windowFrom && ts <= lastBarTime;
       warSeries.setMarkers(
         trades.flatMap((tr) => {
-          const marks = [{ time: tr.t0, position: "belowBar", color: "#00873c", shape: "arrowUp", text: "BUY" }];
-          if (!tr.open) marks.push({ time: tr.t1, position: "aboveBar", color: "#d0021b", shape: "arrowDown", text: "SELL" });
+          const marks = [];
+          if (inWindow(tr.t0)) marks.push({ time: tr.t0, position: "belowBar", color: "#00873c", shape: "arrowUp", text: "BUY" });
+          if (!tr.open && inWindow(tr.t1)) marks.push({ time: tr.t1, position: "aboveBar", color: "#d0021b", shape: "arrowDown", text: "SELL" });
           return marks;
         })
       );
@@ -794,6 +734,7 @@
     statusTextEl.removeAttribute("data-i18n");
     statusTextEl.textContent = t("warStatusTpl")
       .replace("{name}", activeStrategy.name)
+      .replace("{symbol}", effectiveSymbol(activeStrategy).replace("USDT", ""))
       .replace("{tf}", String(activeStrategy.interval).toUpperCase());
   }
 
@@ -845,14 +786,17 @@
     renderMatrix(strategies);
     bindCoinPills();
     bindMatrixClicks(strategies);
+    bindTapeRowClicks(tapeListEl);
+    bindTapeRowClicks(watchTapeListEl);
     bindMuteBtn();
-    unlockAudioOnce();
     paintCounters();
     setInterval(tickCounters, 4000);
     setInterval(refreshMatrixDots, 15000);
     scheduleCrowdLoop();
     setTimeout(spawnRandomCrowdEvent, 900);
     seedCountersFromLeaderboard();
+    pollLiveFeedAudio();
+    setInterval(pollLiveFeedAudio, 20000);
 
     let savedId = null;
     try {
