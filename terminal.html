@@ -61,7 +61,7 @@
           <button type="button" class="ai-chip" data-i18n="chipBreak" data-fill-key="chipBreakFill">🔥 追漲殺跌流（牛市暴力）</button>
           <button type="button" class="ai-chip" data-i18n="chipDip" data-fill-key="chipDipFill">📉 越跌越買流（定投抄底）</button>
           <button type="button" class="ai-chip" data-i18n="chipHold" data-fill-key="chipHoldFill">🛡️ 破位就跑流（保本止損）</button>
-          <button type="button" class="ai-chip" data-i18n="chipGrid" data-fill-key="chipGridFill">🤖 網格自動套利（震盪躺賺）</button>
+          <button type="button" class="ai-chip" data-i18n="chipGrid" data-fill-key="chipGridFill">🤖 網格交易（逢低佈局低買高賣）</button>
         </div>
         <button type="button" class="btn-cta lg ai-go action-btn" id="btnAiGo" data-i18n="aiGo">⚡ 測測能賺多少</button>
       </section>
@@ -115,11 +115,11 @@
             <article class="money-card" id="moneyCard">
               <p class="money-kicker" data-i18n="moneyAssume">假設投入 $1,000 USDT</p>
               <p class="money-end" id="moneyEnd">$1,000 → $1,000</p>
-              <p class="money-pnl" id="moneyPnl">📈 歷史淨賺：+$0 USDT (0%)</p>
+              <p class="money-pnl" id="moneyPnl" data-i18n="moneyPnlIdle">📈 歷史淨賺：+$0 USDT (0%)</p>
               <ul class="money-facts">
-                <li id="moneyDays">⏱️ 運行周期：—</li>
-                <li id="moneyHit">🎯 勝率：—</li>
-                <li id="moneyRisk">🛡️ 最大扛單風險：—</li>
+                <li id="moneyDays" data-i18n="moneyDaysIdle">⏱️ 執行周期：—</li>
+                <li id="moneyHit" data-i18n="moneyHitIdle">🎯 勝率：—</li>
+                <li id="moneyRisk" data-i18n="moneyRiskIdle">🛡️ 最大扛單風險：—</li>
               </ul>
             </article>
             <div class="funnel-card" id="funnelCard" hidden>
@@ -131,21 +131,21 @@
             <p class="nav-kpis desk-only" id="navLine">
               <span data-i18n="startEq">起始資金: $10,000 USDT</span>
               <span class="nav-sep">|</span>
-              <span id="navNow">當前淨值: $10,000.00 USDT</span>
+              <span id="navNow" data-i18n="navNowIdle">當前淨值: $10,000.00 USDT</span>
               <span class="nav-sep">|</span>
-              <span id="navPnl" class="nav-chip">累計淨利: 0.0%</span>
+              <span id="navPnl" class="nav-chip" data-i18n="navPnlIdle">累計淨利: 0.0%</span>
               <span class="nav-sep">|</span>
-              <span id="navDd" class="nav-chip">最大回撤: 0.0%</span>
+              <span id="navDd" class="nav-chip" data-i18n="navDdIdle">最大回撤: 0.0%</span>
               <span class="nav-sep">|</span>
               <span id="navDur" class="nav-chip nav-dur" data-i18n="navDurIdle">回測用時: 僅 14 天</span>
             </p>
-            <p class="muted sample-hint desk-only" id="sampleHint">近 1000 根 K 線累積信號</p>
+            <p class="muted sample-hint desk-only" id="sampleHint" data-i18n="sampleHintIdle">近 1000 根 K 線累積信號</p>
 
             <div class="perf-block">
               <h3 class="zone-title desk-only" data-i18n="gmSummary">績效摘要</h3>
               <div class="bt-meta desk-only">
                 <div class="stat"><span data-i18n="statWr">勝率</span><b id="mWr">—</b></div>
-                <div class="stat"><span data-i18n="statPf">盈虧比 <span class="hint" title="賺的總額 ÷ 虧的總額。大於 1 表示賺比虧多。">❓</span></span><b id="mPf">—</b></div>
+                <div class="stat"><span data-i18n="statPf">盈虧比</span><span class="hint" data-i18n="statPfHint" title="賺的總額 ÷ 虧的總額。大於 1 表示賺比虧多。">❓</span><b id="mPf">—</b></div>
                 <div class="stat"><span data-i18n="statTrades">交易筆數</span><b id="mTrades">—</b></div>
                 <div class="stat"><span data-i18n="statBars">樣本</span><b id="mBars">—</b></div>
               </div>
@@ -166,7 +166,7 @@
                       <tr><th>#</th><th data-i18n="colAction">交易動作</th><th data-i18n="colTime">信號時間</th><th data-i18n="colPrice">成交價</th><th data-i18n="colPnl">單筆盈虧</th><th data-i18n="colEquity">淨值</th></tr>
                     </thead>
                     <tbody id="tradeRows">
-                      <tr><td colspan="6" class="muted">點擊「開始回測」後顯示明細</td></tr>
+                      <tr><td colspan="6" class="muted" data-i18n="tradeEmpty">點擊「執行回測」後顯示明細</td></tr>
                     </tbody>
                   </table>
                 </div>
@@ -174,9 +174,9 @@
             </div>
 
             <details class="pine-box source-module">
-              <summary data-i18n="pineHead">💻 查看底層源碼 (PineScript) ▾</summary>
+              <summary data-i18n="pineHead">💻 查看底層原始碼 (PineScript) ▾</summary>
               <div class="pine-toolbar">
-                <button type="button" class="btn" id="btnCopyPine" data-i18n="copyPineBtn">一鍵複製 PineScript 代碼</button>
+                <button type="button" class="btn" id="btnCopyPine" data-i18n="copyPineBtn">一鍵複製 PineScript 程式碼</button>
               </div>
               <pre id="pineSrc" class="pine-pre"></pre>
             </details>
@@ -185,26 +185,22 @@
       </section>
     </div>
       </div>
-      <aside class="editorial-rail" aria-label="Live desk">
-        <section class="rail-block">
-          <div class="kicker">LIVE DESK</div>
-          <h3 class="rail-h">實時戰報</h3>
-          <ul class="rail-tape" id="liveTape">
-            <li><span class="tape-time">LIVE</span><span class="tape-body">終端就緒 · 等待策略回測輸出</span></li>
-            <li><span class="tape-time">SYS</span><span class="tape-body">瀏覽器本地計算 · 拒絕服務端造假</span></li>
-            <li><span class="tape-time">AI</span><span class="tape-body">自然語言策略可一鍵生成並回測</span></li>
-          </ul>
+      <aside class="editorial-rail" aria-label="Flash news">
+        <section class="rail-block flash-desk">
+          <div class="kicker" data-i18n="flashKicker">FLASH NEWS</div>
+          <h3 class="rail-h" data-i18n="flashTitle">⚡ 7x24 即時快訊</h3>
+          <ul class="flash-list" id="flashNews" aria-live="polite"></ul>
         </section>
-        <section class="rail-block">
+        <section class="rail-block rail-mkt">
           <div class="kicker">MARKET</div>
-          <h3 class="rail-h">市場概覽</h3>
+          <h3 class="rail-h" data-i18n="mktOverview">市場概覽</h3>
           <div class="rail-quotes" id="railQuotes">
             <div class="rail-quote" data-sym="BTCUSDT"><span>BTC</span><b data-px>—</b><em data-chg>—</em></div>
             <div class="rail-quote" data-sym="ETHUSDT"><span>ETH</span><b data-px>—</b><em data-chg>—</em></div>
             <div class="rail-quote" data-sym="SOLUSDT"><span>SOL</span><b data-px>—</b><em data-chg>—</em></div>
             <div class="rail-quote" data-sym="BNBUSDT"><span>BNB</span><b data-px>—</b><em data-chg>—</em></div>
           </div>
-          <p class="muted rail-note">報價來自公開行情接口，僅供研究對照。</p>
+          <p class="muted rail-note" data-i18n="mktQuoteNote">報價來自公開行情接口，僅供研究對照。</p>
         </section>
       </aside>
     </div>
@@ -234,16 +230,16 @@
     <label class="dock-field">
       <span data-i18n="dockTf">周期</span>
       <select id="dockTf">
-        <option value="1m">1分</option>
-        <option value="5m">5分</option>
-        <option value="15m">15分</option>
-        <option value="1h" selected>1小時</option>
-        <option value="4h">4小時</option>
-        <option value="1d">1天</option>
-        <option value="1w">1週</option>
+        <option value="1m" data-i18n="tf1m">1分</option>
+        <option value="5m" data-i18n="tf5m">5分</option>
+        <option value="15m" data-i18n="tf15m">15分</option>
+        <option value="1h" selected data-i18n="tf1h">1小時</option>
+        <option value="4h" data-i18n="tf4h">4小時</option>
+        <option value="1d" data-i18n="tf1d">1天</option>
+        <option value="1w" data-i18n="tf1w">1週</option>
       </select>
     </label>
-    <button type="button" class="btn-cta dock-run" id="dockRun" data-i18n="dockRun">⚡ 立即回測</button>
+    <button type="button" class="btn-cta dock-run" id="dockRun" data-i18n="dockRun">⚡ 執行回測</button>
   </nav>
   <div class="share-overlay" id="shareOverlay" hidden>
     <div class="share-poster" id="sharePoster">
@@ -260,6 +256,7 @@
   <script src="./config.js"></script>
   <script src="./i18n.js"></script>
   <script src="./js/i18n-boot.js"></script>
+  <script src="./js/flash-news.js"></script>
   <script src="./js/money.js"></script>
   <script src="./js/clipboard.js"></script>
   <script src="./js/identity.js"></script>

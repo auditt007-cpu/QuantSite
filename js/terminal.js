@@ -282,7 +282,7 @@
   catalog.register([
     {
       id: "ai",
-      name: "AI 實驗室策略",
+      name: (window.QALang && window.QALang.t("aiLabName")) || "AI 實驗室策略",
       tier: "free",
       pine: "",
       run(bars) {

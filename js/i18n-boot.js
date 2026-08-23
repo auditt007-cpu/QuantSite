@@ -76,7 +76,10 @@
     document.documentElement.lang = htmlLang(lang);
     document.querySelectorAll("[data-i18n]").forEach((el) => {
       if (el.id === "btnAuth" || el.id === "idPill" || el.id === "nodeName" || el.id === "dashLevel" || el.id === "refCount") return;
-      el.textContent = t(el.getAttribute("data-i18n"));
+      const key = el.getAttribute("data-i18n");
+      if (el.classList.contains("hint") || el.hasAttribute("title")) el.setAttribute("title", t(key));
+      if (el.children.length) return;
+      el.textContent = t(key);
     });
     document.querySelectorAll("[data-i18n-html]").forEach((el) => {
       el.innerHTML = t(el.getAttribute("data-i18n-html"));
@@ -117,8 +120,8 @@
   };
   root.QAApplyI18n = applyI18nDom;
   root.addEventListener("click", (e) => {
-    const btn = e.target && e.target.closest && e.target.closest(".lang-pills [data-lang]");
-    if (!btn) return;
+    const btn = e.target && e.target.closest && e.target.closest("[data-lang]");
+    if (!btn || !btn.closest(".lang-pills, .lang-pills")) return;
     setLang(btn.getAttribute("data-lang"));
   });
 
