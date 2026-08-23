@@ -309,29 +309,30 @@ function resetBacktestResults() {
   closeSheet();
   if (candleSeries) candleSeries.setMarkers([]);
   if ($("sampleHint")) $("sampleHint").textContent = t("btAwaitRun");
-  if ($("moneyEnd")) $("moneyEnd").textContent = "$10,000 → $10,000";
+  if ($("moneyEnd")) $("moneyEnd").textContent = "$10,000.00 → $10,000.00";
   if ($("moneyPnl")) {
     $("moneyPnl").textContent = t("moneyPnlIdle");
-    $("moneyPnl").className = "money-pnl";
+    $("moneyPnl").className = "bb-term-pnl";
   }
-  if ($("moneyDays")) $("moneyDays").textContent = t("moneyDaysIdle");
-  if ($("moneyHit")) $("moneyHit").textContent = t("moneyHitIdle");
-  if ($("moneyRisk")) $("moneyRisk").textContent = t("moneyRiskIdle");
   if ($("tradePills")) $("tradePills").innerHTML = "";
   pillEq = null;
   if ($("mWr")) $("mWr").textContent = "—";
   if ($("mPf")) $("mPf").textContent = "—";
   if ($("mTrades")) $("mTrades").textContent = "—";
   if ($("mBars")) $("mBars").textContent = "—";
-  if ($("navNow")) $("navNow").textContent = t("navNowIdle");
+  if ($("navStart")) $("navStart").textContent = "$10,000.00";
+  if ($("navNow")) $("navNow").textContent = "$10,000.00";
   if ($("navPnl")) {
-    $("navPnl").textContent = t("navPnlIdle");
-    $("navPnl").className = "nav-chip";
+    $("navPnl").textContent = "+0.00%";
+    $("navPnl").className = "val up";
   }
-  if ($("navDd")) $("navDd").textContent = t("navDdIdle");
+  if ($("navDd")) {
+    $("navDd").textContent = "0.0%";
+    $("navDd").className = "val down";
+  }
   if ($("navDur")) {
     $("navDur").textContent = t("navDurIdle");
-    $("navDur").className = "nav-chip nav-dur";
+    $("navDur").className = "val";
   }
   if (equityChart) {
     equityChart.remove();
@@ -395,7 +396,7 @@ function tradePillsHtml(trades) {
       return (
         `<div class="trade-pill-item" data-trade-item="${idx}">` +
         `<button type="button" class="trade-pill ${win ? "up" : "down"}" data-trade-idx="${idx}" aria-expanded="false">` +
-        `${win ? "🟢" : "🔴"} ${sign}$${usd} (${md})` +
+        `${sign}$${usd} · ${md}` +
         `</button>` +
         `<div class="trade-pill-detail" id="tradeDetail${idx}" hidden>${tradePillDetailHtml(tr)}</div>` +
         `</div>`
@@ -440,33 +441,14 @@ function paintRetail(eq, st, trades, ctx) {
   const profit = end - START_EQ;
   const pct = st ? st.ret : 0;
   const days = ctx ? ctx.windowDays : spanDays(bars);
-  const closed = (trades || []).filter((tr) => !tr.open);
-  const wins = closed.filter((tr) => Number(tr.pnlAbs) > 0).length;
-  const losses = closed.length - wins;
-  const wr = closed.length ? wins / closed.length : 0;
-  const mdd = st ? st.mdd : 0;
-  const riskUsd = Math.abs(mdd) * START_EQ;
   const sign = profit >= 0 ? "+" : "-";
-  if ($("moneyEnd")) $("moneyEnd").textContent = "$" + fmtUsd0(START_EQ) + " → $" + fmtUsd0(end);
+  if ($("moneyEnd")) $("moneyEnd").textContent = "$" + fmtUsd(START_EQ) + " → $" + fmtUsd(end);
   if ($("moneyPnl")) {
     $("moneyPnl").textContent = t("moneyPnlTpl")
       .replace("{sign}", sign)
-      .replace("{amt}", fmtUsd0(Math.abs(profit)))
+      .replace("{amt}", fmtUsd(Math.abs(profit)))
       .replace("{pct}", fmtSignedPct(pct));
-    $("moneyPnl").className = "money-pnl" + (profit < 0 ? " down" : "");
-  }
-  if ($("moneyDays")) $("moneyDays").textContent = t("moneyDaysTpl").replace("{n}", String(days));
-  if ($("moneyHit")) {
-    $("moneyHit").textContent = t("moneyHitTpl")
-      .replace("{pct}", (wr * 100).toFixed(0) + "%")
-      .replace("{n}", String(closed.length))
-      .replace("{w}", String(wins))
-      .replace("{l}", String(losses));
-  }
-  if ($("moneyRisk")) {
-    $("moneyRisk").textContent = t("moneyRiskTpl")
-      .replace("{pct}", (mdd * 100).toFixed(1) + "%")
-      .replace("{amt}", fmtUsd0(riskUsd));
+    $("moneyPnl").className = "bb-term-pnl " + (profit < 0 ? "down" : "up");
   }
   pillEq = eq;
   if ($("tradePills")) $("tradePills").innerHTML = tradePillsHtml(trades);
@@ -479,24 +461,26 @@ function paintRetail(eq, st, trades, ctx) {
 function paintNav(eq, st, ctx) {
   const now = eq && eq.length ? eq[eq.length - 1] : START_EQ;
   const down = !!(st && st.ret < 0);
+  const dd = st ? st.mdd : 0;
+  const n = ctx ? ctx.windowDays : spanDays(bars);
+  if ($("navStart")) $("navStart").textContent = "$" + fmtUsd(START_EQ);
   if ($("navNow")) {
-    $("navNow").textContent = t("navNowTpl").replace("{v}", "$" + fmtUsd(now));
+    $("navNow").textContent = "$" + fmtUsd(now);
     if (window.QAUi) window.QAUi.flash($("navNow"), down);
   }
   if ($("navPnl")) {
-    $("navPnl").textContent = t("navPnlTpl").replace("{v}", fmtSignedPct(st ? st.ret : 0));
-    $("navPnl").className = "nav-chip " + (st && st.ret < 0 ? "down" : "up");
+    $("navPnl").textContent = fmtSignedPct(st ? st.ret : 0);
+    $("navPnl").className = "val " + (st && st.ret < 0 ? "down" : "up");
     if (window.QAUi) window.QAUi.flash($("navPnl"), down);
   }
-  const dd = st ? st.mdd : 0;
   if ($("navDd")) {
-    $("navDd").textContent = t("navDdTpl").replace("{v}", (dd * 100).toFixed(1) + "%");
+    $("navDd").textContent = (dd * 100).toFixed(1) + "%";
+    $("navDd").className = "val down";
     if (window.QAUi) window.QAUi.flash($("navDd"), true);
   }
   if ($("navDur")) {
-    const n = ctx ? ctx.windowDays : spanDays(bars);
     $("navDur").textContent = t("navDurTpl").replace("{n}", String(n));
-    $("navDur").className = "nav-chip nav-dur";
+    $("navDur").className = "val accent";
     if (window.QAUi) window.QAUi.flash($("navDur"), false);
   }
 }
