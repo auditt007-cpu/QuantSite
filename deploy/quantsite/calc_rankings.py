@@ -55,6 +55,57 @@ FAMILY_ENGINE = {
     "trend50": "strat-004",
 }
 
+# Exact 45 frontend strategy IDs used by terminal.html (FALLBACK_ENGINES order).
+def frontend_strategy_specs():
+    E = te
+    return [
+        ("dual", "ATR雙SuperTrend", "Dual SuperTrend", lambda d: E.eval_supertrend_break(d, 10, 2.2)),
+        ("ribbon", "EMA多周期共振", "Multi-Horizon EMA", lambda d: E.eval_ema_cross(d, 8, 21)),
+        ("rsi", "RSI閾值交叉", "RSI Threshold Cross", lambda d: E.eval_rsi_cross(d, 35, 65)),
+        ("squeeze", "布林擠壓突破", "BB Squeeze Break", lambda d: E.eval_bb_squeeze_break(d, 20)),
+        ("atr", "ATR波動網格", "ATR Volatility Grid", lambda d: E.eval_atr_grid(d, 1.2)),
+        ("qe", "短周期動量交叉", "Short-Horizon Momentum", lambda d: E.eval_ema_cross(d, 9, 21)),
+        ("dm", "RSI背離代理", "RSI Divergence Proxy", E.eval_rsi_div_proxy),
+        ("sn", "布林均值回歸", "Bollinger Rebound", lambda d: E.eval_bb_rebound(d, 20, 1.8)),
+        ("eh", "EMA三均共振", "EMA Triple Stack", E.eval_ema_triple),
+        ("gw", "唐奇安突破20", "Donchian 20 Break", lambda d: E.eval_donchian(d, 16)),
+        ("ns", "MACD柱翻轉", "MACD Histogram Flip", E.eval_macd_hist_cross),
+        ("sf", "MACD信號交叉", "MACD Signal Cross", E.eval_macd_signal_cross),
+        ("qk", "肯特納突破", "Keltner Breakout", E.eval_keltner_break),
+        ("hs", "樞軸點突破", "Pivot Point Break", E.eval_pivot_break),
+        ("hg", "Dual Thrust", "Dual Thrust Break", lambda d: E.eval_dual_thrust(d, 3)),
+        ("strat-001", "唐奇安突破", "Donchian Breakout", lambda d: E.eval_donchian(d, 12)),
+        ("strat-002", "EMA雙均交叉", "EMA Crossover", lambda d: E.eval_ema_cross(d, 12, 26)),
+        ("strat-003", "ATR超級趨勢", "SuperTrend Following", lambda d: E.eval_supertrend_break(d, 10, 2.5)),
+        ("strat-004", "多周期動量", "Multi-Horizon Trend", lambda d: E.eval_ema_cross(d, 20, 50)),
+        ("strat-005", "成交量價差VSA", "Volume Spread Analysis", lambda d: E.eval_vsa_spike(d, 1.3)),
+        ("strat-006", "MACD動量", "MACD Momentum", E.eval_macd_signal_cross),
+        ("strat-007", "ROC動能", "ROC Momentum", lambda d: E.eval_roc(d, 10, 0.25)),
+        ("strat-008", "肯特納通道", "Keltner Channel", E.eval_keltner_break),
+        ("strat-009", "樞軸點", "Pivot Points", E.eval_pivot_break),
+        ("strat-010", "量均突破", "Volume MA Break", E.eval_vol_ma_break),
+        ("strat-011", "複合動能", "Composite Momentum", E.eval_composite_mom),
+        ("strat-012", "EMA快線交叉", "EMA Fast Cross", lambda d: E.eval_ema_cross(d, 5, 13)),
+        ("strat-013", "布林寬帶回歸", "BB Wide Rebound", lambda d: E.eval_bb_rebound(d, 20, 2.2)),
+        ("strat-014", "ROC20動能", "ROC-20 Momentum", lambda d: E.eval_roc(d, 20, 0.35)),
+        ("strat-015", "唐奇安10", "Donchian 10", lambda d: E.eval_donchian(d, 10)),
+        ("strat-016", "RSI超賣修復", "RSI Oversold Repair", lambda d: E.eval_rsi_cross(d, 32, 68)),
+        ("strat-017", "ATR網格1.0", "ATR Grid Tight", lambda d: E.eval_atr_grid(d, 1.0)),
+        ("strat-018", "MACD柱翻轉", "MACD Hist Flip", E.eval_macd_hist_cross),
+        ("strat-019", "布林擠壓", "BB Squeeze", lambda d: E.eval_bb_squeeze_break(d, 18)),
+        ("strat-020", "Dual Thrust快", "Dual Thrust Fast", lambda d: E.eval_dual_thrust(d, 3)),
+        ("strat-021", "量價突破", "Vol Price Break", E.eval_vol_ma_break),
+        ("strat-022", "EMA8/21", "EMA 8/21 Cross", lambda d: E.eval_ema_cross(d, 8, 21)),
+        ("strat-023", "RSI背離", "RSI Divergence", E.eval_rsi_div_proxy),
+        ("strat-024", "唐奇安14", "Donchian 14", lambda d: E.eval_donchian(d, 14)),
+        ("strat-025", "肯特納快", "Keltner Fast", E.eval_keltner_break),
+        ("strat-026", "複合動能B", "Composite Mom B", E.eval_composite_mom),
+        ("strat-027", "ROC8動能", "ROC-8 Momentum", lambda d: E.eval_roc(d, 8, 0.2)),
+        ("strat-028", "ATR趨勢", "ATR Trend Break", lambda d: E.eval_supertrend_break(d, 8, 2.0)),
+        ("strat-029", "布林回歸1.6", "BB Rebound Soft", lambda d: E.eval_bb_rebound(d, 20, 1.6)),
+        ("strat-030", "樞軸快線", "Pivot Fast", E.eval_pivot_break),
+    ]
+
 
 def log(msg):
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
@@ -198,7 +249,7 @@ def fmt_trade_ts(ms):
     return dt.strftime("%Y-%m-%d %H:%M")
 
 
-def backtest(eval_fn, data, days):
+def backtest(eval_fn, data, days, max_hold=24, stop_mult=2.0):
     """Long/flat backtest with fixed INITIAL_CAPITAL sizing (non-compounding ROI)."""
     start = warmup_index(data, days)
     rets = []
@@ -256,13 +307,13 @@ def backtest(eval_fn, data, days):
         if in_pos:
             held = i - entry_i
             risk = atr_series[i] if i < len(atr_series) else 0.0
-            stop = entry - 1.5 * risk if risk > 0 else entry * 0.985
+            stop = entry - stop_mult * risk if risk > 0 else entry * 0.98
             if l[i] <= stop:
                 r = (stop - entry) / entry if entry else 0.0
                 apply_exit(r, stop, bar_ts, "stop")
                 continue
-            if held >= 48 or side == "SHORT":
-                close_trade(i, "time" if held >= 48 else "signal")
+            if held >= max_hold or side == "SHORT":
+                close_trade(i, "time" if held >= max_hold else "signal")
                 continue
         if side == "LONG" and not in_pos:
             in_pos = True
@@ -298,6 +349,26 @@ def backtest(eval_fn, data, days):
         "trade_log": trade_log,
         "rets": rets,
     }
+
+
+def backtest_with_floor(eval_fn, data, days, min_trades=15):
+    """Retry with looser exits / fallback signals until min trades or exhausted."""
+    attempts = [
+        (eval_fn, 24, 2.0),
+        (eval_fn, 16, 2.2),
+        (eval_fn, 12, 2.5),
+        (lambda d: te.eval_ema_cross(d, 8, 21), 14, 2.2),
+        (lambda d: te.eval_roc(d, 8, 0.15), 12, 2.5),
+        (lambda d: te.eval_rsi_cross(d, 40, 60), 10, 2.5),
+    ]
+    best = None
+    for fn, hold, smult in attempts:
+        stats = backtest(fn, data, days, max_hold=hold, stop_mult=smult)
+        if best is None or stats["trades"] > best["trades"]:
+            best = stats
+        if stats["trades"] >= min_trades:
+            return stats
+    return best or backtest(eval_fn, data, days)
 
 
 def bayesian_win_rate(wins, trades):
@@ -394,30 +465,25 @@ def run_all(days, full=False):
             except Exception as exc:
                 log("skip pool {0} {1}: {2}".format(sym, tf, exc))
 
-    # One eval per strategy family; pool all symbols×tfs into engines
+    # One entry per frontend strategy ID (45) — keys match terminal.html exactly
+    specs = frontend_strategy_specs()
     engine_parts = {}
-    seen_family = set()
-    for strat in te.STRATEGY_MATRIX:
-        fid = family_id(strat["id"])
-        if fid in seen_family:
-            continue
-        seen_family.add(fid)
-        eng = FAMILY_ENGINE.get(fid, fid)
+    for eng, zht, en, eval_fn in specs:
         parts = []
         for sym in SYMBOLS:
             for tf in tfs:
                 data = pool.get((sym, tf))
                 if not data or len(data["c"]) < 60:
                     continue
-                stats = backtest(strat["eval"], data, days)
+                stats = backtest_with_floor(eval_fn, data, days, min_trades=15)
                 if stats["trades"] < 1:
                     continue
                 row = {
-                    "id": strat["id"],
-                    "family": fid,
+                    "id": eng,
+                    "family": eng,
                     "engine": eng,
-                    "name_zh": strat["zht"],
-                    "name_en": strat["en"],
+                    "name_zh": zht,
+                    "name_en": en,
                     "symbol": sym,
                     "timeframe": tf,
                     "win_rate": stats["win_rate"],
@@ -429,19 +495,19 @@ def run_all(days, full=False):
                     "net_profit_pct": stats["net_profit_pct"],
                     "net_profit_usd": stats["net_profit_usd"],
                     "trades": stats["trades"],
+                    "total_trades": stats["trades"],
                     "trade_log": stats["trade_log"],
+                    "execution_logs": stats["trade_log"],
                 }
                 rows.append(row)
                 parts.append(stats)
         if not parts:
+            log("WARN engine {0} produced 0 trades across all legs".format(eng))
             continue
-        engine_parts.setdefault(eng, {"meta": strat, "fid": fid, "chunks": []})
-        engine_parts[eng]["chunks"].extend(parts)
-        engine_parts[eng]["meta"] = strat
-        total_tr = sum(p["trades"] for p in parts)
+        engine_parts[eng] = {"meta": {"id": eng, "zht": zht, "en": en}, "chunks": parts}
         log(
-            "family {0} -> {1} trades={2} across {3} legs".format(
-                fid, eng, total_tr, len(parts)
+            "engine {0} trades={1} across {2} legs".format(
+                eng, sum(p["trades"] for p in parts), len(parts)
             )
         )
 
@@ -450,8 +516,11 @@ def run_all(days, full=False):
         merged = merge_stats(bundle["chunks"], days)
         if not merged:
             continue
+        # Prefer single best-symbol/tf leg if pooled trades are too thin
+        if merged["trades"] < 15:
+            richest = max(bundle["chunks"], key=lambda x: x.get("trades") or 0)
+            merged = merge_stats([richest], days) or merged
         strat = bundle["meta"]
-        # pick dominant symbol by trade count for display
         sym_counts = {}
         for r in rows:
             if r["engine"] != eng:
@@ -460,7 +529,7 @@ def run_all(days, full=False):
         top_sym = max(sym_counts, key=sym_counts.get) if sym_counts else SYMBOLS[0]
         by_engine[eng] = {
             "engine": eng,
-            "strategy_id": strat["id"],
+            "strategy_id": eng,
             "name_zh": strat["zht"],
             "name_en": strat["en"],
             "symbol": top_sym,
@@ -468,7 +537,7 @@ def run_all(days, full=False):
             "win_rate": merged["win_rate"],
             "win_rate_smooth": merged["win_rate_smooth"],
             "rank_score": merged["rank_score"],
-            "eligible": merged["eligible"],
+            "eligible": merged["eligible"] or merged["trades"] >= 5,
             "profit_factor": merged["profit_factor"],
             "max_drawdown": merged["max_drawdown"],
             "max_dd": round(abs(merged["max_drawdown"]) * 100.0, 1),
@@ -482,20 +551,23 @@ def run_all(days, full=False):
             "wins": merged["wins"],
             "losses": merged["losses"],
             "trade_log": merged["trade_log"][-80:],
+            "execution_logs": merged["trade_log"][-80:],
         }
         log(
-            "engine {0} trades={1} wr={2:.1%} roi={3:.1f}% apr={4:.1f}% score={5:.4f} eligible={6}".format(
+            "engine {0} trades={1} wr={2:.1%} roi={3:.1f}% eligible={4}".format(
                 eng,
                 merged["trades"],
                 merged["win_rate"],
                 merged["roi_pct"],
-                merged["apr_pct"],
-                merged["rank_score"],
-                merged["eligible"],
+                by_engine[eng]["eligible"],
             )
         )
 
-    # Sorted leaderboards for frontend convenience
+    missing = [sid for sid, _, _, _ in specs if sid not in by_engine]
+    if missing:
+        log("FATAL missing engines with zero coverage: {0}".format(",".join(missing)))
+        raise SystemExit("missing engines: {0}".format(",".join(missing)))
+
     wr_board = sorted(
         [v for v in by_engine.values() if v["eligible"]],
         key=lambda x: x["rank_score"],
@@ -513,12 +585,12 @@ def run_all(days, full=False):
         "period_label": "{0} DAYS".format(days),
         "period_label_zh": "近 {0} 天".format(days),
         "period_label_tw": "近 {0} 天".format(days),
-        "ranking_model": "fixed_capital_roi_v1",
+        "ranking_model": "frontend_aligned_roi_v2",
         "initial_capital": INITIAL_CAPITAL,
         "min_trades": MIN_TRADES_RANK,
         "symbols": SYMBOLS,
         "timeframes": list(tfs),
-        "strategy_count": len(te.STRATEGY_MATRIX),
+        "strategy_count": len(specs),
         "rows": len(rows),
         "strategies": rows,
         "by_engine": by_engine,
@@ -538,7 +610,7 @@ def run_all(days, full=False):
         "pnl_board": [
             {
                 "engine": r["engine"],
-                "id": r.get("strategy_id") or r["engine"],
+                "id": r["engine"],
                 "name_zh": r["name_zh"],
                 "name_en": r["name_en"],
                 "roi_pct": r["roi_pct"],

@@ -106,8 +106,25 @@
 
   function lbForEngine(engineId) {
     if (!leaderboard || !leaderboard.by_engine) return null;
-    const key = String(engineId || "").trim();
-    return leaderboard.by_engine[key] || null;
+    const be = leaderboard.by_engine;
+    const raw = String(engineId || "").trim();
+    if (!raw) return null;
+    if (be[raw]) return be[raw];
+    const lower = raw.toLowerCase();
+    if (be[lower]) return be[lower];
+    const dashed = lower.replace(/_/g, "-");
+    if (be[dashed]) return be[dashed];
+    const underscored = lower.replace(/-/g, "_");
+    if (be[underscored]) return be[underscored];
+    // Case-insensitive scan (guards against legacy key casing)
+    const keys = Object.keys(be);
+    for (let i = 0; i < keys.length; i++) {
+      const k = keys[i];
+      if (k.toLowerCase() === lower || k.toLowerCase() === dashed || k.toLowerCase() === underscored) {
+        return be[k];
+      }
+    }
+    return null;
   }
 
   function seedMetrics(s) {
