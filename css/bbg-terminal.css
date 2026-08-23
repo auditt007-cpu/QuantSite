@@ -254,16 +254,21 @@
 
 .bbg-trade-detail {
   margin-top: 6px;
-  border: 1px solid #1e293b;
+  border: 1px solid #bbf7d0;
   border-radius: 6px;
   overflow-x: auto;
-  background: #0f172a;
+  background: #f0fdf4;
+}
+
+.bbg-trade-item:has(.bbg-trade-loss) .bbg-trade-detail {
+  background: #fef2f2;
+  border-color: #fecaca;
 }
 
 .bbg-trade-detail[hidden] { display: none !important; }
 
 .bbg-trade-detail .trade-pill-table-wrap {
-  background: #0f172a;
+  background: transparent;
 }
 
 .bbg-trade-detail .trade-pill-table {
@@ -272,28 +277,48 @@
   border-collapse: collapse;
   font-size: 11px;
   font-family: inherit;
-  color: #e2e8f0;
-  background: #0f172a;
+  color: #166534;
+  background: transparent;
 }
 
 .bbg-trade-detail .trade-pill-table th,
 .bbg-trade-detail .trade-pill-table td {
   padding: 8px 10px;
-  border: 1px solid #334155;
+  border: 1px solid #bbf7d0;
   white-space: nowrap;
-  color: #e2e8f0;
-  background: #0f172a;
+  color: #166534;
+  background: #f0fdf4;
 }
 
 .bbg-trade-detail .trade-pill-table th {
-  color: #ffffff;
+  color: #15803d;
   font-size: 10px;
   letter-spacing: 0.04em;
   font-weight: 700;
-  background: #1e293b;
+  background: #ecfdf5;
 }
 
-.bbg-trade-detail .trade-pill-table tbody tr:nth-child(even) td { background: #111827; }
+.bbg-trade-detail .trade-pill-table tbody tr:nth-child(even) td {
+  background: #ecfdf5;
+}
+
+.bbg-trade-item:has(.bbg-trade-loss) .bbg-trade-detail .trade-pill-table,
+.bbg-trade-item:has(.bbg-trade-loss) .bbg-trade-detail .trade-pill-table th,
+.bbg-trade-item:has(.bbg-trade-loss) .bbg-trade-detail .trade-pill-table td {
+  color: #991b1b;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.bbg-trade-item:has(.bbg-trade-loss) .bbg-trade-detail .trade-pill-table th {
+  color: #b91c1c;
+  background: #fff1f2;
+}
+
+.bbg-trade-item:has(.bbg-trade-loss) .bbg-trade-detail .trade-pill-table tbody tr:nth-child(even) td {
+  background: #fff1f2;
+}
+
 .bbg-trade-detail .trade-pill-table .pnl.up { color: #10b981; font-weight: 700; }
 .bbg-trade-detail .trade-pill-table .pnl.down { color: #ef4444; font-weight: 700; }
 

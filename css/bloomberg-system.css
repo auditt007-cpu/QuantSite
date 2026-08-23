@@ -673,8 +673,13 @@ textarea {
 
 .bbg-trade-detail {
   border-radius: 0;
-  background: #0f172a;
-  border: 1px solid #000000;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+.bbg-trade-item:has(.bbg-trade-loss) .bbg-trade-detail {
+  background: #fef2f2;
+  border-color: #fecaca;
 }
 
 .bbg-footer-bar {
