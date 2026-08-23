@@ -224,11 +224,22 @@
       $("mPf").textContent = !isFinite(st.pf) ? "∞" : st.pf.toFixed(2);
       $("mTrades").textContent = String(st.trades);
       $("mBars").textContent = String(sliced.length);
+      if (window.QAUi) {
+        window.QAUi.flash($("mWr"), st.wr < 0.5);
+        window.QAUi.flash($("mPf"), !(st.pf > 1));
+        window.QAUi.flash($("mTrades"), false);
+        window.QAUi.flash($("mBars"), false);
+      }
       const now = bt.equity[bt.equity.length - 1] || 10000;
       $("navNow").textContent = t("navNowTpl").replace("{v}", "$" + now.toFixed(2));
       $("navPnl").textContent = t("navPnlTpl").replace("{v}", pct(st.ret));
       $("navPnl").className = "nav-chip " + (st.ret < 0 ? "down" : "up");
       $("navDd").textContent = t("navDdTpl").replace("{v}", (st.mdd * 100).toFixed(1) + "%");
+      if (window.QAUi) {
+        window.QAUi.flash($("navNow"), st.ret < 0);
+        window.QAUi.flash($("navPnl"), st.ret < 0);
+        window.QAUi.flash($("navDd"), true);
+      }
       paintCharts(sliced, bt.equity, bt.drawdown);
       if (!entries.length) toast(t("noSignals"), "warn");
       else toast(t("btDone").replace("{ms}", "—").replace("{n}", String(sliced.length)), "ok");

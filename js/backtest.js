@@ -192,13 +192,21 @@ function paintPine() {
 
 function paintNav(eq, st) {
   const now = eq && eq.length ? eq[eq.length - 1] : START_EQ;
-  if ($("navNow")) $("navNow").textContent = t("navNowTpl").replace("{v}", "$" + fmtUsd(now));
+  const down = !!(st && st.ret < 0);
+  if ($("navNow")) {
+    $("navNow").textContent = t("navNowTpl").replace("{v}", "$" + fmtUsd(now));
+    if (window.QAUi) window.QAUi.flash($("navNow"), down);
+  }
   if ($("navPnl")) {
     $("navPnl").textContent = t("navPnlTpl").replace("{v}", fmtSignedPct(st ? st.ret : 0));
     $("navPnl").className = "nav-chip " + (st && st.ret < 0 ? "down" : "up");
+    if (window.QAUi) window.QAUi.flash($("navPnl"), down);
   }
   const dd = st ? st.mdd : 0;
-  if ($("navDd")) $("navDd").textContent = t("navDdTpl").replace("{v}", (dd * 100).toFixed(1) + "%");
+  if ($("navDd")) {
+    $("navDd").textContent = t("navDdTpl").replace("{v}", (dd * 100).toFixed(1) + "%");
+    if (window.QAUi) window.QAUi.flash($("navDd"), true);
+  }
 }
 
 function chartBoxSize(el, desktopH) {
@@ -319,10 +327,22 @@ function run(silent) {
   const st = catalog.performanceOf(trades, eq, catalog.barsPerYear(interval), bars);
   if ($("sampleHint")) $("sampleHint").textContent = t("sampleHintTpl").replace("{n}", String(bars.length));
   paintNav(eq, st);
-  if ($("mWr")) $("mWr").textContent = (st.hit * 100).toFixed(1) + "%";
-  if ($("mPf")) $("mPf").textContent = fmtPf(st.pf);
-  if ($("mTrades")) $("mTrades").textContent = String(st.trades);
-  if ($("mBars")) $("mBars").textContent = String(bars.length);
+  if ($("mWr")) {
+    $("mWr").textContent = (st.hit * 100).toFixed(1) + "%";
+    if (window.QAUi) window.QAUi.flash($("mWr"), st.hit < 0.5);
+  }
+  if ($("mPf")) {
+    $("mPf").textContent = fmtPf(st.pf);
+    if (window.QAUi) window.QAUi.flash($("mPf"), !(st.pf > 1));
+  }
+  if ($("mTrades")) {
+    $("mTrades").textContent = String(st.trades);
+    if (window.QAUi) window.QAUi.flash($("mTrades"), false);
+  }
+  if ($("mBars")) {
+    $("mBars").textContent = String(bars.length);
+    if (window.QAUi) window.QAUi.flash($("mBars"), false);
+  }
   if ($("tradeRows")) $("tradeRows").innerHTML = tradeRowsHtml(trades, eq);
   if (candleSeries) {
     candleSeries.setMarkers(

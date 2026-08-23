@@ -20,5 +20,13 @@
     return /^[0-9a-fA-F]{64}$/.test(s);
   }
 
+  function flash(el, down) {
+    if (!el) return;
+    el.classList.remove("data-updated-up", "data-updated-down");
+    void el.offsetWidth;
+    el.classList.add(down ? "data-updated-down" : "data-updated-up");
+  }
+
   root.QAMoney = { round2, fmtUsdt, isTrc20, isTxHash };
+  root.QAUi = { flash };
 })(typeof window !== "undefined" ? window : globalThis);

@@ -56,6 +56,7 @@
     el.classList.remove("soft");
     if (Number.isFinite(hit) && hit > 0) {
       el.textContent = (hit * 100).toFixed(1) + "%";
+      if (window.QAUi) window.QAUi.flash(el, false);
       return;
     }
     el.classList.add("soft");
@@ -67,6 +68,7 @@
     el.classList.remove("soft");
     if (Number.isFinite(sharpe) && sharpe > 0) {
       el.textContent = sharpe.toFixed(2);
+      if (window.QAUi) window.QAUi.flash(el, false);
       return;
     }
     el.classList.add("soft");
@@ -131,7 +133,7 @@
          <a class="ghost-link" href="${unlockHref}" ${paid() ? 'target="_blank" rel="noopener"' : ""}>${unlockLabel}</a>`
       : `<button type="button" class="btn-cta compact" data-open="${s.engine || s.id}" data-iv="${s.interval || "1h"}">⚡ ${t("mktOpenBt")}</button>`;
     const badge = master ? `<span class="vip-badge">🔒 VIP 專屬</span>` : "";
-    return `<article class="m-card${master ? " master" : ""}" data-id="${s.id}" data-tier="${master ? "master" : "free"}" data-kind="${kindOf(s)}">
+    return `<article class="m-card strategy-card${master ? " master" : ""}" data-id="${s.id}" data-tier="${master ? "master" : "free"}" data-kind="${kindOf(s)}">
         ${badge}
         <h3>${s.name}</h3>
         <p class="muted">${(s.symbols || ["BTCUSDT"]).join(" / ")} · ${String(s.interval || "1h").toUpperCase()}</p>

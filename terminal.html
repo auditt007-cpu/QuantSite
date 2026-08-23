@@ -34,8 +34,19 @@
         </div>
       </div>
     </header>
-    <div class="ticker" aria-hidden="true">QUANT ALPHA · STRATEGY TERMINAL · EDITORIAL LIGHT · LIVE RESEARCH</div>
+    <div class="ticker-bar" id="tickerBar" aria-label="Market ticker">
+      <div class="ticker-track" id="tickerTrack">
+        <span class="ticker-pill" data-sym="BTCUSDT"><span class="tp-sym">BTC</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
+        <span class="ticker-pill" data-sym="ETHUSDT"><span class="tp-sym">ETH</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
+        <span class="ticker-pill" data-sym="SOLUSDT"><span class="tp-sym">SOL</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
+        <span class="ticker-pill" data-sym="BNBUSDT"><span class="tp-sym">BNB</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
+        <span class="ticker-pill" data-sym="XRPUSDT"><span class="tp-sym">XRP</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
+        <span class="ticker-pill" data-sym="DOGEUSDT"><span class="tp-sym">DOGE</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
+      </div>
+    </div>
 
+    <div class="editorial-grid">
+      <div class="editorial-main">
     <div id="viewList">
       <section class="ai-lab">
         <details class="ai-disc">
@@ -50,7 +61,7 @@
           <button type="button" class="ai-chip" data-fill="RSI 出現底背離（價格創新低但 RSI 抬高）時抄底做多，RSI 回到 60 以上平倉。" data-i18n="chipRsi">RSI底背離抄底</button>
           <button type="button" class="ai-chip" data-fill="EMA20、EMA50、EMA200 多頭排列且收盤站上 EMA20 時做多，跌破 EMA50 平倉。" data-i18n="chipEma">均線多頭共振</button>
         </div>
-        <button type="button" class="btn-cta lg ai-go" id="btnAiGo" data-i18n="aiGo">🧠 立即生成並回測</button>
+        <button type="button" class="btn-cta lg ai-go action-btn" id="btnAiGo" data-i18n="aiGo">🧠 立即生成並回測</button>
         <p class="muted" id="aiHint" data-i18n="aiHint">訪客每日 3 次 · 綁定 Telegram 10 次 · VIP 100 次</p>
       </section>
 
@@ -67,7 +78,7 @@
     </div>
 
     <div id="viewBacktest" hidden>
-      <button type="button" class="btn-back-list" id="btnBackList" data-i18n="backList">[ &lt; 返回策略列表 ]</button>
+      <button type="button" class="btn-back-list action-btn" id="btnBackList" data-i18n="backList">[ &lt; 返回策略列表 ]</button>
       <section class="lab-top">
         <div class="lab-top-bar">
           <div id="wsStatus" class="feed-status wait">● 數據重連中</div>
@@ -91,7 +102,7 @@
           <label class="muted" for="stratSelect" data-i18n="engineLabel">策略引擎選擇</label>
           <select id="stratSelect"></select>
           <div class="lab-actions gm-toolbar">
-            <button class="btn-cta gm-btn" id="btnRun" data-i18n="gmRun">Run Backtest</button>
+            <button class="btn-cta gm-btn action-btn" id="btnRun" data-i18n="gmRun">Run Backtest</button>
           </div>
           <div class="risk-banner" id="masterGate" hidden></div>
           <details class="pine-box">
@@ -134,6 +145,30 @@
           </table>
         </div>
       </section>
+    </div>
+      </div>
+      <aside class="editorial-rail" aria-label="Live desk">
+        <section class="rail-block">
+          <div class="kicker">LIVE DESK</div>
+          <h3 class="rail-h">實時戰報</h3>
+          <ul class="rail-tape" id="liveTape">
+            <li><span class="tape-time">LIVE</span><span class="tape-body">終端就緒 · 等待策略回測輸出</span></li>
+            <li><span class="tape-time">SYS</span><span class="tape-body">瀏覽器本地計算 · 拒絕服務端造假</span></li>
+            <li><span class="tape-time">AI</span><span class="tape-body">自然語言策略可一鍵生成並回測</span></li>
+          </ul>
+        </section>
+        <section class="rail-block">
+          <div class="kicker">MARKET</div>
+          <h3 class="rail-h">市場概覽</h3>
+          <div class="rail-quotes" id="railQuotes">
+            <div class="rail-quote" data-sym="BTCUSDT"><span>BTC</span><b data-px>—</b><em data-chg>—</em></div>
+            <div class="rail-quote" data-sym="ETHUSDT"><span>ETH</span><b data-px>—</b><em data-chg>—</em></div>
+            <div class="rail-quote" data-sym="SOLUSDT"><span>SOL</span><b data-px>—</b><em data-chg>—</em></div>
+            <div class="rail-quote" data-sym="BNBUSDT"><span>BNB</span><b data-px>—</b><em data-chg>—</em></div>
+          </div>
+          <p class="muted rail-note">報價來自公開行情接口，僅供研究對照。</p>
+        </section>
+      </aside>
     </div>
 
     <footer class="site-foot">
