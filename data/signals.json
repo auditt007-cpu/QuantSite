@@ -1,8 +1,76 @@
 {
-  "updated_at": "2026-08-24T15:22:32Z",
-  "venue": "coinbase",
+  "updated_at": "2026-08-24T15:24:41Z",
+  "venue": "binance_us",
   "poll_sec": 5,
   "exec_log": [
+    {
+      "kind": "batch",
+      "name_zh": "布林微破",
+      "interval": "5m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787585082,
+      "bar_ts": 1787584500,
+      "event": "open",
+      "strategy_id": "hb-bb5",
+      "symbols": [
+        {
+          "symbol": "SUIUSDT",
+          "price": 0.8373,
+          "sl_pct": -0.6907918308849887,
+          "tp_pct": 1.381703093275999,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "5m動能微破",
+      "interval": "5m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787585081,
+      "bar_ts": 1787584500,
+      "event": "open",
+      "strategy_id": "hb-roc5",
+      "symbols": [
+        {
+          "symbol": "DOGEUSDT",
+          "price": 0.09218,
+          "sl_pct": -0.5239748318507239,
+          "tp_pct": 1.047949663701463,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "SOLUSDT",
+          "price": 96.66,
+          "sl_pct": -0.492438444030616,
+          "tp_pct": 0.9848768880612467,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "ETHUSDT",
+          "price": 2519.08,
+          "sl_pct": -0.4036078250789914,
+          "tp_pct": 0.8072156501580009,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "BTCUSDT",
+          "price": 79738.54,
+          "sl_pct": -0.38962631244563767,
+          "tp_pct": 0.7792526248913119,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 4
+    },
     {
       "kind": "batch",
       "name_zh": "多策略共振",
@@ -104,44 +172,6 @@
         }
       ],
       "strategy_count": 11
-    },
-    {
-      "kind": "batch",
-      "name_zh": "5m動能微破",
-      "interval": "5m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787584827,
-      "bar_ts": 1787584500,
-      "event": "open",
-      "strategy_id": "hb-roc5",
-      "symbols": [
-        {
-          "symbol": "SOLUSDT",
-          "price": 96.66,
-          "sl_pct": -0.492438444030616,
-          "tp_pct": 0.9848768880612467,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "ETHUSDT",
-          "price": 2519.08,
-          "sl_pct": -0.4036078250789914,
-          "tp_pct": 0.8072156501580009,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "BTCUSDT",
-          "price": 79738.54,
-          "sl_pct": -0.38962631244563767,
-          "tp_pct": 0.7792526248913119,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 3
     },
     {
       "kind": "batch",
@@ -799,17 +829,9 @@
           "tp_pct": 2.6458057180116246,
           "event": "open",
           "pnl_pct": null
-        },
-        {
-          "symbol": "BTCUSDT",
-          "price": 79486.09,
-          "sl_pct": -1.1233878896294827,
-          "tp_pct": 2.246775779258984,
-          "event": "open",
-          "pnl_pct": null
         }
       ],
-      "strategy_count": 12
+      "strategy_count": 11
     },
     {
       "kind": "batch",
@@ -1004,36 +1026,6 @@
         }
       ],
       "strategy_count": 6
-    },
-    {
-      "kind": "batch",
-      "name_zh": "多策略共振",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787584390,
-      "bar_ts": 1787583600,
-      "event": "open",
-      "strategy_id": "resonance_357516877",
-      "symbols": [
-        {
-          "symbol": "ONDOUSDT",
-          "price": 0.38149,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "ARBUSDT",
-          "price": null,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 2
     }
   ],
   "exec_log_raw_count": 200,
