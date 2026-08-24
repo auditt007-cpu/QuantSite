@@ -1615,14 +1615,56 @@ body.sheet-open { overflow: hidden; }
 .lab-chart-block.bt-chart-collapsed {
   display: none;
   margin-top: 14px;
-  animation: btChartReveal 0.35s ease;
 }
 .lab-chart-block.bt-chart-collapsed.is-open {
   display: block !important;
+  animation: btChartReveal 0.28s ease;
+}
+.lab-chart-block.bt-chart-collapsed.is-open .lab-chart-frame.bt-chart-frame-reserved {
+  min-height: 480px;
+  position: relative;
+}
+.bt-chart-skeleton {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+  border: 1px dashed #94a3b8;
+}
+.bt-chart-skeleton.is-visible {
+  display: flex;
+}
+.bt-skeleton-pulse {
+  width: 72%;
+  height: 58%;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  animation: btSkeletonPulse 1.2s ease-in-out infinite;
+}
+.bt-chart-skeleton p {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  letter-spacing: 0.04em;
+}
+#candleChart.bt-chart-hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+@keyframes btSkeletonPulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 @keyframes btChartReveal {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 .tf-bar {
   display: flex;

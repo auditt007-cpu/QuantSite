@@ -291,14 +291,19 @@
   }
 
   function vpsSortTs(sig) {
-    return Number(sig && (sig.logged_at || sig.bar_ts)) || 0;
+    return Number(sig && (sig.bar_ts || sig.logged_at)) || 0;
   }
 
   function vpsFeedRows(data) {
-    // exec_log is the action tape. An empty array means "no fills this
-    // cycle" — do not fall back to active_signals (those are holdings).
     if (Array.isArray(data.exec_log)) {
-      return data.exec_log.slice().sort((a, b) => vpsSortTs(b) - vpsSortTs(a));
+      return data.exec_log
+        .slice()
+        .sort((a, b) => vpsSortTs(b) - vpsSortTs(a))
+        .sort((a, b) => {
+          const dt = vpsSortTs(b) - vpsSortTs(a);
+          if (dt !== 0) return dt;
+          return String(a.symbol || "").localeCompare(String(b.symbol || ""));
+        });
     }
     return (data.active_signals_3h || [])
       .concat(data.closed_signals_3h || [])
@@ -315,7 +320,7 @@
     const px = sig.event === "close" ? sig.exit_price : sig.price;
     return (
       `<div class="exec-tape-row${isNew ? " is-new" : ""}" role="row">` +
-      `<span class="tape-col tape-time" role="cell">${fmtVpsTime(sig.logged_at || sig.bar_ts)}</span>` +
+      `<span class="tape-col tape-time" role="cell">${fmtVpsTime(sig.bar_ts || sig.logged_at)}</span>` +
       `<span class="tape-col tape-action ${actionCls}" role="cell">` +
       `<span class="tape-pill">${action}</span></span>` +
       `<span class="tape-col tape-pair" role="cell">${escapeHtml(fmtTapePair(sig.symbol))}</span>` +
@@ -329,6 +334,37 @@
   let vpsPollMs = 5000;
   let paintExecPillFn = null;
   let lastFeedUpdatedAt = "";
+  let syncAgeTimer = null;
+
+  function feedSyncSec(updatedAt) {
+    const ts = Date.parse(String(updatedAt || ""));
+    if (!isFinite(ts)) return null;
+    return Math.max(0, Math.round((Date.now() - ts) / 1000));
+  }
+
+  function paintFeedSyncLabel() {
+    const updatedEl = document.getElementById("vpsExecUpdated");
+    if (!updatedEl || !lastFeedUpdatedAt) return;
+    const sec = feedSyncSec(lastFeedUpdatedAt);
+    if (sec == null) return;
+    let sync;
+    if (sec < 90) {
+      sync = t("vpsExecSync").replace("{sec}", String(sec));
+    } else if (sec < 3600) {
+      const m = Math.max(1, Math.round(sec / 60));
+      sync = langKey().startsWith("en") ? "Last sync: " + m + "m ago" : "最近同步: " + m + "分钟前";
+    } else {
+      const h = Math.max(1, Math.round(sec / 3600));
+      sync = langKey().startsWith("en") ? "Last sync: " + h + "h ago" : "最近同步: " + h + "小时前";
+    }
+    updatedEl.textContent = t("vpsExecMeta") + " · " + sync;
+    updatedEl.classList.toggle("is-stale", sec >= 3600);
+  }
+
+  function ensureSyncAgeTicker() {
+    if (syncAgeTimer) return;
+    syncAgeTimer = setInterval(paintFeedSyncLabel, 1000);
+  }
 
   function scheduleVpsPoll(ms) {
     // Same-origin static feed; engine publishes ~5s. Cap client poll 5–15s.
@@ -337,15 +373,6 @@
     vpsPollMs = next;
     if (vpsBoardTimer) clearInterval(vpsBoardTimer);
     vpsBoardTimer = setInterval(refreshVpsExecBoard, vpsPollMs);
-  }
-
-  function feedAgeLabel(updatedAt) {
-    const ts = Date.parse(String(updatedAt || ""));
-    if (!isFinite(ts)) return "";
-    const sec = Math.max(0, Math.round((Date.now() - ts) / 1000));
-    if (sec < 90) return " · LIVE";
-    if (sec < 3600) return " · " + Math.round(sec / 60) + "m ago";
-    return " · " + Math.round(sec / 3600) + "h ago";
   }
 
   async function refreshVpsExecBoard() {
@@ -359,20 +386,10 @@
       const data = await res.json();
       scheduleVpsPoll(Number(data.poll_sec) ? Number(data.poll_sec) * 1000 : 5000);
       const merged = vpsFeedRows(data).slice(0, 20);
-      if (updatedEl) {
-        const meta = t("vpsExecMeta")
-          .replace("{n}", String(data.strategy_count || 45))
-          .replace("{sym}", String((data.symbols || []).length || 20))
-          .replace("{sec}", String(data.poll_sec || 60))
-          .replace("{tf}", String(data.scan_tf || "1h").toUpperCase());
-        const upd = data.updated_at
-          ? " · UPD " + String(data.updated_at).replace("T", " ").replace("Z", " UTC") + feedAgeLabel(data.updated_at)
-          : "";
-        updatedEl.textContent = meta + upd;
-        updatedEl.classList.toggle("is-stale", feedAgeLabel(data.updated_at).indexOf("h ago") >= 0);
-      }
-      if (data.updated_at && data.updated_at !== lastFeedUpdatedAt) {
+      if (updatedEl && data.updated_at) {
         lastFeedUpdatedAt = data.updated_at;
+        paintFeedSyncLabel();
+        ensureSyncAgeTicker();
       }
       if (!merged.length) {
         list.innerHTML = `<div class="exec-tape-empty">${escapeHtml(t("vpsExecEmpty"))}</div>`;
@@ -612,19 +629,19 @@
    * ------------------------------------------------------------------- */
   const SCAN_HUD_LINES = {
     "zh-Hant": [
-      "[系統] 每 60 秒掃描一次全市場訊號矩陣…",
-      "[系統] 45 組策略 × 20 個交易對持續運算中…",
-      "[系統] 演算法運作正常，耐心等待下一個訊號。",
+      "🟢 45套機構策略正24小時自動盯盤",
+      "📡 發現開平倉信號即時同步至執行流水",
+      "⏱ 演算法運作正常，耐心等待下一個信號",
     ],
     "zh-CN": [
-      "[系统] 每 60 秒扫描一次全市场信号矩阵…",
-      "[系统] 45 组策略 × 20 个交易对持续运算中…",
-      "[系统] 算法运行正常，耐心等待下一个信号。",
+      "🟢 45套机构策略正24小时自动盯盘",
+      "📡 发现开平仓信号即时同步至执行流水",
+      "⏱ 算法运行正常，耐心等待下一个信号",
     ],
     en: [
-      "[SYSTEM] Scanning the full signal matrix every 60s…",
-      "[SYSTEM] 45 strategies x 20 pairs running continuously…",
-      "[SYSTEM] Engine nominal, standing by for the next signal.",
+      "🟢 45 institutional strategies scanning markets 24/7",
+      "📡 Open/close signals sync to the execution feed in real time",
+      "⏱ Engine nominal — standing by for the next signal",
     ],
   };
   let scanHudIdx = 0;
@@ -1590,6 +1607,7 @@
       refreshWatchTape();
       refreshVpsExecBoard();
       paintConfigCounts();
+      paintFeedSyncLabel();
     });
   }
 

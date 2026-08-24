@@ -1,5 +1,6 @@
 (function (root) {
-  const POLL_MS = 60000;
+  const POLL_MS = 120000;
+  const VPS_NEWS = "https://api.quantalpha.space/news_feed.json?t=";
   const CC = "https://min-api.cryptocompare.com/data/v2/news/?extraParams=quantalpha&lang=";
   const RSS = "https://api.rss2json.com/v1/api.json?rss_url=";
 
@@ -171,6 +172,19 @@
     );
   }
 
+  async function pullVpsNews(key) {
+    const json = await fetchJson(VPS_NEWS + Date.now());
+    const items = Array.isArray(json.items) ? json.items : [];
+    return mustRows(
+      items.map((item) => ({
+        title: localizeTitle(item.title, key),
+        url: item.url || "#",
+        time: item.time || item.published_on || Date.now() / 1000,
+        source: item.source || "QuantAlpha",
+      }))
+    );
+  }
+
   function nodesFor(key) {
     const binance =
       key === "en"
@@ -183,6 +197,7 @@
           ? "https://www.jinse.cn/rss"
           : "https://cointelegraph.com/rss";
     return [
+      () => pullVpsNews(key),
       () => pullCc(key),
       () => pullCoinGecko(key),
       () => pullRss(key, binance).catch(() => pullRss(key, extra)),

@@ -158,11 +158,28 @@ function resolveInterval() {
 function revealBtChart() {
   const block = $("btChartReveal");
   if (!block) return;
+  block.classList.add("is-open", "is-loading");
   block.removeAttribute("hidden");
   block.hidden = false;
   block.style.display = "block";
-  block.classList.add("is-open");
   requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
+}
+
+function showChartSkeleton(on) {
+  const sk = $("btChartSkeleton");
+  const chart = $("candleChart");
+  if (sk) {
+    sk.hidden = !on;
+    sk.classList.toggle("is-visible", !!on);
+    sk.setAttribute("aria-hidden", on ? "false" : "true");
+  }
+  if (chart) chart.classList.toggle("bt-chart-hidden", !!on);
+}
+
+function hideChartLoadingState() {
+  showChartSkeleton(false);
+  const block = $("btChartReveal");
+  if (block) block.classList.remove("is-loading");
 }
 
 function waitChartLayout() {
@@ -1174,17 +1191,22 @@ function run(silent) {
 
 async function executeBacktest() {
   revealBtChart();
+  showChartSkeleton(true);
   await waitChartLayout();
   interval = resolveInterval();
   syncDock();
-  const ok = await fetchBars(interval, { mount: true, reset: true });
-  if (!ok) return;
-  const mounted = await mountCandles();
-  if (!mounted || !candleSeries) {
-    toast(t("needBars") || "K 線渲染失敗", "warn");
-    return;
+  try {
+    const ok = await fetchBars(interval, { mount: true, reset: true });
+    if (!ok) return;
+    const mounted = await mountCandles();
+    if (!mounted || !candleSeries) {
+      toast(t("needBars") || "K 線渲染失敗", "warn");
+      return;
+    }
+    run(false);
+  } finally {
+    hideChartLoadingState();
   }
-  run(false);
 }
 
 function bindDesk() {

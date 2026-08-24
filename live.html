@@ -37,6 +37,13 @@
           <span class="status-dot" aria-hidden="true"></span>
           <span data-i18n="statusPill">節點就緒 24ms · 99.99% Uptime</span>
         </div>
+        <div class="finance-radio-dock" id="financeRadioDock">
+          <button type="button" class="finance-radio-btn" id="financeRadioToggle" aria-pressed="false" data-i18n="financeRadioOff">📻 24H 財經電台: OFF</button>
+          <div class="finance-radio-lang" role="group" aria-label="Radio language">
+            <button type="button" class="finance-radio-lang-btn is-active" data-radio-lang="cn">中文</button>
+            <button type="button" class="finance-radio-lang-btn" data-radio-lang="en">EN</button>
+          </div>
+        </div>
         <div class="auth-dock" id="authDock">
           <button type="button" class="auth-btn" id="btnAuth">[ 🔐 請先登入 ]</button>
         </div>
@@ -247,7 +254,8 @@
   <script src="./js/engine-list.js"></script>
   <script src="https://s3.tradingview.com/tv.js" async></script>
   <script src="./js/tv-chart-manager.js?v=tv1"></script>
-  <script src="./js/live-room.js?v=tv1"></script>
+  <script src="./js/finance-radio.js?v=av1"></script>
+  <script src="./js/live-room.js?v=av1"></script>
   <script src="./js/mobile-ux.js"></script>
 </body>
 </html>

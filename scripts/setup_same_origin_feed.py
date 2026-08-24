@@ -37,6 +37,13 @@ server {
         try_files $uri =404;
     }
 
+    location = /news_feed.json {
+        default_type application/json;
+        add_header Cache-Control "no-store, no-cache, must-revalidate" always;
+        add_header Access-Control-Allow-Origin "*" always;
+        try_files $uri =404;
+    }
+
     location / {
         try_files $uri $uri/ $uri.html =404;
     }

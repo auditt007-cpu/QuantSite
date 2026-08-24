@@ -162,10 +162,13 @@
 
         <div class="lab-chart-block bt-chart-collapsed" id="btChartReveal">
           <div id="wsStatus" class="feed-status wait">● 數據重連中</div>
-          <div class="lab-chart-frame">
+          <div class="lab-chart-frame bt-chart-frame-reserved">
+            <div class="bt-chart-skeleton" id="btChartSkeleton" hidden aria-hidden="true">
+              <div class="bt-skeleton-pulse"></div>
+              <p data-i18n="btChartSkeleton">K 線圖載入中…</p>
+            </div>
             <div id="candleChart" class="lab-canvas chart-container"></div>
             <button type="button" class="chart-touch-toggle" data-target="candleChart" data-i18n="chartTouchOn">🔍 開啟互動</button>
-            <a class="tv-chart-badge" href="https://www.tradingview.com/" target="_blank" rel="noopener">Charts by TradingView</a>
           </div>
         </div>
 
@@ -378,7 +381,7 @@
   <script src="./js/engine-list.js"></script>
   <script src="./js/lib/grademark.min.js"></script>
   <script src="./js/lightweight-charts.standalone.production.js"></script>
-  <script src="./js/backtest.js"></script>
+  <script src="./js/backtest.js?v=av1"></script>
   <script src="./js/terminal.js"></script>
   <script src="./js/mobile-ux.js"></script>
 </body>

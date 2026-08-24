@@ -27,15 +27,21 @@ CHANNEL = (
     or os.environ.get("TG_CHANNEL", "").strip()
     or "@quant_alpha_signals"
 )
-# 20-symbol monitoring universe — mirrors the frontend's top ticker + live.html
-# coin picker so every surface (TG alerts, leaderboard, war room) watches the
-# same pool.
+# 20-symbol display universe (ticker / feed metadata)
 SYMBOLS = [
     "BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "DOGEUSDT",
     "ADAUSDT", "AVAXUSDT", "LINKUSDT", "SUIUSDT", "NEARUSDT", "APTUSDT",
     "OPUSDT", "ARBUSDT", "PEPEUSDT", "SHIBUSDT", "TIAUSDT", "INJUSDT",
     "RENDERUSDT", "FETUSDT",
 ]
+# Mainstream scan pool — keeps VPS CPU on liquid majors only
+SCAN_SYMBOLS = [
+    "BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "DOGEUSDT",
+    "LINKUSDT", "AVAXUSDT", "ADAUSDT",
+]
+# Per-strategy tape cap: prefer these when multiple symbols fire same cycle
+PRIORITY_SYMBOLS = ["BTCUSDT", "ETHUSDT", "SOLUSDT"]
+MAX_TAPE_EVENTS_PER_STRATEGY = 3
 TIMEFRAMES = ("15m", "1h")
 POLL_SEC = 60
 FEED_PUBLISH_SEC = 5
@@ -875,7 +881,7 @@ def refresh_live_feed_pool():
             return sym, None, exc
 
     with cf.ThreadPoolExecutor(max_workers=LIVE_FEED_WORKERS) as ex:
-        for sym, data, exc in ex.map(fetch_one, SYMBOLS):
+        for sym, data, exc in ex.map(fetch_one, SCAN_SYMBOLS):
             if data is not None:
                 pool[sym] = data
             else:
@@ -929,6 +935,27 @@ def merge_exec_log(existing, fresh_events):
         merged.insert(0, ev)
         keys.add(k)
     return merged[:LIVE_EXEC_LOG_MAX]
+
+
+def _priority_rank(sym):
+    try:
+        return PRIORITY_SYMBOLS.index(sym)
+    except ValueError:
+        return len(PRIORITY_SYMBOLS)
+
+
+def cap_strategy_log_events(events, max_per_strategy=MAX_TAPE_EVENTS_PER_STRATEGY):
+    """Limit burst tape rows per strategy; prefer BTC/ETH/SOL and real bar_ts."""
+    by_sid = {}
+    for ev in events:
+        sid = ev.get("strategy_id") or "_"
+        by_sid.setdefault(sid, []).append(ev)
+    capped = []
+    for evs in by_sid.values():
+        evs.sort(key=lambda e: (_priority_rank(e.get("symbol")), -(e.get("bar_ts") or 0)))
+        capped.extend(evs[:max_per_strategy])
+    capped.sort(key=lambda e: e.get("bar_ts") or e.get("logged_at") or 0, reverse=True)
+    return capped
 
 
 def load_position_state():
@@ -1056,7 +1083,7 @@ def scan_one(spec, pool, now_sec):
     closes = []
     log_events = []
     hydrating = _POSITION_STATE_HYDRATING
-    for sym in SYMBOLS:
+    for sym in SCAN_SYMBOLS:
         data = pool.get(sym)
         if not data or len(data["c"]) < 30:
             continue
@@ -1084,7 +1111,7 @@ def scan_one(spec, pool, now_sec):
                 sid, zht, en, sym, prev, exit_px, bar_ts_i, close_audio_url
             )
             closes.append(close_row)
-            log_events.append(dict(close_row, logged_at=int(now_sec)))
+            log_events.append(dict(close_row, logged_at=bar_ts_i))
             continue
 
         bar_ts_i = int(hit["bar_ts"])
@@ -1139,7 +1166,7 @@ def scan_one(spec, pool, now_sec):
         )
         open_row = _open_row(sid, zht, en, sym, side, price, bar_ts_i, audio_url)
         hits.append(open_row)
-        log_events.append(dict(open_row, logged_at=int(now_sec)))
+        log_events.append(dict(open_row, logged_at=bar_ts_i))
 
         if flipped_from is not None:
             pnl_pct = _pnl_pct(flipped_from["side"], flipped_from["price"], price)
@@ -1155,7 +1182,7 @@ def scan_one(spec, pool, now_sec):
                 sid, zht, en, sym, flipped_from, price, bar_ts_i, close_audio_url
             )
             closes.append(close_row)
-            log_events.append(dict(close_row, logged_at=int(now_sec)))
+            log_events.append(dict(close_row, logged_at=bar_ts_i))
     return hits, closes, log_events
 
 
@@ -1179,6 +1206,7 @@ def build_live_feed_matrix():
             signals.extend(hits)
             closed.extend(closes)
             fresh_log.extend(log_events)
+    fresh_log = cap_strategy_log_events(fresh_log)
     signals.sort(key=lambda x: x["bar_ts"], reverse=True)
     closed.sort(key=lambda x: x["bar_ts"], reverse=True)
     # First cycle after upgrade/restart: snapshot holdings only. The old
@@ -1192,7 +1220,7 @@ def build_live_feed_matrix():
         "period_hours": 3,
         "poll_sec": FEED_PUBLISH_SEC,
         "scan_tf": LIVE_FEED_TF,
-        "symbols": SYMBOLS,
+        "symbols": SCAN_SYMBOLS,
         "strategy_count": len(specs),
         "signal_count": len(signals),
         "active_signals_3h": signals,
