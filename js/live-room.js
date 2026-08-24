@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
   const catalog = window.QACatalog;
   const feed = window.QAFeed;
   const ENGINES = window.QA_ENGINE_LIST || [];
@@ -343,10 +343,13 @@
   }
 
   function paintFeedSyncLabel() {
-    const updatedEl = document.getElementById("vpsExecUpdated");
-    if (!updatedEl || !lastFeedUpdatedAt) return;
     const sec = feedSyncSec(lastFeedUpdatedAt);
-    if (sec == null) return;
+    const slogan = document.getElementById("liveSloganLine");
+    const updatedEl = document.getElementById("vpsExecUpdated");
+    if (sec == null) {
+      if (slogan) slogan.textContent = t("vpsExecMeta");
+      return;
+    }
     let sync;
     if (sec < 90) {
       sync = t("vpsExecSync").replace("{sec}", String(sec));
@@ -357,8 +360,12 @@
       const h = Math.max(1, Math.round(sec / 3600));
       sync = langKey().startsWith("en") ? "Last sync: " + h + "h ago" : "最近同步: " + h + "小时前";
     }
-    updatedEl.textContent = t("vpsExecMeta") + " · " + sync;
-    updatedEl.classList.toggle("is-stale", sec >= 3600);
+    const line = t("vpsExecMeta") + " · " + sync;
+    if (updatedEl) {
+      updatedEl.textContent = line;
+      updatedEl.classList.toggle("is-stale", sec >= 3600);
+    }
+    if (slogan) slogan.textContent = line;
   }
 
   function ensureSyncAgeTicker() {
@@ -562,7 +569,7 @@
     const action = row.querySelector(".tape-pill");
     const time = row.querySelector(".tape-time");
     const bits = [time, action, pair].map((el) => (el ? el.textContent.trim() : "")).filter(Boolean);
-    return bits.length ? bits.join(" · ") : t("vpsExecTitle");
+    return bits.length ? bits.join(" 路 ") : t("vpsExecTitle");
   }
 
   function bindMobileExecSheet() {
@@ -828,7 +835,7 @@
   const TOAST_TPL = {
     "zh-Hant": {
       follow: (id, sym) => `⚡ [TG ID: ${id}] 正在跟隨 #${sym} 突破策略`,
-      sync: (id, sym, tf, dir) => `⚡ [TG ID: ${id}] 已同步執行 #${sym} ${tf} ${dir} 訊號`,
+      sync: (id, sym, tf, dir) => `⚡ [TG ID: ${id}] 已同步執行 #${sym} ${tf} ${dir} 信號`,
       lock: (id, sym, pct) => `⚡ [TG ID: ${id}] 成功鎖定 #${sym} 止盈點位 +${pct}%`,
     },
     "zh-CN": {
@@ -1019,7 +1026,7 @@
     });
   }
 
-  // Strategy display names are "中文核心詞 (English Alias)". Splitting them
+  // Strategy display names are "涓枃鏍稿績瑭?(English Alias)". Splitting them
   // lets mobile hide the English half (too long for a 2-col grid) while
   // desktop keeps showing both — same underlying name, no data change.
   function splitStrategyName(name) {
@@ -1255,7 +1262,7 @@
           const trades = spec.run(bars) || [];
           return trades
             .filter((tr) => Math.max(tr.t0 || 0, tr.t1 || 0) >= nowS - THREE_HOURS_S)
-            .map((tr) => ({ tr, tag: p.coin.replace("USDT", "") + " · " + p.s.name, coin: p.coin, sid: p.s.id }));
+            .map((tr) => ({ tr, tag: p.coin.replace("USDT", "") + " 路 " + p.s.name, coin: p.coin, sid: p.s.id }));
         } catch {
           return [];
         }
@@ -1345,11 +1352,11 @@
   }
 
   function pairPillHtml(coin, sid) {
-    const label = coin.replace("USDT", "") + " · " + strategyLabel(sid);
+    const label = coin.replace("USDT", "") + " 路 " + strategyLabel(sid);
     return (
       `<span class="selected-matrix-pill" data-pair-coin="${escapeHtml(coin)}" data-pair-sid="${escapeHtml(sid)}">` +
       escapeHtml(label) +
-      `<button type="button" data-remove-pair="${escapeHtml(pairKey(coin, sid))}" aria-label="Remove">✕</button></span>`
+      `<button type="button" data-remove-pair="${escapeHtml(pairKey(coin, sid))}" aria-label="Remove">鉁?/button></span>`
     );
   }
 
@@ -1615,3 +1622,4 @@
     toast(String((err && err.message) || err), "err");
   });
 })();
+

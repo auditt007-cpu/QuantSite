@@ -1,4 +1,4 @@
-/* 24H Global Financial Radio — isolated from signal/voice audio in live-room.js */
+﻿/* 24H Global Financial Radio — isolated from signal/voice audio in live-room.js */
 (function (root) {
   "use strict";
 
@@ -208,3 +208,4 @@
 
   root.QAFinanceRadio = { toggle: toggleRadio, setLang: setLang, pause: pauseRadio };
 })(window);
+

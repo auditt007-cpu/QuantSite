@@ -1,7 +1,7 @@
 window.I18N = {
   "zh-Hant": {
     title: "QUANT ALPHA · 開源量化研究終端",
-    brandSub: "一個沒有感情的量化機器",
+    brandSub: "45套機構策略 24 小時自動盯盤",
     bbUtilNode: "節點就緒 · 24ms",
     btnChannel: "加入 TG 信號頻道",
     login: "⚡ TG 一鍵登入",
@@ -131,6 +131,7 @@ window.I18N = {
     vpsExecSync: "最近同步: {sec}秒前",
     financeRadioOn: "📻 24H 財經電台: ON",
     financeRadioOff: "📻 24H 財經電台: OFF",
+    financeRadioHint: "低音量備用直播 · 可隨時關閉",
     vpsColTime: "TIME",
     vpsColAction: "ACTION",
     vpsColSym: "PAIR",
@@ -470,7 +471,7 @@ window.I18N = {
   },
   "zh-CN": {
     title: "QUANT ALPHA · 开源量化研究终端",
-    brandSub: "一个没有感情的量化机器",
+    brandSub: "45套机构策略 24 小时自动盯盘",
     bbUtilNode: "节点就绪 · 24ms",
     btnChannel: "加入 TG 信号频道",
     login: "⚡ TG 一键登录",
@@ -600,6 +601,7 @@ window.I18N = {
     vpsExecSync: "最近同步: {sec}秒前",
     financeRadioOn: "📻 24H 财经电台: ON",
     financeRadioOff: "📻 24H 财经电台: OFF",
+    financeRadioHint: "低音量备用直播 · 可随时关闭",
     vpsColTime: "TIME",
     vpsColAction: "ACTION",
     vpsColSym: "PAIR",
@@ -939,7 +941,7 @@ window.I18N = {
   },
   en: {
     title: "QUANT ALPHA · Open-source quant desk",
-    brandSub: "An unfeeling quant machine",
+    brandSub: "45 strategies scanning 24/7",
     bbUtilNode: "NODE READY · 24ms",
     btnChannel: "JOIN TG CHANNEL",
     login: "⚡ Telegram sign-in",
@@ -1069,6 +1071,7 @@ window.I18N = {
     vpsExecSync: "Last sync: {sec}s ago",
     financeRadioOn: "📻 24H Finance Radio: ON",
     financeRadioOff: "📻 24H Finance Radio: OFF",
+    financeRadioHint: "Quiet backup stream · tap to mute",
     vpsColTime: "TIME",
     vpsColAction: "ACTION",
     vpsColSym: "PAIR",

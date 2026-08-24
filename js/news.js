@@ -88,14 +88,26 @@
     return "en-US";
   }
 
+  function parseNewsMs(raw) {
+    const n = Number(raw);
+    if (!isFinite(n) || n <= 0) return Date.now();
+    if (n > 1e12) return n;
+    if (n > 1e9) return n * 1000;
+    return Date.now();
+  }
+
   function hhmm(epoch, key) {
-    const d = new Date(Number(epoch) * 1000);
-    const now = isFinite(d.getTime()) ? d : new Date();
+    const d = new Date(parseNewsMs(epoch));
     try {
-      return now.toLocaleTimeString(localeFor(key), { hour: "2-digit", minute: "2-digit", hour12: false });
+      return d.toLocaleTimeString("zh-CN", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+        timeZone: "Asia/Shanghai",
+      });
     } catch (err) {
       const pad = (n) => String(n).padStart(2, "0");
-      return pad(now.getHours()) + ":" + pad(now.getMinutes());
+      return pad(d.getHours()) + ":" + pad(d.getMinutes());
     }
   }
 

@@ -101,7 +101,7 @@
       autosize: true,
       symbol: symbol,
       interval: interval,
-      timezone: "Etc/UTC",
+      timezone: "Asia/Shanghai",
       theme: "light",
       style: "1",
       locale: localeForPage(),
