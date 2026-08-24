@@ -8,6 +8,7 @@ import json
 import math
 import os
 import ssl
+import sys
 import threading
 import time
 import traceback
@@ -30,6 +31,17 @@ try:
 except Exception:
     pass
 
+_here = os.path.dirname(os.path.abspath(__file__))
+for _p in (_here, os.path.abspath(os.path.join(_here, "..", ".."))):
+    if _p and _p not in sys.path:
+        sys.path.insert(0, _p)
+
+try:
+    from data_provider import fetch_engine_pack, last_meta as rails_last_meta
+except Exception:
+    fetch_engine_pack = None
+    rails_last_meta = lambda: {}
+
 BOT_TOKEN = os.environ.get("TG_BOT_TOKEN", "").strip()
 CHANNEL = (
     os.environ.get("TG_CHANNEL_ID", "").strip()
@@ -39,8 +51,8 @@ CHANNEL = (
 # 20-symbol display universe (ticker / feed metadata)
 SYMBOLS = [
     "BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "DOGEUSDT",
-    "ADAUSDT", "AVAXUSDT", "LINKUSDT", "SUIUSDT", "NEARUSDT", "APTUSDT",
-    "OPUSDT", "ARBUSDT", "PEPEUSDT", "SHIBUSDT", "TIAUSDT", "INJUSDT",
+    "ADAUSDT", "AVAXUSDT", "LINKUSDT", "SUIUSDT", "NEARUSDT", "ONDOUSDT",
+    "OPUSDT", "ARBUSDT", "PEPEUSDT", "SHIBUSDT", "APTUSDT", "INJUSDT",
     "RENDERUSDT", "AAVEUSDT",
 ]
 # Mainstream scan pool — includes live-room 8 so tape rows match the war-room watchlist
@@ -67,6 +79,7 @@ LIVE_FEED_WINDOW_SEC = 3 * 3600
 LIVE_FEED_LOOKBACK_BARS = 4  # small margin over the 3h window in 1h bars
 LIVE_FEED_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "live_feed.json")
 WEB_FEED_PATH = os.environ.get("WEB_FEED_PATH", "/var/www/html/live_feed.json")
+WEB_SIGNALS_PATH = os.environ.get("WEB_SIGNALS_PATH", "/var/www/html/data/signals.json")
 LIVE_EXEC_LOG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "live_exec_log.json")
 LIVE_POSITION_STATE_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "live_position_state.json"
@@ -129,32 +142,17 @@ def bar_duration_ms(tf):
 
 
 def fetch_binance_klines(sym, tf, limit):
-    interval = binance_interval(tf)
-    last_exc = None
-    for host in ("https://data-api.binance.vision", "https://api.binance.com"):
-        url = "{0}/api/v3/klines?symbol={1}&interval={2}&limit={3}".format(
-            host, sym, interval, limit
-        )
-        try:
-            rows = http_json(url)
-            now_ms = int(time.time() * 1000)
-            if rows and int(rows[-1][6]) > now_ms:
-                rows = rows[:-1]
-            need = 30 if limit <= 80 else 60
-            if len(rows) < min(need, limit):
-                raise RuntimeError("binance insufficient bars")
-            return pack_rows(rows, "binance", binance=True, tf=tf)
-        except Exception as exc:
-            last_exc = exc
-    raise last_exc
+    """US-neutral rails (Coinbase -> Binance.US -> Kraken). Name kept for call-sites."""
+    if fetch_engine_pack is not None:
+        pack = fetch_engine_pack(sym, tf, limit)
+        if pack and pack.get("c") and len(pack["c"]) >= 20:
+            return pack
+        raise RuntimeError((rails_last_meta() or {}).get("error") or "neutral rails empty")
+    raise RuntimeError("data_provider missing")
 
 
 def fetch_klines(sym, tf):
-    try:
-        return fetch_binance_klines(sym, tf, KLINE_LIMIT)
-    except Exception as exc:
-        log("{0} {1} binance fail: {2}; fallback okx".format(sym, tf, exc))
-        return fetch_klines_okx(sym, tf)
+    return fetch_binance_klines(sym, tf, KLINE_LIMIT)
 
 
 def fetch_klines_okx(sym, tf):
@@ -197,11 +195,7 @@ def pack_rows(rows, src, binance, tf="15m"):
 
 
 def load_klines(sym, tf):
-    try:
-        return fetch_klines(sym, tf)
-    except Exception as exc:
-        log("{0} {1} binance fail: {2}; fallback okx".format(sym, tf, exc))
-        return fetch_klines_okx(sym, tf)
+    return fetch_klines(sym, tf)
 
 
 def refresh_pool():
@@ -872,33 +866,11 @@ def close_signal_text(zht, pnl_pct):
 
 
 def fetch_klines_light(sym):
-    try:
-        return fetch_binance_klines(sym, LIVE_FEED_TF, LIVE_FEED_KLINE_LIMIT)
-    except Exception as exc:
-        log("{0} live-feed light fetch binance fail: {1}; fallback okx".format(sym, exc))
-        return fetch_klines_light_okx(sym)
-
-
-def fetch_klines_light_okx(sym):
-    url = (
-        "https://www.okx.com/api/v5/market/candles?instId={0}&bar={1}&limit={2}"
-    ).format(okx_inst(sym), okx_bar(LIVE_FEED_TF), LIVE_FEED_KLINE_LIMIT)
-    data = http_json(url)
-    rows = list(reversed(data.get("data") or []))
-    now_ms = int(time.time() * 1000)
-    if rows and int(rows[-1][0]) + bar_duration_ms(LIVE_FEED_TF) > now_ms:
-        rows = rows[:-1]
-    if len(rows) < 30:
-        raise RuntimeError("okx insufficient bars")
-    return pack_rows(rows, "okx", binance=False, tf=LIVE_FEED_TF)
+    return fetch_binance_klines(sym, LIVE_FEED_TF, LIVE_FEED_KLINE_LIMIT)
 
 
 def load_klines_light(sym):
-    try:
-        return fetch_klines_light(sym)
-    except Exception as exc:
-        log("{0} live-feed light fetch binance fail: {1}; fallback okx".format(sym, exc))
-        return fetch_klines_light_okx(sym)
+    return fetch_klines_light(sym)
 
 
 def refresh_live_feed_pool():
@@ -919,6 +891,11 @@ def refresh_live_feed_pool():
                 pool[sym] = data
             else:
                 log("live_feed pool skip {0}: {1}".format(sym, exc))
+    tally = {}
+    for data in pool.values():
+        v = (data or {}).get("venue") or (data or {}).get("src") or "?"
+        tally[v] = tally.get(v, 0) + 1
+    log("live_feed 1h ok={0}/{1} venues={2}".format(len(pool), len(SCAN_SYMBOLS), tally))
     return pool
 
 
@@ -1457,6 +1434,58 @@ def publish_live_feed_to_webroot():
     os.replace(tmp, WEB_FEED_PATH)
 
 
+def write_signals_json(payload):
+    """Persist the war-room tape for /data/signals.json (CORS static)."""
+    body = {
+        "updated_at": payload.get("updated_at"),
+        "venue": (rails_last_meta() or {}).get("venue"),
+        "poll_sec": payload.get("poll_sec") or FEED_PUBLISH_SEC,
+        "exec_log": payload.get("exec_log") or [],
+        "exec_log_raw_count": payload.get("exec_log_raw_count"),
+        "signal_count": payload.get("signal_count"),
+        "symbols": payload.get("symbols") or LIVE_ROOM_SYMBOLS,
+    }
+    raw = json.dumps(body, ensure_ascii=False, indent=2)
+    atomic_write_json(WEB_SIGNALS_PATH, raw)
+    local = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "signals.json")
+    if os.path.abspath(local) != os.path.abspath(WEB_SIGNALS_PATH):
+        atomic_write_json(local, raw)
+
+
+_LAST_PAGES_PUSH = 0.0
+_LAST_TAPE_HASH = ""
+
+
+def maybe_sync_pages(payload):
+    """Throttle GitHub Pages tape sync so the 60s cycle never blocks on git."""
+    global _LAST_PAGES_PUSH, _LAST_TAPE_HASH
+    blob = json.dumps(payload.get("exec_log") or [], ensure_ascii=False, sort_keys=True)
+    digest = hashlib.md5(blob.encode("utf-8")).hexdigest()
+    now = time.time()
+    if digest == _LAST_TAPE_HASH and now - _LAST_PAGES_PUSH < 180:
+        return
+    if now - _LAST_PAGES_PUSH < 90:
+        return
+    _LAST_TAPE_HASH = digest
+    _LAST_PAGES_PUSH = now
+
+    def _job():
+        try:
+            from utils.git_sync import sync_to_github
+
+            status = sync_to_github(
+                ["live_feed.json", "data/signals.json"],
+                commit_msg="Auto: live tape [{0}]".format(
+                    datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M")
+                ),
+            )
+            log("pages sync {0}".format(status))
+        except Exception as exc:
+            log("pages sync skip: {0}".format(exc))
+
+    threading.Thread(target=_job, name="pages-sync", daemon=True).start()
+
+
 def write_live_feed(payload):
     raw = json.dumps(payload, ensure_ascii=False, indent=2)
     atomic_write_json(LIVE_FEED_PATH, raw)
@@ -1464,6 +1493,14 @@ def write_live_feed(payload):
         publish_live_feed_to_webroot()
     except Exception as exc:
         log("webroot live_feed publish error: {0}".format(exc))
+    try:
+        write_signals_json(payload)
+    except Exception as exc:
+        log("signals.json write error: {0}".format(exc))
+    try:
+        maybe_sync_pages(payload)
+    except Exception as exc:
+        log("pages sync error: {0}".format(exc))
 
 
 def feed_publish_loop():
@@ -1644,7 +1681,7 @@ ENGINE_WARM = False
 
 
 def refresh_heartbeat_pool():
-    """8 live-room symbols x 5m, vision-first. Independent of the 15m/1h TG pool."""
+    """8 live-room symbols x 5m via Coinbase -> Binance.US -> Kraken."""
     global HEARTBEAT_POOL
     pool = {}
 
@@ -1652,20 +1689,7 @@ def refresh_heartbeat_pool():
         try:
             return sym, fetch_binance_klines(sym, "5m", 80), None
         except Exception as exc:
-            try:
-                url = (
-                    "https://www.okx.com/api/v5/market/candles?instId={0}&bar=5m&limit=80"
-                ).format(okx_inst(sym))
-                data = http_json(url)
-                rows = list(reversed(data.get("data") or []))
-                now_ms = int(time.time() * 1000)
-                if rows and int(rows[-1][0]) + bar_duration_ms("5m") > now_ms:
-                    rows = rows[:-1]
-                if len(rows) < 30:
-                    raise RuntimeError("okx 5m insufficient")
-                return sym, pack_rows(rows, "okx", binance=False, tf="5m"), None
-            except Exception as exc2:
-                return sym, None, exc2 or exc
+            return sym, None, exc
 
     with cf.ThreadPoolExecutor(max_workers=6) as ex:
         for sym, data, exc in ex.map(fetch_one, LIVE_ROOM_SYMBOLS):
@@ -1674,6 +1698,11 @@ def refresh_heartbeat_pool():
             else:
                 log("heartbeat pool skip {0}: {1}".format(sym, exc))
     HEARTBEAT_POOL = pool
+    tally = {}
+    for data in pool.values():
+        v = (data or {}).get("venue") or (data or {}).get("src") or "?"
+        tally[v] = tally.get(v, 0) + 1
+    log("heartbeat 5m ok={0}/{1} venues={2}".format(len(pool), len(LIVE_ROOM_SYMBOLS), tally))
     return pool
 
 
@@ -1872,7 +1901,11 @@ def cycle():
 
     refresh_pool()
     ok = sum(1 for s in SYMBOLS for t in TIMEFRAMES if (s, t) in KLINE_POOL)
-    log("pool refreshed {0}/{1} series".format(ok, len(SYMBOLS) * len(TIMEFRAMES)))
+    tally = {}
+    for data in KLINE_POOL.values():
+        v = (data or {}).get("venue") or (data or {}).get("src") or "?"
+        tally[v] = tally.get(v, 0) + 1
+    log("pool refreshed {0}/{1} series venues={2}".format(ok, len(SYMBOLS) * len(TIMEFRAMES), tally))
 
     global ENGINE_WARM
     events = scan_events()

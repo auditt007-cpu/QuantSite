@@ -1480,7 +1480,10 @@
 
   function liveFeedUrls() {
     const t = Date.now();
-    const urls = ["https://api.quantalpha.space/live_feed.json?t=" + t];
+    const urls = [
+      "https://api.quantalpha.space/live_feed.json?t=" + t,
+      "https://api.quantalpha.space/data/signals.json?t=" + t,
+    ];
     try {
       urls.push(new URL("./live_feed.json?t=" + t, document.baseURI).href);
     } catch {
