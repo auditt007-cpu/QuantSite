@@ -77,7 +77,58 @@
   }
 
   function fmt12hSpeech(ts) {
-    return fmt12h(ts);
+    const d = new Date(Number(ts) > 1e12 ? Number(ts) : Number(ts) * 1000);
+    if (!isFinite(d.getTime())) return fmt12hSpeech(Date.now());
+    let h = d.getHours();
+    const m = String(d.getMinutes()).padStart(2, "0");
+    const period = h < 12 ? "上午" : "下午";
+    h = h % 12;
+    if (h === 0) h = 12;
+    return period + " " + String(h).padStart(2, "0") + ":" + m;
+  }
+
+  function coinSpeech(sym) {
+    const k = String(sym || "").replace(/USDT$/i, "").toUpperCase();
+    const map = {
+      BTC: "比特幣",
+      ETH: "以太幣",
+      SOL: "SOL",
+      BNB: "BNB",
+      XRP: "XRP",
+      DOGE: "狗狗幣",
+      SUI: "SUI",
+      PEPE: "PEPE",
+    };
+    return map[k] || k;
+  }
+
+  function stratAlias(name) {
+    const s = String(name || "");
+    if (/樞軸/.test(s)) return "樞軸突破";
+    if (/SuperTrend|超級趨勢|ATR.*(趨勢|網格)/i.test(s)) return "超級趨勢";
+    if (/布林.*(突破|擠壓)|BB Squeeze|布林帶突破/i.test(s)) return "布林突破";
+    if (/肯特納/.test(s)) return "肯特納突破";
+    if (/VSA|成交量價差|量價/.test(s)) return "量價共振";
+    if (/唐奇安/.test(s)) return "唐奇安突破";
+    if (/Dual Thrust/i.test(s)) return "區間突破";
+    if (/量均/.test(s)) return "量均突破";
+    if (/布林/.test(s)) return "布林回歸";
+    if (/MACD/.test(s)) return "MACD";
+    if (/EMA|均線/.test(s)) return "均線交叉";
+    if (/RSI/.test(s)) return "RSI";
+    if (/ROC/.test(s)) return "動能突破";
+    const zh = s.replace(/[A-Za-z0-9_\-\s().]/g, "");
+    if (zh.length >= 2) return zh.slice(0, 4);
+    return s.slice(0, 4) || "量化策略";
+  }
+
+  function fmtSpeechPx(n) {
+    const x = Number(n);
+    if (!Number.isFinite(x)) return "";
+    if (x >= 100) return Math.round(x).toLocaleString("en-US");
+    if (x >= 1) return x.toFixed(2).replace(/\.?0+$/, "") || x.toFixed(2);
+    if (x >= 0.01) return x.toFixed(4).replace(/0+$/, "").replace(/\.$/, "");
+    return String(x);
   }
 
   function isClose(ev) {
@@ -180,8 +231,8 @@
       if (!window.speechSynthesis || !text) return resolve();
       const u = new SpeechSynthesisUtterance(text);
       u.lang = "zh-TW";
-      u.rate = 1.32;
-      u.pitch = 1.12;
+      u.rate = 1.3;
+      u.pitch = 1.06;
       u.volume = 1;
       const voice = pickTwVoice();
       if (voice) u.voice = voice;
@@ -209,20 +260,95 @@
     drainQueue();
   }
 
-  function voiceLine(ev) {
-    const coin = String(ev.symbol || "").replace(/USDT$/i, "");
-    const px = fmtPx(ev.price);
-    const when = fmt12hSpeech(ev.ts || Date.now());
-    if (isClose(ev)) {
-      const pnl = Number(ev.pnl_pct);
-      if (!Number.isFinite(pnl) || pnl <= 0) return "";
-      return "太棒了！" + when + "，" + coin + " 觸發平倉，成功獲利 " + pnl.toFixed(1) + "%！";
+  function voiceCloseLine(ev) {
+    const pnl = Number(ev.pnl_pct);
+    if (!Number.isFinite(pnl) || pnl <= 0) return "";
+    return (
+      fmt12hSpeech(ev.ts || Date.now()) +
+      "，" +
+      coinSpeech(ev.symbol) +
+      "平倉，獲利 " +
+      pnl.toFixed(1) +
+      "%。"
+    );
+  }
+
+  function voiceOpenGroup(events) {
+    if (!events || !events.length) return "";
+    const head = events[0];
+    const when = fmt12hSpeech(head.ts || Date.now());
+    const alias = stratAlias(head.name);
+    const buy = isBuy(head);
+    const act = buy ? "買入" : "賣出";
+    if (events.length === 1) {
+      const px = fmtSpeechPx(head.price);
+      return when + "，" + alias + "，" + coinSpeech(head.symbol) + "，" + act + "，現價 " + px + "。";
     }
-    const buy = isBuy(ev);
-    if (buy) {
-      return "報告長官！" + when + "，" + coin + " 出現突破信號，多頭開倉，現價 " + px + "，衝刺中！";
-    }
-    return "注意！" + when + "，" + coin + " 觸發共振波段，空單進場，現價 " + px + "！";
+    const coins = events.map((e) => coinSpeech(e.symbol)).join("、");
+    const prices = events.map((e) => fmtSpeechPx(e.price)).join("、");
+    return when + "，" + alias + "，" + act + "：" + coins + "，現價分別為 " + prices + "。";
+  }
+
+  function announceEvents(events) {
+    if (!events || !events.length) return;
+    const buckets = {};
+    const order = [];
+    events
+      .filter((e) => !isClose(e))
+      .forEach((ev) => {
+        const key = [
+          stratAlias(ev.name),
+          isBuy(ev) ? "B" : "S",
+          String(ev.interval || ""),
+          String(Math.floor(Number(ev.ts) || 0)),
+        ].join("|");
+        if (!buckets[key]) {
+          buckets[key] = [];
+          order.push(key);
+        }
+        buckets[key].push(ev);
+      });
+    order.forEach((key) => {
+      const line = voiceOpenGroup(buckets[key]);
+      if (line) enqueueVoice(line);
+    });
+    events
+      .filter(isClose)
+      .forEach((ev) => {
+        const line = voiceCloseLine(ev);
+        if (line) enqueueVoice(line);
+      });
+  }
+
+  function demoVoiceOnce() {
+    const ts = Date.now() / 1000;
+    announceEvents([
+      {
+        ts: ts,
+        name: "量均突破",
+        symbol: "BTCUSDT",
+        price: 78573,
+        side: "LONG",
+        event: "open",
+        interval: "1h",
+      },
+      {
+        ts: ts,
+        name: "量均突破",
+        symbol: "ETHUSDT",
+        price: 3240,
+        side: "LONG",
+        event: "open",
+        interval: "1h",
+      },
+      {
+        ts: ts + 1,
+        name: "樞軸點突破",
+        symbol: "BTCUSDT",
+        pnl_pct: 3.8,
+        event: "close",
+      },
+    ]);
   }
 
   function paintVoiceBtn() {
@@ -268,7 +394,7 @@
         /* private */
       }
       if (state.voiceOn) {
-        enqueueVoice("戰情語音已連線，開倉信號將即時播報。");
+        demoVoiceOnce();
       } else if (window.speechSynthesis) {
         window.speechSynthesis.cancel();
         state.queue = [];
@@ -1109,14 +1235,15 @@
       if (state.seenKeys == null) {
         state.seenKeys = new Set(flat.map((e) => e.key));
       } else {
+        const fresh = [];
         flat.forEach((ev) => {
           if (state.seenKeys.has(ev.key)) return;
           state.seenKeys.add(ev.key);
           if (!inWatch(ev.symbol)) return;
           if (now - ev.ts > HOUR_S) return;
-          const line = voiceLine(ev);
-          if (line) enqueueVoice(line);
+          fresh.push(ev);
         });
+        announceEvents(fresh);
       }
       paintRadar();
       paintCardsMeta();
@@ -1145,6 +1272,7 @@
     style.textContent =
       "@keyframes radarScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}";
     document.head.appendChild(style);
+    window.QALiveDemoVoice = demoVoiceOnce;
   }
 
   if (document.readyState === "loading") {
