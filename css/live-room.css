@@ -225,13 +225,51 @@ body.live-page.war-cmd .wrap {
 }
 
 .coin-px {
-  font-size: 20px;
+  font-size: clamp(26px, 4.2vw, 34px);
   font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  color: #0f172a;
-  line-height: 1.15;
   font-family: "Roboto Mono", "JetBrains Mono", ui-monospace, monospace;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: #0f172a;
+  padding: 2px 4px;
+  margin: 0 -4px;
+  border-radius: 4px;
 }
+
+.coin-px.flash-up {
+  animation: pxFlashUp 0.45s ease;
+}
+.coin-px.flash-down {
+  animation: pxFlashDown 0.45s ease;
+}
+@keyframes pxFlashUp {
+  0% { color: #10b981; background: #ecfdf5; }
+  100% { color: #0f172a; background: transparent; }
+}
+@keyframes pxFlashDown {
+  0% { color: #ef4444; background: #fef2f2; }
+  100% { color: #0f172a; background: transparent; }
+}
+
+.coin-mini-tape {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  min-height: 48px;
+  font-size: 11px;
+  font-family: "Roboto Mono", ui-monospace, monospace;
+  color: #475569;
+  line-height: 1.45;
+}
+.coin-mini-tape li {
+  padding: 2px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.coin-mini-tape li.is-up { color: #059669; }
+.coin-mini-tape li.is-down { color: #dc2626; }
+.coin-mini-tape li.muted { color: #94a3b8; }
 
 .coin-spark-wrap {
   position: relative;

@@ -5,6 +5,7 @@
   const HINT_KEY = "qa_live_voice_hint_seen";
   const FEED_MS = 8000;
   const KLINE_MS = 15000;
+  const TICK_MS = 1500;
   const HOUR_S = 3600;
 
   const state = {
@@ -18,6 +19,8 @@
     queue: [],
     speaking: false,
     modalSym: null,
+    ws: null,
+    wsLive: false,
   };
 
   function t(key, fallback) {
@@ -56,25 +59,29 @@
   }
 
   function fmtTime(ts) {
-    const d = new Date(Number(ts) > 1e12 ? Number(ts) : Number(ts) * 1000);
-    if (!isFinite(d.getTime())) return "—";
-    const p = (n) => String(n).padStart(2, "0");
-    return p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
+    return fmt12h(ts);
   }
 
-  function fmt12hSpeech(ts) {
+  function fmt12h(ts) {
     const d = new Date(Number(ts) > 1e12 ? Number(ts) : Number(ts) * 1000);
     if (!isFinite(d.getTime())) {
-      const now = new Date();
-      return fmt12hSpeech(now.getTime());
+      return fmt12h(Date.now());
     }
     let h = d.getHours();
     const m = String(d.getMinutes()).padStart(2, "0");
-    const am = h < 12;
-    const period = am ? "上午" : "下午";
+    const s = String(d.getSeconds()).padStart(2, "0");
+    const period = h < 12 ? "上午" : "下午";
     h = h % 12;
     if (h === 0) h = 12;
-    return period + " " + String(h).padStart(2, "0") + ":" + m;
+    return period + " " + String(h).padStart(2, "0") + ":" + m + ":" + s;
+  }
+
+  function fmt12hSpeech(ts) {
+    return fmt12h(ts);
+  }
+
+  function isClose(ev) {
+    return String(ev.event || "").toLowerCase() === "close" || /平倉/.test(String(ev.action || ""));
   }
 
   function isBuy(ev) {
@@ -206,6 +213,11 @@
     const coin = String(ev.symbol || "").replace(/USDT$/i, "");
     const px = fmtPx(ev.price);
     const when = fmt12hSpeech(ev.ts || Date.now());
+    if (isClose(ev)) {
+      const pnl = Number(ev.pnl_pct);
+      if (!Number.isFinite(pnl) || pnl <= 0) return "";
+      return "太棒了！" + when + "，" + coin + " 觸發平倉，成功獲利 " + pnl.toFixed(1) + "%！";
+    }
     const buy = isBuy(ev);
     if (buy) {
       return "報告長官！" + when + "，" + coin + " 出現突破信號，多頭開倉，現價 " + px + "，衝刺中！";
@@ -274,6 +286,10 @@
     if (!canvas) return;
     const rows = state.klines[sym] || [];
     const closes = rows.map((r) => r.c);
+    const livePx = Number((state.tickers[sym] && state.tickers[sym].last) || state.lastPx[sym]);
+    if (Number.isFinite(livePx) && closes.length) {
+      closes.push(livePx);
+    }
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const parentW = canvas.parentElement ? canvas.parentElement.clientWidth : 0;
     const cssW = Math.max(160, canvas.clientWidth || parentW || 280);
@@ -377,8 +393,58 @@
       '<div class="coin-spark-wrap"><canvas class="coin-spark" data-spark="' +
       sym +
       '" width="320" height="160"></canvas></div>' +
+      '<ul class="coin-mini-tape" data-mini="' +
+      sym +
+      '"></ul>' +
       "</article>"
     );
+  }
+
+  function flashPx(el, next, prev) {
+    if (!el) return;
+    el.textContent = fmtPx(next);
+    if (!Number.isFinite(prev) || !Number.isFinite(next) || prev === next) return;
+    el.classList.remove("flash-up", "flash-down");
+    void el.offsetWidth;
+    el.classList.add(next > prev ? "flash-up" : "flash-down");
+  }
+
+  function miniLine(ev) {
+    const close = isClose(ev);
+    const buy = isBuy(ev);
+    const pnl = Number(ev.pnl_pct);
+    if (close) {
+      const ok = Number.isFinite(pnl) && pnl > 0;
+      return (
+        fmt12h(ev.ts) +
+        " " +
+        (ok ? "平倉獲利 " + fmtPnl(pnl) : "平倉 " + (Number.isFinite(pnl) ? fmtPnl(pnl) : ""))
+      );
+    }
+    return fmt12h(ev.ts) + " " + (buy ? "多頭開倉" : "空頭開倉") + " @ " + fmtPx(ev.price);
+  }
+
+  function paintMiniTapes() {
+    const now = Date.now() / 1000;
+    state.watch.forEach((sym) => {
+      const el = document.querySelector('[data-mini="' + sym + '"]');
+      if (!el) return;
+      const rows = state.events
+        .filter((e) => e.symbol === sym && now - e.ts <= HOUR_S)
+        .sort((a, b) => b.ts - a.ts)
+        .slice(0, 3);
+      if (!rows.length) {
+        el.innerHTML = '<li class="muted">暫無近 1 小時戰績</li>';
+        return;
+      }
+      el.innerHTML = rows
+        .map((ev) => {
+          const close = isClose(ev);
+          const cls = close ? (Number(ev.pnl_pct) > 0 ? "is-up" : "is-down") : isBuy(ev) ? "is-up" : "is-down";
+          return '<li class="' + cls + '">' + escapeHtml(miniLine(ev)) + "</li>";
+        })
+        .join("");
+    });
   }
 
   function paintCardsMeta() {
@@ -389,7 +455,11 @@
       const pxEl = card.querySelector("[data-px]");
       const chgEl = card.querySelector("[data-chg]");
       const px = tk.last != null ? tk.last : state.lastPx[sym];
-      if (pxEl) pxEl.textContent = fmtPx(px);
+      const prev = Number(pxEl && pxEl.getAttribute("data-last"));
+      if (pxEl) {
+        flashPx(pxEl, Number(px), prev);
+        if (Number.isFinite(Number(px))) pxEl.setAttribute("data-last", String(px));
+      }
       const chg = Number(tk.chg);
       if (chgEl) {
         if (Number.isFinite(chg)) {
@@ -403,6 +473,7 @@
       }
       drawSpark(sym);
     });
+    paintMiniTapes();
   }
 
   function renderGrid() {
@@ -597,6 +668,117 @@
     }
   }
 
+  function applyTick(sym, last, chg) {
+    if (!sym || !Number.isFinite(last)) return;
+    const prev = Number(state.lastPx[sym]);
+    state.lastPx[sym] = last;
+    const cur = state.tickers[sym] || {};
+    cur.last = last;
+    if (Number.isFinite(chg)) cur.chg = chg;
+    state.tickers[sym] = cur;
+    const card = document.querySelector('.coin-card[data-sym="' + sym + '"]');
+    if (card) {
+      const pxEl = card.querySelector("[data-px]");
+      flashPx(pxEl, last, Number(pxEl && pxEl.getAttribute("data-last")));
+      if (pxEl) pxEl.setAttribute("data-last", String(last));
+      const chgEl = card.querySelector("[data-chg]");
+      if (chgEl && Number.isFinite(chg)) {
+        const up = chg >= 0;
+        chgEl.textContent = (up ? "▲ " : "▼ ") + Math.abs(chg).toFixed(2) + "%";
+        chgEl.classList.toggle("is-up", up);
+        chgEl.classList.toggle("is-down", !up);
+      }
+      drawSpark(sym);
+    }
+    if (state.modalSym === sym) {
+      drawSparkOn(document.getElementById("coinModalSpark"), sym, true);
+    }
+    void prev;
+  }
+
+  async function pollFastTickers() {
+    if (state.wsLive) return;
+    const urls = [
+      "https://data-api.binance.vision/api/v3/ticker/24hr?symbols=",
+      "https://api.binance.com/api/v3/ticker/24hr?symbols=",
+    ];
+    const q = encodeURIComponent(JSON.stringify(ALL_COINS));
+    for (let i = 0; i < urls.length; i += 1) {
+      try {
+        const rows = await fetchJson(urls[i] + q);
+        (rows || []).forEach((r) => applyTick(r.symbol, Number(r.lastPrice), Number(r.priceChangePercent)));
+        return;
+      } catch {
+        /* try next */
+      }
+    }
+    try {
+      const data = await fetchJson("https://www.okx.com/api/v5/market/tickers?instType=SPOT");
+      const want = {};
+      ALL_COINS.forEach((s) => {
+        want[s.replace("USDT", "") + "-USDT"] = s;
+      });
+      (data.data || []).forEach((r) => {
+        const sym = want[r.instId];
+        if (!sym) return;
+        const last = Number(r.last);
+        const open = Number(r.open24h);
+        const chg = open > 0 ? ((last - open) / open) * 100 : NaN;
+        applyTick(sym, last, chg);
+      });
+    } catch {
+      /* keep last */
+    }
+  }
+
+  function connectTickerStream() {
+    if (state.ws) return;
+    const streams = ALL_COINS.map((s) => s.toLowerCase() + "@miniTicker").join("/");
+    const endpoints = [
+      "wss://stream.binance.com:9443/stream?streams=",
+      "wss://data-stream.binance.vision/stream?streams=",
+    ];
+    let idx = 0;
+    function openWs() {
+      let ws;
+      try {
+        ws = new WebSocket(endpoints[idx % endpoints.length] + streams);
+      } catch {
+        state.wsLive = false;
+        state.ws = null;
+        setTimeout(connectTickerStream, 2500);
+        return;
+      }
+      state.ws = ws;
+      ws.onopen = () => {
+        state.wsLive = true;
+      };
+      ws.onmessage = (ev) => {
+        try {
+          const msg = JSON.parse(ev.data);
+          const d = msg.data || msg;
+          applyTick(d.s, Number(d.c), Number(d.P));
+        } catch {
+          /* ignore */
+        }
+      };
+      ws.onclose = () => {
+        state.wsLive = false;
+        state.ws = null;
+        idx += 1;
+        setTimeout(openWs, 2500);
+      };
+      ws.onerror = () => {
+        try {
+          ws.close();
+        } catch {
+          /* */
+        }
+      };
+    }
+    openWs();
+  }
+
   async function refreshMarket() {
     await loadTickers();
     const targets = state.watch.length ? state.watch : ALL_COINS;
@@ -626,6 +808,12 @@
     return "https://api.quantalpha.space/live_feed.json?t=" + Date.now();
   }
 
+  function toSec(n) {
+    const x = Number(n);
+    if (!Number.isFinite(x) || !x) return 0;
+    return x > 1e12 ? x / 1000 : x;
+  }
+
   function flattenFeed(data) {
     const out = [];
     const rows = Array.isArray(data.exec_log) ? data.exec_log : [];
@@ -633,12 +821,14 @@
       if (g && g.kind === "batch" && Array.isArray(g.symbols)) {
         g.symbols.forEach((s) => {
           out.push({
-            key: [g.name_zh, g.side, g.interval, g.bar_ts, s.symbol].join("|"),
-            ts: Number(g.bar_ts || g.logged_at) || 0,
+            key: [g.name_zh, g.side, g.interval, g.logged_at || g.bar_ts, s.symbol, s.event || "open"].join("|"),
+            ts: toSec(g.logged_at) || toSec(g.bar_ts),
             symbol: s.symbol,
             price: s.price,
             side: g.side,
             action: g.action,
+            event: s.event || g.event || "open",
+            pnl_pct: s.pnl_pct,
             name: g.name_zh || g.name_en || "量化策略",
             interval: g.interval || "1h",
           });
@@ -647,12 +837,14 @@
       }
       if (!g || !g.symbol) return;
       out.push({
-        key: [g.strategy_id, g.symbol, g.event, g.bar_ts, g.side].join("|"),
-        ts: Number(g.logged_at || g.bar_ts) || 0,
+        key: [g.strategy_id, g.symbol, g.event, g.logged_at || g.bar_ts, g.side].join("|"),
+        ts: toSec(g.logged_at) || toSec(g.bar_ts),
         symbol: g.symbol,
         price: g.price,
         side: g.side,
         action: g.action,
+        event: g.event || "open",
+        pnl_pct: g.pnl_pct,
         name: g.name_zh || g.name_en || "量化策略",
         interval: g.interval || "1h",
       });
@@ -687,18 +879,25 @@
     const html = rows
       .map((ev) => {
         const buy = isBuy(ev);
-        const pnl = pnlOf(ev);
-        const pnlCls = pnl == null ? "" : pnl >= 0 ? " is-up" : " is-down";
-        const pnlTxt = pnl == null ? "" : " | 當前浮盈 " + fmtPnl(pnl);
+        const close = isClose(ev);
+        const pnl = close ? Number(ev.pnl_pct) : pnlOf(ev);
+        const pnlCls = pnl == null || !Number.isFinite(pnl) ? "" : pnl >= 0 ? " is-up" : " is-down";
+        const act = close
+          ? Number.isFinite(pnl) && pnl > 0
+            ? "平倉獲利 " + fmtPnl(pnl)
+            : "平倉 " + (Number.isFinite(pnl) ? fmtPnl(pnl) : "")
+          : (buy ? "多頭開倉" : "空頭開倉") + " @ " + fmtPx(ev.price);
+        const livePnl =
+          !close && pnl != null ? " | 當前浮盈 " + fmtPnl(pnl) : "";
         return (
           '<div class="radar-row ' +
-          (buy ? "is-buy" : "is-sell") +
+          (close ? (Number(pnl) > 0 ? "is-buy" : "is-sell") : buy ? "is-buy" : "is-sell") +
           '">' +
           '<span class="t">[' +
-          fmtTime(ev.ts) +
+          fmt12h(ev.ts) +
           "]</span>" +
           '<span class="side">' +
-          (buy ? "🟢 " : "🔴 ") +
+          (buy && !close ? "🟢 " : close && Number(pnl) > 0 ? "🟢 " : "🔴 ") +
           escapeHtml(pairLabel(ev.symbol)) +
           "</span>" +
           "<span>| " +
@@ -707,11 +906,9 @@
           escapeHtml(String(ev.interval || "1h").toUpperCase()) +
           ")</span>" +
           "<span>| " +
-          (buy ? "多頭開倉" : "空頭開倉") +
-          " @ " +
-          escapeHtml(fmtPx(ev.price)) +
+          escapeHtml(act) +
           "</span>" +
-          (pnlTxt ? '<span class="pnl' + pnlCls + '">' + escapeHtml(pnlTxt) + "</span>" : "") +
+          (livePnl ? '<span class="pnl' + pnlCls + '">' + escapeHtml(livePnl) + "</span>" : "") +
           "</div>"
         );
       })
@@ -733,7 +930,9 @@
           if (state.seenKeys.has(ev.key)) return;
           state.seenKeys.add(ev.key);
           if (!inWatch(ev.symbol)) return;
-          if (now - ev.ts <= HOUR_S) enqueueVoice(voiceLine(ev));
+          if (now - ev.ts > HOUR_S) return;
+          const line = voiceLine(ev);
+          if (line) enqueueVoice(line);
         });
       }
       paintRadar();
@@ -751,8 +950,10 @@
     bindVoice();
     refreshMarket();
     refreshFeed();
+    connectTickerStream();
     setInterval(refreshMarket, KLINE_MS);
     setInterval(refreshFeed, FEED_MS);
+    setInterval(pollFastTickers, TICK_MS);
     window.addEventListener("resize", () => {
       paintCardsMeta();
       if (state.modalSym) drawSparkOn(document.getElementById("coinModalSpark"), state.modalSym, true);

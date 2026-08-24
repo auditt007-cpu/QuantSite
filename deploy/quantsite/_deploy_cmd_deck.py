@@ -64,6 +64,20 @@ def main():
     run("systemctl restart tg-bot; sleep 2; systemctl is-active tg-bot")
     run(
         "python3 - <<'PY'\n"
+        "import sys\n"
+        "sys.path.insert(0, '/root/quantsite')\n"
+        "import tg_engine as t\n"
+        "rows = t.load_exec_log()\n"
+        "t.save_exec_log(rows)\n"
+        "print('tape_scrubbed', len(rows))\n"
+        "feed = t.attach_exec_tape(t.build_live_feed_matrix())\n"
+        "t.write_live_feed(feed)\n"
+        "print('exec_mode', feed.get('exec_mode'), 'exec_n', len(feed.get('exec_log') or []))\n"
+        "PY",
+        timeout=180,
+    )
+    run(
+        "python3 - <<'PY'\n"
         "import json,urllib.request\n"
         "u='https://api.quantalpha.space/live_feed.json?t=1'\n"
         "d=json.loads(urllib.request.urlopen(u, timeout=15).read().decode())\n"

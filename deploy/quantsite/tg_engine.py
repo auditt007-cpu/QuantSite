@@ -915,9 +915,29 @@ def _exec_event_key(ev):
         ev.get("strategy_id"),
         ev.get("symbol"),
         ev.get("event"),
-        ev.get("bar_ts"),
+        ev.get("logged_at") or ev.get("bar_ts"),
         ev.get("interval") or "",
     )
+
+
+def scrub_legacy_aligned_tape(events):
+    """Drop leftover rows stamped at candle-close clocks (:00/:15/:30/:45).
+
+    New tape rows use wall-clock fired_at, which almost never equals bar_ts
+    and is not forced onto a 15-minute grid.
+    """
+    out = []
+    for ev in events:
+        if not isinstance(ev, dict):
+            continue
+        logged = _ms_to_sec(ev.get("logged_at") or 0)
+        bar = _ms_to_sec(ev.get("bar_ts") or 0)
+        if not logged:
+            continue
+        if bar and logged == bar and logged % 900 == 0:
+            continue
+        out.append(ev)
+    return out
 
 
 def load_exec_log():
@@ -925,7 +945,7 @@ def load_exec_log():
         with open(LIVE_EXEC_LOG_PATH, "r", encoding="utf-8") as f:
             data = json.load(f)
         rows = data if isinstance(data, list) else []
-        return [ev for ev in rows if isinstance(ev, dict)]
+        return scrub_legacy_aligned_tape(rows)
     except Exception:
         return []
 
@@ -968,7 +988,7 @@ def cap_strategy_log_events(events, max_per_strategy=MAX_TAPE_EVENTS_PER_STRATEG
     for evs in by_sid.values():
         evs.sort(key=lambda e: (_priority_rank(e.get("symbol")), -(e.get("bar_ts") or 0)))
         capped.extend(evs[:max_per_strategy])
-    capped.sort(key=lambda e: e.get("bar_ts") or e.get("logged_at") or 0, reverse=True)
+    capped.sort(key=lambda e: e.get("logged_at") or e.get("bar_ts") or 0, reverse=True)
     return capped
 
 
@@ -1006,41 +1026,6 @@ def save_position_state():
     _POSITION_STATE_HYDRATING = False
 
 
-def prune_hold_exec_log(events):
-    """Drop open rows that are the same side as the previous fill for that
-    strategy+symbol. Those are 'still holding' marks, not actions."""
-    if not events:
-        return []
-    chrono = sorted(
-        events,
-        key=lambda e: (
-            int(e.get("logged_at") or 0),
-            int(e.get("bar_ts") or 0),
-            0 if e.get("event") == "close" else 1,
-        ),
-    )
-    last_side = {}
-    kept = []
-    for ev in chrono:
-        pair = "{0}|{1}".format(ev.get("strategy_id"), ev.get("symbol"))
-        event = ev.get("event")
-        side = ev.get("side")
-        if event == "close":
-            kept.append(ev)
-            last_side.pop(pair, None)
-            continue
-        raw = "SHORT" if side and "SHORT" in str(side) else "LONG"
-        if last_side.get(pair) == raw:
-            continue
-        kept.append(ev)
-        last_side[pair] = raw
-    kept.sort(
-        key=lambda e: (int(e.get("logged_at") or 0), int(e.get("bar_ts") or 0)),
-        reverse=True,
-    )
-    return kept[:LIVE_EXEC_LOG_MAX]
-
-
 def _tape_side_norm(side):
     s = str(side or "")
     if "SHORT" in s:
@@ -1067,10 +1052,34 @@ def _ms_to_sec(ts):
 
 
 def events_to_tape_rows(events, now_sec):
-    """Map TG scan_events() hits onto the live exec tape (same trigger clock)."""
+    """Map TG scan_events() hits onto the live exec tape at wall-clock fire time."""
     rows = []
+    fired = int(now_sec)
     for ev in events:
         bar_sec = _ms_to_sec(ev.get("close_ms") or ev.get("bar_ts") or 0)
+        try:
+            fired = int(float(ev.get("fired_at") or now_sec))
+        except (TypeError, ValueError):
+            fired = int(now_sec)
+        prev_side = ev.get("prev_side")
+        close_pnl = ev.get("close_pnl")
+        if prev_side and prev_side != ev.get("side"):
+            rows.append(
+                {
+                    "strategy_id": ev.get("strat_id"),
+                    "name_zh": ev.get("strat_name"),
+                    "name_en": ev.get("strat_name"),
+                    "symbol": ev.get("sym"),
+                    "interval": ev.get("tf") or "1h",
+                    "event": "close",
+                    "side": prev_side,
+                    "prev_side": prev_side,
+                    "price": round(float(ev.get("px") or 0), 8),
+                    "pnl_pct": close_pnl,
+                    "bar_ts": bar_sec,
+                    "logged_at": fired,
+                }
+            )
         rows.append(
             {
                 "strategy_id": ev.get("strat_id"),
@@ -1080,12 +1089,12 @@ def events_to_tape_rows(events, now_sec):
                 "interval": ev.get("tf") or "1h",
                 "event": "open",
                 "side": ev.get("side"),
-                "prev_side": ev.get("prev_side"),
+                "prev_side": prev_side,
                 "price": round(float(ev.get("px") or 0), 8),
                 "sl_pct": ev.get("sl_pct"),
                 "tp_pct": ev.get("tp_pct"),
                 "bar_ts": bar_sec,
-                "logged_at": bar_sec or int(now_sec),
+                "logged_at": fired,
             }
         )
     return rows
@@ -1115,7 +1124,8 @@ def collapse_exec_log_batches(events, limit=24):
         side = _tape_side_norm(ev.get("side"))
         tf = str(ev.get("interval") or "1h")
         bar = int(ev.get("bar_ts") or 0)
-        key = (name, side, tf, bar)
+        evkind = ev.get("event") or "open"
+        key = (name, side, tf, bar, evkind)
         if key not in buckets:
             buckets[key] = {
                 "kind": "batch",
@@ -1125,6 +1135,7 @@ def collapse_exec_log_batches(events, limit=24):
                 "action": action_label(side, ev.get("prev_side")),
                 "logged_at": int(ev.get("logged_at") or 0),
                 "bar_ts": bar,
+                "event": ev.get("event") or "open",
                 "symbols": [],
             }
             order.append(key)
@@ -1137,11 +1148,12 @@ def collapse_exec_log_batches(events, limit=24):
                 "sl_pct": ev.get("sl_pct"),
                 "tp_pct": ev.get("tp_pct"),
                 "event": ev.get("event") or "open",
+                "pnl_pct": ev.get("pnl_pct"),
             }
         )
         try:
             logged = int(ev.get("logged_at") or 0)
-            if logged and (not g.get("logged_at") or logged < int(g["logged_at"])):
+            if logged and logged > int(g.get("logged_at") or 0):
                 g["logged_at"] = logged
         except (TypeError, ValueError):
             pass
@@ -1156,8 +1168,8 @@ def collapse_exec_log_batches(events, limit=24):
         seen = set()
         uniq = []
         for s in g.get("symbols") or []:
-            k = s.get("symbol")
-            if not k or k in seen:
+            k = "{0}|{1}".format(s.get("symbol"), s.get("event") or "open")
+            if not s.get("symbol") or k in seen:
                 continue
             seen.add(k)
             uniq.append(s)
@@ -1433,12 +1445,6 @@ def feed_publish_loop():
         time.sleep(FEED_PUBLISH_SEC)
 
 
-def fmt_ts_ms(ms):
-    dt = datetime.fromtimestamp(ms / 1000.0, tz=timezone.utc)
-    tw = dt.astimezone(timezone(timedelta(hours=8)))
-    return "{0} UTC · {1} TW".format(dt.strftime("%Y-%m-%d %H:%M"), tw.strftime("%H:%M"))
-
-
 def fmt_px(px):
     if px >= 1000:
         return "{0:.2f}".format(px)
@@ -1449,15 +1455,6 @@ def fmt_px(px):
 
 def state_key(sid, sym, tf):
     return "{0}_{1}_{2}".format(sid, sym, tf)
-
-
-def should_emit(sid, sym, tf, side, bar_ts):
-    key = state_key(sid, sym, tf)
-    prev = SIGNAL_STATE.get(key)
-    if prev and prev.get("side") == side and prev.get("bar_ts") == bar_ts:
-        return False
-    SIGNAL_STATE[key] = {"side": side, "bar_ts": bar_ts}
-    return True
 
 
 def tg_send(text, parse_mode="HTML"):
@@ -1488,11 +1485,12 @@ def tg_send(text, parse_mode="HTML"):
 
 
 def fmt_tw_time_ms(ms):
+    """Exact wall clock in UTC+8, including seconds — never hour/quarter rounding."""
     if not ms:
         tw = datetime.now(timezone(timedelta(hours=8)))
     else:
         tw = datetime.fromtimestamp(ms / 1000.0, tz=timezone(timedelta(hours=8)))
-    return tw.strftime("%Y-%m-%d %H:%M")
+    return tw.strftime("%Y-%m-%d %H:%M:%S")
 
 
 def sl_tp_display_pcts(side, px, sl, tp):
@@ -1556,7 +1554,7 @@ def format_batch_message(group_events):
         act = action_label(side, flips[0].get("prev_side"))
     else:
         act = action_label(side, None)
-    ts_ms = max(int(e.get("close_ms") or 0) for e in group_events)
+    ts_ms = int(time.time() * 1000)
     tw = fmt_tw_time_ms(ts_ms)
     rows = "\n\n".join(format_symbol_row(e) for e in group_events)
     return (
@@ -1634,21 +1632,28 @@ def scan_events():
             bar_ts = data["t"][-1]
             key = state_key(strat["id"], sym, tf)
             prev = SIGNAL_STATE.get(key)
+            c = data["c"]
+            px = c[-1]
             if not ENGINE_WARM:
-                SIGNAL_STATE[key] = {"side": side, "bar_ts": bar_ts}
+                SIGNAL_STATE[key] = {"side": side, "bar_ts": bar_ts, "px": px}
                 continue
             if prev and prev.get("side") == side:
                 continue
-            SIGNAL_STATE[key] = {"side": side, "bar_ts": bar_ts}
-            c = data["c"]
+            prev_side = prev.get("side") if prev else None
+            prev_px = float(prev.get("px") or 0) if prev else 0.0
+            close_pnl = None
+            if prev_side and prev_px > 0:
+                if prev_side == "LONG":
+                    close_pnl = (px - prev_px) / prev_px * 100.0
+                else:
+                    close_pnl = (prev_px - px) / prev_px * 100.0
+            SIGNAL_STATE[key] = {"side": side, "bar_ts": bar_ts, "px": px}
             h, l = data["h"], data["l"]
-            px = c[-1]
             risk = atr(h, l, c, 14)[-1]
             if risk <= 0:
                 risk = px * 0.004
             sl, tp = levels(px, side, risk)
             sl_pct, tp_pct = sl_tp_display_pcts(side, px, sl, tp)
-            prev_side = prev.get("side") if prev else None
             events.append(
                 {
                     "strat_id": strat["id"],
@@ -1665,6 +1670,8 @@ def scan_events():
                     "close_ms": data.get("close_ms") or bar_ts,
                     "src": data.get("src"),
                     "prev_side": prev_side,
+                    "close_pnl": close_pnl,
+                    "fired_at": time.time(),
                 }
             )
             log("signal {0} {1} {2} {3} bar={4}".format(strat["id"], sym, tf, side, bar_ts))
