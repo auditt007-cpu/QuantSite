@@ -54,6 +54,91 @@
     min-width: 640px;
   }
 
+  /* Alias wrappers from UX spec */
+  body:not(.home-boards):not(.live-page) .table-container {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body:not(.home-boards):not(.live-page) .table-container table {
+    min-width: 560px;
+  }
+
+  /* ---- Strategy cards: 2×2 metric grid (undo global hide) ---- */
+  body:not(.home-boards):not(.live-page) .m-card.strategy-card,
+  body:not(.home-boards):not(.live-page) .m-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px !important;
+    gap: 10px !important;
+    background: #fff;
+  }
+
+  body:not(.home-boards):not(.live-page) .m-card .card-principle,
+  body:not(.home-boards):not(.live-page) .m-card .tags {
+    display: none !important;
+  }
+
+  body:not(.home-boards):not(.live-page) .m-card .muted {
+    display: block !important;
+    font-size: 11px;
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  body:not(.home-boards):not(.live-page) .m-card .stat-caps {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+    margin-top: 4px;
+  }
+
+  body:not(.home-boards):not(.live-page) .m-card .stat-cap {
+    min-height: 52px;
+    padding: 8px 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: #f8fafc;
+  }
+
+  body:not(.home-boards):not(.live-page) .m-card .card-hit {
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  /* Backtest / AI metric rows */
+  body:not(.home-boards):not(.live-page) .bt-meta,
+  body:not(.home-boards):not(.live-page) .bt-meta.five,
+  body:not(.home-boards):not(.live-page) .bbg-metrics-matrix {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  body:not(.home-boards):not(.live-page) .bbg-status-strip {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  body:not(.home-boards):not(.live-page) .bbg-strip-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+  }
+
+  body:not(.home-boards):not(.live-page) .bbg-trades-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px;
+  }
+
   /* ---- Leaderboard: card stack on mobile ---- */
   body:not(.home-boards):not(.live-page) .week-list {
     max-height: none;
@@ -97,7 +182,9 @@
   }
 
   /* ---- Strategy filter tabs ---- */
-  body:not(.home-boards):not(.live-page) .term-tabs {
+  body:not(.home-boards):not(.live-page) .term-tabs,
+  body:not(.home-boards):not(.live-page) .filter-tabs,
+  body:not(.home-boards):not(.live-page) .mobile-view-tabs {
     display: flex;
     flex-wrap: nowrap;
     overflow-x: auto;
@@ -109,7 +196,8 @@
     -ms-overflow-style: none;
   }
 
-  body:not(.home-boards):not(.live-page) .term-tabs::-webkit-scrollbar {
+  body:not(.home-boards):not(.live-page) .term-tabs::-webkit-scrollbar,
+  body:not(.home-boards):not(.live-page) .filter-tabs::-webkit-scrollbar {
     display: none;
   }
 
@@ -120,7 +208,9 @@
   }
 
   /* ---- News / flash feed: single column ---- */
-  body:not(.home-boards):not(.live-page) .flash-list {
+  body:not(.home-boards):not(.live-page) .flash-list,
+  body:not(.home-boards):not(.live-page) .news-grid,
+  body:not(.home-boards):not(.live-page) .article-cards {
     max-height: none;
     overflow: visible;
     display: flex;
@@ -129,7 +219,8 @@
     padding: 0;
   }
 
-  body:not(.home-boards):not(.live-page) .flash-row {
+  body:not(.home-boards):not(.live-page) .flash-row,
+  body:not(.home-boards):not(.live-page) .news-card {
     width: 100% !important;
     box-sizing: border-box;
     padding: 10px 0;
@@ -155,10 +246,31 @@
     box-sizing: border-box;
   }
 
-  body:not(.home-boards):not(.live-page) #equityChart,
   body:not(.home-boards):not(.live-page) #equityChart.lc-chart {
     height: 168px !important;
     min-height: 168px !important;
+  }
+
+  body:not(.home-boards):not(.live-page) #candleChart,
+  body:not(.home-boards):not(.live-page) #candleChart.lab-canvas {
+    height: 360px !important;
+    min-height: 360px !important;
+    max-height: 400px !important;
+  }
+
+  body:not(.home-boards):not(.live-page) .lab-chart-frame {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden;
+  }
+
+  body:not(.home-boards):not(.live-page) .ticker-bar,
+  body:not(.home-boards):not(.live-page) #bloomberg-marquee-bar,
+  body:not(.home-boards):not(.live-page) .bb-marquee {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    min-width: 0;
   }
 
   /* ---- Auth / modals / forms (iOS zoom fix) ---- */
@@ -185,7 +297,9 @@
 
   body:not(.home-boards):not(.live-page) .modal,
   body:not(.home-boards):not(.live-page) .modal.login-modal,
-  body:not(.home-boards):not(.live-page) .modal.wide {
+  body:not(.home-boards):not(.live-page) .modal.wide,
+  body:not(.home-boards):not(.live-page) .modal-dialog,
+  body:not(.home-boards):not(.live-page) .auth-card {
     width: 90% !important;
     max-width: 380px !important;
     max-height: 85vh;
@@ -227,6 +341,18 @@
   }
 
   /* ---- Mobile nav drawer above charts ---- */
+  body:not(.home-boards):not(.live-page).nav-drawer-open {
+    overflow: hidden;
+  }
+
+  body:not(.home-boards):not(.live-page).nav-drawer-open::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 9998;
+  }
+
   body:not(.home-boards):not(.live-page) .topbar {
     z-index: 9999;
     position: sticky;
@@ -244,9 +370,18 @@
     margin-top: 4px;
   }
 
+  body:not(.home-boards):not(.live-page) .result-sheet.bb-sheet.open,
+  body:not(.home-boards):not(.live-page) .result-sheet.bb-sheet {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+
   /* ---- Fixed bottom bars: safe area ---- */
   body:not(.home-boards):not(.live-page) .thumb-dock,
   body:not(.home-boards):not(.live-page) .mobile-view-tabs,
+  body:not(.home-boards):not(.live-page) .mobile-nav-bar,
+  body:not(.home-boards):not(.live-page) .fixed-bottom-bar,
   body:not(.home-boards):not(.live-page) .tg-fab,
   body:not(.home-boards):not(.live-page) .toast {
     padding-bottom: calc(8px + env(safe-area-inset-bottom)) !important;

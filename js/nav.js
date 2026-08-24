@@ -136,16 +136,33 @@
 
   const toggle = document.getElementById("navToggle");
   const bar = document.querySelector(".topbar");
+  function syncNavDrawer(open) {
+    const on = open != null ? open : bar.classList.contains("nav-open");
+    document.body.classList.toggle("nav-drawer-open", on && window.matchMedia("(max-width: 768px)").matches);
+  }
+
   if (toggle && bar) {
     toggle.addEventListener("click", () => {
       bar.classList.toggle("nav-open");
+      syncNavDrawer();
+    });
+    document.addEventListener("click", (ev) => {
+      if (!bar.classList.contains("nav-open")) return;
+      if (!window.matchMedia("(max-width: 768px)").matches) return;
+      if (bar.contains(ev.target)) return;
+      bar.classList.remove("nav-open");
+      syncNavDrawer(false);
     });
     document.querySelectorAll(".nav-actions a, .nav-actions button").forEach((el) => {
       el.addEventListener("click", () => {
         if (el.closest(".lang-pills") || el.id === "idPill") return;
-        if (window.matchMedia("(max-width: 768px)").matches) bar.classList.remove("nav-open");
+        if (window.matchMedia("(max-width: 768px)").matches) {
+          bar.classList.remove("nav-open");
+          syncNavDrawer(false);
+        }
       });
     });
+    window.addEventListener("resize", () => syncNavDrawer());
   }
 
   function fmtPx(n) {

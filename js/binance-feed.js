@@ -1564,6 +1564,8 @@
         fixRightEdge: true,
         rightBarStaysOnScroll: true,
         lockVisibleTimeRangeOnResize: true,
+        minimumHeight: mobile ? 22 : 28,
+        borderVisible: !mobile,
         tickMarkFormatter: (time) => {
           const ts = unixOf(time);
           if (!intra) return mdLocal(ts);
