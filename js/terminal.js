@@ -165,12 +165,18 @@
       s.return_pct != null && Number.isFinite(Number(s.return_pct))
         ? Number(s.return_pct)
         : parsePct(m.week_return || m.optimal_return);
-    const mdd =
+    let mdd =
       s.max_drawdown != null && Number.isFinite(Number(s.max_drawdown))
         ? -Math.abs(Number(s.max_drawdown))
         : parsePct(m.max_drawdown);
+    if (mdd != null && mdd > 0) mdd = -Math.abs(mdd);
+    let wrN = wr != null ? wr : null;
+    if (s.win_rate != null && Number.isFinite(Number(s.win_rate))) {
+      wrN = Number(s.win_rate);
+      if (wrN > 1) wrN = wrN / 100;
+    }
     return {
-      wr: wr != null ? wr : null,
+      wr: wrN,
       sh: Number.isFinite(sh) ? sh : null,
       ret: ret != null ? ret : null,
       pf: Number.isFinite(Number(s.profit_factor)) ? Number(s.profit_factor) : null,
@@ -187,8 +193,7 @@
       if (window.QAUi && !soft) window.QAUi.flash(el, hit < 0.5);
       return;
     }
-    el.classList.add("soft");
-    el.textContent = "樣本累積中";
+    el.textContent = "—";
   }
 
   function paintSharpe(el, sharpe) {
@@ -199,8 +204,7 @@
       if (window.QAUi) window.QAUi.flash(el, false);
       return;
     }
-    el.classList.add("soft");
-    el.textContent = Number.isFinite(sharpe) && sharpe < 0 ? "穩健型" : "0.82 (近30日動態)";
+    el.textContent = "—";
   }
 
   function kindOf(s) {
@@ -384,62 +388,88 @@
     }
   }
 
-  function cardHtml(s, master) {
-    const tags = (s.tags || []).map((t0) => `<span class="tag">${t0}</span>`).join("");
-    const unlockHref = paid() ? support : payHref;
-    const unlockLabel = paid() ? t("mktAskLink") : t("mktUnlockLive");
-    const actions = s.ai
-      ? `<button type="button" class="btn-cta compact" data-ai-detail="${s.id}">查看解说与曲线</button>
-         <a class="btn-cta compact" href="#" data-get-strategy>获取策略</a>`
-      : master
-      ? `<button type="button" class="btn-cta compact" data-open="${s.engine || s.id}" data-iv="${s.interval || "1h"}">${t("mktSeeBt")}</button>
-         <a class="ghost-link" href="${unlockHref}" ${paid() ? 'target="_blank" rel="noopener"' : ""}>${unlockLabel}</a>`
-      : `<button type="button" class="btn-cta compact" data-open="${s.engine || s.id}" data-iv="${s.interval || "1h"}">⚡ ${t("mktOpenBt")}</button>`;
-    const badge = s.ai ? `<span class="ai-badge">AI 挖矿</span>` : master ? `<span class="vip-badge">🔒 機構實盤</span>` : "";
-    const principle = s.principle || "";
+  function briefCopy(text) {
+    if (window.QAPipeline && typeof window.QAPipeline.briefCopy === "function") {
+      return window.QAPipeline.briefCopy(text, 200);
+    }
+    const raw = String(text || "").replace(/\s+/g, " ").trim();
+    return raw.length > 200 ? raw.slice(0, 200) + "…" : raw;
+  }
+
+  function cardHtml(s) {
     const seed = seedMetrics(s);
-    const wrPct = seed.wr != null ? (seed.wr * 100).toFixed(1) + "%" : "計算中";
-    const shTxt = seed.sh != null ? seed.sh.toFixed(2) : seed.pf != null ? seed.pf.toFixed(2) : "計算中";
-    const wrSoft = seed.wr != null ? "" : " soft";
-    const shSoft = seed.sh != null || seed.pf != null ? "" : " soft";
-    const hitLine =
-      seed.wr != null
-        ? `<p class="card-hit" data-hit-line>👑 ${t("mktWr")} ${wrPct}${seed.ret != null ? " · " + (seed.ret * 100).toFixed(0) + "%" : ""}</p>`
-        : `<p class="card-hit" data-hit-line></p>`;
-    const dataWr = seed.wr != null ? ` data-wr="${seed.wr}"` : "";
-    const dataRet = seed.ret != null ? ` data-ret="${seed.ret}"` : "";
-    const dataMdd = seed.mdd != null ? ` data-mdd="${seed.mdd}"` : "";
+    const pipe = window.QAPipeline || {};
+    const enriched = {
+      ...s,
+      sharpe: seed.sh != null ? seed.sh : s.sharpe,
+      win_rate: seed.wr != null ? seed.wr : s.win_rate,
+      max_drawdown: seed.mdd != null ? seed.mdd : s.max_drawdown,
+      return_pct: seed.ret != null ? seed.ret : s.return_pct,
+      principle: briefCopy(s.principle || s.description || s.copy || ""),
+      description: s.description || s.copy || s.principle || "",
+      copy: s.copy || s.description || s.principle || "",
+    };
+    if (typeof pipe.cardHtml === "function") {
+      return pipe.cardHtml(enriched);
+    }
+    const badge = s.ai
+      ? `<span class="ai-badge">${t("mktBadgeAi")}</span>`
+      : `<span class="classic-badge">${t("mktBadgeClassic")}</span>`;
+    const principle = enriched.principle;
+    const sym = ((s.symbols && s.symbols[0]) || "BTCUSDT");
+    const iv = String(s.interval || "1h").toUpperCase();
+    const wrPct = seed.wr != null ? (seed.wr * 100).toFixed(1) + "%" : "—";
+    const shTxt = seed.sh != null ? seed.sh.toFixed(2) : "—";
+    const mddTxt =
+      seed.mdd != null ? (-Math.abs(seed.mdd <= 1.5 ? seed.mdd * 100 : seed.mdd)).toFixed(1) + "%" : "—";
     const chartBlock = s.chart
-      ? `<img class="ai-eq-thumb" src="${s.chart}" alt="${s.name} equity" />`
+      ? `<img class="ai-eq-thumb" src="${s.chart}" alt="${s.name} equity" loading="lazy" />`
       : "";
-    return `<article class="m-card strategy-card${master ? " master" : ""}${s.ai ? " ai-card" : ""}" data-id="${s.id}" data-tier="${master ? "master" : "free"}" data-kind="${kindOf(s)}"${dataWr}${dataRet}${dataMdd} data-engine="${s.engine || s.id}">
+    return `<article class="m-card strategy-card plaza-card${s.ai ? " ai-card" : ""}${s.tier === "master" ? " master" : ""}" data-id="${s.id}" data-tier="${s.tier === "master" ? "master" : "free"}" data-kind="${kindOf(s)}" data-engine="${s.engine || s.id}">
         ${badge}
         <h3>${s.name}</h3>
-        ${hitLine}
         ${chartBlock}
         ${principle ? `<p class="card-principle">${principle}</p>` : ""}
-        <p class="muted">${(s.symbols || ["BTCUSDT"]).join(" / ")} · ${String(s.interval || "1h").toUpperCase()}</p>
-        <div class="tags">${tags}</div>
-        <div class="stat-caps">
-          <div class="stat-cap"><span>${t("mktWr")}</span><b data-wr class="${wrSoft.trim()}">${wrPct}</b></div>
-          <div class="stat-cap"><span>${t("mktSh")}</span><b data-sh class="${shSoft.trim()}">${shTxt}</b></div>
+        <p class="card-meta muted">${sym} · ${iv}</p>
+        <div class="stat-caps plaza-metrics">
+          <div class="stat-cap"><span>${t("mktSh")}</span><b>${shTxt}</b><em class="stat-tip">${t("mktShTip")}</em></div>
+          <div class="stat-cap"><span>${t("mktWr")}</span><b class="is-up">${wrPct}</b><em class="stat-tip">${t("mktWrTip")}</em></div>
+          <div class="stat-cap"><span>${t("mktMdd")}</span><b class="is-down">${mddTxt}</b><em class="stat-tip">${t("mktMddTip")}</em></div>
         </div>
-        <div class="card-actions">${actions}</div>
+        <div class="card-actions">
+          <button type="button" class="btn-cta compact" data-plaza-detail="${s.id}">${t("mktDetail")}</button>
+          <a class="btn-cta compact" href="#" data-get-strategy>${t("mktGet")}</a>
+        </div>
       </article>`;
   }
 
-  function bindOpenButtons(root) {
-    (root || document).querySelectorAll("[data-open]").forEach((b) => {
-      if (b.dataset.bound === "1") return;
-      b.dataset.bound = "1";
-      b.addEventListener("click", () => openEngine(b.getAttribute("data-open"), b.getAttribute("data-iv")));
-    });
+  function bindOpenButtons() {
+    /* Plaza cards no longer open the heavy browser backtest desk. */
   }
+
+  window.QAPlazaOpenDetail = function (id) {
+    const s = allList.find((row) => row.id === id);
+    if (!s) return;
+    const seed = seedMetrics(s);
+    const payload = {
+      ...s,
+      ai: Boolean(s.ai),
+      sharpe: seed.sh,
+      win_rate: seed.wr,
+      max_drawdown: seed.mdd,
+      return_pct: seed.ret,
+      copy: s.copy || s.description || s.principle || "",
+      description: s.description || s.copy || s.principle || "",
+      chart: s.chart || s.chart_url || "",
+    };
+    if (window.QAPipeline && typeof window.QAPipeline.openDetail === "function") {
+      window.QAPipeline.openDetail(payload);
+    }
+  };
 
   function paintGrid() {
     if (!gridEl) return;
-    gridEl.innerHTML = allList.map((s) => cardHtml(s, s.tier === "master")).join("") || `<p class="muted">${t("mktEmpty")}</p>`;
-    bindOpenButtons(gridEl);
+    gridEl.innerHTML = allList.map((s) => cardHtml(s)).join("") || `<p class="muted">${t("mktEmpty")}</p>`;
     applyFilter();
   }
 
@@ -511,13 +541,6 @@
       window.dispatchEvent(new CustomEvent("qa-leaderboard-ready"));
     }
   });
-  setTimeout(() => {
-    if (document.body.classList.contains("desk-open")) return;
-    void fillStats(allList, gridEl, 168, 4).then(() => {
-      if (document.body.classList.contains("desk-open")) return;
-      return fillStats(allList, gridEl, 500, 2);
-    });
-  }, 1200);
 
   fetchRemoteStrategies(4500).then(async (rows) => {
     let pipe = window.QAPipelineStrategies;
@@ -545,72 +568,9 @@
     }
     paintGrid();
     paintPlazaCount();
-    setTimeout(() => {
-      if (document.body.classList.contains("desk-open")) return;
-      void fillStats(allList, gridEl, 168, 4).then(() => {
-        if (document.body.classList.contains("desk-open")) return;
-        return fillStats(allList, gridEl, 500, 2);
-      });
-    }, 1200);
   });
 
-  async function statOne(s, rootEl, barLimit) {
-    if (s.ai) return;
-    const card = rootEl.querySelector(`[data-id="${s.id}"]`);
-    if (!card) return;
-    const wrEl = card.querySelector("[data-wr]");
-    const shEl = card.querySelector("[data-sh]");
-    const spec = catalog.get(s.engine || s.id) || catalog.get(s.id);
-    if (!spec || typeof spec.run !== "function") {
-      if (!card.getAttribute("data-wr")) {
-        paintHit(wrEl, null);
-        paintSharpe(shEl, null);
-      }
-      return;
-    }
-    try {
-      const bars = await barsOf((s.symbols && s.symbols[0]) || "BTCUSDT", s.interval || "1h", barLimit);
-      const trades = spec.run(bars);
-      const eq = catalog.equityFrom(bars, trades);
-      const st = catalog.performanceOf(trades, eq, catalog.barsPerYear(s.interval || "1h"), bars);
-      const wr = st.wr || st.hit;
-      if (Number.isFinite(wr) && (st.trades > 0 || wr > 0)) {
-        paintHit(wrEl, wr);
-        paintSharpe(shEl, st.sharpe);
-        card.setAttribute("data-wr", String(wr));
-        card.setAttribute("data-ret", String(st.ret || 0));
-        card.setAttribute("data-mdd", String(st.mdd || 0));
-        const hitLine = card.querySelector("[data-hit-line]");
-        if (hitLine) {
-          const wrPct = (wr * 100).toFixed(1);
-          const retPct = ((st.ret || 0) * 100).toFixed(0);
-          hitLine.textContent = `👑 ${t("mktWr")} ${wrPct}% · ${retPct}%`;
-        }
-      } else if (!card.getAttribute("data-wr")) {
-        paintHit(wrEl, null);
-        paintSharpe(shEl, null);
-      }
-    } catch {
-      if (!card.getAttribute("data-wr")) {
-        paintHit(wrEl, null);
-        paintSharpe(shEl, null);
-      }
-    }
-  }
-
-  async function fillStats(list, rootEl, barLimit, workers) {
-    if (!rootEl || !list.length) return;
-    const queue = list.slice();
-    const n = Math.max(1, workers || 4);
-    async function pump() {
-      while (queue.length) {
-        const s = queue.shift();
-        await statOne(s, rootEl, barLimit);
-      }
-    }
-    await Promise.all(Array.from({ length: n }, pump));
-    applyFilter();
-  }
+  /* Browser-side fillStats removed: plaza metrics come from pack / leaderboard / pipeline only. */
 
   catalog.register([
     {

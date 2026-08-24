@@ -1,0 +1,286 @@
+/* Unified plaza cards — gold AI standard for every strategy */
+html.plaza-page,
+body.plaza-page {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+body.plaza-page .wrap,
+body.plaza-page .editorial-main,
+body.plaza-page .market-grid {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.market-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+
+@media (max-width: 1199px) {
+  .market-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .market-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+.m-card.strategy-card.plaza-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
+  padding: 16px 14px 14px;
+  border: 1px solid rgba(212, 160, 23, 0.38);
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.m-card.strategy-card.plaza-card h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.35;
+  min-height: 0;
+  color: #0f172a;
+  padding-right: 0;
+}
+
+.ai-badge,
+.classic-badge {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  padding: 2px 8px;
+  margin: 0;
+  border-radius: 0;
+}
+
+.ai-badge {
+  color: #d4a017;
+  border: 1px solid #d4a017;
+  background: #fffdf5;
+}
+
+.classic-badge {
+  color: #64748b;
+  border: 1px solid #94a3b8;
+  background: #f8fafc;
+}
+
+.plaza-card .ai-eq-thumb,
+.plaza-card .plaza-eq-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 180px;
+  object-fit: contain;
+  background: #0b0b0c;
+  border: 1px solid rgba(212, 160, 23, 0.25);
+  margin: 2px 0 0;
+}
+
+.plaza-card .plaza-eq-svg {
+  aspect-ratio: 200 / 80;
+}
+
+.plaza-card .card-principle {
+  display: block !important;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: #475569;
+  font-weight: 400;
+  max-height: none;
+  overflow: visible;
+  white-space: normal;
+}
+
+.plaza-card .card-meta {
+  display: block !important;
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.plaza-card .tags {
+  display: none !important;
+}
+
+.plaza-card .stat-caps.plaza-metrics {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+}
+
+.plaza-card .stat-cap {
+  min-height: 0;
+  padding: 8px 8px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #f8fafc;
+}
+
+.plaza-card .stat-cap span {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #64748b;
+  line-height: 1.3;
+}
+
+.plaza-card .stat-cap b {
+  display: block;
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+  min-height: 0;
+}
+
+.plaza-card .stat-cap b.is-up {
+  color: #059669;
+}
+
+.plaza-card .stat-cap b.is-down {
+  color: #e11d48;
+}
+
+.plaza-card .stat-tip {
+  display: block;
+  margin-top: 4px;
+  font-size: 9px;
+  line-height: 1.35;
+  color: #94a3b8;
+  font-style: normal;
+  font-weight: 500;
+}
+
+.plaza-card .card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.plaza-card .card-actions .btn-cta,
+.plaza-card .card-actions a.btn-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 800;
+  box-sizing: border-box;
+}
+
+.plaza-card .card-hit {
+  display: none !important;
+}
+
+#aiStratModal .ai-eq-full,
+#aiStratModal .plaza-eq-svg {
+  width: 100%;
+  height: auto;
+  max-height: 280px;
+  object-fit: contain;
+  background: #0b0b0c;
+  border: 1px solid rgba(212, 160, 23, 0.25);
+}
+
+#aiStratModal .plaza-metric-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 10px 0 14px;
+}
+
+#aiStratModal .plaza-metric-row .stat-cap {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+#aiStratModal .plaza-metric-row .stat-cap span,
+#aiStratModal .plaza-metric-row .stat-tip {
+  color: #94a3b8;
+}
+
+#aiStratModal .plaza-metric-row .stat-cap b {
+  color: #f8fafc;
+}
+
+#aiStratModal #aiStratCopy {
+  white-space: pre-wrap;
+  line-height: 1.55;
+  color: #c8c8c8;
+}
+
+#aiStratModal .btn-cta {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 767px) {
+  .m-card.strategy-card.plaza-card {
+    padding: 14px 12px 12px !important;
+    gap: 8px !important;
+  }
+
+  .plaza-card .stat-caps.plaza-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .plaza-card .ai-eq-thumb,
+  .plaza-card .plaza-eq-svg {
+    max-height: 160px;
+  }
+
+  #aiStratModal .plaza-metric-row {
+    grid-template-columns: 1fr;
+  }
+
+  /* Undo legacy mobile hides that stripped principle / metrics */
+  body:not(.home-boards):not(.live-page) .m-card.strategy-card.plaza-card .card-principle,
+  body:not(.home-boards):not(.live-page) .m-card.strategy-card.plaza-card .card-meta,
+  body:not(.home-boards):not(.live-page) .m-card.strategy-card.plaza-card .stat-caps {
+    display: block !important;
+  }
+
+  body:not(.home-boards):not(.live-page) .m-card.strategy-card.plaza-card .stat-caps.plaza-metrics {
+    display: grid !important;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .plaza-card .stat-caps.plaza-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

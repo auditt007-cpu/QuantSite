@@ -76,8 +76,21 @@
     background: #fff;
   }
 
-  body:not(.home-boards):not(.live-page) .m-card .card-principle,
-  body:not(.home-boards):not(.live-page) .m-card .tags {
+  /* Plaza unified cards: keep principle + metrics visible on mobile */
+  body.plaza-page .m-card.strategy-card.plaza-card .card-principle,
+  body.plaza-page .m-card.strategy-card.plaza-card .card-meta,
+  body.plaza-page .m-card.strategy-card.plaza-card .stat-caps {
+    display: block !important;
+  }
+  body.plaza-page .m-card.strategy-card.plaza-card .stat-caps.plaza-metrics {
+    display: grid !important;
+  }
+  body.plaza-page .m-card.strategy-card.plaza-card .tags {
+    display: none !important;
+  }
+
+  body:not(.home-boards):not(.live-page):not(.plaza-page) .m-card .card-principle,
+  body:not(.home-boards):not(.live-page):not(.plaza-page) .m-card .tags {
     display: none !important;
   }
 

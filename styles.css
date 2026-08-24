@@ -2086,6 +2086,11 @@ body.sheet-open { overflow: hidden; }
   }
   .m-card .card-principle, .m-card .tags, .m-card .muted, .m-card .stat-caps,
   .m-card .card-principle, .m-card .tags, .m-card .muted, .m-card .stat-caps { display: none; }
+  body.plaza-page .m-card.plaza-card .card-principle,
+  body.plaza-page .m-card.plaza-card .card-meta,
+  body.plaza-page .m-card.plaza-card .muted { display: block !important; }
+  body.plaza-page .m-card.plaza-card .stat-caps.plaza-metrics { display: grid !important; }
+  body.plaza-page .m-card.plaza-card .tags { display: none !important; }
   .m-card .vip-badge, .m-card .vip-badge { position: static; font-size: 10px; align-self: flex-start; }
   .m-card .card-hit, .m-card .card-hit {
     display: block;
