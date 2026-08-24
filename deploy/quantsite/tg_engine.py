@@ -38,6 +38,7 @@ SYMBOLS = [
 ]
 TIMEFRAMES = ("15m", "1h")
 POLL_SEC = 60
+FEED_PUBLISH_SEC = 5
 KLINE_LIMIT = 200
 POOL_WORKERS = 10
 LIVE_FEED_WORKERS = 8
@@ -45,6 +46,7 @@ LIVE_FEED_TF = "1h"
 LIVE_FEED_WINDOW_SEC = 3 * 3600
 LIVE_FEED_LOOKBACK_BARS = 4  # small margin over the 3h window in 1h bars
 LIVE_FEED_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "live_feed.json")
+WEB_FEED_PATH = os.environ.get("WEB_FEED_PATH", "/var/www/html/live_feed.json")
 LIVE_EXEC_LOG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "live_exec_log.json")
 LIVE_POSITION_STATE_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "live_position_state.json"
@@ -1188,7 +1190,7 @@ def build_live_feed_matrix():
     return {
         "updated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "period_hours": 3,
-        "poll_sec": POLL_SEC,
+        "poll_sec": FEED_PUBLISH_SEC,
         "scan_tf": LIVE_FEED_TF,
         "symbols": SYMBOLS,
         "strategy_count": len(specs),
@@ -1199,12 +1201,48 @@ def build_live_feed_matrix():
     }
 
 
-def write_live_feed(payload):
-    raw = json.dumps(payload, ensure_ascii=False, indent=2)
-    tmp = LIVE_FEED_PATH + ".tmp"
+def atomic_write_json(path, raw):
+    directory = os.path.dirname(path) or "."
+    if directory and not os.path.isdir(directory):
+        os.makedirs(directory, exist_ok=True)
+    tmp = path + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:
         f.write(raw)
-    os.replace(tmp, LIVE_FEED_PATH)
+    os.replace(tmp, path)
+
+
+def publish_live_feed_to_webroot():
+    """Copy engine feed into the HTTPS static root (same-origin for the site)."""
+    if not WEB_FEED_PATH or WEB_FEED_PATH == LIVE_FEED_PATH:
+        return
+    if not os.path.isfile(LIVE_FEED_PATH):
+        return
+    directory = os.path.dirname(WEB_FEED_PATH) or "."
+    if directory and not os.path.isdir(directory):
+        os.makedirs(directory, exist_ok=True)
+    tmp = WEB_FEED_PATH + ".tmp"
+    with open(LIVE_FEED_PATH, "rb") as src, open(tmp, "wb") as dst:
+        dst.write(src.read())
+    os.replace(tmp, WEB_FEED_PATH)
+
+
+def write_live_feed(payload):
+    raw = json.dumps(payload, ensure_ascii=False, indent=2)
+    atomic_write_json(LIVE_FEED_PATH, raw)
+    try:
+        publish_live_feed_to_webroot()
+    except Exception as exc:
+        log("webroot live_feed publish error: {0}".format(exc))
+
+
+def feed_publish_loop():
+    """Overwrite /var/www/html/live_feed.json every FEED_PUBLISH_SEC seconds."""
+    while True:
+        try:
+            publish_live_feed_to_webroot()
+        except Exception as exc:
+            log("feed publish loop error: {0}".format(exc))
+        time.sleep(FEED_PUBLISH_SEC)
 
 
 def fmt_ts_ms(ms):
@@ -1393,8 +1431,8 @@ def cycle():
 
 def main():
     log(
-        "event_engine start channel={0} poll={1}s strategies={2} symbols={3}".format(
-            CHANNEL, POLL_SEC, len(STRATEGY_MATRIX), len(SYMBOLS)
+        "event_engine start channel={0} poll={1}s publish={2}s web={3} strategies={4} symbols={5}".format(
+            CHANNEL, POLL_SEC, FEED_PUBLISH_SEC, WEB_FEED_PATH, len(STRATEGY_MATRIX), len(SYMBOLS)
         )
     )
     if not BOT_TOKEN:
@@ -1406,6 +1444,7 @@ def main():
         AUDIO_EXECUTOR.submit(ensure_welcome_audio)
         AUDIO_EXECUTOR.submit(ensure_funnel_audio)
         AUDIO_EXECUTOR.submit(ensure_idle_audio)
+    threading.Thread(target=feed_publish_loop, name="feed-publish", daemon=True).start()
     while True:
         try:
             cycle()

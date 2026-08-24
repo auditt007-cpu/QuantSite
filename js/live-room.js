@@ -234,7 +234,7 @@
   // checked strategies). Never blocks chart/tape rendering.
   async function pollLiveFeedAudio() {
     try {
-      const res = await fetch("./live_feed.json", { cache: "no-store" });
+      const res = await fetch(liveFeedUrl(), { cache: "no-store" });
       if (!res.ok) return;
       const data = await res.json();
       const coinBases = new Set(watchCoins.map((c) => String(c).replace("USDT", "")));
@@ -276,6 +276,11 @@
       return String(sig.side || "").includes("LONG") ? "SELL" : "BUY";
     }
     return sig.side === "SHORT" ? "SELL" : "BUY";
+  }
+
+  function liveFeedUrl() {
+    // Same-origin HTTPS only — never fetch http://IP (Mixed Content).
+    return "/live_feed.json?t=" + Date.now();
   }
 
   function fmtVpsTime(barTs) {
@@ -321,14 +326,13 @@
 
   let lastVpsKeys = new Set();
   let vpsBoardTimer = null;
-  let vpsPollMs = 15000;
+  let vpsPollMs = 5000;
   let paintExecPillFn = null;
   let lastFeedUpdatedAt = "";
 
   function scheduleVpsPoll(ms) {
-    // Pages copy is refreshed by VPS→GitHub push (~1 min). Keep the client
-    // snappy; do not inherit engine poll_sec=60 as a 60s UI stall.
-    const next = Math.max(12000, Math.min(Number(ms) || 15000, 20000));
+    // Same-origin static feed; engine publishes ~5s. Cap client poll 5–15s.
+    const next = Math.max(5000, Math.min(Number(ms) || 5000, 15000));
     if (next === vpsPollMs && vpsBoardTimer) return;
     vpsPollMs = next;
     if (vpsBoardTimer) clearInterval(vpsBoardTimer);
@@ -350,10 +354,10 @@
     const viewport = document.getElementById("vpsExecViewport");
     if (!list) return;
     try {
-      const res = await fetch("./live_feed.json?_=" + Date.now(), { cache: "no-store" });
+      const res = await fetch(liveFeedUrl(), { cache: "no-store" });
       if (!res.ok) return;
       const data = await res.json();
-      scheduleVpsPoll(15000);
+      scheduleVpsPoll(Number(data.poll_sec) ? Number(data.poll_sec) * 1000 : 5000);
       const merged = vpsFeedRows(data).slice(0, 20);
       if (updatedEl) {
         const meta = t("vpsExecMeta")
@@ -705,7 +709,7 @@
   const seenFeedFxKeys = new Set();
   async function pollLiveFeedFx() {
     try {
-      const res = await fetch("./live_feed.json", { cache: "no-store" });
+      const res = await fetch(liveFeedUrl(), { cache: "no-store" });
       if (!res.ok) return;
       const data = await res.json();
       const all = (data.active_signals_3h || []).concat(data.closed_signals_3h || []);
