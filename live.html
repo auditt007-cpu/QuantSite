@@ -32,7 +32,7 @@
         <div class="auth-dock" id="authDock">
           <button type="button" class="auth-btn" id="btnAuth">[ 🔐 請先登入 ]</button>
         </div>
-        <button type="button" class="nav-toggle" id="navToggle" aria-label="選單">☰</button>
+        <button type="button" class="nav-toggle" id="navToggle" aria-label="選單" data-i18n-aria="ariaMenu">☰</button>
       </div>
       <div class="nav-actions" id="navActions">
         <a class="nav-link" href="./terminal.html" data-i18n="navTerminal">策略廣場</a>
@@ -66,8 +66,14 @@
     </div>
     </div>
 
+    <div class="mobile-view-tabs" id="mobileViewTabs" role="tablist">
+      <button type="button" class="mv-tab is-active" data-view="strategies" data-i18n="mvTabStrategies">🎯 核心監控 / 策略</button>
+      <button type="button" class="mv-tab" data-view="leaderboard" data-i18n="mvTabLeaderboard">🏆 收益 TOP 5</button>
+      <button type="button" class="mv-tab" data-view="news" data-i18n="mvTabNews">⚡ 7x24 快訊</button>
+    </div>
     <div class="editorial-grid war-room-page-grid">
       <div class="editorial-main">
+      <div class="mv-panel mv-panel-strategies" data-mv-panel="strategies">
         <section class="live-room-head">
           <div class="kicker desk-only" data-i18n="liveKicker">LIVE WAR ROOM</div>
           <h2 class="h2" data-i18n="liveTitle">實時量化作戰室</h2>
@@ -98,6 +104,7 @@
             <div class="war-chart-legend" id="warChartLegend" aria-label="Chart legend"></div>
             <div id="warChart" class="war-chart chart-container"></div>
             <div class="war-chart-tooltip" id="warChartTooltip" hidden></div>
+            <button type="button" class="chart-touch-toggle chart-touch-toggle-left" data-target="warChart" data-i18n="chartTouchOn">🔍 開啟互動</button>
             <div class="scan-hud" id="scanHud" aria-hidden="true">
               <div class="scan-hud-bar"><div class="scan-hud-fill" id="scanHudFill"></div></div>
               <div class="scan-hud-text" id="scanHudText"></div>
@@ -127,23 +134,41 @@
           </div>
         </section>
 
-        <section class="watch-funnel" id="watchFunnel">
-          <div class="funnel-step">
-            <h3 class="matrix-h" data-i18n="funnelStep1">第一步：選擇監控幣種（可多選）</h3>
-            <div class="coin-pills" id="coinPills"></div>
+        <section class="watch-funnel config-sheet" id="watchFunnel">
+          <div class="config-sheet-handle" id="configSheetHandle" aria-hidden="true"></div>
+          <div class="config-sheet-scroll">
+            <div class="funnel-step">
+              <h3 class="matrix-h" data-i18n="configSheetCoins">監控幣種</h3>
+              <div class="coin-pills" id="coinPills"></div>
+            </div>
+            <div class="funnel-step">
+              <h3 class="matrix-h" data-i18n="configSheetStrats">策略模型</h3>
+              <div class="matrix-list" id="matrixList"></div>
+            </div>
           </div>
-          <div class="funnel-step">
-            <h3 class="matrix-h" data-i18n="funnelStep2">第二步：選擇策略模型（可多選）</h3>
-            <div class="matrix-list" id="matrixList"></div>
-          </div>
+          <button type="button" class="config-sheet-apply" id="configSheetApply">✅ 確認並應用組合 (1)</button>
         </section>
       </div>
-      <aside class="editorial-rail vps-exec-rail" aria-label="Order execution feed">
+
+      <section class="mv-panel mv-panel-leaderboard rail-block week-board-desk" data-mv-panel="leaderboard">
+        <div class="kicker kicker-plain">ALPHA</div>
+        <h3 class="rail-h" data-week-title>📊 近 7 天收益榜 TOP 5</h3>
+        <p class="muted lb-period-note" data-lb-period></p>
+        <ol class="week-list" data-week-board></ol>
+      </section>
+      <section class="mv-panel mv-panel-news rail-block flash-desk" data-mv-panel="news">
+        <div class="kicker" data-i18n="flashKicker">FLASH NEWS</div>
+        <h3 class="rail-h" data-i18n="flashTitle">⚡ 7x24 即時快訊</h3>
+        <ul class="flash-list" id="flashNews" aria-live="polite"></ul>
+      </section>
+      </div>
+      <aside class="editorial-rail vps-exec-rail" id="vpsExecRail" aria-label="Order execution feed">
         <div class="sidebar-rail-inner">
           <div class="sidebar-header-aligned">
             <div class="main-title-flex">
               <span data-i18n="vpsExecTitle">執行流水</span>
               <span class="status-dot green" data-i18n="vpsLiveBadge">● LIVE</span>
+              <button type="button" class="mobile-sheet-close" id="mobileSheetClose" data-i18n="close" aria-label="Close">關閉</button>
             </div>
           </div>
           <section class="vps-exec-board exec-tape-board">
@@ -181,6 +206,17 @@
 
   <div class="toast" id="toast"></div>
   <div class="screen-flash-overlay" id="screenFlashOverlay" aria-hidden="true"></div>
+  <div class="mobile-sheet-backdrop" id="mobileSheetBackdrop" hidden></div>
+  <div class="mobile-live-dock">
+    <button type="button" class="mobile-tape-pill" id="mobileTapePill" aria-expanded="false" aria-controls="vpsExecRail">
+      <span class="mobile-tape-pill-dot" aria-hidden="true"></span>
+      <span class="mobile-tape-pill-text" id="mobileTapePillText" data-i18n="vpsExecTitle">執行流水</span>
+      <span class="mobile-tape-pill-chevron" aria-hidden="true">▲</span>
+    </button>
+    <button type="button" class="config-dock-btn" id="configDockBtn" aria-expanded="false" aria-controls="watchFunnel">
+      ⚙️ 配置監控組合 (已選 1)
+    </button>
+  </div>
 
   <script src="./js/nav.js"></script>
   <script src="./config.js"></script>
@@ -198,5 +234,6 @@
   <script src="./js/engine-list.js"></script>
   <script src="./js/lightweight-charts.standalone.production.js"></script>
   <script src="./js/live-room.js"></script>
+  <script src="./js/mobile-ux.js"></script>
 </body>
 </html>

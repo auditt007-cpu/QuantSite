@@ -370,6 +370,165 @@
   }
 
   /* ---------------------------------------------------------------------
+   * Mobile: the "SYSTEM EXECUTION" rail becomes a bottom-sheet drawer.
+   * A floating pill (latest fill summary) sits above the watch tape;
+   * tapping it slides the full exec feed up from the bottom.
+   * ------------------------------------------------------------------- */
+  function syncBackdrop() {
+    const backdrop = document.getElementById("mobileSheetBackdrop");
+    if (!backdrop) return;
+    const open =
+      document.body.classList.contains("tape-sheet-open") ||
+      document.body.classList.contains("config-sheet-open");
+    backdrop.hidden = !open;
+  }
+
+  function paintConfigCounts() {
+    const n = watchStrategyIds.length;
+    const dock = document.getElementById("configDockBtn");
+    const apply = document.getElementById("configSheetApply");
+    if (dock) dock.textContent = t("configDockBtn").replace("{n}", String(n));
+    if (apply) apply.textContent = t("configSheetApply").replace("{n}", String(n));
+  }
+
+  function closeConfigSheet() {
+    document.body.classList.remove("config-sheet-open");
+    const dock = document.getElementById("configDockBtn");
+    if (dock) dock.setAttribute("aria-expanded", "false");
+    syncBackdrop();
+  }
+
+  function openConfigSheet() {
+    document.body.classList.remove("tape-sheet-open");
+    const tapePill = document.getElementById("mobileTapePill");
+    if (tapePill) tapePill.setAttribute("aria-expanded", "false");
+    document.body.classList.add("config-sheet-open");
+    const dock = document.getElementById("configDockBtn");
+    if (dock) dock.setAttribute("aria-expanded", "true");
+    syncBackdrop();
+  }
+
+  function bindConfigSheet() {
+    const dock = document.getElementById("configDockBtn");
+    const apply = document.getElementById("configSheetApply");
+    const handle = document.getElementById("configSheetHandle");
+    const sheet = document.getElementById("watchFunnel");
+    if (!dock || !sheet) return;
+
+    dock.addEventListener("click", () => {
+      if (document.body.classList.contains("config-sheet-open")) closeConfigSheet();
+      else openConfigSheet();
+    });
+    if (apply) apply.addEventListener("click", closeConfigSheet);
+    const backdrop = document.getElementById("mobileSheetBackdrop");
+    if (backdrop && backdrop.getAttribute("data-sheet-bound") !== "1") {
+      backdrop.setAttribute("data-sheet-bound", "1");
+      backdrop.addEventListener("click", () => {
+        closeConfigSheet();
+        document.body.classList.remove("tape-sheet-open");
+        const tapePill = document.getElementById("mobileTapePill");
+        if (tapePill) tapePill.setAttribute("aria-expanded", "false");
+        syncBackdrop();
+      });
+    }
+
+    let startY = 0;
+    let dragging = false;
+    function onStart(ev) {
+      const tch = ev.touches && ev.touches[0];
+      if (!tch) return;
+      startY = tch.clientY;
+      dragging = true;
+    }
+    function onMove(ev) {
+      if (!dragging) return;
+      const tch = ev.touches && ev.touches[0];
+      if (!tch) return;
+      const dy = tch.clientY - startY;
+      if (dy > 0) {
+        sheet.style.transform = "translateY(" + dy + "px)";
+      }
+    }
+    function onEnd(ev) {
+      if (!dragging) return;
+      dragging = false;
+      const tch = ev.changedTouches && ev.changedTouches[0];
+      const dy = tch ? tch.clientY - startY : 0;
+      sheet.style.transform = "";
+      if (dy > 72) closeConfigSheet();
+    }
+    const dragEl = handle || sheet;
+    dragEl.addEventListener("touchstart", onStart, { passive: true });
+    dragEl.addEventListener("touchmove", onMove, { passive: true });
+    dragEl.addEventListener("touchend", onEnd, { passive: true });
+    paintConfigCounts();
+  }
+
+  function latestExecSummary() {
+    const row = document.querySelector("#vpsExecList .exec-tape-row");
+    if (!row) return t("vpsExecTitle");
+    const pair = row.querySelector(".tape-pair");
+    const action = row.querySelector(".tape-pill");
+    const time = row.querySelector(".tape-time");
+    const bits = [time, action, pair].map((el) => (el ? el.textContent.trim() : "")).filter(Boolean);
+    return bits.length ? bits.join(" · ") : t("vpsExecTitle");
+  }
+
+  function bindMobileExecSheet() {
+    const pill = document.getElementById("mobileTapePill");
+    const pillText = document.getElementById("mobileTapePillText");
+    const closeBtn = document.getElementById("mobileSheetClose");
+    const rail = document.getElementById("vpsExecRail");
+    if (!pill || !rail) return;
+
+    function closeTape() {
+      document.body.classList.remove("tape-sheet-open");
+      pill.setAttribute("aria-expanded", "false");
+      syncBackdrop();
+    }
+    function openTape() {
+      closeConfigSheet();
+      document.body.classList.add("tape-sheet-open");
+      pill.setAttribute("aria-expanded", "true");
+      syncBackdrop();
+    }
+    function toggle() {
+      if (document.body.classList.contains("tape-sheet-open")) closeTape();
+      else openTape();
+    }
+
+    pill.addEventListener("click", toggle);
+    if (closeBtn) closeBtn.addEventListener("click", closeTape);
+
+    function refreshPillText() {
+      if (pillText) pillText.textContent = latestExecSummary();
+    }
+    refreshPillText();
+    setInterval(refreshPillText, 15000);
+  }
+
+  /* ---------------------------------------------------------------------
+   * Mobile segmented control adds a Leaderboard tab; load leaderboard.json
+   * once so news.js's shared paintWeek() can render real VPS rankings here
+   * (mirrors terminal.js's loader without pulling in the backtest engine).
+   * ------------------------------------------------------------------- */
+  async function loadLeaderboardForRail() {
+    if (window.QALeaderboard) return;
+    const cfg = window.QUANT_CONFIG || {};
+    try {
+      const res = await fetch((cfg.leaderboardUrl || "./leaderboard.json"), { cache: "no-store" });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data && data.by_engine) {
+        window.QALeaderboard = data;
+        window.dispatchEvent(new CustomEvent("qa-leaderboard-ready"));
+      }
+    } catch {
+      /* leaderboard.json optional on the live page */
+    }
+  }
+
+  /* ---------------------------------------------------------------------
    * Scan HUD — small "always working" status widget above the chart. The
    * progress bar is decorative (bounded oscillation), but the rotating
    * text describes the engine's real behavior (60s scan cadence across the
@@ -757,6 +916,7 @@
       saveJsonArray(WATCH_COINS_KEY, watchCoins);
       const row = input.closest(".coin-pill");
       if (row) row.classList.toggle("is-checked", input.checked);
+      paintConfigCounts();
       renderSelectedMatrix();
       refreshWatchTape();
       scheduleFunnelVoice();
@@ -772,14 +932,42 @@
     const m = s.match(/^(.*?)\s*(\([^)]*\))\s*$/);
     return m ? { zh: m[1], en: m[2] } : { zh: s, en: "" };
   }
+  function wrForStrategy(id) {
+    const lb = window.QALeaderboard;
+    if (!lb) return null;
+    const by = lb.by_engine && (lb.by_engine[id] || lb.by_engine[String(id).toLowerCase()]);
+    if (by && Number.isFinite(Number(by.win_rate))) return Number(by.win_rate);
+    const rows = (lb.strategies || []).filter((r) => r && (r.id === id || r.engine === id));
+    if (!rows.length) return null;
+    let best = null;
+    rows.forEach((r) => {
+      const n = Number(r.win_rate);
+      if (Number.isFinite(n) && (best == null || n > best)) best = n;
+    });
+    return best;
+  }
+  function fmtWrTag(id) {
+    const wr = wrForStrategy(id);
+    if (!Number.isFinite(wr)) return "";
+    const pct = wr <= 1 ? wr * 100 : wr;
+    return pct.toFixed(0) + "%";
+  }
+
   function matrixRowHtml(s) {
     const checked = watchStrategyIds.includes(s.id);
-    const parts = splitStrategyName(s.name);
-    const enHtml = parts.en ? ` <span class="matrix-name-en">${escapeHtml(parts.en)}</span>` : "";
+    const lb = window.QALeaderboard && window.QALeaderboard.by_engine
+      ? window.QALeaderboard.by_engine[s.id]
+      : null;
+    const zh = (lb && lb.name_zh) || splitStrategyName(s.name).zh;
+    const en = (lb && lb.name_en) ? "(" + lb.name_en + ")" : splitStrategyName(s.name).en;
+    const enHtml = en ? ` <span class="matrix-name-en">${escapeHtml(en)}</span>` : "";
+    const wr = fmtWrTag(s.id);
+    const wrHtml = wr ? `<span class="matrix-wr">${escapeHtml(wr)}</span>` : "";
     return `<label class="matrix-row${checked ? " is-checked" : ""}" data-row="${s.id}">
         <input type="checkbox" class="matrix-check" data-select="${s.id}" ${checked ? "checked" : ""} />
         <span class="matrix-dot${isHot(s.id) ? " is-hot" : ""}" data-dot="${s.id}" aria-hidden="true"></span>
-        <span class="matrix-name">${escapeHtml(parts.zh)}${enHtml}</span>
+        <span class="matrix-name">${escapeHtml(zh)}${enHtml}</span>
+        ${wrHtml}
       </label>`;
   }
   function renderMatrix(strategies) {
@@ -820,6 +1008,7 @@
         }
       }
       saveJsonArray(WATCH_STRATS_KEY, watchStrategyIds);
+      paintConfigCounts();
       renderSelectedMatrix();
       refreshWatchTape();
       scheduleFunnelVoice();
@@ -1589,6 +1778,17 @@
     bindVpsExecBoard();
     bindLiveChromeOffset();
     bindScanHud();
+    bindMobileExecSheet();
+    bindConfigSheet();
+    loadLeaderboardForRail().then(() => {
+      renderMatrix(strategies);
+      paintFocusHighlight(activeStrategy ? activeStrategy.id : null);
+      paintConfigCounts();
+    });
+    window.addEventListener("qa-leaderboard-ready", () => {
+      renderMatrix(strategies);
+      paintFocusHighlight(activeStrategy ? activeStrategy.id : null);
+    });
     scheduleIdleVoice();
     pollLiveFeedFx();
     setInterval(pollLiveFeedFx, 20000);
@@ -1603,6 +1803,7 @@
       (savedId && watchStrategyIds.includes(savedId) && savedId) ||
       watchStrategyIds[watchStrategyIds.length - 1] ||
       strategies[0].id;
+    paintConfigCounts();
     selectStrategy(startId, strategies);
     renderSelectedMatrix();
     renderLegend();
@@ -1623,6 +1824,7 @@
       renderLegend();
       refreshWatchTape();
       refreshVpsExecBoard();
+      paintConfigCounts();
     });
   }
 

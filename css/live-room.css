@@ -471,7 +471,15 @@
   background: #16a34a;
   animation: liveDotPulse 1.4s ease-in-out infinite;
 }
-.matrix-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.matrix-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1 1 auto; min-width: 0; }
+.matrix-wr {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
 .matrix-row.is-focused .matrix-name::after { content: " 👁"; }
 
 .watch-tape-block { margin-top: 18px; }
@@ -788,4 +796,262 @@ body.live-page .sidebar-header-aligned .status-dot.green {
     position: sticky;
     top: 0;
   }
+}
+
+/* ---------------------------------------------------------------------
+ * Mobile: the exec-tape rail ("SYSTEM EXECUTION") becomes a bottom-sheet
+ * drawer, opened by a small floating pill above the watch tape. The rail
+ * markup itself is unchanged — only its position/transform differ here.
+ * ------------------------------------------------------------------- */
+.config-sheet-handle,
+.config-sheet-apply,
+.config-dock-btn,
+.mobile-live-dock,
+.mobile-sheet-backdrop,
+.mobile-tape-pill,
+.mobile-sheet-close { display: none; }
+
+@media (max-width: 768px) {
+  .mobile-sheet-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 119;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  .mobile-live-dock {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    z-index: 120;
+  }
+  body.tape-sheet-open .mobile-live-dock,
+  body.config-sheet-open .mobile-live-dock { display: none; }
+
+  .mobile-tape-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1 1 42%;
+    min-width: 0;
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    z-index: auto;
+    padding: 10px 12px;
+    border: 1px solid #1f2428;
+    border-radius: 999px;
+    background: #0c0d0e;
+    color: #f1f5f9;
+    font-family: "JetBrains Mono", "Roboto Mono", "SF Pro Display", -apple-system, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  }
+  .mobile-tape-pill-dot {
+    width: 7px; height: 7px; border-radius: 50%; background: #10b981; flex-shrink: 0;
+    animation: liveDotPulse 1.5s ease-in-out infinite;
+  }
+  .mobile-tape-pill-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: left;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .mobile-tape-pill-chevron { color: #64748b; flex-shrink: 0; }
+  .mobile-tape-pill[aria-expanded="true"] .mobile-tape-pill-chevron { transform: rotate(180deg); }
+
+  .config-dock-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 58%;
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid #000000;
+    border-radius: 999px;
+    background: #f8fafc;
+    color: #0c0d0e;
+    font-family: "SF Pro Display", -apple-system, sans-serif;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mobile-sheet-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    width: 22px;
+    height: 22px;
+    border: 1px solid #334155;
+    border-radius: 50%;
+    background: transparent;
+    color: #94a3b8;
+    font-size: 11px;
+    cursor: pointer;
+  }
+
+  body.live-page .editorial-rail.vps-exec-rail {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: auto;
+    bottom: 0;
+    z-index: 130;
+    max-height: 72vh;
+    margin: 0;
+    padding: 0;
+    border-radius: 14px 14px 0 0;
+    overflow-y: auto;
+    transform: translateY(105%);
+    transition: transform 0.28s ease;
+    box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.45);
+  }
+  body.live-page.tape-sheet-open .editorial-rail.vps-exec-rail {
+    transform: translateY(0);
+  }
+  body.live-page .exec-tape-viewport { height: auto; max-height: 50vh; }
+
+  /* Config funnel becomes a half-screen bottom sheet; hidden from main flow. */
+  body.live-page .watch-funnel.config-sheet {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 140;
+    height: 75vh;
+    max-height: 75vh;
+    margin: 0;
+    padding: 0 0 env(safe-area-inset-bottom);
+    border-top: none;
+    border-radius: 16px 16px 0 0;
+    background: #121316;
+    color: #e2e8f0;
+    transform: translateY(105%);
+    transition: transform 0.28s ease;
+    box-shadow: 0 -16px 40px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+  }
+  body.live-page.config-sheet-open .watch-funnel.config-sheet {
+    transform: translateY(0);
+  }
+  body.live-page.config-sheet-open,
+  body.live-page.tape-sheet-open {
+    overflow: hidden;
+  }
+  .config-sheet-handle {
+    display: block;
+    width: 40px;
+    height: 4px;
+    margin: 10px auto 8px;
+    border-radius: 999px;
+    background: #64748b;
+    flex-shrink: 0;
+  }
+  .config-sheet-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 14px 12px;
+  }
+  body.live-page .config-sheet .funnel-step { margin-bottom: 16px; }
+  body.live-page .config-sheet .matrix-h {
+    color: #94a3b8;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    margin-bottom: 8px;
+  }
+  body.live-page .config-sheet .coin-pills {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+  }
+  body.live-page .config-sheet .coin-pill {
+    justify-content: center;
+    padding: 8px 4px;
+    border: 1px solid #2a2e34;
+    border-radius: 999px;
+    background: #1a1c20;
+    color: #cbd5e1;
+    font-size: 12px;
+  }
+  body.live-page .config-sheet .coin-pill.is-checked {
+    background: rgba(16, 185, 129, 0.14);
+    border-color: #10b981;
+    color: #10b981;
+  }
+  body.live-page .config-sheet .coin-pill:hover { background: #1a1c20; }
+  body.live-page .config-sheet .coin-pill.is-checked:hover {
+    background: rgba(16, 185, 129, 0.18);
+  }
+  body.live-page .config-sheet .matrix-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  body.live-page .config-sheet .matrix-row {
+    gap: 6px;
+    padding: 8px 8px;
+    border: 1px solid #2a2e34;
+    border-radius: 8px;
+    background: #1a1c20;
+    color: #e2e8f0;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  body.live-page .config-sheet .matrix-row:hover { background: #1a1c20; }
+  body.live-page .config-sheet .matrix-row.is-checked {
+    background: rgba(16, 185, 129, 0.12);
+    border-color: #10b981;
+    box-shadow: none;
+    font-weight: 800;
+  }
+  body.live-page .config-sheet .matrix-dot { display: none; }
+  body.live-page .config-sheet .matrix-name-en { display: none; }
+  body.live-page .config-sheet .matrix-name {
+    color: #f1f5f9;
+    white-space: normal;
+    line-height: 1.25;
+  }
+  body.live-page .config-sheet .matrix-row.is-focused .matrix-name::after { content: none; }
+  body.live-page .config-sheet .matrix-wr {
+    color: #64748b;
+    font-size: 9px;
+  }
+  body.live-page .config-sheet .matrix-check { accent-color: #10b981; }
+  .config-sheet-apply {
+    display: block;
+    flex-shrink: 0;
+    width: calc(100% - 28px);
+    margin: 0 14px 12px;
+    padding: 12px 10px;
+    border: none;
+    border-radius: 10px;
+    background: #10b981;
+    color: #052e16;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+  }
+
+  .watch-tape-block { padding-bottom: 84px; }
 }
