@@ -4,6 +4,8 @@ on:
   schedule:
     - cron: "*/5 * * * *"
   workflow_dispatch:
+  repository_dispatch:
+    types: [sync-live-feed]
 
 permissions:
   contents: write
@@ -40,4 +42,4 @@ jobs:
           git config --local user.email "bot@quantalpha.space"
           git config --local user.name "QuantAlpha Live Feed Bot"
           git add live_feed.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: sync live_feed.json from VPS [skip ci]" && git push)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: sync live_feed.json from VPS" && git push)

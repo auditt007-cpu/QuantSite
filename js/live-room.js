@@ -321,15 +321,27 @@
 
   let lastVpsKeys = new Set();
   let vpsBoardTimer = null;
-  let vpsPollMs = 20000;
+  let vpsPollMs = 15000;
   let paintExecPillFn = null;
+  let lastFeedUpdatedAt = "";
 
   function scheduleVpsPoll(ms) {
-    const next = Math.max(12000, Math.min(Number(ms) || 20000, 60000));
+    // Pages copy is refreshed by VPS→GitHub push (~1 min). Keep the client
+    // snappy; do not inherit engine poll_sec=60 as a 60s UI stall.
+    const next = Math.max(12000, Math.min(Number(ms) || 15000, 20000));
     if (next === vpsPollMs && vpsBoardTimer) return;
     vpsPollMs = next;
     if (vpsBoardTimer) clearInterval(vpsBoardTimer);
     vpsBoardTimer = setInterval(refreshVpsExecBoard, vpsPollMs);
+  }
+
+  function feedAgeLabel(updatedAt) {
+    const ts = Date.parse(String(updatedAt || ""));
+    if (!isFinite(ts)) return "";
+    const sec = Math.max(0, Math.round((Date.now() - ts) / 1000));
+    if (sec < 90) return " · LIVE";
+    if (sec < 3600) return " · " + Math.round(sec / 60) + "m ago";
+    return " · " + Math.round(sec / 3600) + "h ago";
   }
 
   async function refreshVpsExecBoard() {
@@ -341,7 +353,7 @@
       const res = await fetch("./live_feed.json?_=" + Date.now(), { cache: "no-store" });
       if (!res.ok) return;
       const data = await res.json();
-      if (data.poll_sec) scheduleVpsPoll(Number(data.poll_sec) * 1000);
+      scheduleVpsPoll(15000);
       const merged = vpsFeedRows(data).slice(0, 20);
       if (updatedEl) {
         const meta = t("vpsExecMeta")
@@ -350,9 +362,13 @@
           .replace("{sec}", String(data.poll_sec || 60))
           .replace("{tf}", String(data.scan_tf || "1h").toUpperCase());
         const upd = data.updated_at
-          ? " · UPD " + String(data.updated_at).replace("T", " ").replace("Z", " UTC")
+          ? " · UPD " + String(data.updated_at).replace("T", " ").replace("Z", " UTC") + feedAgeLabel(data.updated_at)
           : "";
         updatedEl.textContent = meta + upd;
+        updatedEl.classList.toggle("is-stale", feedAgeLabel(data.updated_at).indexOf("h ago") >= 0);
+      }
+      if (data.updated_at && data.updated_at !== lastFeedUpdatedAt) {
+        lastFeedUpdatedAt = data.updated_at;
       }
       if (!merged.length) {
         list.innerHTML = `<div class="exec-tape-empty">${escapeHtml(t("vpsExecEmpty"))}</div>`;
