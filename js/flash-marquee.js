@@ -199,9 +199,7 @@
 
   function paintMarquee(items, key) {
     const track = document.getElementById("bbMarqueeTrack");
-    const tag = document.querySelector(
-      "#bloomberg-marquee-bar .ticker-badge, #bloomberg-marquee-bar .bb-tag",
-    );
+    const tag = document.querySelector("#bloomberg-marquee-bar .qa-flash-badge, #bloomberg-marquee-bar .ticker-badge, #bloomberg-marquee-bar .bb-tag");
     if (tag) tag.textContent = t("flashMarqueeTag");
     if (!track) return;
     const rows = items && items.length ? items : fallbackItems(key);
@@ -209,7 +207,7 @@
       .map((it) => {
         const clock = typeof it.time === "string" ? it.time : hhmm(it.time, key);
         return (
-          '<span class="ticker-item">' +
+          '<span class="qa-flash-item">' +
           `<a href="${escapeHtml(it.url)}" target="_blank" rel="noopener noreferrer">` +
           `[ ${clock} ] ${escapeHtml(it.title)}` +
           "</a></span>"

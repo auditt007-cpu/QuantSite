@@ -1,12 +1,10 @@
 /**
- * Flash marquee — left badge + right viewport (no absolute / float hacks).
- * Loaded last so it wins over legacy .bb-marquee overrides.
+ * Flash news marquee — physically isolated from the price ticker.
+ * Unique qa-flash-* class names so legacy .ticker-track / .bb-tag rules cannot leak in.
  */
 
-#bloomberg-marquee-bar,
-.marquee-ticker-wrapper,
-.bb-marquee.marquee-ticker-wrapper,
-.news-ticker-container.marquee-ticker-wrapper {
+.qa-flash-marquee,
+#bloomberg-marquee-bar.qa-flash-marquee {
   display: flex !important;
   flex-direction: row !important;
   flex-wrap: nowrap !important;
@@ -26,18 +24,15 @@
   padding: 0 16px !important;
   z-index: 10 !important;
   border: 0 !important;
-  border-bottom: 0 !important;
   border-radius: 0 !important;
   flex-shrink: 0 !important;
   contain: none !important;
   gap: 0 !important;
+  float: none !important;
+  transform: none !important;
 }
 
-/* Kill any legacy absolute badge positioning */
-#bloomberg-marquee-bar .ticker-badge,
-#bloomberg-marquee-bar .bb-tag,
-.marquee-ticker-wrapper .ticker-badge,
-.marquee-ticker-wrapper .bb-tag {
+.qa-flash-badge {
   position: static !important;
   left: auto !important;
   right: auto !important;
@@ -45,7 +40,6 @@
   bottom: auto !important;
   float: none !important;
   transform: none !important;
-  margin: 0 12px 0 0 !important;
   flex: 0 0 auto !important;
   flex-shrink: 0 !important;
   display: inline-flex !important;
@@ -56,31 +50,30 @@
   max-height: 24px !important;
   line-height: 1 !important;
   padding: 0 10px !important;
+  margin: 0 12px 0 0 !important;
   background: #ff5500 !important;
   color: #ffffff !important;
-  font-size: 11px !important;
-  font-weight: 800 !important;
-  letter-spacing: 0.08em !important;
-  text-transform: uppercase !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: none !important;
   border: 0 !important;
-  border-right: 0 !important;
   border-radius: 2px !important;
   white-space: nowrap !important;
   box-sizing: border-box !important;
   width: auto !important;
   max-width: none !important;
+  overflow: hidden !important;
   z-index: auto !important;
 }
 
-#bloomberg-marquee-bar .ticker-viewport,
-#bloomberg-marquee-bar .bb-track-wrap,
-.marquee-ticker-wrapper .ticker-viewport,
-.marquee-ticker-wrapper .bb-track-wrap {
+.qa-flash-viewport {
   flex: 1 1 0% !important;
   min-width: 0 !important;
   width: auto !important;
-  height: 40px !important;
-  max-height: 40px !important;
+  max-width: none !important;
+  height: 100% !important;
+  min-height: 0 !important;
   overflow: hidden !important;
   position: relative !important;
   display: flex !important;
@@ -88,12 +81,10 @@
   margin: 0 !important;
   padding: 0 !important;
   box-sizing: border-box !important;
+  float: none !important;
 }
 
-#bloomberg-marquee-bar .ticker-track,
-#bloomberg-marquee-bar .bb-track,
-.marquee-ticker-wrapper .ticker-track,
-.marquee-ticker-wrapper .bb-track {
+.qa-flash-track {
   display: inline-flex !important;
   flex-wrap: nowrap !important;
   align-items: center !important;
@@ -104,24 +95,19 @@
   line-height: 40px !important;
   margin: 0 !important;
   padding: 0 !important;
-  will-change: transform;
-  animation: marquee-scroll 25s linear infinite !important;
   position: static !important;
-  transform: none; /* animation owns transform */
+  float: none !important;
+  will-change: transform;
+  animation: qa-flash-scroll 25s linear infinite !important;
 }
 
-#bloomberg-marquee-bar.is-paused .ticker-track,
-#bloomberg-marquee-bar.is-paused .bb-track,
-.marquee-ticker-wrapper.is-paused .ticker-track,
-.marquee-ticker-wrapper:hover .ticker-track,
-.marquee-ticker-wrapper:hover .bb-track {
+.qa-flash-marquee.is-paused .qa-flash-track,
+.qa-flash-marquee:hover .qa-flash-track {
   animation-play-state: paused !important;
 }
 
-#bloomberg-marquee-bar .ticker-item,
-.marquee-ticker-wrapper .ticker-item {
-  display: inline-flex !important;
-  align-items: center !important;
+.qa-flash-item {
+  display: inline-block !important;
   flex: 0 0 auto !important;
   padding-right: 48px !important;
   color: #e5e7eb !important;
@@ -133,10 +119,7 @@
   box-sizing: border-box !important;
 }
 
-#bloomberg-marquee-bar .ticker-item a,
-#bloomberg-marquee-bar .bb-track a,
-.marquee-ticker-wrapper .ticker-item a,
-.marquee-ticker-wrapper .bb-track a {
+.qa-flash-item a {
   color: #e5e7eb !important;
   text-decoration: none !important;
   font-size: 13px !important;
@@ -146,37 +129,36 @@
   padding: 0 !important;
 }
 
-#bloomberg-marquee-bar .ticker-item a:hover,
-.marquee-ticker-wrapper .ticker-item a:hover {
+.qa-flash-item a:hover {
   text-decoration: underline !important;
   color: #ffffff !important;
 }
 
-#bloomberg-marquee-bar .bb-gap,
-.marquee-ticker-wrapper .bb-gap {
-  display: none !important; /* spacing owned by .ticker-item padding */
-}
-
-@keyframes marquee-scroll {
+@keyframes qa-flash-scroll {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
 }
 
 @media (max-width: 768px) {
-  #bloomberg-marquee-bar,
-  .marquee-ticker-wrapper {
+  .qa-flash-marquee {
     padding: 0 8px !important;
     margin-bottom: 12px !important;
   }
-  #bloomberg-marquee-bar .ticker-badge,
-  #bloomberg-marquee-bar .bb-tag {
+  .qa-flash-badge {
     margin-right: 8px !important;
     padding: 0 8px !important;
-    font-size: 10px !important;
+    font-size: 11px !important;
   }
-  #bloomberg-marquee-bar .ticker-item,
-  #bloomberg-marquee-bar .ticker-item a {
+  .qa-flash-item,
+  .qa-flash-item a {
     font-size: 12px !important;
     padding-right: 32px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qa-flash-track {
+    animation: none !important;
+    transform: none !important;
   }
 }

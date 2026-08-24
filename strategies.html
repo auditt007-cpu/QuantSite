@@ -16,11 +16,11 @@
   <link rel="stylesheet" href="./css/mobile-subpages.css" />
   <link rel="stylesheet" href="./css/bbg-terminal.css" />
   <link rel="stylesheet" href="./css/bloomberg-system.css?v=layout1" />
-  <link rel="stylesheet" href="./css/marquee-ticker.css?v=mq2" />
   <link rel="stylesheet" href="./css/plaza-cards.css?v=plaza4" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/marquee-ticker.css?v=mq3" />
 </head>
 <body class="editorial-light plaza-page" data-title-key="titleTerminal">
   <div class="wrap wide">
@@ -67,10 +67,10 @@
       </div>
     </div>
     </div>
-    <div id="bloomberg-marquee-bar" class="marquee-ticker-wrapper bb-marquee news-ticker-container" aria-label="Flash news ticker">
-      <div class="ticker-badge bb-tag" data-i18n="flashMarqueeTag">即時快訊</div>
-      <div class="ticker-viewport bb-track-wrap">
-        <div class="ticker-track bb-track" id="bbMarqueeTrack"></div>
+    <div id="bloomberg-marquee-bar" class="qa-flash-marquee" aria-label="Flash news ticker">
+      <div class="qa-flash-badge" data-i18n="flashMarqueeTag">即時快訊</div>
+      <div class="qa-flash-viewport">
+        <div class="qa-flash-track" id="bbMarqueeTrack"></div>
       </div>
     </div>
 
@@ -401,12 +401,12 @@ Upper = Mid + k · ATR_n ,  Lower = Mid − k · ATR_n</pre>
   </div>
   <div class="toast" id="toast"></div>
 
-  <script src="./js/nav.js?v=nav7"></script>
+  <script src="./js/nav.js?v=nav8"></script>
   <script src="./config.js"></script>
   <script src="./js/meta-events.js?v=comp1"></script>
   <script src="./i18n.js"></script>
   <script src="./js/i18n-boot.js"></script>
-  <script src="./js/news.js?v=mq2"></script>
+  <script src="./js/news.js?v=mq3"></script>
   <script src="./js/money.js"></script>
   <script src="./js/clipboard.js"></script>
   <script src="./js/identity.js"></script>

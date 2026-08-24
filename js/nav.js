@@ -66,7 +66,7 @@
   }
 
   function restartTickerAnimation() {
-    document.querySelectorAll(".ticker-track").forEach((track) => {
+    document.querySelectorAll("#tickerTrack, .ticker-bar > .ticker-track").forEach((track) => {
       track.style.animation = "none";
       void track.offsetWidth;
       track.style.animation = "";
@@ -120,18 +120,40 @@
     if (host && lang) host.appendChild(lang);
   }
 
+  function ensureMarqueeCss() {
+    let link = document.querySelector('link[href*="marquee-ticker.css"]');
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = "./css/marquee-ticker.css?v=mq3";
+    }
+    document.head.appendChild(link);
+  }
+
+  function flashMarqueeHtml() {
+    return (
+      '<div class="qa-flash-badge" data-i18n="flashMarqueeTag">LIVE</div>' +
+      '<div class="qa-flash-viewport">' +
+      '<div class="qa-flash-track" id="bbMarqueeTrack"></div></div>'
+    );
+  }
+
   function ensureFlashMarquee() {
     const topbar = document.querySelector(".topbar");
-    if (!topbar || document.getElementById("bloomberg-marquee-bar")) return;
-    const bar = document.createElement("div");
-    bar.id = "bloomberg-marquee-bar";
-    bar.className = "marquee-ticker-wrapper bb-marquee news-ticker-container";
-    bar.setAttribute("aria-label", "Flash news ticker");
-    bar.innerHTML =
-      '<div class="ticker-badge bb-tag" data-i18n="flashMarqueeTag">LIVE</div>' +
-      '<div class="ticker-viewport bb-track-wrap">' +
-      '<div class="ticker-track bb-track" id="bbMarqueeTrack"></div></div>';
-    topbar.insertAdjacentElement("afterend", bar);
+    if (!topbar) return;
+    let bar = document.getElementById("bloomberg-marquee-bar");
+    if (!bar) {
+      bar = document.createElement("div");
+      bar.id = "bloomberg-marquee-bar";
+      bar.className = "qa-flash-marquee";
+      bar.setAttribute("aria-label", "Flash news ticker");
+      bar.innerHTML = flashMarqueeHtml();
+      const chrome = document.querySelector(".site-sticky-chrome");
+      const ticker = document.getElementById("tickerBar");
+      if (chrome && chrome.parentNode) chrome.insertAdjacentElement("afterend", bar);
+      else if (ticker && ticker.parentNode) ticker.insertAdjacentElement("afterend", bar);
+      else topbar.insertAdjacentElement("afterend", bar);
+    }
   }
 
   function loadFlashMarquee() {
@@ -140,23 +162,34 @@
     if (hasNewsJs) return;
     window.__qaFlashMarqueeLoaded = true;
     const s = document.createElement("script");
-    s.src = "./js/flash-marquee.js";
+    s.src = "./js/flash-marquee.js?v=mq3";
     s.defer = true;
     document.head.appendChild(s);
   }
 
   function normalizeMarqueeTag() {
-    const bar = document.getElementById("bloomberg-marquee-bar") || document.querySelector(".bb-marquee");
-    if (bar) {
-      bar.classList.add("marquee-ticker-wrapper", "bb-marquee", "news-ticker-container");
-      if (!bar.id) bar.id = "bloomberg-marquee-bar";
+    const bar = document.getElementById("bloomberg-marquee-bar") || document.querySelector(".qa-flash-marquee, .bb-marquee");
+    if (!bar) return;
+    bar.id = "bloomberg-marquee-bar";
+    bar.className = "qa-flash-marquee";
+    let badge = bar.querySelector(".qa-flash-badge");
+    if (!badge) {
+      badge = bar.querySelector(".ticker-badge, .bb-tag");
     }
-    const tag = document.querySelector(
-      "#bloomberg-marquee-bar .ticker-badge, #bloomberg-marquee-bar .bb-tag, .news-ticker-container .bb-tag",
-    );
-    if (!tag) return;
-    tag.classList.add("ticker-badge", "bb-tag");
-    if (!tag.getAttribute("data-i18n")) tag.setAttribute("data-i18n", "flashMarqueeTag");
+    if (badge) {
+      badge.className = "qa-flash-badge";
+      if (!badge.getAttribute("data-i18n")) badge.setAttribute("data-i18n", "flashMarqueeTag");
+    }
+    let viewport = bar.querySelector(".qa-flash-viewport");
+    if (!viewport) {
+      viewport = bar.querySelector(".ticker-viewport, .bb-track-wrap");
+      if (viewport) viewport.className = "qa-flash-viewport";
+    }
+    let track = document.getElementById("bbMarqueeTrack") || bar.querySelector(".qa-flash-track, .bb-track, .ticker-track");
+    if (track) {
+      track.id = "bbMarqueeTrack";
+      track.className = "qa-flash-track";
+    }
   }
 
   function ensureLiveNavLink() {
@@ -174,6 +207,7 @@
   }
 
   ensureBloombergCss();
+  ensureMarqueeCss();
   ensureUtilBar();
   ensureCryptoTicker();
   ensureTickerMarquee();
