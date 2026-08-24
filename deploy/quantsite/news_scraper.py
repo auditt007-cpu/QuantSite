@@ -7,6 +7,7 @@ import re
 import time
 import traceback
 import urllib.error
+import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
@@ -22,11 +23,11 @@ UA = (
 )
 
 RSS_FEEDS = [
-    ("BlockBeats", "https://www.theblockbeats.info/rss/newsflash"),
-    ("CoinDesk", "https://www.coindesk.com/arc/outboundfeeds/rss/"),
     ("CoinTelegraph", "https://cointelegraph.com/rss"),
     ("BlockTempo", "https://www.blocktempo.com/feed/"),
-    ("Jinse", "https://www.jinse.cn/rss"),
+    ("CoinDesk", "https://www.coindesk.com/arc/outboundfeeds/rss?outputType=xml"),
+    ("Decrypt", "https://decrypt.co/feed"),
+    ("BitcoinMagazine", "https://bitcoinmagazine.com/.rss/full/"),
 ]
 
 
@@ -35,10 +36,22 @@ def log(msg):
     print("[{0}] {1}".format(ts, msg), flush=True)
 
 
-def fetch_bytes(url, timeout=15):
-    req = urllib.request.Request(url, headers={"User-Agent": UA})
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        return resp.read()
+def fetch_bytes(url, timeout=15, hops=6):
+    headers = {"User-Agent": UA, "Accept": "application/rss+xml, application/xml, text/xml, */*"}
+    last_err = None
+    for _ in range(hops):
+        req = urllib.request.Request(url, headers=headers)
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                return resp.read()
+        except urllib.error.HTTPError as exc:
+            last_err = exc
+            loc = exc.headers.get("Location") if exc.headers else None
+            if loc and exc.code in (301, 302, 303, 307, 308):
+                url = urllib.parse.urljoin(url, loc)
+                continue
+            raise
+    raise last_err or RuntimeError("redirect loop")
 
 
 def parse_pub_date(raw):
