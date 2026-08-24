@@ -41,6 +41,7 @@ html, body {
   font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow-x: clip;
+  width: 100%;
   max-width: 100%;
 }
 body {
@@ -616,6 +617,7 @@ input.is-focused, textarea.is-focused, select.is-focused {
   * { box-sizing: border-box; }
   html, body {
     overflow-x: hidden;
+    width: 100%;
     max-width: 100vw;
   }
   body, .wrap, .main-container { padding-bottom: 80px; }
@@ -682,15 +684,22 @@ input.is-focused, textarea.is-focused, select.is-focused {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    height: 36px;
+    min-height: 40px;
+    height: 40px;
     padding: 0 12px;
     box-sizing: border-box;
     flex-shrink: 0;
     line-height: 1;
   }
-  .nav-end { grid-column: 2; grid-row: 1; gap: 6px; height: 36px; align-items: center; }
-  .auth-dock { height: 36px; align-items: center; }
-  .brand h1 { font-size: 11px; letter-spacing: 0.1em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .nav-end { grid-column: 2; grid-row: 1; gap: 8px; min-height: 40px; align-items: center; }
+  .auth-dock { min-height: 40px; align-items: center; }
+  .brand h1 {
+    font-size: clamp(9px, 3.1vw, 12px);
+    letter-spacing: clamp(0.05em, 0.35vw, 0.12em);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
   .brand span { display: none; }
   .site-slogan {
     font-size: 8px;
@@ -704,10 +713,11 @@ input.is-focused, textarea.is-focused, select.is-focused {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    height: 36px;
+    min-height: 40px;
+    height: 40px;
     box-sizing: border-box;
-    font-size: 10px;
-    padding: 0 8px;
+    font-size: 11px;
+    padding: 0 10px;
     max-width: 46vw;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1788,6 +1798,9 @@ body.sheet-open { overflow: hidden; }
     flex-wrap: nowrap !important;
     overflow: hidden !important;
     white-space: nowrap !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
     padding: 6px 0 !important;
     min-height: 36px !important;
     height: auto !important;
@@ -1795,14 +1808,28 @@ body.sheet-open { overflow: hidden; }
     box-sizing: border-box !important;
     border-bottom: 1px solid #e2e8f0;
   }
-  .desk-only, .desk-only { display: none !important; }
+  #bloomberg-marquee-bar,
+  .bb-marquee {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
   .ticker-track {
     height: auto !important;
     min-height: 28px !important;
     flex-wrap: nowrap !important;
-    overflow: visible !important;
+    overflow: hidden !important;
+    max-width: none;
     animation-duration: 42s !important;
   }
+  .bb-track-wrap {
+    overflow: hidden !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+  .desk-only, .desk-only { display: none !important; }
   .ticker-pill,
   .ticker-item {
     flex-shrink: 0 !important;
