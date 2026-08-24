@@ -1,11 +1,9 @@
 ﻿(function () {
-  const ALL_COINS = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "DOGEUSDT", "SUIUSDT", "PEPEUSDT"];
-  const WATCH_KEY = "qa_live_watch_coins_v2";
+  const ALL_COINS = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "ONDOUSDT", "DOGEUSDT", "SUIUSDT", "FETUSDT", "PEPEUSDT"];
+  const WATCH_KEY = "qa_live_watch_coins_v3";
   const MUTE_KEY = "qa_live_mute";
   const HINT_KEY = "qa_live_voice_hint_seen";
   const FEED_MS = 8000;
-  const KLINE_MS = 15000;
-  const TICK_MS = 1500;
   const HOUR_S = 3600;
 
   const state = {
@@ -21,6 +19,8 @@
     modalSym: null,
     ws: null,
     wsLive: false,
+    wsBackoff: 1000,
+    wsTimer: null,
     cum: loadCum(),
   };
 
@@ -99,6 +99,8 @@
       DOGE: "狗狗幣",
       SUI: "SUI",
       PEPE: "PEPE",
+      ONDO: "ONDO",
+      FET: "FET",
     };
     return map[k] || k;
   }
@@ -276,21 +278,48 @@
     });
   }
 
+  function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
   async function drainQueue() {
     if (state.speaking) return;
     state.speaking = true;
     while (state.queue.length && state.voiceOn) {
-      const job = state.queue.shift();
-      await playMrtChime();
-      if (!state.voiceOn) break;
-      await speakLine(job);
+      const raw = state.queue.shift();
+      const job = typeof raw === "string" ? { text: raw, chime: true } : raw || {};
+      if (!job.text) continue;
+      if (job.chime) {
+        await playMrtChime();
+        if (!state.voiceOn) break;
+      }
+      await speakLine(job.text);
+      if (job.pauseAfter) await sleep(job.pauseAfter);
     }
     state.speaking = false;
   }
 
-  function enqueueVoice(text) {
+  function enqueueVoice(text, opts) {
     if (!state.voiceOn || !text) return;
-    state.queue.push(text);
+    const o = opts || {};
+    state.queue.push({
+      text: text,
+      chime: o.chime !== false,
+      pauseAfter: o.pauseAfter || 0,
+    });
+    drainQueue();
+  }
+
+  function enqueueBurst(lines) {
+    if (!state.voiceOn || !lines || !lines.length) return;
+    lines.forEach((text, i) => {
+      if (!text) return;
+      state.queue.push({
+        text: text,
+        chime: i === 0,
+        pauseAfter: i < lines.length - 1 ? 600 : 0,
+      });
+    });
     drainQueue();
   }
 
@@ -367,51 +396,27 @@
       });
   }
 
-  function demoVoiceOnce() {
-    const ts = Date.now() / 1000;
-    state.cum.byStrat["量均突破"] = 43.8;
-    state.cum.bySym["ETHUSDT"] = 43.8;
-    announceEvents([
-      {
-        ts: ts,
-        name: "量均突破",
-        symbol: "BTCUSDT",
-        price: 78573,
-        side: "LONG",
-        event: "open",
-        interval: "1h",
-      },
-      {
-        ts: ts,
-        name: "量均突破",
-        symbol: "ETHUSDT",
-        price: 2506,
-        side: "LONG",
-        event: "open",
-        interval: "1h",
-      },
-      {
-        ts: ts + 1,
-        name: "樞軸點突破",
-        symbol: "BTCUSDT",
-        pnl_pct: 3.8,
-        event: "close",
-      },
-      {
-        ts: ts + 2,
-        name: "量均突破",
-        symbol: "ETHUSDT",
-        pnl_pct: -1.2,
-        event: "close",
-      },
-      {
-        ts: ts + 3,
-        name: "未知策略冷啟動",
-        symbol: "SOLUSDT",
-        pnl_pct: -0.4,
-        event: "close",
-      },
-    ]);
+  function voiceForEvent(ev) {
+    if (!ev) return "";
+    if (isClose(ev)) return voiceCloseLine(ev);
+    return voiceOpenGroup([ev]);
+  }
+
+  async function icebreakerVoice() {
+    if (!state.events.length) {
+      try {
+        await refreshFeed();
+      } catch {
+        /* optional */
+      }
+    }
+    const rows = state.events
+      .slice()
+      .filter((e) => e && (isClose(e) || String(e.event || "open").toLowerCase() === "open" || e.side || e.action))
+      .sort((a, b) => (a.ts || 0) - (b.ts || 0))
+      .slice(-3);
+    const lines = rows.map(voiceForEvent).filter(Boolean);
+    if (lines.length) enqueueBurst(lines);
   }
 
   function paintVoiceBtn() {
@@ -457,7 +462,7 @@
         /* private */
       }
       if (state.voiceOn) {
-        demoVoiceOnce();
+        icebreakerVoice();
       } else if (window.speechSynthesis) {
         window.speechSynthesis.cancel();
         state.queue = [];
@@ -468,6 +473,7 @@
     if (window.speechSynthesis) {
       window.speechSynthesis.onvoiceschanged = function () {};
     }
+    if (state.voiceOn) icebreakerVoice();
   }
 
   /* ---- canvas sparklines (fixed height for mobile) ---- */
@@ -1133,20 +1139,6 @@
     }
   }
 
-  async function loadTickers() {
-    try {
-      const q = encodeURIComponent(JSON.stringify(ALL_COINS));
-      const rows = await fetchJson("https://api.binance.com/api/v3/ticker/24hr?symbols=" + q);
-      const map = {};
-      (rows || []).forEach((r) => {
-        map[r.symbol] = { last: Number(r.lastPrice), chg: Number(r.priceChangePercent) };
-      });
-      state.tickers = map;
-    } catch {
-      /* optional */
-    }
-  }
-
   function applyTick(sym, last, chg) {
     if (!sym || !Number.isFinite(last)) return;
     state.lastPx[sym] = last;
@@ -1154,113 +1146,31 @@
     cur.last = last;
     if (Number.isFinite(chg)) cur.chg = chg;
     state.tickers[sym] = cur;
-    const card = document.querySelector('.coin-card[data-sym="' + sym + '"]');
-    if (card) {
-      const pxEl = card.querySelector("[data-px]");
+    document.querySelectorAll('[data-sym="' + sym + '"]').forEach((node) => {
+      const pxEl = node.querySelector("[data-px]");
       flashPx(pxEl, last, Number(pxEl && pxEl.getAttribute("data-last")));
       if (pxEl) pxEl.setAttribute("data-last", String(last));
-      const chgEl = card.querySelector("[data-chg]");
+      const chgEl = node.querySelector("[data-chg]");
       if (chgEl && Number.isFinite(chg)) {
         const up = chg >= 0;
         chgEl.textContent = (up ? "▲ " : "▼ ") + Math.abs(chg).toFixed(2) + "%";
         chgEl.classList.toggle("is-up", up);
         chgEl.classList.toggle("is-down", !up);
       }
-      drawSpark(sym);
-    }
+    });
+    drawSpark(sym);
     if (state.modalSym === sym) {
       paintModalLive(sym);
     }
   }
 
-  async function pollFastTickers() {
-    if (state.wsLive) return;
-    const urls = [
-      "https://data-api.binance.vision/api/v3/ticker/24hr?symbols=",
-      "https://api.binance.com/api/v3/ticker/24hr?symbols=",
-    ];
-    const q = encodeURIComponent(JSON.stringify(ALL_COINS));
-    for (let i = 0; i < urls.length; i += 1) {
-      try {
-        const rows = await fetchJson(urls[i] + q);
-        (rows || []).forEach((r) => applyTick(r.symbol, Number(r.lastPrice), Number(r.priceChangePercent)));
-        return;
-      } catch {
-        /* try next */
-      }
-    }
-    try {
-      const data = await fetchJson("https://www.okx.com/api/v5/market/tickers?instType=SPOT");
-      const want = {};
-      ALL_COINS.forEach((s) => {
-        want[s.replace("USDT", "") + "-USDT"] = s;
-      });
-      (data.data || []).forEach((r) => {
-        const sym = want[r.instId];
-        if (!sym) return;
-        const last = Number(r.last);
-        const open = Number(r.open24h);
-        const chg = open > 0 ? ((last - open) / open) * 100 : NaN;
-        applyTick(sym, last, chg);
-      });
-    } catch {
-      /* keep last */
-    }
-  }
-
-  function connectTickerStream() {
-    if (state.ws) return;
-    const streams = ALL_COINS.map((s) => s.toLowerCase() + "@miniTicker").join("/");
-    const endpoints = [
-      "wss://stream.binance.com:9443/stream?streams=",
-      "wss://data-stream.binance.vision/stream?streams=",
-    ];
-    let idx = 0;
-    function openWs() {
-      let ws;
-      try {
-        ws = new WebSocket(endpoints[idx % endpoints.length] + streams);
-      } catch {
-        state.wsLive = false;
-        state.ws = null;
-        setTimeout(connectTickerStream, 2500);
-        return;
-      }
-      state.ws = ws;
-      ws.onopen = () => {
-        state.wsLive = true;
-      };
-      ws.onmessage = (ev) => {
-        try {
-          const msg = JSON.parse(ev.data);
-          const d = msg.data || msg;
-          applyTick(d.s, Number(d.c), Number(d.P));
-        } catch {
-          /* ignore */
-        }
-      };
-      ws.onclose = () => {
-        state.wsLive = false;
-        state.ws = null;
-        idx += 1;
-        setTimeout(openWs, 2500);
-      };
-      ws.onerror = () => {
-        try {
-          ws.close();
-        } catch {
-          /* */
-        }
-      };
-    }
-    openWs();
-  }
-
   async function refreshMarket() {
-    await loadTickers();
     const targets = state.watch.length ? state.watch : ALL_COINS;
     const packs = await Promise.all(
       targets.map(async (sym) => {
+        if (state.klines[sym] && state.klines[sym].length >= 20) {
+          return [sym, state.klines[sym]];
+        }
         try {
           const rows = await loadKlines(sym);
           return [sym, rows];
@@ -1272,11 +1182,64 @@
     packs.forEach(([sym, rows]) => {
       if (rows && rows.length) {
         state.klines[sym] = rows;
-        state.lastPx[sym] = rows[rows.length - 1].c;
+        if (state.lastPx[sym] == null) state.lastPx[sym] = rows[rows.length - 1].c;
       }
     });
     paintCardsMeta();
     if (state.modalSym) paintModalLive(state.modalSym);
+  }
+
+  function connectTickerStream() {
+    if (state.ws && (state.ws.readyState === 0 || state.ws.readyState === 1)) return;
+    if (state.wsTimer) return;
+    const streams = ALL_COINS.map((s) => String(s).toLowerCase().replace("/", "") + "@ticker").join("/");
+    const url = "wss://stream.binance.com:9443/stream?streams=" + streams;
+    let ws;
+    try {
+      ws = new WebSocket(url);
+    } catch {
+      state.wsLive = false;
+      state.ws = null;
+      scheduleWsReconnect();
+      return;
+    }
+    state.ws = ws;
+    ws.onopen = () => {
+      state.wsLive = true;
+      state.wsBackoff = 1000;
+    };
+    ws.onmessage = (ev) => {
+      try {
+        const msg = JSON.parse(ev.data);
+        const d = msg.data || msg;
+        const sym = d.s || String(msg.stream || "").split("@")[0].toUpperCase();
+        applyTick(sym, Number(d.c), Number(d.P));
+      } catch {
+        /* ignore */
+      }
+    };
+    ws.onclose = () => {
+      state.wsLive = false;
+      state.ws = null;
+      scheduleWsReconnect();
+    };
+    ws.onerror = () => {
+      try {
+        ws.close();
+      } catch {
+        /* */
+      }
+    };
+  }
+
+  function scheduleWsReconnect() {
+    if (state.wsTimer) return;
+    const wait = state.wsBackoff || 1000;
+    state.wsBackoff = Math.min((state.wsBackoff || 1000) * 2, 4000);
+    state.wsTimer = setTimeout(() => {
+      state.wsTimer = null;
+      connectTickerStream();
+    }, wait);
   }
 
   function liveFeedUrl() {
@@ -1478,9 +1441,7 @@
     refreshMarket();
     refreshFeed();
     connectTickerStream();
-    setInterval(refreshMarket, KLINE_MS);
     setInterval(refreshFeed, FEED_MS);
-    setInterval(pollFastTickers, TICK_MS);
     window.addEventListener("resize", () => {
       paintCardsMeta();
       if (state.modalSym) paintModalLive(state.modalSym);
@@ -1489,7 +1450,7 @@
     style.textContent =
       "@keyframes radarScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}";
     document.head.appendChild(style);
-    window.QALiveDemoVoice = demoVoiceOnce;
+    window.QALiveDemoVoice = icebreakerVoice;
   }
 
   if (document.readyState === "loading") {
