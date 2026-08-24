@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-24T18:12:33Z",
+  "updated_at": "2026-08-24T18:14:42Z",
   "period_hours": 3,
   "poll_sec": 5,
   "scan_tf": "15m+1h",
@@ -1298,10 +1298,40 @@
       "interval": "5m",
       "side": "SHORT",
       "action": "空頭開倉 (SELL)",
-      "logged_at": 1787595093,
+      "logged_at": 1787595283,
       "bar_ts": 1787594700,
       "event": "open",
       "strategy_id": "hb-bb5",
+      "symbols": [
+        {
+          "symbol": "SUIUSDT",
+          "price": 0.8116,
+          "sl_pct": -0.6354115327747618,
+          "tp_pct": 1.2708230655495236,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "price": 0.08926,
+          "sl_pct": -0.5960116513555801,
+          "tp_pct": 1.1920233027111913,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
+      "name_zh": "5m動能微破",
+      "interval": "5m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787595282,
+      "bar_ts": 1787594700,
+      "event": "open",
+      "strategy_id": "hb-roc5",
       "symbols": [
         {
           "symbol": "DOGEUSDT",
@@ -2061,36 +2091,6 @@
         }
       ],
       "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "複合動能確認",
-      "interval": "1h",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787594431,
-      "bar_ts": 1787594400,
-      "event": "close",
-      "strategy_id": "combo_1h_42",
-      "symbols": [
-        {
-          "symbol": "LINKUSDT",
-          "price": null,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -2.090265335722201
-        },
-        {
-          "symbol": "ADAUSDT",
-          "price": null,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -2.64614011601963
-        }
-      ],
-      "strategy_count": 2
     }
   ],
   "exec_log_raw_count": 200
