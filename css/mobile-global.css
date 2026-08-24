@@ -35,10 +35,11 @@
     position: relative;
   }
 
-  body.nav-drawer-open .live-sticky-chrome {
-    z-index: 10000 !important;
-    position: relative !important;
-  }
+body.nav-drawer-open .live-sticky-chrome,
+body.nav-drawer-open .site-sticky-chrome {
+  z-index: 10000 !important;
+  position: relative !important;
+}
 
   body.nav-drawer-open .bb-util-bar {
     z-index: 10020 !important;
@@ -55,14 +56,16 @@
     top: 28px;
   }
 
-  body.live-page .live-sticky-chrome {
-    z-index: 100;
-    overflow: visible;
-  }
+body.live-page .live-sticky-chrome,
+body .site-sticky-chrome {
+  z-index: 100;
+  overflow: visible;
+}
 
-  body.has-bb-util.live-page .live-sticky-chrome {
-    top: 28px;
-  }
+body.has-bb-util.live-page .live-sticky-chrome,
+body.has-bb-util .site-sticky-chrome {
+  top: 28px;
+}
 
   body.nav-drawer-open .topbar,
   .topbar.nav-open {

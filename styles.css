@@ -38,8 +38,28 @@
   --z-nav: 100;
   --z-sticky: 110;
   --z-hint: 200;
-  --z-modal: 999;
-  --z-drawer: 1000;
+  --z-modal: 2000;
+  --z-drawer: 2100;
+}
+
+/* Sticky header+ticker stack: nav never paints over the price marquee */
+.site-sticky-chrome {
+  position: sticky;
+  top: 0;
+  z-index: 120;
+  background: var(--bg-main, #ffffff);
+}
+body.has-bb-util .site-sticky-chrome {
+  top: 28px;
+}
+.site-sticky-chrome .topbar {
+  position: relative;
+  top: auto;
+  z-index: 2;
+}
+.site-sticky-chrome .ticker-bar {
+  position: relative;
+  z-index: 1;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -484,7 +504,11 @@ footer.site-foot {
   position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  display: none; align-items: center; justify-content: center; z-index: 500; padding: 20px;
+  display: none; align-items: center; justify-content: center;
+  z-index: var(--z-modal, 2000); padding: 20px;
+}
+#aiStratModal.modal-bg {
+  z-index: 2100;
 }
 .modal-bg.show { display: flex; }
 .modal {

@@ -2081,6 +2081,9 @@
 
   async function openPlazaFromTape(id) {
     try {
+      const coinBg = document.getElementById("coinModalBg");
+      if (coinBg) coinBg.classList.remove("is-open");
+      state.modalSym = null;
       if (window.QAPipeline) {
         let rows = window.QAPipelineStrategies;
         if ((!rows || !rows.length) && typeof window.QAPipeline.fetchRows === "function") {

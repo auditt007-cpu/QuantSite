@@ -229,7 +229,7 @@
     const id = String(row.id || "");
     if (!id) return "";
     const file = id.indexOf("ai_") === 0 ? id : "ai_" + id;
-    return "/static/charts/" + file + ".svg";
+    return "./static/charts/" + file + ".svg";
   }
 
   function displayName(row) {
@@ -420,10 +420,7 @@
     const syms = (row.symbols || ["BTCUSDT"]).join(" / ");
     const iv = String(row.interval || "1h").toUpperCase();
     document.getElementById("aiStratMeta").textContent = syms + " · " + iv;
-    document.getElementById("aiStratMetrics").innerHTML = metricsBoardHtml(seed).replace(
-      'class="stat-caps plaza-metrics"',
-      'class="stat-caps plaza-metrics plaza-metric-row"',
-    );
+    document.getElementById("aiStratMetrics").innerHTML = metricsBoardHtml(seed);
     const wrap = document.getElementById("aiStratChartWrap");
     const url = chartUrl(row);
     if (url) {
