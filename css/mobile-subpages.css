@@ -391,6 +391,29 @@
   body:not(.home-boards):not(.live-page) .trust-bar {
     grid-template-columns: 1fr !important;
   }
+
+  body:not(.home-boards):not(.live-page) .member-login-card {
+    width: 100%;
+    max-width: 100%;
+    margin: 12px 0 24px;
+    padding: 20px 16px;
+  }
+
+  body:not(.home-boards):not(.live-page) .member-login-card .otp {
+    width: 100%;
+  }
+
+  body:not(.home-boards):not(.live-page) .member-login-card .otp-cell {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 44px;
+    max-width: 56px;
+  }
+
+  body:not(.home-boards):not(.live-page) .member-login-submit,
+  body:not(.home-boards):not(.live-page) .member-login-card .btn-tg {
+    width: 100%;
+  }
 }
 
 @media (max-width: 480px) {

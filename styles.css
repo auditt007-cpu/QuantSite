@@ -1072,6 +1072,104 @@ input.is-focused, textarea.is-focused, select.is-focused {
   width: 52px; height: 56px; text-align: center; font-size: 22px; letter-spacing: 0;
   margin-top: 0; border-radius: var(--radius);
 }
+
+/* Member sign-in card: single column, desktop + mobile */
+.member-login {
+  display: flex;
+  justify-content: center;
+}
+.member-login-card {
+  width: 100%;
+  max-width: 440px;
+  margin: 24px auto 40px;
+  border: 1px solid #000;
+  background: #fff;
+  padding: 28px 24px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+}
+.member-login-card .kicker {
+  margin: 0;
+  text-align: left;
+}
+.member-login-card .h2 {
+  margin: 0;
+  text-align: left;
+}
+.member-login-lead {
+  margin: 0;
+  text-align: left;
+}
+.member-login-card .login-guide {
+  margin: 0;
+  padding: 0 0 0 1.25rem;
+  list-style: decimal;
+  text-align: left;
+}
+.member-login-card .login-guide li {
+  margin: 0 0 4px;
+  line-height: 1.55;
+}
+.member-login-card .btn-tg {
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+}
+.login-otp-block {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+.login-otp-block label {
+  display: block;
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  font-weight: 800;
+  color: var(--text-main);
+}
+.member-login-card .otp {
+  margin: 4px 0;
+  justify-content: center;
+  flex-wrap: nowrap;
+}
+.member-login-card .otp-cell {
+  flex: 0 0 52px;
+  width: 52px;
+  height: 56px;
+}
+.member-login-card .muted {
+  text-align: center;
+  margin: 0;
+}
+.member-login-submit {
+  width: 100%;
+  margin: 0;
+  box-sizing: border-box;
+}
+.member-login-card .status {
+  margin: 0;
+  min-height: 1.2em;
+  text-align: center;
+}
+@media (max-width: 768px) {
+  .member-login-card {
+    margin: 12px 0 28px;
+    padding: 20px 16px;
+    max-width: 100%;
+  }
+  .member-login-card .otp-cell {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 44px;
+    max-width: 56px;
+    height: 52px;
+  }
+}
 .progress { height: 8px; background: var(--bg-surface); border: 1px solid var(--border-line); border-radius: 0; overflow: hidden; margin: 10px 0; }
 .progress i { display: block; height: 100%; width: 0; background: var(--color-up); }
 .price-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }

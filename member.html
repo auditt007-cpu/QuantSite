@@ -12,7 +12,7 @@
   <meta name="theme-color" content="#09090b">
   <title>QUANT ALPHA · 會員中心</title>
   <link rel="stylesheet" href="./styles.css" />
-  <link rel="stylesheet" href="./css/mobile-global.css?v=nav4" />
+  <link rel="stylesheet" href="./css/mobile-global.css?v=nav5" />
   <link rel="stylesheet" href="./css/mobile-subpages.css" />
   <link rel="stylesheet" href="./css/bloomberg-system.css" />
 </head>
@@ -45,31 +45,42 @@
       </div>
     </header>
 
-    <section class="desk" id="loginPanel" hidden>
-      <div class="kicker">SIGN IN</div>
-      <h2 class="h2" data-i18n="loginTitle">TG 一鍵登入</h2>
-      <p class="muted" data-i18n="loginLead">官方安全驗證：無需提供手機號或密碼，僅校驗 Telegram 身份。</p>
-      <ol class="login-guide">
-        <li data-i18n="loginS1">1. 點擊喚起機器人</li>
-        <li data-i18n="loginS2">2. 傳送 /start 取得驗證碼</li>
-        <li data-i18n="loginS3">3. 在此填入 4 位碼</li>
-      </ol>
-      <div class="login-step">
+    <div class="ticker-bar" id="tickerBar" aria-label="Market ticker">
+      <div class="ticker-track" id="tickerTrack">
+        <span class="ticker-pill" data-sym="BTCUSDT"><span class="tp-sym">BTC</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
+        <span class="ticker-pill" data-sym="ETHUSDT"><span class="tp-sym">ETH</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
+        <span class="ticker-pill" data-sym="SOLUSDT"><span class="tp-sym">SOL</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
+        <span class="ticker-pill" data-sym="BNBUSDT"><span class="tp-sym">BNB</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
+        <span class="ticker-pill" data-sym="XRPUSDT"><span class="tp-sym">XRP</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
+        <span class="ticker-pill" data-sym="DOGEUSDT"><span class="tp-sym">DOGE</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
+      </div>
+    </div>
+
+    <section class="desk member-login" id="loginPanel" hidden>
+      <div class="member-login-card">
+        <p class="kicker">SIGN IN</p>
+        <h2 class="h2" data-i18n="loginTitle">TG 一鍵登入</h2>
+        <p class="muted member-login-lead" data-i18n="loginLead">官方安全驗證：無需提供手機號或密碼，僅校驗 Telegram 身份。</p>
+        <ol class="login-guide">
+          <li data-i18n="loginS1">點擊喚起機器人</li>
+          <li data-i18n="loginS2">傳送 /start 取得驗證碼</li>
+          <li data-i18n="loginS3">在此填入 4 位碼</li>
+        </ol>
         <a id="btnOpenBot" class="btn-tg" href="https://t.me/grid_quant_bot?start=bind" target="_blank" rel="noopener" data-i18n="openBot">📱 打開 Telegram 獲取 4 位登入碼</a>
-      </div>
-      <div class="login-step">
-        <label data-i18n="codeLabel">4 位驗證碼</label>
-        <div class="otp" id="otpBoxes">
-          <input class="otp-cell" inputmode="numeric" maxlength="1" autocomplete="one-time-code" aria-label="1" />
-          <input class="otp-cell" inputmode="numeric" maxlength="1" aria-label="2" />
-          <input class="otp-cell" inputmode="numeric" maxlength="1" aria-label="3" />
-          <input class="otp-cell" inputmode="numeric" maxlength="1" aria-label="4" />
+        <div class="login-otp-block">
+          <label data-i18n="codeLabel">4 位驗證碼</label>
+          <div class="otp" id="otpBoxes">
+            <input class="otp-cell" inputmode="numeric" maxlength="1" autocomplete="one-time-code" aria-label="1" />
+            <input class="otp-cell" inputmode="numeric" maxlength="1" aria-label="2" />
+            <input class="otp-cell" inputmode="numeric" maxlength="1" aria-label="3" />
+            <input class="otp-cell" inputmode="numeric" maxlength="1" aria-label="4" />
+          </div>
+          <input type="hidden" id="loginCode" maxlength="4" />
+          <p class="muted" data-i18n="codeTtl">驗證碼 5 分鐘內有效</p>
         </div>
-        <input type="hidden" id="loginCode" maxlength="4" />
-        <p class="muted" data-i18n="codeTtl">驗證碼 5 分鐘內有效</p>
+        <button class="btn-cta compact member-login-submit" id="btnDoLogin" data-i18n="doLogin">一鍵登入</button>
+        <p class="status" id="loginStatus"></p>
       </div>
-      <button class="btn-cta compact" id="btnDoLogin" style="margin-top:16px" data-i18n="doLogin">一鍵登入</button>
-      <p class="status" id="loginStatus"></p>
     </section>
 
     <section class="desk" id="dashPanel" hidden>
@@ -154,7 +165,8 @@
     </footer>
   </div>
   <div class="toast" id="toast"></div>
-  <script src="./js/nav.js?v=nav4"></script>
+  <script src="./js/binance-feed.js"></script>
+  <script src="./js/nav.js?v=nav5"></script>
   <script src="./config.js"></script>
   <script src="./i18n.js"></script>
   <script src="./js/i18n-boot.js"></script>

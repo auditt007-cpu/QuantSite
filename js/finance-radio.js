@@ -6,15 +6,16 @@
   var STALL_MS = 5000;
   var DEFAULT_VOLUME = 0.22;
 
+  /* HTML5 <audio> needs MP3/AAC — HLS/m3u8 is skipped. Sources probed 2026-08. */
   var STREAMS = {
     cn: [
-      { label: "RTHK 财经台", url: "https://radio.rthk.hk/radio/live/31/stream/1" },
-      { label: "第一财经", url: "https://lhttp.qtfm.cn/live/339/64k.mp3" },
-      { label: "BBC World Service", url: "https://stream.live.vc.bbcmedia.co.uk/bbc_world_service" },
+      { label: "第一财经", url: "https://lhttp.qingting.fm/live/276/64k.mp3" },
+      { label: "广东股市广播", url: "https://lhttp.qingting.fm/live/4847/64k.mp3" },
+      { label: "东广新闻台", url: "https://lhttp.qingting.fm/live/275/64k.mp3" },
     ],
     en: [
+      { label: "Bloomberg Radio", url: "https://playerservices.streamtheworld.com/api/livestream-redirect/WBBRAMAAC48.aac" },
       { label: "BBC World Service", url: "https://stream.live.vc.bbcmedia.co.uk/bbc_world_service" },
-      { label: "BBC News Radio", url: "https://stream.live.vc.bbcmedia.co.uk/bbc_news_radio" },
       { label: "NPR News", url: "https://npr-ice.streamguys1.com/live.mp3" },
     ],
   };
@@ -30,27 +31,44 @@
     return root.QALang && typeof root.QALang.t === "function" ? root.QALang.t(key) : key;
   }
 
+  function langFromPage() {
+    var pack = "";
+    try {
+      if (root.QALang && typeof root.QALang.current === "function") pack = root.QALang.current();
+    } catch (e) {
+      pack = "";
+    }
+    if (!pack && document.documentElement) pack = document.documentElement.lang || "";
+    return String(pack).indexOf("en") === 0 ? "en" : "cn";
+  }
+
   function loadPrefs() {
     try {
       var raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-      if (raw.lang === "en" || raw.lang === "cn") lang = raw.lang;
       if (typeof raw.enabled === "boolean") enabled = raw.enabled;
       if (typeof raw.userPaused === "boolean") userPaused = raw.userPaused;
-    } catch {
+    } catch (e) {
       /* ignore */
     }
+    lang = langFromPage();
   }
 
   function savePrefs() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ lang: lang, enabled: enabled, userPaused: userPaused }));
-    } catch {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ enabled: enabled, userPaused: userPaused }));
+    } catch (e) {
       /* ignore */
     }
   }
 
   function streams() {
     return STREAMS[lang] || STREAMS.cn;
+  }
+
+  function currentStation() {
+    var list = streams();
+    if (!list.length) return null;
+    return list[streamIdx % list.length];
   }
 
   function clearStallTimer() {
@@ -70,7 +88,7 @@
     if (audio) return audio;
     audio = new Audio();
     audio.preload = "none";
-    audio.crossOrigin = "anonymous";
+    /* Do not set crossOrigin — Qingting/QTFM streams omit CORS and would fail. */
     audio.volume = DEFAULT_VOLUME;
     audio.addEventListener("playing", scheduleStallWatch);
     audio.addEventListener("timeupdate", scheduleStallWatch);
@@ -89,15 +107,16 @@
   function paintUi() {
     var toggle = document.getElementById("financeRadioToggle");
     var dock = document.getElementById("financeRadioDock");
+    var station = document.getElementById("financeRadioStation");
     if (toggle) {
       toggle.setAttribute("aria-pressed", enabled && !userPaused ? "true" : "false");
-      toggle.textContent =
-        enabled && !userPaused ? t("financeRadioOn") : t("financeRadioOff");
+      toggle.textContent = enabled && !userPaused ? t("financeRadioOn") : t("financeRadioOff");
     }
     if (dock) dock.classList.toggle("is-live", enabled && !userPaused);
-    document.querySelectorAll("[data-radio-lang]").forEach(function (btn) {
-      btn.classList.toggle("is-active", btn.getAttribute("data-radio-lang") === lang);
-    });
+    if (station) {
+      var item = currentStation();
+      station.textContent = item ? item.label : "";
+    }
   }
 
   function rotateStream(forceNext) {
@@ -147,13 +166,16 @@
     playRadio();
   }
 
-  function setLang(next) {
-    if (next !== "cn" && next !== "en") return;
+  function syncLangFromPage(forceRestart) {
+    var next = langFromPage();
+    if (next === lang && !forceRestart) {
+      paintUi();
+      return;
+    }
     lang = next;
     streamIdx = 0;
-    savePrefs();
     if (enabled && !userPaused) rotateStream(false);
-    paintUi();
+    else paintUi();
   }
 
   function tryAutoplayMuted() {
@@ -178,13 +200,11 @@
     var dock = document.getElementById("financeRadioDock");
     if (!toggle || !dock || dock.getAttribute("data-bound") === "1") return;
     dock.setAttribute("data-bound", "1");
+    lang = langFromPage();
     toggle.addEventListener("click", toggleRadio);
-    dock.querySelectorAll("[data-radio-lang]").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        setLang(btn.getAttribute("data-radio-lang"));
-      });
+    window.addEventListener("quant-lang", function () {
+      syncLangFromPage(false);
     });
-    window.addEventListener("quant-lang", paintUi);
     paintUi();
     tryAutoplayMuted();
     var unlock = function () {
@@ -206,6 +226,5 @@
     bind();
   }
 
-  root.QAFinanceRadio = { toggle: toggleRadio, setLang: setLang, pause: pauseRadio };
+  root.QAFinanceRadio = { toggle: toggleRadio, pause: pauseRadio };
 })(window);
-

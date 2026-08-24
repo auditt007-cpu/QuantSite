@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="./css/mobile-global.css?v=nav4" />
   <link rel="stylesheet" href="./css/bbg-terminal.css" />
   <link rel="stylesheet" href="./css/bloomberg-system.css" />
-  <link rel="stylesheet" href="./css/live-room.css?v=av2" />
+  <link rel="stylesheet" href="./css/live-room.css?v=av3" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
@@ -74,11 +74,8 @@
     </div>
     <div class="finance-radio-bar" id="financeRadioDock">
       <button type="button" class="finance-radio-btn" id="financeRadioToggle" aria-pressed="false" data-i18n="financeRadioOff">📻 24H 財經電台: OFF</button>
-      <div class="finance-radio-lang" role="group" aria-label="Radio language">
-        <button type="button" class="finance-radio-lang-btn is-active" data-radio-lang="cn">中文</button>
-        <button type="button" class="finance-radio-lang-btn" data-radio-lang="en">EN</button>
-      </div>
-      <span class="finance-radio-hint" data-i18n="financeRadioHint">低音量備用直播 · 可隨時關閉</span>
+      <span class="finance-radio-station" id="financeRadioStation"></span>
+      <span class="finance-radio-hint" data-i18n="financeRadioHint">跟隨頁面語言自動切源 · 可隨時關閉</span>
     </div>
     </div>
 
@@ -189,7 +186,7 @@
           <div class="sidebar-header-aligned">
             <div class="main-title-flex">
               <span data-i18n="vpsExecTitle">執行流水</span>
-              <span class="status-dot green" data-i18n="vpsLiveBadge">● LIVE</span>
+              <span class="vps-live-badge" data-i18n="vpsLiveBadge">LIVE</span>
               <button type="button" class="mobile-sheet-close" id="mobileSheetClose" data-i18n="close" aria-label="Close">關閉</button>
             </div>
           </div>
@@ -240,7 +237,7 @@
     </button>
   </div>
 
-  <script src="./js/nav.js?v=nav4"></script>
+  <script src="./js/nav.js?v=nav5"></script>
   <script src="./config.js"></script>
   <script src="./i18n.js"></script>
   <script src="./js/i18n-boot.js"></script>
@@ -255,9 +252,9 @@
   <script src="./js/binance-feed.js"></script>
   <script src="./js/engine-list.js"></script>
   <script src="https://s3.tradingview.com/tv.js" async></script>
-  <script src="./js/tv-chart-manager.js?v=av2"></script>
-  <script src="./js/finance-radio.js?v=av2"></script>
-  <script src="./js/live-room.js?v=av2"></script>
+  <script src="./js/tv-chart-manager.js?v=av3"></script>
+  <script src="./js/finance-radio.js?v=av3"></script>
+  <script src="./js/live-room.js?v=av3"></script>
   <script src="./js/mobile-ux.js"></script>
 </body>
 </html>

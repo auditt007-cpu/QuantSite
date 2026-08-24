@@ -283,15 +283,25 @@
     return "https://api.quantalpha.space/live_feed.json?t=" + Date.now();
   }
 
-  function fmtVpsTime(barTs) {
-    const d = new Date(Number(barTs) * 1000);
+  function fmtVpsTime(ts) {
+    const d = new Date(Number(ts) * 1000);
     if (!isFinite(d.getTime())) return "—";
-    const p = (n) => String(n).padStart(2, "0");
-    return p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
+    try {
+      return new Intl.DateTimeFormat("en-GB", {
+        timeZone: "Asia/Shanghai",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      }).format(d);
+    } catch {
+      const p = (n) => String(n).padStart(2, "0");
+      return p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
+    }
   }
 
   function vpsSortTs(sig) {
-    return Number(sig && (sig.bar_ts || sig.logged_at)) || 0;
+    return Number(sig && (sig.logged_at || sig.bar_ts)) || 0;
   }
 
   function vpsFeedRows(data) {
@@ -320,7 +330,7 @@
     const px = sig.event === "close" ? sig.exit_price : sig.price;
     return (
       `<div class="exec-tape-row${isNew ? " is-new" : ""}" role="row">` +
-      `<span class="tape-col tape-time" role="cell">${fmtVpsTime(sig.bar_ts || sig.logged_at)}</span>` +
+      `<span class="tape-col tape-time" role="cell">${fmtVpsTime(sig.logged_at || sig.bar_ts)}</span>` +
       `<span class="tape-col tape-action ${actionCls}" role="cell">` +
       `<span class="tape-pill">${action}</span></span>` +
       `<span class="tape-col tape-pair" role="cell">${escapeHtml(fmtTapePair(sig.symbol))}</span>` +

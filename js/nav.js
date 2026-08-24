@@ -299,6 +299,51 @@
     });
   }
 
+  function loadScriptOnce(src) {
+    return new Promise((resolve) => {
+      let abs = src;
+      try {
+        abs = new URL(src, document.baseURI).href;
+      } catch {
+        abs = src;
+      }
+      const existing = Array.prototype.find.call(document.scripts, (s) => (s.src || "") === abs);
+      if (window.QAFeed) {
+        resolve();
+        return;
+      }
+      if (existing) {
+        existing.addEventListener("load", () => resolve());
+        existing.addEventListener("error", () => resolve());
+        return;
+      }
+      const s = document.createElement("script");
+      s.src = src;
+      s.onload = () => resolve();
+      s.onerror = () => resolve();
+      document.head.appendChild(s);
+    });
+  }
+
+  async function fetchTickerDirect(syms) {
+    const encoded = encodeURIComponent(JSON.stringify(syms));
+    const urls = [
+      "https://data-api.binance.vision/api/v3/ticker/24hr?symbols=" + encoded,
+      "https://api.binance.com/api/v3/ticker/24hr?symbols=" + encoded,
+    ];
+    for (let i = 0; i < urls.length; i++) {
+      try {
+        const res = await fetch(urls[i]);
+        if (!res.ok) continue;
+        const rows = await res.json();
+        if (Array.isArray(rows) && rows.length) return rows;
+      } catch {
+        /* try next venue */
+      }
+    }
+    return [];
+  }
+
   async function refreshTicker() {
     if (window.QAFeed && typeof window.QAFeed.readyGeo === "function") {
       try {
@@ -309,14 +354,24 @@
     }
     const syms = collectTickerSyms();
     if (!syms.length) return;
+    let rows = null;
     try {
       const feed = window.QAFeed;
-      const rows = feed && typeof feed.fetchTicker24h === "function" ? await feed.fetchTicker24h(syms) : null;
-      if (!rows || !rows.length) throw new Error("empty");
-      rows.forEach(applyTickerRow);
+      if (feed && typeof feed.fetchTicker24h === "function") {
+        rows = await feed.fetchTicker24h(syms);
+      }
     } catch {
-      /* keep placeholders */
+      rows = null;
     }
+    if (!rows || !rows.length) {
+      try {
+        rows = await fetchTickerDirect(syms);
+      } catch {
+        rows = null;
+      }
+    }
+    if (!rows || !rows.length) return;
+    rows.forEach(applyTickerRow);
   }
 
   let tickerLiveSub = null;
@@ -353,7 +408,10 @@
       tickerPollTimer = setInterval(refreshTicker, 2500);
     }
   }
-  function bootTicker() {
+  async function bootTicker() {
+    if (!window.QAFeed) {
+      await loadScriptOnce("./js/binance-feed.js");
+    }
     ensureCryptoTicker();
     ensureTickerMarquee();
     restartTickerAnimation();

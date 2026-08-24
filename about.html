@@ -12,18 +12,22 @@
   <meta name="theme-color" content="#09090b">
   <title>QUANT ALPHA · 關於我們</title>
   <link rel="stylesheet" href="./styles.css" />
-  <link rel="stylesheet" href="./css/mobile-global.css?v=nav4" />
+  <link rel="stylesheet" href="./css/mobile-global.css?v=nav5" />
   <link rel="stylesheet" href="./css/mobile-subpages.css" />
   <link rel="stylesheet" href="./css/bloomberg-system.css" />
+  <link rel="stylesheet" href="./css/about-page.css?v=av3" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
 </head>
-<body class="editorial-light" data-title-key="titleAbout">
+<body class="editorial-light about-page" data-title-key="titleAbout">
   <div class="wrap wide">
     <header class="topbar">
       <a class="brand" href="./index.html">
         <div class="logo"></div>
         <div class="brand-text">
           <h1>QUANT.ALPHA</h1>
-          <p class="site-slogan" data-i18n="brandSub">一個沒有感情的量化機器</p>
+          <p class="site-slogan" data-i18n="aboutBrandSub">理性、數學與代碼 —— 賦能獨立交易者的端側量化基礎設施</p>
         </div>
       </a>
       <div class="nav-end">
@@ -34,7 +38,7 @@
         <div class="auth-dock" id="authDock">
           <button type="button" class="auth-btn" id="btnAuth">[ 🔐 請先登入 ]</button>
         </div>
-        <button type="button" class="nav-toggle" id="navToggle" aria-label="選單">☰</button>
+        <button type="button" class="nav-toggle" id="navToggle" aria-label="選單" data-i18n-aria="ariaMenu">☰</button>
       </div>
       <div class="nav-actions" id="navActions">
         <a class="nav-link" href="./terminal.html" data-i18n="navTerminal">策略廣場</a>
@@ -49,33 +53,89 @@
       </div>
     </header>
 
+    <div class="ticker-bar" id="tickerBar" aria-label="Market ticker">
+      <div class="ticker-track" id="tickerTrack">
+        <span class="ticker-pill" data-sym="BTCUSDT"><span class="tp-sym">BTC</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
+        <span class="ticker-pill" data-sym="ETHUSDT"><span class="tp-sym">ETH</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
+        <span class="ticker-pill" data-sym="SOLUSDT"><span class="tp-sym">SOL</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
+        <span class="ticker-pill" data-sym="BNBUSDT"><span class="tp-sym">BNB</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
+        <span class="ticker-pill" data-sym="XRPUSDT"><span class="tp-sym">XRP</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
+        <span class="ticker-pill" data-sym="DOGEUSDT"><span class="tp-sym">DOGE</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
+      </div>
+    </div>
+
+    <div id="bloomberg-marquee-bar" class="bb-marquee" aria-label="Flash news ticker">
+      <span class="bb-tag" data-i18n="flashMarqueeTag">即時快訊</span>
+      <div class="bb-track-wrap">
+        <div class="bb-track" id="bbMarqueeTrack"></div>
+      </div>
+    </div>
+
+    <!-- Manifesto -->
     <article class="about-hero">
       <p class="about-kicker" data-i18n="aboutKicker">MANIFESTO</p>
-      <h1 data-i18n="aboutHero">拒絕情緒交易，讓每一次開倉都有數學期望支持</h1>
+      <h1>
+        <span class="about-hero-title" data-i18n="aboutHero">拒絕情緒交易，讓每一次開倉都有數學期望支持</span><span class="about-cursor" aria-hidden="true">▋</span>
+      </h1>
       <p class="about-lead" data-i18n="aboutLead">QuantAlpha 實驗室致力於將華爾街機構級量化與多因子回測引擎降維賦能給每一位獨立交易者。</p>
     </article>
 
-    <section class="about-pillars">
-      <article class="about-pillar">
-        <h2 data-i18n="aboutP1Title">純客戶端極速回測 (Zero-Knowledge & Client-Side Engine)</h2>
-        <p data-i18n="aboutP1Body">絕不收集用戶策略邏輯，WebAssembly 本地即時計算，抗封鎖、零延遲、拒絕暗箱。</p>
+    <!-- Trust by numbers -->
+    <section class="about-trust" aria-label="Lab metrics">
+      <article class="about-trust-cell">
+        <div class="about-trust-val">150+</div>
+        <div class="about-trust-lab" data-i18n="aboutTrust1">極端行情壓力測試策略</div>
       </article>
-      <article class="about-pillar">
-        <h2 data-i18n="aboutP2Title">大白話 AI 策略編譯器 (Natural Language to Alpha)</h2>
-        <p data-i18n="aboutP2Body">金融專屬語義解析，零程式碼門檻將直覺秒級編譯為嚴謹的可執行策略與勝率矩陣。</p>
+      <article class="about-trust-cell">
+        <div class="about-trust-val">0.00s</div>
+        <div class="about-trust-lab" data-i18n="aboutTrust2">策略外傳延遲（100% 瀏覽器本地端執行）</div>
       </article>
-      <article class="about-pillar">
-        <h2 data-i18n="aboutP3Title">嚴格風控與生存哲學 (Risk Management First)</h2>
-        <p data-i18n="aboutP3Body">全站 150+ 策略庫均經極端行情壓力測試，追求平滑資金曲線與防爆倉保護。</p>
+      <article class="about-trust-cell">
+        <div class="about-trust-val" data-i18n="aboutTrust3Val">0 條</div>
+        <div class="about-trust-lab" data-i18n="aboutTrust3">策略雲端留存（真正的零知識隱私保護）</div>
+      </article>
+      <article class="about-trust-cell">
+        <div class="about-trust-val">99.99%</div>
+        <div class="about-trust-lab" data-i18n="aboutTrust4">節點可用率 / 幣安官方公開 API 直連</div>
       </article>
     </section>
 
+    <!-- Three pillars -->
+    <section class="about-pillars">
+      <article class="about-pillar">
+        <h2 data-i18n="aboutP1Title">純客端極速回測 (Zero-Knowledge Engine)</h2>
+        <p data-i18n="aboutP1Body">策略即資產，絕不離散本地。基於 WebAssembly 引擎，回測計算 100% 在您瀏覽器本地完成，零數據上傳，徹底告別策略被盜顧慮。</p>
+      </article>
+      <article class="about-pillar">
+        <h2 data-i18n="aboutP2Title">自然語言 AI 策略編譯器 (Natural Language to Alpha)</h2>
+        <p data-i18n="aboutP2Body">將交易直覺秒級轉化為嚴謹算法。專為金融時序優化的自然語言解析，輸入交易邏輯，自動生成帶風控約束的可執行策略代碼與勝率矩陣。</p>
+      </article>
+      <article class="about-pillar">
+        <h2 data-i18n="aboutP3Title">嚴格風控與生存哲學 (Risk Management First)</h2>
+        <p data-i18n="aboutP3Body">生存是複利的前提。全站策略均內建動態部位縮放與多層級熔斷機制，經歷史極端行情壓力測試，追求平滑淨值曲線與防爆倉保護。</p>
+      </article>
+    </section>
+
+    <!-- Lab origin -->
+    <section class="about-lab">
+      <h2 data-i18n="aboutLabHead">[ 關於 QUANTALPHA 實驗室 ]</h2>
+      <p data-i18n="aboutLabBody">QuantAlpha 由一群前量化對沖基金開發者、密碼學工程師與高頻交易系統架構師於 2026 年聯合發起。我們信奉代碼即法律、數學即信仰，致力於打破華爾街與頂級做市商的技術壟斷，為每一位獨立交易者提供透明、去中心化且絕對私密的量化武器。</p>
+    </section>
+
+    <!-- Transparency + whitepaper -->
     <section class="about-tech" id="whitepaper">
       <h2 data-i18n="aboutTechHead">技術透明度</h2>
       <p data-i18n="aboutTechBody">行情直連 Binance 官方公開 API。回測核心採用開源 Grademark 引擎，於瀏覽器本地執行。歷史績效不代表未來收益。虛擬資產波動劇烈，請嚴格做好部位風控。本站內容不構成投資建議。</p>
       <h2 data-i18n="aboutPaperHead">策略演算法白皮書</h2>
-      <p data-i18n="aboutPaperBody">本實驗室將機構級多因子框架壓縮為可在瀏覽器執行的規則引擎：信號生成、倉位縮放與熔斷均在同一套開源路徑上復現。白皮書級說明見開源目錄與 Pine / Grademark 原始碼，拒絕黑箱曲線。</p>
+      <p data-i18n="aboutPaperBody">本實驗室將機構級多因子框架壓縮為可在瀏覽器執行的規則引擎：信號生成、部位縮放與熔斷均在同一套開源路徑上復現。白皮書級說明見開源目錄與 Pine / Grademark 原始碼，拒絕黑箱曲線。</p>
     </section>
+
+    <!-- Conversion -->
+    <nav class="about-cta" aria-label="Next actions">
+      <a class="about-cta-primary" href="./terminal.html" data-i18n="aboutCtaCompile">[ 立即編譯你的第一個量化策略 -&gt; ]</a>
+      <a class="about-cta-secondary" href="./live.html" data-i18n="aboutCtaLive">[ 進入 🔴 直播作戰室 查看即時信號 ]</a>
+      <a class="about-cta-link" href="https://github.com/codecapers/grademark" target="_blank" rel="noopener" data-i18n="aboutCtaOpen">[ 查看 Grademark / Pine 開源核心倉庫 ]</a>
+    </nav>
 
     <footer class="site-foot">
       <p class="foot-disc" data-i18n="footDisc">QuantAlpha 是獨立的量化研究與演算法編譯工具，不構成任何投資建議。虛擬資產波動劇烈，請嚴格做好部位風控。</p>
@@ -92,7 +152,8 @@
     </footer>
   </div>
   <div class="toast" id="toast"></div>
-  <script src="./js/nav.js?v=nav4"></script>
+  <script src="./js/binance-feed.js"></script>
+  <script src="./js/nav.js?v=nav5"></script>
   <script src="./config.js"></script>
   <script src="./i18n.js"></script>
   <script src="./js/i18n-boot.js"></script>

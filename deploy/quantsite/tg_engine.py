@@ -1111,7 +1111,7 @@ def scan_one(spec, pool, now_sec):
                 sid, zht, en, sym, prev, exit_px, bar_ts_i, close_audio_url
             )
             closes.append(close_row)
-            log_events.append(dict(close_row, logged_at=bar_ts_i))
+            log_events.append(dict(close_row, logged_at=int(now_sec)))
             continue
 
         bar_ts_i = int(hit["bar_ts"])
@@ -1166,7 +1166,7 @@ def scan_one(spec, pool, now_sec):
         )
         open_row = _open_row(sid, zht, en, sym, side, price, bar_ts_i, audio_url)
         hits.append(open_row)
-        log_events.append(dict(open_row, logged_at=bar_ts_i))
+        log_events.append(dict(open_row, logged_at=int(now_sec)))
 
         if flipped_from is not None:
             pnl_pct = _pnl_pct(flipped_from["side"], flipped_from["price"], price)
@@ -1182,7 +1182,7 @@ def scan_one(spec, pool, now_sec):
                 sid, zht, en, sym, flipped_from, price, bar_ts_i, close_audio_url
             )
             closes.append(close_row)
-            log_events.append(dict(close_row, logged_at=bar_ts_i))
+            log_events.append(dict(close_row, logged_at=int(now_sec)))
     return hits, closes, log_events
 
 

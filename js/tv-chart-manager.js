@@ -95,10 +95,14 @@
     var el = containerEl();
     if (!el) throw new Error("Missing #" + CONTAINER_ID);
     el.innerHTML = "";
-    var h = Math.max(el.clientHeight || 0, 480);
-    if (h < 480) el.style.minHeight = "480px";
+    var h = Math.max(el.clientHeight || 0, 560);
+    el.style.width = "100%";
+    el.style.height = h + "px";
+    el.style.minHeight = h + "px";
     widget = new root.TradingView.widget({
       autosize: true,
+      width: "100%",
+      height: h,
       symbol: symbol,
       interval: interval,
       timezone: "Asia/Shanghai",
@@ -107,7 +111,7 @@
       locale: localeForPage(),
       enable_publishing: false,
       allow_symbol_change: false,
-      hide_side_toolbar: false,
+      hide_side_toolbar: true,
       hide_top_toolbar: false,
       withdateranges: false,
       save_image: false,
