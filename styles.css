@@ -1010,26 +1010,31 @@ input.is-focused, textarea.is-focused, select.is-focused {
 }
 .ticker-pill .tp-chg.up, .rail-quote.up em { color: var(--color-up); }
 .ticker-pill .tp-chg.down, .rail-quote.down em { color: var(--color-down); }
-.bb-marquee {
+.bb-marquee,
+.news-ticker-container,
+#bloomberg-marquee-bar {
   display: flex;
-  align-items: center;
-  height: 40px !important;
-  min-height: 40px !important;
-  max-height: 40px !important;
-  line-height: 40px !important;
-  background: #ffffff;
+  align-items: center !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  max-height: 44px !important;
+  line-height: 44px !important;
+  background: #ffffff !important;
   color: #000000;
-  border-bottom: 1px solid #000000;
-  overflow: hidden;
+  border-bottom: 1px solid #e2e8f0 !important;
+  overflow: hidden !important;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
   flex-shrink: 0 !important;
+  position: relative !important;
+  z-index: 10 !important;
+  margin-bottom: 16px !important;
 }
 .bb-tag {
   flex: 0 0 auto;
-  display: flex;
-  align-items: center;
+  display: flex !important;
+  align-items: center !important;
   justify-content: center;
   padding: 0 12px;
   font-size: 11px;
@@ -1041,8 +1046,10 @@ input.is-focused, textarea.is-focused, select.is-focused {
   white-space: nowrap;
   border-radius: 0;
   margin: 0;
-  height: 40px !important;
-  line-height: 40px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  max-height: 44px !important;
+  line-height: 44px !important;
   border-right: 1px solid #000000;
   box-sizing: border-box;
 }
@@ -1052,6 +1059,7 @@ input.is-focused, textarea.is-focused, select.is-focused {
   min-width: 0;
   display: flex;
   align-items: center;
+  height: 44px;
 }
 .bb-track {
   display: inline-flex;
@@ -1973,17 +1981,19 @@ body.sheet-open { overflow: hidden; }
     border-bottom: 1px solid #e2e8f0;
   }
   #bloomberg-marquee-bar,
-  .bb-marquee {
+  .bb-marquee,
+  .news-ticker-container {
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
-    height: 40px !important;
-    min-height: 40px !important;
-    max-height: 40px !important;
-    line-height: 40px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    line-height: 44px !important;
     overflow: hidden !important;
     flex-shrink: 0 !important;
     box-sizing: border-box !important;
+    margin-bottom: 16px !important;
   }
   .ticker-track {
     height: auto !important;

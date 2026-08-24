@@ -3,7 +3,7 @@
     "BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "DOGEUSDT",
     "ADAUSDT", "AVAXUSDT", "LINKUSDT", "SUIUSDT", "NEARUSDT", "APTUSDT",
     "OPUSDT", "ARBUSDT", "PEPEUSDT", "SHIBUSDT", "TIAUSDT", "INJUSDT",
-    "RENDERUSDT", "FETUSDT",
+    "RENDERUSDT", "AAVEUSDT",
   ];
 
   function tickerPillHtml(sym) {
@@ -125,7 +125,7 @@
     if (!topbar || document.getElementById("bloomberg-marquee-bar")) return;
     const bar = document.createElement("div");
     bar.id = "bloomberg-marquee-bar";
-    bar.className = "bb-marquee";
+    bar.className = "bb-marquee news-ticker-container";
     bar.setAttribute("aria-label", "Flash news ticker");
     bar.innerHTML =
       '<span class="bb-tag" data-i18n="flashMarqueeTag">LIVE</span>' +
@@ -145,7 +145,12 @@
   }
 
   function normalizeMarqueeTag() {
-    const tag = document.querySelector("#bloomberg-marquee-bar .bb-tag");
+    const bar = document.getElementById("bloomberg-marquee-bar") || document.querySelector(".bb-marquee");
+    if (bar) {
+      bar.classList.add("bb-marquee", "news-ticker-container");
+      if (!bar.id) bar.id = "bloomberg-marquee-bar";
+    }
+    const tag = document.querySelector("#bloomberg-marquee-bar .bb-tag, .news-ticker-container .bb-tag");
     if (!tag) return;
     if (!tag.getAttribute("data-i18n")) tag.setAttribute("data-i18n", "flashMarqueeTag");
   }
@@ -286,8 +291,13 @@
     const pills = document.querySelectorAll(".ticker-pill[data-sym], .rail-quote[data-sym]");
     const syms = [];
     pills.forEach((el) => {
-      const sym = el.getAttribute("data-sym");
-      if (sym && !syms.includes(sym)) syms.push(sym);
+      const raw = el.getAttribute("data-sym");
+      const sym = raw === "FETUSDT" ? "NEARUSDT" : raw;
+      if (sym === "FETUSDT") return;
+      if (sym && !syms.includes(sym)) {
+        if (raw === "FETUSDT") el.setAttribute("data-sym", "NEARUSDT");
+        syms.push(sym);
+      }
     });
     return syms;
   }
@@ -410,7 +420,7 @@
   }
   async function bootTicker() {
     if (!window.QAFeed) {
-      await loadScriptOnce("./js/binance-feed.js");
+      await loadScriptOnce("./js/binance-feed.js?v=fs1");
     }
     ensureCryptoTicker();
     ensureTickerMarquee();

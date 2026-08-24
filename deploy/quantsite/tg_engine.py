@@ -41,7 +41,7 @@ SYMBOLS = [
     "BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "DOGEUSDT",
     "ADAUSDT", "AVAXUSDT", "LINKUSDT", "SUIUSDT", "NEARUSDT", "APTUSDT",
     "OPUSDT", "ARBUSDT", "PEPEUSDT", "SHIBUSDT", "TIAUSDT", "INJUSDT",
-    "RENDERUSDT", "FETUSDT",
+    "RENDERUSDT", "AAVEUSDT",
 ]
 # Mainstream scan pool — keeps VPS CPU on liquid majors only
 SCAN_SYMBOLS = [
@@ -1751,7 +1751,7 @@ def demo_batch_message():
         ("SUIUSDT", 0.8195, -2.0, 4.0),
         ("PEPEUSDT", 0.000004, -0.9, 0.9),
         ("SHIBUSDT", 0.000005, -8.1, 10.3),
-        ("FETUSDT", 0.1654, -1.8, 3.6),
+        ("NEARUSDT", 5.85, -1.8, 3.6),
     ]
     events = []
     for sym, px, sl_pct, tp_pct in samples:

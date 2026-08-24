@@ -7,20 +7,31 @@ body.live-page.war-cmd {
   font-family: Inter, "Segoe UI", "Noto Sans TC", system-ui, sans-serif;
 }
 
-body.live-page.war-cmd .bb-marquee {
-  height: 40px !important;
-  min-height: 40px !important;
-  max-height: 40px !important;
-  line-height: 40px !important;
-  flex-shrink: 0 !important;
+body.live-page.war-cmd .bb-marquee,
+body.live-page.war-cmd .news-ticker-container,
+body.live-page.war-cmd #bloomberg-marquee-bar {
+  display: flex !important;
+  align-items: center !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  max-height: 44px !important;
+  line-height: 44px !important;
+  background: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  position: relative !important;
+  z-index: 10 !important;
+  margin-bottom: 16px !important;
   overflow: hidden !important;
-  position: relative;
-  z-index: 5;
+  flex-shrink: 0 !important;
 }
 
 body.live-page.war-cmd .bb-tag {
-  height: 40px !important;
-  line-height: 40px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  max-height: 44px !important;
+  line-height: 44px !important;
+  display: flex !important;
+  align-items: center !important;
 }
 
 body.live-page.war-cmd .brand-text h1,
