@@ -7,6 +7,17 @@ body.live-page.war-cmd {
   font-family: Inter, "Segoe UI", "Noto Sans TC", system-ui, sans-serif;
 }
 
+/* Layer stack: base(1) < sticky/ticker(100) < hint(200) < modal(999) */
+body.live-page.war-cmd {
+  --z-base: 1;
+  --z-card: 1;
+  --z-ticker: 100;
+  --z-nav: 100;
+  --z-sticky: 110;
+  --z-hint: 200;
+  --z-modal: 999;
+}
+
 body.live-page.war-cmd .bb-marquee,
 body.live-page.war-cmd .news-ticker-container,
 body.live-page.war-cmd #bloomberg-marquee-bar {
@@ -19,7 +30,7 @@ body.live-page.war-cmd #bloomberg-marquee-bar {
   background: #ffffff !important;
   border-bottom: 1px solid #e2e8f0 !important;
   position: relative !important;
-  z-index: 10 !important;
+  z-index: var(--z-ticker, 100) !important;
   margin-bottom: 16px !important;
   overflow: hidden !important;
   flex-shrink: 0 !important;
@@ -70,7 +81,7 @@ body.live-page.war-cmd .wrap {
 .cmd-voice-bar {
   position: sticky;
   top: 0;
-  z-index: 40;
+  z-index: var(--z-sticky, 110);
   display: flex;
   justify-content: center;
   padding: 8px 0 4px;
@@ -266,6 +277,10 @@ body.live-page.war-cmd .wrap {
   letter-spacing: 0.04em;
   color: #0f172a;
   font-family: "Roboto Mono", "JetBrains Mono", ui-monospace, monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .coin-chg {
@@ -274,6 +289,10 @@ body.live-page.war-cmd .wrap {
   padding: 2px 7px;
   border-radius: 999px;
   font-family: "Roboto Mono", ui-monospace, monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
 }
 
 .coin-chg.is-up {
@@ -296,6 +315,9 @@ body.live-page.war-cmd .wrap {
   padding: 2px 4px;
   margin: 0 -4px;
   border-radius: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .coin-px.flash-up {
@@ -407,7 +429,7 @@ body.live-page.war-cmd .wrap {
 
 .radar-row {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 8px 12px;
   padding: 8px 14px;
@@ -418,6 +440,17 @@ body.live-page.war-cmd .wrap {
   font-family: "Roboto Mono", "JetBrains Mono", ui-monospace, monospace;
   color: #334155;
   box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.radar-row > span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .radar-row .t {
@@ -453,7 +486,7 @@ body.live-page.war-cmd .wrap {
   position: fixed;
   top: 72px;
   right: 16px;
-  z-index: 80;
+  z-index: var(--z-hint, 200);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -483,7 +516,7 @@ body.live-page.war-cmd .wrap {
 .coin-modal-bg {
   position: fixed;
   inset: 0;
-  z-index: 90;
+  z-index: var(--z-modal, 999);
   display: none;
   align-items: center;
   justify-content: center;
@@ -604,6 +637,18 @@ body.live-page.war-cmd .wrap {
 }
 
 @media (max-width: 767px) {
+  html.live-page,
+  body.live-page.war-cmd {
+    overflow-x: hidden !important;
+    max-width: 100vw;
+  }
+
+  .cmd-main,
+  .wrap {
+    overflow-x: hidden;
+    max-width: 100%;
+  }
+
   .coin-grid,
   .coin-grid[data-n] {
     grid-template-columns: 1fr;
@@ -642,5 +687,14 @@ body.live-page.war-cmd .wrap {
 
   .cmd-voice-bar {
     padding-top: 4px;
+  }
+
+  .radar-panel {
+    overflow-x: hidden;
+  }
+
+  .radar-row {
+    font-size: 11px;
+    gap: 6px 8px;
   }
 }

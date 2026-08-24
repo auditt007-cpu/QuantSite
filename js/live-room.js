@@ -19,6 +19,7 @@
   const HINT_KEY = "qa_live_voice_hint_seen";
   const FEED_MS = 8000;
   const HOUR_S = 3600;
+  const TICK_MS = 200;
 
   const state = {
     watch: loadWatch(),
@@ -38,8 +39,24 @@
     wsTickAt: 0,
     wsUrlIdx: 0,
     restTimer: null,
+    restArmTimer: null,
     jitterTimer: null,
+    feedTimer: null,
+    paintTimer: 0,
+    paintRaf: 0,
+    lastPaintAt: 0,
+    pendingTicks: {},
+    disposed: false,
     cum: loadCum(),
+  };
+
+  const handlers = {
+    resize: null,
+    visibility: null,
+    pagehide: null,
+    pageshow: null,
+    keydown: null,
+    tapeClick: null,
   };
 
   function t(key, fallback) {
@@ -1146,18 +1163,18 @@
   function bindAddUi() {
     const btn = document.getElementById("cmdAddBtn");
     const panel = document.getElementById("cmdAddPanel");
-    if (btn && panel) {
-      btn.addEventListener("click", () => {
-        panel.classList.toggle("is-open");
-        paintAddPanel();
-      });
-      panel.addEventListener("click", (ev) => {
-        const chip = ev.target.closest("[data-add]");
-        if (!chip) return;
-        addCoin(chip.getAttribute("data-add"));
-        if (!ALL_COINS.some((s) => !inWatch(s))) panel.classList.remove("is-open");
-      });
-    }
+    if (!btn || !panel || btn.getAttribute("data-bound") === "1") return;
+    btn.setAttribute("data-bound", "1");
+    btn.addEventListener("click", () => {
+      panel.classList.toggle("is-open");
+      paintAddPanel();
+    });
+    panel.addEventListener("click", (ev) => {
+      const chip = ev.target.closest("[data-add]");
+      if (!chip) return;
+      addCoin(chip.getAttribute("data-add"));
+      if (!ALL_COINS.some((s) => !inWatch(s))) panel.classList.remove("is-open");
+    });
   }
 
   /* ---- modal zoom ---- */
@@ -1217,19 +1234,34 @@
   function bindModal() {
     const bg = document.getElementById("coinModalBg");
     const x = document.getElementById("coinModalClose");
+    if (bg && bg.getAttribute("data-bound") === "1") return;
+    if (bg) bg.setAttribute("data-bound", "1");
     if (x) x.addEventListener("click", closeModal);
     if (bg) {
       bg.addEventListener("click", (ev) => {
         if (ev.target === bg) closeModal();
       });
     }
-    document.addEventListener("keydown", (ev) => {
-      if (ev.key === "Escape") closeModal();
-    });
+    if (!handlers.keydown) {
+      handlers.keydown = (ev) => {
+        if (ev.key === "Escape") closeModal();
+      };
+      document.addEventListener("keydown", handlers.keydown);
+    }
+  }
+
+  function withCacheBust(url) {
+    const u = String(url || "");
+    if (!u) return u;
+    if (/[?&]_t=/.test(u) || /[?&]t=\d/.test(u)) return u;
+    return u + (u.indexOf("?") >= 0 ? "&" : "?") + "_t=" + Date.now();
   }
 
   async function fetchJson(url) {
-    const res = await fetch(url, { cache: "no-store" });
+    const res = await fetch(withCacheBust(url), {
+      cache: "no-store",
+      headers: { Accept: "application/json", "Cache-Control": "no-cache" },
+    });
     if (!res.ok) throw new Error(String(res.status));
     return res.json();
   }
@@ -1263,13 +1295,39 @@
   }
 
   function applyTick(sym, last, chg) {
-    if (!sym || !Number.isFinite(last)) return;
+    if (state.disposed || !sym || !Number.isFinite(last)) return;
     state.lastPx[sym] = last;
     const cur = state.tickers[sym] || {};
     cur.last = last;
     if (Number.isFinite(chg)) cur.chg = chg;
     state.tickers[sym] = cur;
     bumpKline(sym, last);
+    state.pendingTicks[sym] = true;
+    schedulePaintFlush();
+  }
+
+  function schedulePaintFlush() {
+    if (state.disposed || state.paintTimer) return;
+    const wait = Math.max(0, TICK_MS - (Date.now() - (state.lastPaintAt || 0)));
+    state.paintTimer = setTimeout(() => {
+      state.paintTimer = 0;
+      state.lastPaintAt = Date.now();
+      const syms = Object.keys(state.pendingTicks);
+      state.pendingTicks = {};
+      if (!syms.length) return;
+      if (state.paintRaf) cancelAnimationFrame(state.paintRaf);
+      state.paintRaf = requestAnimationFrame(() => {
+        state.paintRaf = 0;
+        if (state.disposed) return;
+        syms.forEach((sym) => paintTickDom(sym));
+      });
+    }, wait);
+  }
+
+  function paintTickDom(sym) {
+    const last = Number(state.lastPx[sym]);
+    if (!Number.isFinite(last)) return;
+    const chg = Number(state.tickers[sym] && state.tickers[sym].chg);
     document.querySelectorAll('[data-sym="' + sym + '"]').forEach((node) => {
       try {
         const pxEl = node.querySelector("[data-px]");
@@ -1287,9 +1345,7 @@
       }
     });
     drawSpark(sym);
-    if (state.modalSym === sym) {
-      paintModalLive(sym);
-    }
+    if (state.modalSym === sym) paintModalLive(sym);
   }
 
   async function refreshMarket() {
@@ -1336,9 +1392,35 @@
     return hosts[idx % hosts.length] + streams;
   }
 
+  function killSocket() {
+    if (state.wsTimer) {
+      clearTimeout(state.wsTimer);
+      state.wsTimer = null;
+    }
+    const ws = state.ws;
+    state.ws = null;
+    state.wsLive = false;
+    if (!ws) return;
+    try {
+      ws.onopen = null;
+      ws.onmessage = null;
+      ws.onerror = null;
+      ws.onclose = null;
+      if (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN) {
+        ws.close();
+      }
+    } catch {
+      /* */
+    }
+  }
+
   function connectTickerStream() {
-    if (state.ws && (state.ws.readyState === 0 || state.ws.readyState === 1)) return;
+    if (state.disposed) return;
+    if (state.ws && (state.ws.readyState === WebSocket.CONNECTING || state.ws.readyState === WebSocket.OPEN)) {
+      return;
+    }
     if (state.wsTimer) return;
+    killSocket();
     let ws;
     try {
       ws = new WebSocket(streamUrl(state.wsUrlIdx || 0));
@@ -1351,10 +1433,12 @@
     }
     state.ws = ws;
     ws.onopen = () => {
+      if (state.ws !== ws) return;
       state.wsLive = true;
       state.wsBackoff = 1000;
     };
     ws.onmessage = (ev) => {
+      if (state.ws !== ws || state.disposed) return;
       let msg;
       try {
         msg = JSON.parse(ev.data);
@@ -1381,14 +1465,17 @@
     };
     ws.onerror = () => {
       try {
-        ws.close();
+        if (state.ws === ws) ws.close();
       } catch {
         /* */
       }
     };
     ws.onclose = () => {
-      state.wsLive = false;
-      if (state.ws === ws) state.ws = null;
+      if (state.ws === ws) {
+        state.ws = null;
+        state.wsLive = false;
+      }
+      if (state.disposed) return;
       state.wsUrlIdx = (state.wsUrlIdx || 0) + 1;
       startRestPoll();
       scheduleWsReconnect();
@@ -1396,7 +1483,7 @@
   }
 
   function scheduleWsReconnect() {
-    if (state.wsTimer) return;
+    if (state.disposed || state.wsTimer) return;
     const wait = state.wsBackoff || 1000;
     state.wsBackoff = Math.min((state.wsBackoff || 1000) * 2, 4000);
     state.wsTimer = setTimeout(() => {
@@ -1437,8 +1524,9 @@
   }
 
   function startRestPoll() {
-    if (state.restTimer) return;
+    if (state.disposed || state.restTimer) return;
     const tick = () => {
+      if (state.disposed) return;
       const freshWs = state.wsLive && state.wsTickAt && Date.now() - state.wsTickAt < 3500;
       if (freshWs) {
         clearInterval(state.restTimer);
@@ -1452,15 +1540,19 @@
   }
 
   function armRestFallback() {
-    setTimeout(() => {
+    if (state.restArmTimer) clearTimeout(state.restArmTimer);
+    state.restArmTimer = setTimeout(() => {
+      state.restArmTimer = null;
+      if (state.disposed) return;
       const got = state.wsTickAt && Date.now() - state.wsTickAt < 2500;
       if (!got) startRestPoll();
     }, 2500);
   }
 
   function startJitter() {
-    if (state.jitterTimer) return;
+    if (state.disposed || state.jitterTimer) return;
     state.jitterTimer = setInterval(() => {
+      if (state.disposed) return;
       const freshWs = state.wsLive && state.wsTickAt && Date.now() - state.wsTickAt < 3500;
       if (freshWs) return;
       const targets = state.watch.length ? state.watch : ALL_COINS;
@@ -1481,13 +1573,13 @@
   function liveFeedUrls() {
     const t = Date.now();
     const urls = [
-      "https://api.quantalpha.space/live_feed.json?t=" + t,
-      "https://api.quantalpha.space/data/signals.json?t=" + t,
+      "https://api.quantalpha.space/live_feed.json?_t=" + t,
+      "https://api.quantalpha.space/data/signals.json?_t=" + t,
     ];
     try {
-      urls.push(new URL("./live_feed.json?t=" + t, document.baseURI).href);
+      urls.push(new URL("./live_feed.json?_t=" + t, document.baseURI).href);
     } catch {
-      urls.push("./live_feed.json?t=" + t);
+      urls.push("./live_feed.json?_t=" + t);
     }
     return urls;
   }
@@ -1606,9 +1698,9 @@
   }
 
   async function refreshFeed() {
+    if (state.disposed) return;
     const urls = liveFeedUrls();
     let data = null;
-    let lastErr = null;
     for (let i = 0; i < urls.length; i++) {
       try {
         const row = await fetchJson(urls[i]);
@@ -1616,23 +1708,15 @@
           data = row;
           break;
         }
-      } catch (err) {
-        lastErr = err;
-      }
-    }
-    if (!data) {
-      try {
-        console.warn("[QALive] feed fetch failed", lastErr);
       } catch {
-        /* */
+        /* next url */
       }
-      return;
     }
+    if (!data || state.disposed) return;
     try {
       const flat = flattenFeed(data);
       const now = Date.now() / 1000;
       state.events = flat.filter((e) => e.ts && now - e.ts <= HOUR_S * 6);
-      let freshN = 0;
       if (state.seenKeys == null) {
         state.seenKeys = new Set(flat.map((e) => e.key));
         let hydrated = false;
@@ -1655,32 +1739,18 @@
           if (now - ev.ts > HOUR_S) return;
           fresh.push(ev);
         });
-        freshN = fresh.length;
         announceEvents(fresh);
       }
       paintRadar();
       paintCardsMeta();
-      try {
-        console.info("[QALive] feed", {
-          updated: data.updated_at,
-          tape: flat.length,
-          shown1h: state.events.filter((e) => now - e.ts <= HOUR_S && inWatch(e.symbol)).length,
-          fresh: freshN,
-        });
-      } catch {
-        /* */
-      }
-    } catch (err) {
-      try {
-        console.warn("[QALive] feed parse", err);
-      } catch {
-        /* */
-      }
+    } catch {
+      /* isolate feed parse */
     }
   }
 
   function bindTapeLinks() {
-    document.addEventListener("click", (ev) => {
+    if (handlers.tapeClick) return;
+    handlers.tapeClick = (ev) => {
       const a = ev.target.closest("a.tape-strat");
       if (!a) return;
       const href = a.getAttribute("href") || "";
@@ -1693,7 +1763,55 @@
       if (!id) return;
       ev.preventDefault();
       openPlazaFromTape(id);
-    });
+    };
+    document.addEventListener("click", handlers.tapeClick);
+  }
+
+  function onVisibilityChange() {
+    if (document.visibilityState !== "visible" || state.disposed) return;
+    state.events = [];
+    state.seenKeys = null;
+    paintRadar();
+    refreshFeed();
+    refreshMarket();
+    if (!(state.ws && (state.ws.readyState === WebSocket.OPEN || state.ws.readyState === WebSocket.CONNECTING))) {
+      connectTickerStream();
+    }
+  }
+
+  function disposeLiveRoom() {
+    if (state.disposed) return;
+    state.disposed = true;
+    killSocket();
+    if (state.feedTimer) clearInterval(state.feedTimer);
+    state.feedTimer = null;
+    if (state.restTimer) clearInterval(state.restTimer);
+    state.restTimer = null;
+    if (state.jitterTimer) clearInterval(state.jitterTimer);
+    state.jitterTimer = null;
+    if (state.restArmTimer) clearTimeout(state.restArmTimer);
+    state.restArmTimer = null;
+    if (state.paintTimer) clearTimeout(state.paintTimer);
+    state.paintTimer = 0;
+    if (state.paintRaf) cancelAnimationFrame(state.paintRaf);
+    state.paintRaf = 0;
+    state.pendingTicks = {};
+    if (handlers.resize) {
+      window.removeEventListener("resize", handlers.resize);
+      handlers.resize = null;
+    }
+    if (handlers.visibility) {
+      document.removeEventListener("visibilitychange", handlers.visibility);
+      handlers.visibility = null;
+    }
+    if (handlers.keydown) {
+      document.removeEventListener("keydown", handlers.keydown);
+      handlers.keydown = null;
+    }
+    if (handlers.tapeClick) {
+      document.removeEventListener("click", handlers.tapeClick);
+      handlers.tapeClick = null;
+    }
   }
 
   async function openPlazaFromTape(id) {
@@ -1719,6 +1837,7 @@
   }
 
   function boot() {
+    if (state.disposed) state.disposed = false;
     seedFailSafe();
     renderGrid();
     bindGrid();
@@ -1731,16 +1850,42 @@
     armRestFallback();
     refreshMarket();
     refreshFeed();
-    setInterval(refreshFeed, FEED_MS);
-    window.addEventListener("resize", () => {
-      paintCardsMeta();
-      if (state.modalSym) paintModalLive(state.modalSym);
-    });
-    const style = document.createElement("style");
-    style.textContent =
-      "@keyframes radarScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}";
-    document.head.appendChild(style);
+    if (state.feedTimer) clearInterval(state.feedTimer);
+    state.feedTimer = setInterval(refreshFeed, FEED_MS);
+    if (!handlers.resize) {
+      handlers.resize = () => {
+        if (state.disposed) return;
+        paintCardsMeta();
+        if (state.modalSym) paintModalLive(state.modalSym);
+      };
+      window.addEventListener("resize", handlers.resize);
+    }
+    if (!handlers.visibility) {
+      handlers.visibility = onVisibilityChange;
+      document.addEventListener("visibilitychange", handlers.visibility);
+    }
+    if (!handlers.pagehide) {
+      handlers.pagehide = disposeLiveRoom;
+      window.addEventListener("pagehide", handlers.pagehide);
+    }
+    if (!handlers.pageshow) {
+      handlers.pageshow = (ev) => {
+        if (ev.persisted || state.disposed) {
+          state.disposed = false;
+          boot();
+        }
+      };
+      window.addEventListener("pageshow", handlers.pageshow);
+    }
+    if (!document.getElementById("qa-live-radar-style")) {
+      const style = document.createElement("style");
+      style.id = "qa-live-radar-style";
+      style.textContent =
+        "@keyframes radarScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}";
+      document.head.appendChild(style);
+    }
     window.QALiveDemoVoice = icebreakerVoice;
+    window.QALiveDispose = disposeLiveRoom;
   }
 
   if (document.readyState === "loading") {

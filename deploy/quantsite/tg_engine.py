@@ -3,8 +3,10 @@
 
 import asyncio
 import concurrent.futures as cf
+import gc
 import hashlib
 import json
+import logging
 import math
 import os
 import ssl
@@ -41,6 +43,21 @@ try:
 except Exception:
     fetch_engine_pack = None
     rails_last_meta = lambda: {}
+
+try:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="[%(asctime)s] [%(levelname)s] - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        force=True,
+    )
+except TypeError:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="[%(asctime)s] [%(levelname)s] - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+logger = logging.getLogger("tg_engine")
 
 BOT_TOKEN = os.environ.get("TG_BOT_TOKEN", "").strip()
 CHANNEL = (
@@ -110,9 +127,14 @@ SIDE_ZHT = {"LONG": "做多", "SHORT": "做空"}
 SIDE_EN = {"LONG": "LONG", "SHORT": "SHORT"}
 
 
-def log(msg):
-    ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
-    print("[{0}] {1}".format(ts, msg), flush=True)
+def log(msg, level=logging.INFO):
+    try:
+        logger.log(level, "%s", msg)
+    except Exception:
+        try:
+            sys.stderr.write(str(msg) + "\n")
+        except Exception:
+            pass
 
 
 def http_json(url):
@@ -2000,10 +2022,10 @@ def main():
         )
     )
     if not BOT_TOKEN:
-        log("FATAL: set TG_BOT_TOKEN")
+        log("FATAL: set TG_BOT_TOKEN", logging.ERROR)
         raise SystemExit(1)
     if edge_tts is None:
-        log("WARN: edge_tts not installed — sweet-voice audio disabled (pip install edge-tts)")
+        log("WARN: edge_tts not installed — sweet-voice audio disabled (pip install edge-tts)", logging.WARNING)
     else:
         AUDIO_EXECUTOR.submit(ensure_welcome_audio)
         AUDIO_EXECUTOR.submit(ensure_funnel_audio)
@@ -2011,9 +2033,18 @@ def main():
     while True:
         try:
             cycle()
+            try:
+                gc.collect()
+            except Exception:
+                pass
         except Exception as exc:
-            log("cycle error: {0}".format(exc))
-            traceback.print_exc()
+            log("cycle error: {0}".format(exc), logging.ERROR)
+            try:
+                traceback.print_exc()
+            except Exception:
+                pass
+            time.sleep(max(5, int(POLL_SEC // 2) or 5))
+            continue
         time.sleep(POLL_SEC)
 
 
@@ -2033,15 +2064,26 @@ if __name__ == "__main__":
         help="Send one simulated aggregated multi-symbol signal to the channel, then exit.",
     )
     args = ap.parse_args()
-    if args.regen_audio:
-        regenerate_all_audio()
-        raise SystemExit(0)
-    if args.test_batch:
-        if not BOT_TOKEN:
-            raise SystemExit("TG_BOT_TOKEN missing")
-        msg = demo_batch_message()
-        print(msg)
-        tg_send(msg)
-        log("test-batch pushed to {0}".format(CHANNEL))
-        raise SystemExit(0)
-    main()
+    try:
+        if args.regen_audio:
+            regenerate_all_audio()
+            raise SystemExit(0)
+        if args.test_batch:
+            if not BOT_TOKEN:
+                raise SystemExit("TG_BOT_TOKEN missing")
+            msg = demo_batch_message()
+            log(msg)
+            tg_send(msg)
+            log("test-batch pushed to {0}".format(CHANNEL))
+            raise SystemExit(0)
+        main()
+    except SystemExit:
+        raise
+    except Exception as exc:
+        log("fatal engine exit: {0}".format(exc), logging.ERROR)
+        try:
+            traceback.print_exc()
+        except Exception:
+            pass
+        time.sleep(5)
+        raise SystemExit(1)

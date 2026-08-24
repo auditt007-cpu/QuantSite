@@ -343,7 +343,10 @@
     ];
     for (let i = 0; i < urls.length; i++) {
       try {
-        const res = await fetch(urls[i]);
+        const res = await fetch(urls[i] + (urls[i].indexOf("?") >= 0 ? "&" : "?") + "_t=" + Date.now(), {
+          cache: "no-store",
+          headers: { Accept: "application/json", "Cache-Control": "no-cache" },
+        });
         if (!res.ok) continue;
         const rows = await res.json();
         if (Array.isArray(rows) && rows.length) return rows;

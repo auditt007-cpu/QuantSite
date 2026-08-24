@@ -867,6 +867,18 @@
         startPoll(2000);
         return;
       }
+      if (ws) {
+        try {
+          ws.onopen = null;
+          ws.onmessage = null;
+          ws.onerror = null;
+          ws.onclose = null;
+          if (ws.readyState === 0 || ws.readyState === 1) ws.close();
+        } catch {
+          /* */
+        }
+        ws = null;
+      }
       try {
         ws = new WebSocket(urls[urlIdx]);
       } catch {
