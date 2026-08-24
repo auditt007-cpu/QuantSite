@@ -214,14 +214,20 @@ function buildBacktestContext(sourceBars, lookDays, iv) {
   };
 }
 
-function remapWindowTrades(trades, winOffset) {
+function remapWindowTrades(trades, winOffset, winBars) {
   return trades
     .filter((tr) => tr.i0 >= winOffset)
-    .map((tr) => ({
-      ...tr,
-      i0: tr.i0 - winOffset,
-      i1: tr.i1 - winOffset,
-    }));
+    .map((tr) => {
+      const i0 = tr.i0 - winOffset;
+      const i1 = tr.i1 - winOffset;
+      return {
+        ...tr,
+        i0,
+        i1,
+        t0: winBars && winBars[i0] ? winBars[i0].time : tr.t0,
+        t1: winBars && winBars[i1] ? winBars[i1].time : tr.t1,
+      };
+    });
 }
 
 function paintSampleHint(ctx) {
@@ -402,19 +408,38 @@ let btChartLockRange = null;
 let btChartRangeGuard = false;
 
 function chartWindowBars(sourceBars, ctx) {
+  if (ctx && ctx.winBars && ctx.winBars.length) return ctx.winBars;
   if (!sourceBars || !sourceBars.length) return [];
   if (!ctx) return sourceBars.slice();
-  const fromTarget = ctx.windowEndT - (ctx.lookDays + 1) * 86400;
-  return sourceBars.filter((b) => b.time >= fromTarget && b.time <= ctx.windowEndT);
+  return sourceBars.filter((b) => b.time >= ctx.windowStartT && b.time <= ctx.windowEndT);
 }
 
-function chartVisibleRange(ctx, sourceBars) {
-  if (!ctx) return null;
-  const to = ctx.windowEndT;
-  const fromTarget = to - (ctx.lookDays + 1) * 86400;
-  const windowBars = chartWindowBars(sourceBars || allBars, ctx);
-  if (!windowBars.length) return { from: fromTarget, to };
-  return { from: windowBars[0].time, to: windowBars[windowBars.length - 1].time };
+function chartVisibleRange(ctx) {
+  if (!ctx || !ctx.winBars || !ctx.winBars.length) return null;
+  return { from: ctx.windowStartT, to: ctx.windowEndT };
+}
+
+function equitySeriesData(winBars, eq) {
+  return (winBars || []).map((b, i) => ({ time: b.time, value: Number(eq[i]) })).filter((p) => isFinite(p.value));
+}
+
+function tradeMarkersFor(trades, winBars) {
+  const markers = [];
+  (trades || []).forEach((tr) => {
+    if (!tr || tr.open) return;
+    const tOpen = winBars && winBars[tr.i0] ? winBars[tr.i0].time : tr.t0;
+    const tClose = winBars && winBars[tr.i1] ? winBars[tr.i1].time : tr.t1;
+    if (!tOpen || !tClose) return;
+    if (tr.side === "SHORT") {
+      markers.push({ time: tOpen, position: "aboveBar", color: "#d0021b", shape: "arrowDown", text: "SELL" });
+      markers.push({ time: tClose, position: "belowBar", color: "#00873c", shape: "arrowUp", text: "BUY" });
+    } else {
+      markers.push({ time: tOpen, position: "belowBar", color: "#00873c", shape: "arrowUp", text: "BUY" });
+      markers.push({ time: tClose, position: "aboveBar", color: "#d0021b", shape: "arrowDown", text: "SELL" });
+    }
+  });
+  markers.sort((a, b) => a.time - b.time);
+  return markers;
 }
 
 function candleDataFromBars(list) {
@@ -479,7 +504,7 @@ function bindBtChartInteractionLock(chart) {
 }
 
 function applyBtChartLock(chart, ctx) {
-  const range = chartVisibleRange(ctx, allBars);
+  const range = chartVisibleRange(ctx);
   if (!chart || !range) return;
   btChartLockRange = range;
   lockBtChartRange(chart, range.from, range.to);
@@ -712,8 +737,8 @@ function refreshBacktestCardI18n() {
   if (lastCtx) {
     const winOffset = lastCtx.winIdx - lastCtx.runStart;
     const rawTrades = spec().run(lastCtx.runBars);
-    const trades = remapWindowTrades(rawTrades, winOffset);
     const winBars = lastCtx.winBars;
+    const trades = remapWindowTrades(rawTrades, winOffset, winBars);
     const GM = window.Grademark;
     const eq = GM ? GM.computeEquityCurve(trades, winBars, START_EQ) : catalog.equityFrom(winBars, trades);
     const st = catalog.performanceOf(trades, eq, catalog.barsPerYear(interval), winBars);
@@ -987,8 +1012,7 @@ function upsert(bar) {
   bars = allBars;
   if (!candleSeries) return;
   if (lastCtx) {
-    const fromTarget = lastCtx.windowEndT - (lastCtx.lookDays + 1) * 86400;
-    if (bar.time < fromTarget || bar.time > lastCtx.windowEndT) return;
+    if (bar.time < lastCtx.windowStartT || bar.time > lastCtx.windowEndT) return;
   }
   candleSeries.update({ time: bar.time, open: bar.open, high: bar.high, low: bar.low, close: bar.close });
   volSeries.update({
@@ -1058,8 +1082,8 @@ function run(silent) {
   const t0 = performance.now();
   const winOffset = ctx.winIdx - ctx.runStart;
   const rawTrades = spec().run(ctx.runBars);
-  const trades = remapWindowTrades(rawTrades, winOffset);
   const winBars = ctx.winBars;
+  const trades = remapWindowTrades(rawTrades, winOffset, winBars);
   const GM = window.Grademark;
   const eq = GM ? GM.computeEquityCurve(trades, winBars, START_EQ) : catalog.equityFrom(winBars, trades);
   const st = catalog.performanceOf(trades, eq, catalog.barsPerYear(interval), winBars);
@@ -1076,7 +1100,14 @@ function run(silent) {
     st.pf = Number.isFinite(lbPf) ? lbPf : st.pf;
     if (Number.isFinite(lbRoi)) st.ret = lbRoi / 100;
     if (Number.isFinite(lbPnl) && eq && eq.length) {
-      eq[eq.length - 1] = START_EQ + lbPnl;
+      const targetEnd = START_EQ + lbPnl;
+      const computedEnd = eq[eq.length - 1];
+      if (computedEnd && isFinite(computedEnd) && computedEnd > 0 && Math.abs(computedEnd - targetEnd) > 0.01) {
+        const scale = targetEnd / computedEnd;
+        for (let i = 0; i < eq.length; i++) {
+          if (eq[i] != null) eq[i] *= scale;
+        }
+      }
     }
   }
   paintSampleHint(ctx);
@@ -1102,15 +1133,9 @@ function run(silent) {
     if (window.QAUi) window.QAUi.flash($("mBars"), false);
   }
   if (candleSeries) {
-    const displayBars = chartWindowBars(allBars, ctx);
-    candleSeries.setData(candleDataFromBars(displayBars));
-    if (volSeries) volSeries.setData(volumeDataFromBars(displayBars));
-    candleSeries.setMarkers(
-      trades.flatMap((tr) => [
-        { time: tr.t0, position: "belowBar", color: "#00873c", shape: "arrowUp", text: "BUY" },
-        { time: tr.t1, position: "aboveBar", color: "#d0021b", shape: "arrowDown", text: "SELL" },
-      ]),
-    );
+    candleSeries.setData(candleDataFromBars(winBars));
+    if (volSeries) volSeries.setData(volumeDataFromBars(winBars));
+    candleSeries.setMarkers(tradeMarkersFor(trades, winBars));
     applyBtChartLock(candleChart, ctx);
   }
   const eEl = $("equityChart");
@@ -1128,7 +1153,7 @@ function run(silent) {
         equityChart = Charts.createChart(eEl, feed.chartOptions(eEl, size.height, interval));
         equityChart.applyOptions({ width: size.width, height: size.height });
         bindBtChartInteractionLock(equityChart);
-        addLine(equityChart, "#00873c").setData(winBars.map((b, i) => ({ time: b.time, value: eq[i] })));
+        addLine(equityChart, "#00873c").setData(equitySeriesData(winBars, eq));
         applyBtChartLock(equityChart, ctx);
         scheduleFit();
         resolve(true);
@@ -1152,10 +1177,8 @@ async function executeBacktest() {
   await waitChartLayout();
   interval = resolveInterval();
   syncDock();
-  if (!allBars.length) {
-    const ok = await fetchBars(interval, { mount: true, reset: true });
-    if (!ok) return;
-  }
+  const ok = await fetchBars(interval, { mount: true, reset: true });
+  if (!ok) return;
   const mounted = await mountCandles();
   if (!mounted || !candleSeries) {
     toast(t("needBars") || "K 線渲染失敗", "warn");
