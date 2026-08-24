@@ -353,63 +353,23 @@ body.has-bb-util .topbar {
   letter-spacing: 0.04em;
 }
 
-/* ---- Live ticker / marquee ---- */
-#bloomberg-marquee-bar,
-.bb-marquee,
-.news-ticker-container {
-  display: flex !important;
-  align-items: center !important;
-  height: 44px !important;
-  min-height: 44px !important;
-  max-height: 44px !important;
-  line-height: 44px !important;
-  background: #ffffff !important;
-  border-bottom: 1px solid #e2e8f0 !important;
-  position: relative !important;
-  z-index: 100 !important;
-  margin-bottom: 16px !important;
-  overflow: hidden !important;
-  flex-shrink: 0 !important;
-}
-
-.bb-tag,
+/* ---- Live ticker / marquee: owned by css/marquee-ticker.css ---- */
+#bloomberg-marquee-bar .bb-tag,
 .news-ticker-container .bb-tag {
-  background: #000000;
-  color: #ffffff;
-  border-radius: 0;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 0 12px;
-  border-right: 1px solid #000000;
-  height: 44px !important;
-  min-height: 44px !important;
-  max-height: 44px !important;
-  line-height: 44px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center;
-  box-sizing: border-box;
+  /* legacy absolute / full-height badge rules removed */
+  position: static;
 }
 
 .bb-track-wrap {
-  flex: 1 1 auto;
+  flex: 1 1 0%;
   min-width: 0;
-  overflow: hidden !important;
-  display: flex !important;
-  align-items: center !important;
-  height: 44px !important;
+  overflow: hidden;
 }
 
 .bb-track,
 .bb-track a,
 .bb-track span {
-  font-size: 12px;
-  color: #000000;
-  font-weight: 500;
   white-space: nowrap;
-  line-height: 44px;
 }
 
 .ticker-bar {
@@ -986,13 +946,8 @@ textarea,
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
-    height: 44px !important;
-    min-height: 44px !important;
-    max-height: 44px !important;
-    line-height: 44px !important;
     overflow: hidden !important;
     flex-shrink: 0 !important;
-    margin-bottom: 16px !important;
   }
   .bbg-capital-panel {
     border-right: 0;

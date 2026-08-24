@@ -125,11 +125,12 @@
     if (!topbar || document.getElementById("bloomberg-marquee-bar")) return;
     const bar = document.createElement("div");
     bar.id = "bloomberg-marquee-bar";
-    bar.className = "bb-marquee news-ticker-container";
+    bar.className = "marquee-ticker-wrapper bb-marquee news-ticker-container";
     bar.setAttribute("aria-label", "Flash news ticker");
     bar.innerHTML =
-      '<span class="bb-tag" data-i18n="flashMarqueeTag">LIVE</span>' +
-      '<div class="bb-track-wrap"><div class="bb-track" id="bbMarqueeTrack"></div></div>';
+      '<div class="ticker-badge bb-tag" data-i18n="flashMarqueeTag">LIVE</div>' +
+      '<div class="ticker-viewport bb-track-wrap">' +
+      '<div class="ticker-track bb-track" id="bbMarqueeTrack"></div></div>';
     topbar.insertAdjacentElement("afterend", bar);
   }
 
@@ -147,11 +148,14 @@
   function normalizeMarqueeTag() {
     const bar = document.getElementById("bloomberg-marquee-bar") || document.querySelector(".bb-marquee");
     if (bar) {
-      bar.classList.add("bb-marquee", "news-ticker-container");
+      bar.classList.add("marquee-ticker-wrapper", "bb-marquee", "news-ticker-container");
       if (!bar.id) bar.id = "bloomberg-marquee-bar";
     }
-    const tag = document.querySelector("#bloomberg-marquee-bar .bb-tag, .news-ticker-container .bb-tag");
+    const tag = document.querySelector(
+      "#bloomberg-marquee-bar .ticker-badge, #bloomberg-marquee-bar .bb-tag, .news-ticker-container .bb-tag",
+    );
     if (!tag) return;
+    tag.classList.add("ticker-badge", "bb-tag");
     if (!tag.getAttribute("data-i18n")) tag.setAttribute("data-i18n", "flashMarqueeTag");
   }
 

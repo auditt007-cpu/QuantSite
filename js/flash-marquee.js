@@ -199,7 +199,9 @@
 
   function paintMarquee(items, key) {
     const track = document.getElementById("bbMarqueeTrack");
-    const tag = document.querySelector("#bloomberg-marquee-bar .bb-tag");
+    const tag = document.querySelector(
+      "#bloomberg-marquee-bar .ticker-badge, #bloomberg-marquee-bar .bb-tag",
+    );
     if (tag) tag.textContent = t("flashMarqueeTag");
     if (!track) return;
     const rows = items && items.length ? items : fallbackItems(key);
@@ -207,13 +209,15 @@
       .map((it) => {
         const clock = typeof it.time === "string" ? it.time : hhmm(it.time, key);
         return (
+          '<span class="ticker-item">' +
           `<a href="${escapeHtml(it.url)}" target="_blank" rel="noopener noreferrer">` +
           `[ ${clock} ] ${escapeHtml(it.title)}` +
-          `</a>`
+          "</a></span>"
         );
       })
-      .join('<span class="bb-gap"> · </span>');
-    track.innerHTML = bits + '<span class="bb-gap"> · </span>' + bits;
+      .join("");
+    /* Duplicate for seamless -50% scroll loop */
+    track.innerHTML = bits + bits;
   }
 
   let newsTimer = 0;

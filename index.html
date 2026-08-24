@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="./css/mobile-global.css?v=layout1" />
   <link rel="stylesheet" href="./css/home-boards.css?v=layout1" />
   <link rel="stylesheet" href="./css/bloomberg-system.css?v=layout1" />
+  <link rel="stylesheet" href="./css/marquee-ticker.css?v=mq2" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
@@ -60,10 +61,10 @@
       </div>
     </div>
     </div>
-    <div id="bloomberg-marquee-bar" class="bb-marquee news-ticker-container" aria-label="Flash news ticker">
-      <span class="bb-tag" data-i18n="flashMarqueeTag">即時快訊</span>
-      <div class="bb-track-wrap">
-        <div class="bb-track" id="bbMarqueeTrack"></div>
+    <div id="bloomberg-marquee-bar" class="marquee-ticker-wrapper bb-marquee news-ticker-container" aria-label="Flash news ticker">
+      <div class="ticker-badge bb-tag" data-i18n="flashMarqueeTag">即時快訊</div>
+      <div class="ticker-viewport bb-track-wrap">
+        <div class="ticker-track bb-track" id="bbMarqueeTrack"></div>
       </div>
     </div>
 
@@ -258,7 +259,7 @@ Upper = Mid + k · ATR_n ,  Lower = Mid − k · ATR_n</pre>
   </div>
 
   <div class="toast" id="toast"></div>
-  <script src="./js/nav.js?v=nav6"></script>
+  <script src="./js/nav.js?v=nav7"></script>
   <script src="./config.js"></script>
   <script src="./js/meta-events.js?v=comp1"></script>
   <script src="./i18n.js"></script>
@@ -269,7 +270,7 @@ Upper = Mid + k · ATR_n ,  Lower = Mid − k · ATR_n</pre>
   <script src="./js/compliance.js"></script>
   <script src="./js/lead-bind.js"></script>
   <script src="./js/binance-feed.js?v=fs1"></script>
-  <script src="./js/news.js?v=av2"></script>
+  <script src="./js/news.js?v=mq2"></script>
   <script src="./js/home-boards.js"></script>
   <script src="./app.js"></script>
 </body>

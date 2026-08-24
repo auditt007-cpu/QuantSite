@@ -354,25 +354,15 @@ body.has-bb-util .site-sticky-chrome {
   flex: 0 0 auto;
 }
 
+/* Flash marquee owned by css/marquee-ticker.css — no white/44px override */
 #bloomberg-marquee-bar,
 .bb-marquee,
 .news-ticker-container {
-  display: flex !important;
   flex-shrink: 0 !important;
   width: 100%;
   max-width: 100%;
-  height: 44px !important;
-  min-height: 44px !important;
-  max-height: 44px !important;
-  line-height: 44px !important;
   overflow: hidden !important;
   visibility: visible !important;
-  align-items: center !important;
-  background: #ffffff !important;
-  border-bottom: 1px solid #e2e8f0 !important;
-  position: relative !important;
-  z-index: 10 !important;
-  margin-bottom: 16px !important;
 }
 
 @media (max-width: 768px) {

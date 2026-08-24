@@ -103,31 +103,15 @@ body.live-page.war-cmd .ticker-pill .tp-chg.down {
   color: #dc2626 !important;
 }
 
+/* Flash marquee owned by css/marquee-ticker.css */
 body.live-page.war-cmd .bb-marquee,
 body.live-page.war-cmd .news-ticker-container,
 body.live-page.war-cmd #bloomberg-marquee-bar {
-  display: flex !important;
-  align-items: center !important;
-  height: 44px !important;
-  min-height: 44px !important;
-  max-height: 44px !important;
-  line-height: 44px !important;
-  background: #ffffff !important;
-  border-bottom: 1px solid #e2e8f0 !important;
-  position: relative !important;
-  z-index: var(--z-ticker, 100) !important;
-  margin-bottom: 16px !important;
-  overflow: hidden !important;
-  flex-shrink: 0 !important;
+  /* no height/background overrides — see marquee-ticker.css */
 }
 
 body.live-page.war-cmd .bb-tag {
-  height: 44px !important;
-  min-height: 44px !important;
-  max-height: 44px !important;
-  line-height: 44px !important;
-  display: flex !important;
-  align-items: center !important;
+  position: static !important;
 }
 
 body.live-page.war-cmd .brand-text h1,
