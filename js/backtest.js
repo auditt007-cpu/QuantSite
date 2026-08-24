@@ -854,7 +854,7 @@ function chartBoxSize(el, desktopH) {
   }
   const id = el && el.id;
   if (id === "candleChart") return { width: w, height: 380 };
-  return { width: w, height: 180 };
+  return { width: w, height: 168 };
 }
 
 function bindChartResizeObserver() {

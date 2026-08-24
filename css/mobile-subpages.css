@@ -1,0 +1,300 @@
+/* Mobile fixes for subpages (excludes index home-boards & live-page) */
+
+@media (max-width: 768px) {
+  body:not(.home-boards):not(.live-page) {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+  }
+
+  body:not(.home-boards):not(.live-page) .wrap,
+  body:not(.home-boards):not(.live-page) .wrap.wide,
+  body:not(.home-boards):not(.live-page) .page-grid,
+  body:not(.home-boards):not(.live-page) .panel,
+  body:not(.home-boards):not(.live-page) .section-inner {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden;
+    min-width: 0;
+  }
+
+  /* ---- Tables: contained horizontal scroll + edge hint ---- */
+  body:not(.home-boards):not(.live-page) .table-scroll,
+  body:not(.home-boards):not(.live-page) .table-wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    position: relative;
+    scrollbar-width: thin;
+  }
+
+  body:not(.home-boards):not(.live-page) .table-scroll::after,
+  body:not(.home-boards):not(.live-page) .table-wrapper::after {
+    content: "";
+    position: sticky;
+    right: 0;
+    top: 0;
+    float: right;
+    width: 18px;
+    height: 100%;
+    margin-left: -18px;
+    pointer-events: none;
+    background: linear-gradient(to left, rgba(255, 255, 255, 0.95), transparent);
+  }
+
+  body:not(.home-boards):not(.live-page) .data-table {
+    min-width: 560px;
+  }
+
+  body:not(.home-boards):not(.live-page) .matrix-table {
+    min-width: 640px;
+  }
+
+  /* ---- Leaderboard: card stack on mobile ---- */
+  body:not(.home-boards):not(.live-page) .week-list {
+    max-height: none;
+    overflow: visible;
+  }
+
+  body:not(.home-boards):not(.live-page) .week-list li {
+    border-bottom: 0;
+    margin-bottom: 8px;
+  }
+
+  body:not(.home-boards):not(.live-page) .week-row {
+    display: grid;
+    grid-template-columns: 28px 1fr auto;
+    grid-template-rows: auto;
+    gap: 8px 10px;
+    align-items: center;
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px;
+    background: #fff;
+    box-sizing: border-box;
+  }
+
+  body:not(.home-boards):not(.live-page) .week-row b {
+    font-size: 14px;
+  }
+
+  body:not(.home-boards):not(.live-page) .week-row span {
+    font-size: 13px;
+    line-height: 1.35;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  body:not(.home-boards):not(.live-page) .week-row em {
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  /* ---- Strategy filter tabs ---- */
+  body:not(.home-boards):not(.live-page) .term-tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 8px;
+    padding: 8px 0 10px;
+    margin: 12px 0;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  body:not(.home-boards):not(.live-page) .term-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  body:not(.home-boards):not(.live-page) .term-tab {
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding: 8px 14px;
+  }
+
+  /* ---- News / flash feed: single column ---- */
+  body:not(.home-boards):not(.live-page) .flash-list {
+    max-height: none;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0;
+  }
+
+  body:not(.home-boards):not(.live-page) .flash-row {
+    width: 100% !important;
+    box-sizing: border-box;
+    padding: 10px 0;
+  }
+
+  body:not(.home-boards):not(.live-page) .mv-panel-news,
+  body:not(.home-boards):not(.live-page) .rail-block.flash-desk {
+    width: 100%;
+    min-width: 0;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  /* ---- Charts: full width, tighter axis ---- */
+  body:not(.home-boards):not(.live-page) .lab-chart-frame,
+  body:not(.home-boards):not(.live-page) .chart-container,
+  body:not(.home-boards):not(.live-page) .chart-shell,
+  body:not(.home-boards):not(.live-page) #candleChart,
+  body:not(.home-boards):not(.live-page) #equityChart {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box;
+  }
+
+  body:not(.home-boards):not(.live-page) #equityChart,
+  body:not(.home-boards):not(.live-page) #equityChart.lc-chart {
+    height: 168px !important;
+    min-height: 168px !important;
+  }
+
+  /* ---- Auth / modals / forms (iOS zoom fix) ---- */
+  body:not(.home-boards):not(.live-page) input[type="text"],
+  body:not(.home-boards):not(.live-page) input[type="email"],
+  body:not(.home-boards):not(.live-page) input[type="password"],
+  body:not(.home-boards):not(.live-page) input[type="number"],
+  body:not(.home-boards):not(.live-page) input[type="tel"],
+  body:not(.home-boards):not(.live-page) input[type="search"],
+  body:not(.home-boards):not(.live-page) select,
+  body:not(.home-boards):not(.live-page) textarea,
+  body:not(.home-boards):not(.live-page) #loginCode,
+  body:not(.home-boards):not(.live-page) .otp-cell {
+    font-size: 16px !important;
+  }
+
+  body:not(.home-boards):not(.live-page) .modal-bg {
+    z-index: 9998;
+    align-items: flex-start;
+    padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body:not(.home-boards):not(.live-page) .modal,
+  body:not(.home-boards):not(.live-page) .modal.login-modal,
+  body:not(.home-boards):not(.live-page) .modal.wide {
+    width: 90% !important;
+    max-width: 380px !important;
+    max-height: 85vh;
+    margin: auto;
+    border-radius: 12px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    box-sizing: border-box;
+  }
+
+  body:not(.home-boards):not(.live-page) #loginPanel.desk,
+  body:not(.home-boards):not(.live-page) #dashPanel.desk {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 4px 0 16px;
+  }
+
+  body:not(.home-boards):not(.live-page) .btn-tg,
+  body:not(.home-boards):not(.live-page) #btnDoLogin,
+  body:not(.home-boards):not(.live-page) .login-step .btn-cta {
+    min-height: 44px;
+    font-size: 15px;
+  }
+
+  body:not(.home-boards):not(.live-page) .otp {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: nowrap;
+    max-width: 100%;
+  }
+
+  body:not(.home-boards):not(.live-page) .otp-cell {
+    width: 44px;
+    height: 48px;
+    flex: 0 0 44px;
+    text-align: center;
+  }
+
+  /* ---- Mobile nav drawer above charts ---- */
+  body:not(.home-boards):not(.live-page) .topbar {
+    z-index: 9999;
+    position: sticky;
+    top: 0;
+    background: #fff;
+  }
+
+  body:not(.home-boards):not(.live-page) .topbar.nav-open .nav-actions {
+    position: relative;
+    z-index: 10000;
+    background: #ffffff;
+    border: 1px solid #000000;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    padding: 8px;
+    margin-top: 4px;
+  }
+
+  /* ---- Fixed bottom bars: safe area ---- */
+  body:not(.home-boards):not(.live-page) .thumb-dock,
+  body:not(.home-boards):not(.live-page) .mobile-view-tabs,
+  body:not(.home-boards):not(.live-page) .tg-fab,
+  body:not(.home-boards):not(.live-page) .toast {
+    padding-bottom: calc(8px + env(safe-area-inset-bottom)) !important;
+  }
+
+  body:not(.home-boards):not(.live-page) .thumb-dock {
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+
+  body:not(.home-boards):not(.live-page) .mobile-view-tabs {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  body:not(.home-boards):not(.live-page) .mv-tab {
+    min-height: 44px;
+  }
+
+  /* ---- Layout grids ---- */
+  body:not(.home-boards):not(.live-page) .page-grid,
+  body:not(.home-boards):not(.live-page) .editorial-grid,
+  body:not(.home-boards):not(.live-page) .market-grid,
+  body:not(.home-boards):not(.live-page) .price-grid,
+  body:not(.home-boards):not(.live-page) .param-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  body:not(.home-boards):not(.live-page) .about-pillars,
+  body:not(.home-boards):not(.live-page) .trust-bar {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 480px) {
+  body:not(.home-boards):not(.live-page) .brand h1 {
+    font-size: clamp(9px, 3.1vw, 12px);
+    letter-spacing: clamp(0.05em, 0.35vw, 0.12em);
+  }
+
+  body:not(.home-boards):not(.live-page) .about-hero h1,
+  body:not(.home-boards):not(.live-page) .ai-lab-h1 {
+    font-size: clamp(1.25rem, 5.5vw, 1.65rem) !important;
+    line-height: 1.25 !important;
+  }
+}

@@ -83,7 +83,7 @@
     const mobile = window.matchMedia("(max-width: 768px)").matches;
     return {
       width: Math.max(el.clientWidth || 280, 280),
-      height: mobile ? 280 : h,
+      height: mobile ? 168 : h,
     };
   }
 

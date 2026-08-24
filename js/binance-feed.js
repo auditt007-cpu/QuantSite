@@ -1539,7 +1539,13 @@
         vertLines: { visible: !mobile, color: "#e2e8f0" },
         horzLines: { visible: true, color: "#e2e8f0" },
       },
-      rightPriceScale: { borderColor: "#000000", autoScale: true },
+      rightPriceScale: {
+        borderColor: "#000000",
+        autoScale: true,
+        minimumWidth: mobile ? 28 : 52,
+        borderVisible: !mobile,
+        scaleMargins: mobile ? { top: 0.06, bottom: 0.08 } : { top: 0.1, bottom: 0.1 },
+      },
       localization: {
         dateFormat: "yyyy-MM-dd",
         timeFormatter: (time) => {
