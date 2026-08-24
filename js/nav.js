@@ -423,7 +423,7 @@
   }
   async function bootTicker() {
     if (!window.QAFeed) {
-      await loadScriptOnce("./js/binance-feed.js?v=fs1");
+      await loadScriptOnce("./js/binance-feed.js?v=tick2");
     }
     ensureCryptoTicker();
     ensureTickerMarquee();

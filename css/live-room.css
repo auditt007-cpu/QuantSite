@@ -18,6 +18,91 @@ body.live-page.war-cmd {
   --z-modal: 999;
 }
 
+/* Price marquee: never collapse to a 1px red/green hairline */
+body.live-page.war-cmd .ticker-bar,
+body.live-page.war-cmd #tickerBar {
+  display: flex !important;
+  align-items: center !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  max-height: 40px !important;
+  line-height: 40px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  overflow: hidden !important;
+  flex-shrink: 0 !important;
+  position: relative !important;
+  z-index: var(--z-ticker, 100) !important;
+  contain: none !important;
+  box-sizing: border-box !important;
+}
+
+body.live-page.war-cmd .ticker-track,
+body.live-page.war-cmd #tickerTrack {
+  display: inline-flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  line-height: 40px !important;
+  min-width: max-content !important;
+  will-change: transform;
+  animation: qaTickerMarquee 60s linear infinite;
+}
+
+body.live-page.war-cmd .ticker-bar.is-paused .ticker-track {
+  animation-play-state: paused;
+}
+
+body.live-page.war-cmd .ticker-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  line-height: 1 !important;
+  padding: 0 12px !important;
+  margin: 0 4px !important;
+  border: 1px solid #e2e8f0 !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  font-family: "Roboto Mono", "JetBrains Mono", ui-monospace, monospace !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+  flex: 0 0 auto !important;
+  box-sizing: border-box !important;
+}
+
+body.live-page.war-cmd .ticker-pill .tp-sym,
+body.live-page.war-cmd .ticker-pill .tp-px,
+body.live-page.war-cmd .ticker-pill .tp-chg {
+  display: inline-block !important;
+  color: inherit !important;
+  font-size: 12px !important;
+  line-height: 28px !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+  min-width: auto !important;
+  max-width: none !important;
+  vertical-align: middle !important;
+}
+
+body.live-page.war-cmd .ticker-pill .tp-chg.up {
+  color: #16a34a !important;
+}
+
+body.live-page.war-cmd .ticker-pill .tp-chg.down {
+  color: #dc2626 !important;
+}
+
 body.live-page.war-cmd .bb-marquee,
 body.live-page.war-cmd .news-ticker-container,
 body.live-page.war-cmd #bloomberg-marquee-bar {

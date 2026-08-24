@@ -1328,7 +1328,8 @@
     const last = Number(state.lastPx[sym]);
     if (!Number.isFinite(last)) return;
     const chg = Number(state.tickers[sym] && state.tickers[sym].chg);
-    document.querySelectorAll('[data-sym="' + sym + '"]').forEach((node) => {
+    /* Only war-room cards/modal — header .ticker-pill is owned by nav.js */
+    document.querySelectorAll('.coin-card[data-sym="' + sym + '"], #coinModalBg[data-sym="' + sym + '"]').forEach((node) => {
       try {
         const pxEl = node.querySelector("[data-px]");
         flashPx(pxEl, last, Number(pxEl && pxEl.getAttribute("data-last")));
@@ -1341,7 +1342,7 @@
           chgEl.classList.toggle("is-down", !up);
         }
       } catch {
-        /* isolate card/pill */
+        /* isolate card */
       }
     });
     drawSpark(sym);

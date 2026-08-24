@@ -139,8 +139,15 @@ body.has-bb-util .topbar {
 
 .ticker-bar {
   position: relative;
-  z-index: 1;
-  background: #f8fafc;
+  z-index: 100;
+  background: #ffffff;
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
+  line-height: 40px;
+  overflow: hidden;
+  flex-shrink: 0;
+  contain: none;
 }
 
 /* ---- Header / Topbar ---- */
@@ -352,7 +359,14 @@ body.has-bb-util .topbar {
 
 .ticker-bar {
   border-bottom: 1px solid #e2e8f0;
-  background: #f8fafc;
+  background: #ffffff;
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
+  line-height: 40px;
+  overflow: hidden;
+  flex-shrink: 0;
+  contain: none;
 }
 
 .ticker-pill {
@@ -360,11 +374,17 @@ body.has-bb-util .topbar {
   border: 1px solid #e2e8f0;
   background: #ffffff;
   font-family: var(--bb-mono);
-  font-size: 11px;
+  font-size: 12px;
+  height: 28px;
+  min-height: 28px;
+  line-height: 28px;
+  padding: 0 12px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
+  white-space: nowrap;
+  color: #000000;
 }
 
 .ticker-pill .tp-px,
