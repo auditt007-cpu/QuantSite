@@ -1,8 +1,176 @@
 {
-  "updated_at": "2026-08-24T15:07:30Z",
+  "updated_at": "2026-08-24T15:09:37Z",
   "venue": "coinbase",
   "poll_sec": 5,
   "exec_log": [
+    {
+      "kind": "batch",
+      "name_zh": "量均突破",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "多頭平倉翻空 (SELL)",
+      "logged_at": 1787584114,
+      "bar_ts": 1787583600,
+      "event": "open",
+      "strategy_id": "vol_ma_15m_39",
+      "symbols": [
+        {
+          "symbol": "SHIBUSDT",
+          "price": 5.45e-06,
+          "sl_pct": -10.091743119266052,
+          "tp_pct": 8.256880733944952,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "ARBUSDT",
+          "price": 0.09948,
+          "sl_pct": -0.9620024125452348,
+          "tp_pct": 1.9240048250904696,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "RENDERUSDT",
+          "price": 1.5046,
+          "sl_pct": -1.0579556028180312,
+          "tp_pct": 2.115977668483311,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "ADAUSDT",
+          "price": 0.22375,
+          "sl_pct": -1.447597765363125,
+          "tp_pct": 2.895195530726262,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "XRPUSDT",
+          "price": 1.51,
+          "sl_pct": -1.2318543046357675,
+          "tp_pct": 2.4637086092715204,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 5
+    },
+    {
+      "kind": "batch",
+      "name_zh": "量均突破",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787584114,
+      "bar_ts": 1787583600,
+      "event": "close",
+      "strategy_id": "vol_ma_15m_39",
+      "symbols": [
+        {
+          "symbol": "SHIBUSDT",
+          "price": null,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": 0.18382352941177854
+        },
+        {
+          "symbol": "XRPUSDT",
+          "price": null,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.8079879130263402
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
+      "name_zh": "成交量價差VSA",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "多頭平倉翻空 (SELL)",
+      "logged_at": 1787584114,
+      "bar_ts": 1787583600,
+      "event": "open",
+      "strategy_id": "vsa_15m_27",
+      "symbols": [
+        {
+          "symbol": "SHIBUSDT",
+          "price": 5.45e-06,
+          "sl_pct": -10.091743119266052,
+          "tp_pct": 8.256880733944952,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "ARBUSDT",
+          "price": 0.09948,
+          "sl_pct": -0.9620024125452348,
+          "tp_pct": 1.9240048250904696,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "RENDERUSDT",
+          "price": 1.5046,
+          "sl_pct": -1.0579556028180312,
+          "tp_pct": 2.115977668483311,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "ADAUSDT",
+          "price": 0.22375,
+          "sl_pct": -1.447597765363125,
+          "tp_pct": 2.895195530726262,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "XRPUSDT",
+          "price": 1.51,
+          "sl_pct": -1.2318543046357675,
+          "tp_pct": 2.4637086092715204,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 5
+    },
+    {
+      "kind": "batch",
+      "name_zh": "成交量價差VSA",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787584114,
+      "bar_ts": 1787583600,
+      "event": "close",
+      "strategy_id": "vsa_15m_27",
+      "symbols": [
+        {
+          "symbol": "SHIBUSDT",
+          "price": null,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": 0.18382352941177854
+        },
+        {
+          "symbol": "XRPUSDT",
+          "price": null,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.8079879130263402
+        }
+      ],
+      "strategy_count": 2
+    },
     {
       "kind": "batch",
       "name_zh": "布林微破",
@@ -402,90 +570,6 @@
         }
       ],
       "strategy_count": 13
-    },
-    {
-      "kind": "batch",
-      "name_zh": "量均突破",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787583850,
-      "bar_ts": 1787583600,
-      "event": "open",
-      "strategy_id": "vol_ma_15m_39",
-      "symbols": [
-        {
-          "symbol": "SHIBUSDT",
-          "price": 5.45e-06,
-          "sl_pct": -10.091743119266052,
-          "tp_pct": 8.256880733944952,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.09948,
-          "sl_pct": -0.9620024125452348,
-          "tp_pct": 1.9240048250904696,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "RENDERUSDT",
-          "price": 1.5046,
-          "sl_pct": -1.0579556028180312,
-          "tp_pct": 2.115977668483311,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "ADAUSDT",
-          "price": 0.22375,
-          "sl_pct": -1.447597765363125,
-          "tp_pct": 2.895195530726262,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "XRPUSDT",
-          "price": 1.51,
-          "sl_pct": -1.2318543046357675,
-          "tp_pct": 2.4637086092715204,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 5
-    },
-    {
-      "kind": "batch",
-      "name_zh": "量均突破",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787583850,
-      "bar_ts": 1787583600,
-      "event": "close",
-      "strategy_id": "vol_ma_15m_39",
-      "symbols": [
-        {
-          "symbol": "SHIBUSDT",
-          "price": null,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.18382352941177854
-        },
-        {
-          "symbol": "XRPUSDT",
-          "price": null,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.8079879130263402
-        }
-      ],
-      "strategy_count": 2
     },
     {
       "kind": "batch",
@@ -970,90 +1054,6 @@
         }
       ],
       "strategy_count": 9
-    },
-    {
-      "kind": "batch",
-      "name_zh": "成交量價差VSA",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787583850,
-      "bar_ts": 1787583600,
-      "event": "open",
-      "strategy_id": "vsa_15m_27",
-      "symbols": [
-        {
-          "symbol": "SHIBUSDT",
-          "price": 5.45e-06,
-          "sl_pct": -10.091743119266052,
-          "tp_pct": 8.256880733944952,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.09948,
-          "sl_pct": -0.9620024125452348,
-          "tp_pct": 1.9240048250904696,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "RENDERUSDT",
-          "price": 1.5046,
-          "sl_pct": -1.0579556028180312,
-          "tp_pct": 2.115977668483311,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "ADAUSDT",
-          "price": 0.22375,
-          "sl_pct": -1.447597765363125,
-          "tp_pct": 2.895195530726262,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "XRPUSDT",
-          "price": 1.51,
-          "sl_pct": -1.2318543046357675,
-          "tp_pct": 2.4637086092715204,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 5
-    },
-    {
-      "kind": "batch",
-      "name_zh": "成交量價差VSA",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787583850,
-      "bar_ts": 1787583600,
-      "event": "close",
-      "strategy_id": "vsa_15m_27",
-      "symbols": [
-        {
-          "symbol": "SHIBUSDT",
-          "price": null,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.18382352941177854
-        },
-        {
-          "symbol": "XRPUSDT",
-          "price": null,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.8079879130263402
-        }
-      ],
-      "strategy_count": 2
     },
     {
       "kind": "batch",
