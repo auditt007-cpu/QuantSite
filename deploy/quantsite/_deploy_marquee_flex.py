@@ -45,6 +45,7 @@ def main():
         "js/news.js",
         "js/flash-marquee.js",
         "js/nav.js",
+        "js/binance-feed.js",
         "js/plaza-ai.js",
         "js/live-room.js",
         "js/terminal.js",

@@ -868,9 +868,15 @@ textarea,
   font-family: var(--bb-font);
 }
 
-/* Data flash colors */
-.data-updated-up { outline: 1px solid var(--bb-up); }
-.data-updated-down { outline: 1px solid var(--bb-down); }
+/* Data flash colors — only the % / arrow, never the pill chrome */
+.ticker-pill.data-updated-up,
+.ticker-pill.data-updated-down,
+.data-updated-up,
+.data-updated-down {
+  outline: none;
+}
+.ticker-pill .tp-chg.data-updated-up { color: #4caf50; }
+.ticker-pill .tp-chg.data-updated-down { color: #ff3b30; }
 
 /* Mobile */
 @media (max-width: 900px) {

@@ -40,12 +40,14 @@ body.has-bb-util .topbar { background: #000000; border-bottom: 1px solid #333333
 
 /* Price ticker — Bloomberg market bar: light gray bar, dark rounded pills */
 .ticker, .ticker-bar { background: #f2f2f2; border-bottom: 1px solid #e0e0e0; border-top: 1px solid #e0e0e0; }
-.ticker-pill { color: #ffffff; border: 1px solid #333333; background: #1a1a1a; border-radius: 6px; padding: 0 12px; gap: 8px; }
-.ticker-pill .tp-sym { color: #ffffff; font-weight: 700; }
+.ticker-pill { color: #ffffff; border: 1px solid #333333; background: #1a1a1a !important; border-radius: 6px; padding: 0 12px; gap: 8px; }
+.ticker-pill .tp-sym { color: #ffffff !important; font-weight: 700; }
 .ticker-pill .tp-px { color: #ffffff; font-weight: 700; }
 .ticker-pill .tp-chg { color: #b3b3b3; font-weight: 700; }
 .ticker-pill .tp-chg.up { color: #4caf50; }
 .ticker-pill .tp-chg.down { color: #ff3b30; }
+.ticker-pill.data-updated-up,
+.ticker-pill.data-updated-down { background: #1a1a1a !important; outline: none; }
 
 /* Hero */
 .hero { margin-top: 24px; }

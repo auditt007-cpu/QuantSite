@@ -223,7 +223,9 @@
     if (!root) return;
     const px = root.querySelector("[data-px]");
     const chg = root.querySelector("[data-chg]");
-    const up = Number(pct) >= 0;
+    const n = Number(pct);
+    const hasChg = Number.isFinite(n);
+    const up = !hasChg || n >= 0;
     const prevPx = px ? px.getAttribute("data-last") : null;
     const nextPx = last != null ? String(last) : "";
     if (px) {
@@ -231,15 +233,14 @@
       if (nextPx) px.setAttribute("data-last", nextPx);
     }
     if (chg) {
-      const arrow = up ? "▲" : "▼";
-      const n = Number(pct);
-      chg.textContent = arrow + " " + (Number.isFinite(n) ? Math.abs(n).toFixed(2) : "—") + "%";
-      chg.classList.toggle("up", up);
-      chg.classList.toggle("down", !up);
+      if (hasChg) {
+        chg.textContent = (up ? "▲" : "▼") + " " + Math.abs(n).toFixed(2) + "%";
+        chg.classList.toggle("up", up);
+        chg.classList.toggle("down", !up);
+      }
     }
-    root.classList.toggle("up", up);
-    root.classList.toggle("down", !up);
-    if (prevPx !== nextPx) flash(root, !up);
+    root.classList.remove("up", "down", "data-updated-up", "data-updated-down");
+    if (hasChg && prevPx !== nextPx) flash(chg, !up);
   }
 
   function collectTickerSyms() {
@@ -378,7 +379,7 @@
   }
   async function bootTicker() {
     if (!window.QAFeed) {
-      await loadScriptOnce("./js/binance-feed.js?v=tick2");
+      await loadScriptOnce("./js/binance-feed.js?v=fs2");
     }
     ensureCryptoTicker();
     ensureTickerMarquee();

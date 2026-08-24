@@ -702,58 +702,59 @@
       Binance: () => restTickerBinance("https://api.binance.com", syms),
     };
     const order = orderedVenues();
-    if (feedRegion() === "cn") {
-      const sticky = loadStickyVenue();
-      if (sticky && tries[sticky]) {
-        try {
-          const rows = await tries[sticky]();
-          if (rows && rows.length) {
-            lastMeta.venue = sticky;
-            saveStickyVenue(sticky);
-            return rows;
-          }
-        } catch {
-          /* fall through */
-        }
-      }
-      const cnRuns = order
-        .slice(0, CN_RACE)
-        .map((venue) => ({ venue, run: tries[venue] }))
-        .filter((x) => x.run);
-      try {
-        const winner = await Promise.any(
-          cnRuns.map(async ({ venue, run }) => {
-            const rows = await run();
-            if (!rows || !rows.length) throw new Error("empty");
-            return { venue, rows };
-          }),
-        );
-        lastMeta.venue = winner.venue;
-        saveStickyVenue(winner.venue);
-        return winner.rows;
-      } catch {
-        /* fall through */
+    const map = {};
+    function take(rows, venue) {
+      (rows || []).forEach((r) => {
+        if (!r || !r.symbol) return;
+        map[String(r.symbol).toUpperCase()] = r;
+      });
+      if (rows && rows.length) {
+        lastMeta.venue = venue;
+        saveStickyVenue(venue);
       }
     }
-    for (let i = 0; i < order.length; i++) {
-      const venue = order[i];
+    function done() {
+      return syms.every((s) => map[s]);
+    }
+    async function runVenue(venue) {
       const run = tries[venue];
-      if (!run) continue;
+      if (!run) return;
       try {
-        const rows = await run();
-        if (rows && rows.length) {
-          lastMeta.venue = venue;
-          saveStickyVenue(venue);
-          return rows;
-        }
+        take(await run(), venue);
       } catch {
         /* next venue */
       }
     }
-    return [];
+    if (feedRegion() === "cn") {
+      const sticky = loadStickyVenue();
+      if (sticky && tries[sticky]) await runVenue(sticky);
+      if (!done()) {
+        const cnRuns = order
+          .slice(0, CN_RACE)
+          .map((venue) => ({ venue, run: tries[venue] }))
+          .filter((x) => x.run);
+        try {
+          const winner = await Promise.any(
+            cnRuns.map(async ({ venue, run }) => {
+              const rows = await run();
+              if (!rows || !rows.length) throw new Error("empty");
+              return { venue, rows };
+            }),
+          );
+          take(winner.rows, winner.venue);
+        } catch {
+          /* fall through */
+        }
+      }
+    }
+    for (let i = 0; i < order.length; i++) {
+      if (done()) break;
+      await runVenue(order[i]);
+    }
+    return syms.map((s) => map[s]).filter(Boolean);
   }
 
-  /** Live mini-ticker WS (Binance) + REST fallback + synthetic jitter for header / rail quotes */
+  /** Live ticker WS (Binance) + REST fallback + last-resort jitter for header / rail quotes */
   function subscribeMarketTickers(symbols, onTick) {
     const syms = (Array.isArray(symbols) ? symbols : [symbols])
       .map((s) => {
@@ -762,6 +763,7 @@
       })
       .filter((s) => s && !DEAD_SYMBOLS[s])
       .filter((s, i, arr) => arr.indexOf(s) === i);
+    const want = new Set(syms);
     if (!syms.length || typeof onTick !== "function") return { close: () => {} };
 
     let closed = false;
@@ -770,15 +772,17 @@
     let jitterTimer = null;
     let urlIdx = 0;
     let wsLive = false;
-    let lastTickAt = 0;
+    const lastTickAt = {};
     const lastPx = {};
     const lastChg = {};
 
     function wsUrls() {
-      const streams = syms.map((s) => `${s.toLowerCase()}@miniTicker`).join("/");
+      const streams = syms.map((s) => `${s.toLowerCase()}@ticker`).join("/");
       return [
         `wss://stream.binance.com:9443/stream?streams=${streams}`,
         `wss://data-stream.binance.vision/stream?streams=${streams}`,
+        "wss://stream.binance.com:9443/ws/!miniTicker@arr",
+        "wss://data-stream.binance.vision/ws/!miniTicker@arr",
       ];
     }
 
@@ -789,8 +793,11 @@
         if (DEAD_SYMBOLS[sym]) return;
         const px = Number(row.lastPrice);
         if (Number.isFinite(px)) lastPx[sym] = px;
-        const chg = Number(row.priceChangePercent);
-        if (Number.isFinite(chg)) lastChg[sym] = chg;
+        if (row.priceChangePercent != null && row.priceChangePercent !== "") {
+          const chg = Number(row.priceChangePercent);
+          if (Number.isFinite(chg)) lastChg[sym] = chg;
+        }
+        lastTickAt[sym] = Date.now();
         onTick(row);
       } catch {
         /* isolate one symbol */
@@ -802,32 +809,36 @@
       rows.forEach(emitRow);
     }
 
-    function seedSynth() {
-      syms.forEach((sym) => {
-        if (lastPx[sym] != null) return;
-        const px = BASE_PX[sym];
-        if (!Number.isFinite(px)) return;
-        lastPx[sym] = px;
-        lastChg[sym] = 0;
-        emitRow({
-          symbol: sym,
-          lastPrice: String(px),
-          priceChangePercent: "0.00",
-        });
-      });
+    function tickPayload(item) {
+      if (!item || typeof item !== "object") return null;
+      if (item.data) return tickPayload(item.data);
+      if (item.s && (item.c != null || item.C != null)) return item;
+      return null;
+    }
+
+    function pctFromTick(d, sym) {
+      const p = Number(d.P);
+      if (Number.isFinite(p)) return p;
+      const close = Number(d.c != null ? d.c : d.C);
+      const open = Number(d.o != null ? d.o : d.O);
+      if (Number.isFinite(close) && Number.isFinite(open) && open !== 0) {
+        return ((close - open) / open) * 100;
+      }
+      if (lastChg[sym] != null && Number.isFinite(lastChg[sym])) return lastChg[sym];
+      return null;
     }
 
     function startJitter() {
       if (jitterTimer) return;
       jitterTimer = setInterval(() => {
         if (closed) return;
-        if (wsLive && lastTickAt && Date.now() - lastTickAt < 3500) return;
+        const now = Date.now();
         syms.forEach((sym) => {
           try {
-            const last = Number(lastPx[sym] != null ? lastPx[sym] : BASE_PX[sym]);
+            if (lastTickAt[sym] && now - lastTickAt[sym] < 12000) return;
+            const last = Number(lastPx[sym]);
             if (!Number.isFinite(last)) return;
-            const next = last * (1 + (Math.random() * 0.0006 - 0.0003));
-            lastPx[sym] = next;
+            const next = last * (1 + (Math.random() * 0.0004 - 0.0002));
             emitRow({
               symbol: sym,
               lastPrice: String(next),
@@ -837,18 +848,13 @@
             /* isolate */
           }
         });
-      }, 900);
+      }, 1400);
     }
 
     function startPoll(ms) {
       if (pollTimer) clearInterval(pollTimer);
       const tick = async () => {
         if (closed) return;
-        if (wsLive && lastTickAt && Date.now() - lastTickAt < 3500) {
-          clearInterval(pollTimer);
-          pollTimer = null;
-          return;
-        }
         try {
           emitRows(await fetchTicker24h(syms));
         } catch {
@@ -864,7 +870,6 @@
       const urls = wsUrls();
       if (urlIdx >= urls.length) {
         wsLive = false;
-        startPoll(2000);
         return;
       }
       if (ws) {
@@ -900,15 +905,17 @@
         const packets = Array.isArray(msg) ? msg : [msg];
         packets.forEach((item) => {
           try {
-            const d = item && item.data;
+            const d = tickPayload(item);
             if (!d || !d.s) return;
             const sym = String(d.s).toUpperCase();
-            if (DEAD_SYMBOLS[sym]) return;
-            lastTickAt = Date.now();
+            if (DEAD_SYMBOLS[sym] || !want.has(sym)) return;
+            const close = d.c != null ? d.c : d.C;
+            const pct = pctFromTick(d, sym);
+            if (close == null) return;
             emitRow({
               symbol: sym,
-              lastPrice: String(d.c),
-              priceChangePercent: String(d.P != null ? d.P : lastChg[sym] != null ? lastChg[sym] : "0"),
+              lastPrice: String(close),
+              priceChangePercent: pct != null ? String(pct) : undefined,
             });
           } catch {
             /* isolate one coin */
@@ -925,7 +932,6 @@
         }
         ws = null;
         urlIdx += 1;
-        startPoll(2000);
         setTimeout(connectWs, 1200);
       };
       ws.onerror = () => {
@@ -938,13 +944,9 @@
       ws.onclose = retry;
     }
 
-    seedSynth();
+    startPoll(8000);
     startJitter();
     connectWs();
-    setTimeout(() => {
-      if (closed) return;
-      if (!(wsLive && lastTickAt && Date.now() - lastTickAt < 2500)) startPoll(2000);
-    }, 2500);
 
     return {
       close() {
