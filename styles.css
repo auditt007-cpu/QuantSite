@@ -2755,3 +2755,155 @@ body.live-page .mv-panel-strategies {
   white-space: pre-wrap;
 }
 .lab-paper .paper-list { margin: 8px 0 0 18px; line-height: 1.6; }
+
+/* ========== Layout defensive layer (post-compliance copy) ========== */
+.wrap,
+.wrap.wide,
+.site-sticky-chrome,
+.home-boards-section,
+.home-boards-grid,
+.hb-card,
+.hb-head,
+.hb-scroll,
+.market-grid,
+.m-card,
+.strategy-card,
+.plaza-card,
+.coin-grid,
+.coin-card,
+.radar-board,
+.lab-paper,
+.paper-block,
+.hero-copy,
+.kpi,
+.stat-cap {
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.home-boards-grid,
+.coin-grid,
+.market-grid,
+.lab-paper,
+.radar-board {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Long academic titles / formulas must wrap, never blow the row */
+.hb-title,
+.hb-kicker,
+.hero-h1,
+.hero-h2,
+.h2,
+.site-slogan,
+.radar-title,
+.coin-pair,
+.card-principle,
+.muted,
+.kpi span,
+.stat-cap span,
+.stat-tip,
+.lab-paper h2,
+.lab-paper h3,
+.lab-paper p,
+.bbg-metric-title,
+.paper-list li {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.hb-title {
+  line-height: 1.35;
+  font-size: clamp(13px, 1.35vw, 16px);
+}
+
+.hb-head > div {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.hb-period {
+  max-width: 40%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home-hero .hero-cta {
+  flex-wrap: wrap;
+  white-space: normal;
+  max-width: min(420px, 100%);
+}
+
+.home-hero .hero-cta .btn-cta {
+  white-space: normal;
+  text-align: center;
+  line-height: 1.3;
+  max-width: 100%;
+}
+
+.site-sticky-chrome {
+  width: 100%;
+  max-width: 100%;
+  overflow: visible;
+}
+
+.site-sticky-chrome .topbar {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr) minmax(0, auto);
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.site-sticky-chrome .brand,
+.site-sticky-chrome .brand-text,
+.site-sticky-chrome .site-slogan {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.site-sticky-chrome .nav-actions {
+  min-width: 0;
+  justify-content: flex-end;
+}
+
+.site-sticky-chrome .nav-end {
+  flex-shrink: 0;
+}
+
+.lab-paper {
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.lab-paper .paper-math {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.market-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 14px;
+  align-items: stretch;
+}
+
+@media (max-width: 768px) {
+  .home-boards-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .home-kpi {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .hb-period {
+    max-width: 100%;
+  }
+}

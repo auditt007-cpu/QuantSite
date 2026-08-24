@@ -261,6 +261,10 @@ body.live-page.war-cmd .wrap {
 .coin-grid {
   display: grid;
   gap: 12px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   transition: gap 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -474,15 +478,21 @@ body.live-page.war-cmd .wrap {
   background: #ffffff;
   border-radius: 8px;
   overflow: hidden;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .radar-head {
   display: flex;
-  align-items: baseline;
+  align-items: center;
+  justify-content: space-between;
   gap: 10px;
   padding: 10px 14px;
   border-bottom: 1px solid #e2e8f0;
   background: #f8fafc;
+  min-width: 0;
 }
 
 .radar-kicker {
@@ -491,12 +501,18 @@ body.live-page.war-cmd .wrap {
   letter-spacing: 0.14em;
   color: #b45309;
   text-transform: uppercase;
+  flex: 0 0 auto;
 }
 
 .radar-title {
   font-size: 13px;
   font-weight: 700;
   color: #0f172a;
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .radar-viewport {
@@ -510,16 +526,21 @@ body.live-page.war-cmd .wrap {
 .radar-list {
   display: flex;
   flex-direction: column;
+  width: 100%;
+  min-width: 0;
 }
 
 .radar-row {
-  display: flex;
+  display: inline-flex;
   flex-wrap: nowrap;
   align-items: center;
   gap: 8px 12px;
-  padding: 8px 14px;
-  min-height: 36px;
-  line-height: 1.45;
+  padding: 0 14px;
+  width: 100%;
+  height: 44px;
+  min-height: 44px;
+  max-height: 44px;
+  line-height: 44px;
   border-bottom: 1px solid #f1f5f9;
   font-size: 12px;
   font-family: "Roboto Mono", "JetBrains Mono", ui-monospace, monospace;

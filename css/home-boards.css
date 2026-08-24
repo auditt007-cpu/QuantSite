@@ -34,14 +34,33 @@
 }
 
 .home-hero .hero-cta {
-  flex: 0 0 auto;
+  flex: 0 1 auto;
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
   gap: 10px;
   margin: 0;
-  white-space: nowrap;
+  white-space: normal;
+  max-width: min(440px, 100%);
+  min-width: 0;
+}
+
+.hb-title {
+  margin: 0;
+  font-size: clamp(13px, 1.4vw, 16px);
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  min-width: 0;
+}
+
+.hb-head > div:first-child {
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 @media (max-width: 900px) {
@@ -55,6 +74,7 @@
     flex-wrap: wrap;
     white-space: normal;
     width: 100%;
+    max-width: 100%;
   }
 
   .home-hero .hero-cta .btn-cta,
@@ -163,10 +183,14 @@
 
 .hb-title {
   margin: 0;
-  font-size: 16px;
+  font-size: clamp(13px, 1.4vw, 16px);
   font-weight: 800;
   color: #0f172a;
   letter-spacing: -0.02em;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  min-width: 0;
 }
 
 .hb-period {
