@@ -550,7 +550,7 @@
     border-right: 0;
     border-radius: 0;
   }
-  .war-chart { height: 340px; max-width: 100%; }
+  .war-chart { height: 360px; max-width: 100%; }
   .war-chart-legend { padding: 8px 12px 0; }
 
   .coin-pill { padding: 6px 10px; font-size: 11px; }
@@ -912,7 +912,10 @@ body.live-page .sidebar-header-aligned .status-dot.green {
     cursor: pointer;
   }
 
+  /* styles.css hides all .editorial-rail on mobile — re-enable exec tape drawer */
   body.live-page .editorial-rail.vps-exec-rail {
+    display: flex !important;
+    flex-direction: column;
     position: fixed !important;
     left: 0;
     right: 0;
@@ -927,6 +930,10 @@ body.live-page .sidebar-header-aligned .status-dot.green {
     transform: translateY(110%);
     transition: transform 0.28s ease;
     box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.45);
+    pointer-events: none;
+  }
+  body.live-page.tape-sheet-open .editorial-rail.vps-exec-rail {
+    pointer-events: auto;
   }
   body.live-page.tape-sheet-open .editorial-rail.vps-exec-rail {
     transform: translateY(0);
@@ -1107,19 +1114,29 @@ body.live-page .sidebar-header-aligned .status-dot.green {
   }
   body.live-page .war-chart-frame {
     position: relative;
-    width: 100%;
-    max-width: 100%;
+    left: 50%;
+    right: 50%;
+    width: 100vw;
+    max-width: 100vw;
     margin: 0 0 12px;
+    margin-left: -50vw;
+    margin-right: -50vw;
     overflow: visible;
+    border-left: 0;
+    border-right: 0;
   }
   body.live-page .war-chart,
   body.live-page .chart-container {
     display: block;
     width: 100%;
-    height: 340px;
-    min-height: 340px;
+    height: 360px;
+    min-height: 360px;
     max-width: 100%;
     position: relative;
+  }
+  body.live-page .war-chart-legend {
+    padding: 6px 8px 0;
+    gap: 4px;
   }
   body.live-page .exec-tape-table {
     width: 100%;

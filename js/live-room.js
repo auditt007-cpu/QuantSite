@@ -321,6 +321,16 @@
 
   let lastVpsKeys = new Set();
   let vpsBoardTimer = null;
+  let vpsPollMs = 20000;
+  let paintExecPillFn = null;
+
+  function scheduleVpsPoll(ms) {
+    const next = Math.max(12000, Math.min(Number(ms) || 20000, 60000));
+    if (next === vpsPollMs && vpsBoardTimer) return;
+    vpsPollMs = next;
+    if (vpsBoardTimer) clearInterval(vpsBoardTimer);
+    vpsBoardTimer = setInterval(refreshVpsExecBoard, vpsPollMs);
+  }
 
   async function refreshVpsExecBoard() {
     const list = document.getElementById("vpsExecList");
@@ -328,9 +338,10 @@
     const viewport = document.getElementById("vpsExecViewport");
     if (!list) return;
     try {
-      const res = await fetch("./live_feed.json", { cache: "no-store" });
+      const res = await fetch("./live_feed.json?_=" + Date.now(), { cache: "no-store" });
       if (!res.ok) return;
       const data = await res.json();
+      if (data.poll_sec) scheduleVpsPoll(Number(data.poll_sec) * 1000);
       const merged = vpsFeedRows(data).slice(0, 20);
       if (updatedEl) {
         const meta = t("vpsExecMeta")
@@ -345,6 +356,8 @@
       }
       if (!merged.length) {
         list.innerHTML = `<div class="exec-tape-empty">${escapeHtml(t("vpsExecEmpty"))}</div>`;
+        lastVpsKeys = new Set();
+        if (paintExecPillFn) paintExecPillFn();
         return;
       }
       const nextKeys = new Set();
@@ -358,6 +371,7 @@
       if (viewport && viewport.getAttribute("data-bound") !== "1") {
         viewport.setAttribute("data-bound", "1");
       }
+      if (paintExecPillFn) paintExecPillFn();
     } catch {
       /* live_feed.json optional */
     }
@@ -365,8 +379,7 @@
 
   function bindVpsExecBoard() {
     refreshVpsExecBoard();
-    if (vpsBoardTimer) clearInterval(vpsBoardTimer);
-    vpsBoardTimer = setInterval(refreshVpsExecBoard, 15000);
+    scheduleVpsPoll(vpsPollMs);
   }
 
   /* ---------------------------------------------------------------------
@@ -533,6 +546,7 @@
       document.body.classList.add("tape-sheet-open");
       pill.setAttribute("aria-expanded", "true");
       syncBackdrop();
+      refreshVpsExecBoard();
     }
     function toggle() {
       if (document.body.classList.contains("tape-sheet-open")) closeTape();
@@ -545,8 +559,8 @@
     function refreshPillText() {
       if (pillText) pillText.textContent = latestExecSummary();
     }
+    paintExecPillFn = refreshPillText;
     refreshPillText();
-    setInterval(refreshPillText, 15000);
   }
 
   /* ---------------------------------------------------------------------
@@ -1246,13 +1260,13 @@
     const applySize = () => {
       if (!warChart || !el) return;
       const mobile = window.matchMedia("(max-width: 768px)").matches;
-      const fallbackH = mobile ? 340 : 420;
+      const fallbackH = mobile ? 360 : 420;
+      const frame = el.parentElement;
+      const frameRect = frame ? frame.getBoundingClientRect() : null;
       const rect = el.getBoundingClientRect();
-      let w = Math.floor(rect.width || el.clientWidth || 0);
+      let w = Math.floor((frameRect && frameRect.width) || rect.width || el.clientWidth || 0);
       if (w < 80) {
-        const frame = el.parentElement;
-        const fw = frame ? Math.floor(frame.getBoundingClientRect().width) : 0;
-        w = fw || Math.floor(window.innerWidth - 24) || 320;
+        w = Math.floor(window.innerWidth) || 320;
       }
       const h = Math.max(
         Math.floor(el.clientHeight || rect.height || fallbackH),
@@ -1268,14 +1282,24 @@
       return;
     }
     const mobile = window.matchMedia("(max-width: 768px)").matches;
-    const fallbackH = mobile ? 340 : 420;
-    const baseOpts = feed.chartOptions(el, Math.max(el.clientHeight || fallbackH, mobile ? 320 : 280), CHART_INTERVAL);
+    const fallbackH = mobile ? 360 : 420;
+    const baseOpts = feed.chartOptions(el, Math.max(el.clientHeight || fallbackH, mobile ? 360 : 280), CHART_INTERVAL);
     baseOpts.localization = Object.assign({}, baseOpts.localization, {
       priceFormatter: fmtPctAxis,
     });
     baseOpts.rightPriceScale = Object.assign({}, baseOpts.rightPriceScale, {
       autoScale: true,
+      minimumWidth: mobile ? 28 : 52,
+      borderVisible: !mobile,
+      scaleMargins: mobile ? { top: 0.06, bottom: 0.08 } : { top: 0.1, bottom: 0.1 },
     });
+    if (mobile) {
+      baseOpts.layout = Object.assign({}, baseOpts.layout, { fontSize: 9 });
+      baseOpts.timeScale = Object.assign({}, baseOpts.timeScale, {
+        minimumHeight: 22,
+        borderVisible: false,
+      });
+    }
     baseOpts.handleScroll = {
       mouseWheel: false,
       pressedMouseMove: false,
