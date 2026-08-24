@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-24T19:31:31Z",
+  "updated_at": "2026-08-24T19:33:39Z",
   "period_hours": 3,
   "poll_sec": 5,
   "scan_tf": "15m+1h",
@@ -1546,6 +1546,72 @@
   "exec_log": [
     {
       "kind": "batch",
+      "name_zh": "布林擠壓突破",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787599958,
+      "bar_ts": 1787599800,
+      "event": "open",
+      "strategy_id": "bb_sqz_15m_13",
+      "symbols": [
+        {
+          "symbol": "ARBUSDT",
+          "price": 0.1007,
+          "sl_pct": -0.35849056603773605,
+          "tp_pct": 0.7169811320754721,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "EMA三均共振",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "空頭平倉翻多 (BUY)",
+      "logged_at": 1787599957,
+      "bar_ts": 1787599800,
+      "event": "open",
+      "strategy_id": "ema_triple_15m_5",
+      "symbols": [
+        {
+          "symbol": "ARBUSDT",
+          "price": 0.1007,
+          "sl_pct": -0.35849056603773605,
+          "tp_pct": 0.7169811320754721,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "EMA三均共振",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787599956,
+      "bar_ts": 1787599800,
+      "event": "close",
+      "strategy_id": "ema_triple_15m_5",
+      "symbols": [
+        {
+          "symbol": "ARBUSDT",
+          "price": null,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -2.140176488487677
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
       "name_zh": "樞軸點突破",
       "interval": "15m",
       "side": "SHORT",
@@ -2045,112 +2111,6 @@
         }
       ],
       "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "EMA三均共振",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787599439,
-      "bar_ts": 1787598900,
-      "event": "open",
-      "strategy_id": "ema_triple_15m_5",
-      "symbols": [
-        {
-          "symbol": "BTCUSDT",
-          "price": 79035.63,
-          "sl_pct": -0.4660051371767404,
-          "tp_pct": 0.9320102743534808,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "量均突破",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787599248,
-      "bar_ts": 1787598900,
-      "event": "open",
-      "strategy_id": "vol_ma_15m_39",
-      "symbols": [
-        {
-          "symbol": "DOGEUSDT",
-          "price": 0.08923,
-          "sl_pct": -0.8181105009526038,
-          "tp_pct": 1.6362210019051922,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "AAVEUSDT",
-          "price": 133.26,
-          "sl_pct": -0.22493996698184351,
-          "tp_pct": 0.4498806843764121,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "SUIUSDT",
-          "price": 0.8043,
-          "sl_pct": -0.9429317418873598,
-          "tp_pct": 1.885863483774706,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 3
-    },
-    {
-      "kind": "batch",
-      "name_zh": "量均突破",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787599247,
-      "bar_ts": 1787598900,
-      "event": "close",
-      "strategy_id": "vol_ma_15m_39",
-      "symbols": [
-        {
-          "symbol": "DOGEUSDT",
-          "price": null,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.9389140271493183
-        },
-        {
-          "symbol": "AAVEUSDT",
-          "price": null,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 1.3327410039982315
-        },
-        {
-          "symbol": "PEPEUSDT",
-          "price": null,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 2.3086269744836154
-        },
-        {
-          "symbol": "SUIUSDT",
-          "price": null,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.07465472191116648
-        }
-      ],
-      "strategy_count": 4
     }
   ],
   "exec_log_raw_count": 200
