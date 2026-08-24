@@ -198,8 +198,9 @@
   }
 
   function paintMarquee(items, key) {
-    const track = document.getElementById("bbMarqueeTrack");
-    const tag = document.querySelector("#bloomberg-marquee-bar .qa-flash-badge, #bloomberg-marquee-bar .ticker-badge, #bloomberg-marquee-bar .bb-tag");
+    const track = document.getElementById("qaFlashTrack") || document.getElementById("bbMarqueeTrack");
+    const bar = document.getElementById("qaFlashMarquee") || document.getElementById("bloomberg-marquee-bar");
+    const tag = bar && bar.querySelector(".qa-flash-badge, .ticker-badge, .bb-tag");
     if (tag) tag.textContent = t("flashMarqueeTag");
     if (!track) return;
     const rows = items && items.length ? items : fallbackItems(key);
@@ -235,7 +236,7 @@
   }
 
   function bindMarqueePause() {
-    const bar = document.getElementById("bloomberg-marquee-bar");
+    const bar = document.getElementById("qaFlashMarquee") || document.getElementById("bloomberg-marquee-bar");
     if (!bar || bar.dataset.bound === "1") return;
     bar.dataset.bound = "1";
     const pause = () => bar.classList.add("is-paused");
@@ -248,7 +249,7 @@
   }
 
   function boot() {
-    if (!document.getElementById("bbMarqueeTrack")) return;
+    if (!document.getElementById("qaFlashTrack") && !document.getElementById("bbMarqueeTrack")) return;
     root.__qaFlashMarqueeBooted = true;
     bindMarqueePause();
     paintMarquee(fallbackItems(newsKey()), newsKey());

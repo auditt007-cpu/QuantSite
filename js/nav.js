@@ -26,7 +26,7 @@
     bar.id = "tickerBar";
     bar.setAttribute("aria-label", "Market ticker");
     bar.innerHTML = '<div class="ticker-track" id="tickerTrack"></div>';
-    const marquee = document.getElementById("bloomberg-marquee-bar");
+    const marquee = document.getElementById("qaFlashMarquee") || document.getElementById("bloomberg-marquee-bar");
     if (marquee && marquee.parentNode) {
       marquee.parentNode.insertBefore(bar, marquee);
     } else {
@@ -120,40 +120,49 @@
     if (host && lang) host.appendChild(lang);
   }
 
-  function ensureMarqueeCss() {
-    let link = document.querySelector('link[href*="marquee-ticker.css"]');
+  function installFlashMarqueeCss() {
+    let link = document.querySelector('link[data-qa-flash="1"]');
     if (!link) {
       link = document.createElement("link");
       link.rel = "stylesheet";
-      link.href = "./css/marquee-ticker.css?v=mq3";
+      link.setAttribute("data-qa-flash", "1");
+      document.head.appendChild(link);
     }
-    document.head.appendChild(link);
+    link.href = "./css/marquee-ticker.css?v=mq4";
   }
 
   function flashMarqueeHtml() {
     return (
-      '<div class="qa-flash-badge" data-i18n="flashMarqueeTag">LIVE</div>' +
+      '<div class="qa-flash-badge" data-i18n="flashMarqueeTag">即時快訊</div>' +
       '<div class="qa-flash-viewport">' +
-      '<div class="qa-flash-track" id="bbMarqueeTrack"></div></div>'
+      '<div class="qa-flash-track" id="qaFlashTrack"></div></div>'
     );
   }
 
-  function ensureFlashMarquee() {
-    const topbar = document.querySelector(".topbar");
-    if (!topbar) return;
-    let bar = document.getElementById("bloomberg-marquee-bar");
-    if (!bar) {
-      bar = document.createElement("div");
-      bar.id = "bloomberg-marquee-bar";
-      bar.className = "qa-flash-marquee";
-      bar.setAttribute("aria-label", "Flash news ticker");
-      bar.innerHTML = flashMarqueeHtml();
+  function mountFlashMarquee() {
+    installFlashMarqueeCss();
+    const bar = document.createElement("div");
+    bar.id = "qaFlashMarquee";
+    bar.className = "qa-flash-marquee";
+    bar.setAttribute("aria-label", "Flash news ticker");
+    bar.innerHTML = flashMarqueeHtml();
+    const stale =
+      document.getElementById("qaFlashMarquee") ||
+      document.getElementById("bloomberg-marquee-bar") ||
+      document.querySelector(".qa-flash-marquee, .bb-marquee, .news-ticker-container");
+    if (stale && stale.parentNode) {
+      stale.parentNode.replaceChild(bar, stale);
+    } else {
       const chrome = document.querySelector(".site-sticky-chrome");
       const ticker = document.getElementById("tickerBar");
+      const topbar = document.querySelector(".topbar");
       if (chrome && chrome.parentNode) chrome.insertAdjacentElement("afterend", bar);
       else if (ticker && ticker.parentNode) ticker.insertAdjacentElement("afterend", bar);
-      else topbar.insertAdjacentElement("afterend", bar);
+      else if (topbar) topbar.insertAdjacentElement("afterend", bar);
     }
+    document.querySelectorAll("#bloomberg-marquee-bar, .bb-marquee, .news-ticker-container").forEach((el) => {
+      if (el !== bar) el.remove();
+    });
   }
 
   function loadFlashMarquee() {
@@ -162,34 +171,9 @@
     if (hasNewsJs) return;
     window.__qaFlashMarqueeLoaded = true;
     const s = document.createElement("script");
-    s.src = "./js/flash-marquee.js?v=mq3";
+    s.src = "./js/flash-marquee.js?v=mq4";
     s.defer = true;
     document.head.appendChild(s);
-  }
-
-  function normalizeMarqueeTag() {
-    const bar = document.getElementById("bloomberg-marquee-bar") || document.querySelector(".qa-flash-marquee, .bb-marquee");
-    if (!bar) return;
-    bar.id = "bloomberg-marquee-bar";
-    bar.className = "qa-flash-marquee";
-    let badge = bar.querySelector(".qa-flash-badge");
-    if (!badge) {
-      badge = bar.querySelector(".ticker-badge, .bb-tag");
-    }
-    if (badge) {
-      badge.className = "qa-flash-badge";
-      if (!badge.getAttribute("data-i18n")) badge.setAttribute("data-i18n", "flashMarqueeTag");
-    }
-    let viewport = bar.querySelector(".qa-flash-viewport");
-    if (!viewport) {
-      viewport = bar.querySelector(".ticker-viewport, .bb-track-wrap");
-      if (viewport) viewport.className = "qa-flash-viewport";
-    }
-    let track = document.getElementById("bbMarqueeTrack") || bar.querySelector(".qa-flash-track, .bb-track, .ticker-track");
-    if (track) {
-      track.id = "bbMarqueeTrack";
-      track.className = "qa-flash-track";
-    }
   }
 
   function ensureLiveNavLink() {
@@ -207,12 +191,10 @@
   }
 
   ensureBloombergCss();
-  ensureMarqueeCss();
+  mountFlashMarquee();
   ensureUtilBar();
   ensureCryptoTicker();
   ensureTickerMarquee();
-  ensureFlashMarquee();
-  normalizeMarqueeTag();
   ensureLiveNavLink();
   loadFlashMarquee();
 
