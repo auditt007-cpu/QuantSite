@@ -326,7 +326,16 @@ button:active, .action-btn:active, .btn:active, .btn-cta:active, .ai-chip:active
   color: var(--text-main); font-size: 12px; line-height: 1.55;
   font-family: ui-monospace, "SF Mono", Consolas, monospace;
 }
-.market-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; align-items: stretch; }
+.market-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 14px;
+  align-items: stretch;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
 .m-card, .strategy-card {
   position: relative;
   border: 1px solid #e2e8f0;
