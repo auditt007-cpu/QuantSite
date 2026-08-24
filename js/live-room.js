@@ -986,6 +986,7 @@
         saveExcludedPairs(watchExcludedPairs);
         paintStatus();
         clearCountdown();
+        loadTvChartForFocus();
       } else {
         watchCoins = watchCoins.filter((c) => c !== sym);
       }
@@ -994,6 +995,7 @@
       if (row) row.classList.toggle("is-checked", input.checked);
       paintConfigCounts();
       renderSelectedMatrix();
+      renderLegend();
       refreshWatchTape();
       scheduleFunnelVoice();
       refreshActive();
@@ -1102,22 +1104,167 @@
   const countdownFillEl = document.getElementById("warCountdownFill");
   const countdownLabelEl = document.getElementById("warCountdownLabel");
 
-  let warChart = null;
-  let warSeries = null;
-  let overlaySeriesMap = new Map();
-  let chartMetaByCoin = new Map();
-  let zeroPriceLine = null;
-  let chartLockRange = null;
-  let chartRangeGuard = false;
+  let countdownTimer = null;
   let pollTimer = null;
   let watchPollTimer = null;
-  let countdownTimer = null;
   let lastSeenTs = new Map();
   let baselineSet = new Set();
+
+  function clearCountdown() {
+    if (countdownTimer) clearInterval(countdownTimer);
+    countdownTimer = null;
+    if (countdownEl) {
+      countdownEl.hidden = true;
+      countdownEl.classList.remove("is-warn", "is-danger", "is-locked");
+    }
+  }
+
+  function updateCountdownUi(remainMs, totalMs, phase) {
+    if (!countdownEl || !countdownFillEl || !countdownLabelEl) return;
+    countdownEl.hidden = false;
+    const pct = Math.max(0, Math.min(100, (remainMs / totalMs) * 100));
+    countdownFillEl.style.width = pct + "%";
+    countdownEl.classList.toggle("is-warn", phase === "warn");
+    countdownEl.classList.toggle("is-danger", phase === "danger");
+    countdownEl.classList.toggle("is-locked", phase === "locked");
+    if (phase === "locked") {
+      countdownLabelEl.textContent = t("warLocked");
+    } else {
+      const secs = Math.max(0, Math.ceil(remainMs / 1000));
+      countdownLabelEl.textContent = secs + "s " + t("warCountdownLabel");
+    }
+  }
+
+  function runOpenWindowCountdown(strategyName) {
+    clearCountdown();
+    pushCrowdToast(crowdLockEventText(activeStrategy ? activeStrategy.symbol : "BTCUSDT"));
+    signalsToday += 1;
+    paintCounters();
+    const total = 60000;
+    const startTs = Date.now();
+    updateCountdownUi(total, total, "normal");
+    countdownTimer = setInterval(() => {
+      const elapsed = Date.now() - startTs;
+      const remain = total - elapsed;
+      if (remain <= 0) {
+        clearInterval(countdownTimer);
+        countdownTimer = null;
+        updateCountdownUi(0, total, "locked");
+        setTimeout(() => {
+          if (countdownEl) countdownEl.hidden = true;
+        }, 3500);
+        return;
+      }
+      const phase = remain <= 10000 ? "danger" : remain <= 30000 ? "warn" : "normal";
+      updateCountdownUi(remain, total, phase);
+    }, 200);
+  }
+
+  function paintWatchTapeAuth() {
+    const block = document.getElementById("watchTapeBlock");
+    if (!block) return;
+    const ok = window.QAIdentity && typeof window.QAIdentity.loggedIn === "function" && window.QAIdentity.loggedIn();
+    block.style.display = ok ? "" : "none";
+  }
+
+  function fmtHm(ts) {
+    const d = new Date(ts * 1000);
+    return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+  }
+
+  function tapeRowHtml(tr, tag, symbol, strategyId) {
+    const pnl = Number(tr.pnlPct);
+    const pnlTxt = tr.open ? "—" : (pnl >= 0 ? "+" : "") + pnl.toFixed(2) + "%";
+    const pnlCls = pnl >= 0 ? "up" : "down";
+    const side = tr.side === "SHORT" ? "sell" : "buy";
+    const label = tr.open ? (tr.side === "SHORT" ? t("warSell") : t("warBuy")) : (tr.side === "SHORT" ? t("warBuy") : t("warSell"));
+    const tagHtml = tag ? `<span class="watch-tape-tag">${escapeHtml(tag)}</span>` : "";
+    const clickable = symbol && strategyId;
+    const attrs = clickable ? ` data-symbol="${escapeHtml(symbol)}" data-strategy="${escapeHtml(strategyId)}" tabindex="0"` : "";
+    return `<li${attrs}>
+        ${tagHtml}
+        <span class="war-tape-time">${fmtHm(tr.open ? tr.t0 : tr.t1)}</span>
+        <span class="war-tape-side ${side}">${escapeHtml(label)}</span>
+        <span class="war-tape-px">${Number(tr.open ? tr.entry : tr.exit).toLocaleString("en-US", { maximumFractionDigits: 6 })}</span>
+        <span class="war-tape-pnl ${pnlCls}">${pnlTxt}</span>
+      </li>`;
+  }
+
+  function bindTapeRowClicks(el) {
+    if (!el) return;
+    const activate = (li) => {
+      const symbol = li.getAttribute("data-symbol");
+      const strategyId = li.getAttribute("data-strategy");
+      if (!symbol || !strategyId) return;
+      activeSymbolOverride = symbol;
+      selectStrategy(strategyId, allStrategies);
+    };
+    el.addEventListener("click", (ev) => {
+      const li = ev.target.closest("li[data-symbol]");
+      if (li) activate(li);
+    });
+    el.addEventListener("keydown", (ev) => {
+      if (ev.key !== "Enter" && ev.key !== " ") return;
+      const li = ev.target.closest("li[data-symbol]");
+      if (li) {
+        ev.preventDefault();
+        activate(li);
+      }
+    });
+  }
+
+  let watchRefreshSeq = 0;
+  async function refreshWatchTape() {
+    if (!watchTapeListEl) return;
+    if (!window.QAIdentity || typeof window.QAIdentity.loggedIn !== "function" || !window.QAIdentity.loggedIn()) return;
+    const seq = ++watchRefreshSeq;
+    if (!watchCoins.length || !watchStrategyIds.length) {
+      watchTapeListEl.innerHTML = `<li class="muted">${escapeHtml(t("watchTapeEmpty"))}</li>`;
+      return;
+    }
+    const chosen = allStrategies.filter((s) => watchStrategyIds.includes(s.id));
+    const pairs = [];
+    chosen.forEach((s) => {
+      watchCoins.forEach((coin) => pairs.push({ s, coin }));
+    });
+    const capped = pairs.slice(0, MAX_WATCH_PAIRS);
+    const nowS = Date.now() / 1000;
+    const results = await Promise.all(
+      capped.map(async (p) => {
+        try {
+          const bars = await barsOf(p.coin, p.s.interval);
+          const spec = catalog.get(p.s.id);
+          if (!spec || typeof spec.run !== "function" || !bars || !bars.length) return [];
+          const trades = spec.run(bars) || [];
+          return trades
+            .filter((tr) => Math.max(tr.t0 || 0, tr.t1 || 0) >= nowS - THREE_HOURS_S)
+            .map((tr) => ({ tr, tag: p.coin.replace("USDT", "") + " · " + p.s.name, coin: p.coin, sid: p.s.id }));
+        } catch {
+          return [];
+        }
+      })
+    );
+    if (seq !== watchRefreshSeq) return;
+    const merged = results
+      .flat()
+      .sort((a, b) => (b.tr.t1 || b.tr.t0) - (a.tr.t1 || a.tr.t0))
+      .slice(0, TAPE_MAX);
+    if (!merged.length) {
+      watchTapeListEl.innerHTML = `<li class="muted">${escapeHtml(t("warTapeEmpty"))}</li>`;
+      return;
+    }
+    watchTapeListEl.innerHTML = merged.map(({ tr, tag, coin, sid }) => tapeRowHtml(tr, tag, coin, sid)).join("");
+  }
+
   const legendEl = document.getElementById("warChartLegend");
-  const tooltipEl = document.getElementById("warChartTooltip");
+
+  /* ========================================================= */
+  /* [LOCKED MODULE: TRADINGVIEW CHART ENGINE]                 */
+  /* DO NOT MODIFY OR RE-INITIALIZE DURING OTHER FEATURE EDITS */
+  /* ========================================================= */
 
   let activeSymbolOverride = null;
+
   function focusCoin() {
     return activeSymbolOverride || watchCoins[watchCoins.length - 1] || "BTCUSDT";
   }
@@ -1125,271 +1272,13 @@
     return focusCoin() || (s && s.symbol) || "BTCUSDT";
   }
 
-  function fmtPctAxis(v) {
-    const n = Number(v);
-    if (!Number.isFinite(n)) return "—";
-    const sign = n > 0 ? "+" : "";
-    return sign + n.toFixed(1) + "%";
-  }
-
-  function fmtUsdPx(n) {
-    const v = Number(n);
-    if (!Number.isFinite(v)) return "—";
-    return "$" + v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  }
-
-  function pctOf(price, p0) {
-    if (!p0) return 0;
-    return ((Number(price) - p0) / p0) * 100;
-  }
-
-  function normalizeWindow(bars, windowFrom) {
-    const slice = bars.filter((b) => b.time >= windowFrom);
-    if (!slice.length) return null;
-    const p0 = slice[0].close;
-    const byTime = new Map();
-    slice.forEach((b) => byTime.set(b.time, b));
-    const normalized = slice.map((b) => ({
-      time: b.time,
-      open: pctOf(b.open, p0),
-      high: pctOf(b.high, p0),
-      low: pctOf(b.low, p0),
-      close: pctOf(b.close, p0),
-    }));
-    const line = slice.map((b) => ({ time: b.time, value: pctOf(b.close, p0) }));
-    return { p0, normalized, line, byTime, slice };
-  }
-
-  function addCandleSeries(chart, optsExtra) {
-    const LC = window.LightweightCharts;
-    const extra = Object.assign({}, optsExtra || {});
-    delete extra.lineWidth;
-    const opts = {
-      upColor: "#00873c",
-      downColor: "#d0021b",
-      borderVisible: false,
-      wickUpColor: "#00873c",
-      wickDownColor: "#d0021b",
-      ...extra,
-    };
-    return typeof chart.addCandlestickSeries === "function" ? chart.addCandlestickSeries(opts) : chart.addSeries(LC.CandlestickSeries, opts);
-  }
-
-  function addLineSeries(chart, color, lineWidth, opacity) {
-    const LC = window.LightweightCharts;
-    const opts = {
-      color,
-      lineWidth,
-      priceLineVisible: false,
-      lastValueVisible: false,
-      crosshairMarkerVisible: true,
-      priceFormat: {
-        type: "custom",
-        formatter: fmtPctAxis,
-      },
-    };
-    const s =
-      typeof chart.addLineSeries === "function" ? chart.addLineSeries(opts) : chart.addSeries(LC.LineSeries, opts);
-    if (opacity != null && s.applyOptions) s.applyOptions({ color: colorWithAlpha(color, opacity) });
-    return s;
-  }
-
-  function colorWithAlpha(hex, alpha) {
-    const h = String(hex || "#38bdf8").replace("#", "");
-    const r = parseInt(h.slice(0, 2), 16);
-    const g = parseInt(h.slice(2, 4), 16);
-    const b = parseInt(h.slice(4, 6), 16);
-    return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
-  }
-
-  function clearChartSeries() {
-    if (!warChart) return;
-    overlaySeriesMap.forEach((s) => {
-      try {
-        warChart.removeSeries(s);
-      } catch {
-        /* already removed */
-      }
+  /** Only on explicit user coin/strategy focus — never from feed polls. */
+  function loadTvChartForFocus() {
+    const TV = window.TVChartManager;
+    if (!TV) return;
+    TV.load(focusCoin(), CHART_INTERVAL).catch(function () {
+      /* optional */
     });
-    overlaySeriesMap.clear();
-    if (warSeries) {
-      try {
-        warChart.removeSeries(warSeries);
-      } catch {
-        /* */
-      }
-      warSeries = null;
-    }
-    zeroPriceLine = null;
-    chartLockRange = null;
-  }
-
-  function ensureZeroLine(series) {
-    if (!series || zeroPriceLine) return;
-    if (typeof series.createPriceLine === "function") {
-      zeroPriceLine = series.createPriceLine({
-        price: 0,
-        color: "#334155",
-        lineWidth: 1,
-        lineStyle: 2,
-        axisLabelVisible: true,
-        title: "0%",
-      });
-    }
-  }
-
-  function bindCrosshairTooltip() {
-    if (!warChart || !tooltipEl || warChart.__tipBound) return;
-    warChart.__tipBound = true;
-    warChart.subscribeCrosshairMove((param) => {
-      if (!param || !param.time || param.point.x < 0 || param.point.y < 0) {
-        tooltipEl.hidden = true;
-        return;
-      }
-      const ts = param.time;
-      const rows = [];
-      chartMetaByCoin.forEach((meta, coin) => {
-        const bar = meta.byTime.get(ts);
-        if (!bar) return;
-        const pct = pctOf(bar.close, meta.p0);
-        rows.push(
-          `<div class="tip-row"><span class="tip-sym">${escapeHtml(coin.replace("USDT", ""))}</span>` +
-            `<span class="tip-pct">${escapeHtml(fmtPctAxis(pct))}</span>` +
-            `<span class="tip-px">${escapeHtml(fmtUsdPx(bar.close))}</span></div>`
-        );
-      });
-      if (!rows.length) {
-        tooltipEl.hidden = true;
-        return;
-      }
-      tooltipEl.innerHTML = rows.join("");
-      tooltipEl.hidden = false;
-      const frame = document.querySelector(".war-chart-frame");
-      const rect = frame ? frame.getBoundingClientRect() : { left: 0, top: 0 };
-      const x = Math.min(Math.max(8, param.point.x + 12), (frame ? frame.clientWidth : 300) - 190);
-      const y = Math.max(8, param.point.y - 8);
-      tooltipEl.style.left = x + "px";
-      tooltipEl.style.top = y + "px";
-    });
-  }
-
-  function mountChart() {
-    const el = document.getElementById("warChart");
-    const Charts = window.LightweightCharts;
-    if (!el || !Charts) return;
-    const applySize = () => {
-      if (!warChart || !el) return;
-      const mobile = window.matchMedia("(max-width: 768px)").matches;
-      const fallbackH = mobile ? 360 : 420;
-      const frame = el.parentElement;
-      const frameRect = frame ? frame.getBoundingClientRect() : null;
-      const rect = el.getBoundingClientRect();
-      let w = Math.floor((frameRect && frameRect.width) || rect.width || el.clientWidth || 0);
-      if (w < 80) {
-        w = Math.floor(window.innerWidth) || 320;
-      }
-      const h = Math.max(
-        Math.floor(el.clientHeight || rect.height || fallbackH),
-        mobile ? 320 : 280
-      );
-      warChart.applyOptions({
-        width: Math.max(w, 200),
-        height: h,
-      });
-    };
-    if (warChart) {
-      applySize();
-      return;
-    }
-    const mobile = window.matchMedia("(max-width: 768px)").matches;
-    const fallbackH = mobile ? 360 : 420;
-    const baseOpts = feed.chartOptions(el, Math.max(el.clientHeight || fallbackH, mobile ? 360 : 280), CHART_INTERVAL);
-    baseOpts.localization = Object.assign({}, baseOpts.localization, {
-      priceFormatter: fmtPctAxis,
-    });
-    baseOpts.rightPriceScale = Object.assign({}, baseOpts.rightPriceScale, {
-      autoScale: true,
-      minimumWidth: mobile ? 28 : 52,
-      borderVisible: !mobile,
-      scaleMargins: mobile ? { top: 0.06, bottom: 0.08 } : { top: 0.1, bottom: 0.1 },
-    });
-    if (mobile) {
-      baseOpts.layout = Object.assign({}, baseOpts.layout, { fontSize: 9 });
-      baseOpts.timeScale = Object.assign({}, baseOpts.timeScale, {
-        minimumHeight: 22,
-        borderVisible: false,
-      });
-    }
-    baseOpts.handleScroll = {
-      mouseWheel: false,
-      pressedMouseMove: false,
-      horzTouchDrag: false,
-      vertTouchDrag: false,
-    };
-    baseOpts.handleScale = {
-      axisPressedMouseMove: false,
-      mouseWheel: false,
-      pinch: false,
-    };
-    baseOpts.timeScale = Object.assign({}, baseOpts.timeScale, {
-      fixLeftEdge: true,
-      fixRightEdge: true,
-      lockVisibleTimeRangeOnResize: true,
-      rightBarStaysOnScroll: true,
-    });
-    warChart = Charts.createChart(el, baseOpts);
-    applySize();
-    requestAnimationFrame(() => {
-      applySize();
-      requestAnimationFrame(applySize);
-    });
-    setTimeout(applySize, 80);
-    setTimeout(applySize, 320);
-    if (typeof ResizeObserver !== "undefined") {
-      new ResizeObserver(() => {
-        applySize();
-        if (chartLockRange) lockChartRange(chartLockRange.from, chartLockRange.to);
-      }).observe(el);
-    }
-    try {
-      const ts = warChart.timeScale();
-      if (ts && typeof ts.subscribeVisibleTimeRangeChange === "function") {
-        ts.subscribeVisibleTimeRangeChange((range) => {
-          if (chartRangeGuard || !chartLockRange || !range) return;
-          const fromDiff = Math.abs(Number(range.from) - chartLockRange.from);
-          const toDiff = Math.abs(Number(range.to) - chartLockRange.to);
-          if (fromDiff > 2 || toDiff > 2) lockChartRange(chartLockRange.from, chartLockRange.to);
-        });
-      }
-    } catch {
-      /* range lock optional */
-    }
-    bindCrosshairTooltip();
-  }
-
-  const SIX_HOURS_S = 6 * 3600;
-
-  function lockChartRange(from, to) {
-    if (!warChart) return;
-    chartRangeGuard = true;
-    try {
-      warChart.timeScale().setVisibleRange({ from, to });
-    } catch {
-      try {
-        warChart.timeScale().fitContent();
-      } catch {
-        /* ignore */
-      }
-    }
-    chartRangeGuard = false;
-  }
-
-  function lockChartToWindow(windowBars) {
-    if (!warChart || !windowBars || !windowBars.length) return;
-    const from = windowBars[0].time;
-    const to = windowBars[windowBars.length - 1].time;
-    chartLockRange = { from, to };
-    lockChartRange(from, to);
   }
 
   function coinColor(coin, isFocus) {
@@ -1427,7 +1316,9 @@
       if (!btn) return;
       activeSymbolOverride = btn.getAttribute("data-legend-coin");
       paintStatus();
-      refreshActive();
+      renderLegend();
+      loadTvChartForFocus();
+      refreshActiveSignals();
     });
   }
 
@@ -1516,7 +1407,7 @@
         saveExcludedPairs(watchExcludedPairs);
         renderSelectedMatrix();
         refreshWatchTape();
-        refreshActive();
+        refreshActiveSignals();
         return;
       }
       const row = ev.target.closest(".selected-matrix-row[data-pair-coin]");
@@ -1528,234 +1419,21 @@
     });
   }
 
-  function paintWatchTapeAuth() {
-    const block = document.getElementById("watchTapeBlock");
-    if (!block) return;
-    const ok = window.QAIdentity && typeof window.QAIdentity.loggedIn === "function" && window.QAIdentity.loggedIn();
-    block.style.display = ok ? "" : "none";
-  }
-
-  function fmtHm(ts) {
-    const d = new Date(ts * 1000);
-    return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
-  }
-
-  function tapeRowHtml(tr, tag, symbol, strategyId) {
-    const pnl = Number(tr.pnlPct);
-    const pnlTxt = tr.open ? "—" : (pnl >= 0 ? "+" : "") + pnl.toFixed(2) + "%";
-    const pnlCls = pnl >= 0 ? "up" : "down";
-    const side = tr.side === "SHORT" ? "sell" : "buy";
-    const label = tr.open ? (tr.side === "SHORT" ? t("warSell") : t("warBuy")) : (tr.side === "SHORT" ? t("warBuy") : t("warSell"));
-    const tagHtml = tag ? `<span class="watch-tape-tag">${escapeHtml(tag)}</span>` : "";
-    const clickable = symbol && strategyId;
-    const attrs = clickable ? ` data-symbol="${escapeHtml(symbol)}" data-strategy="${escapeHtml(strategyId)}" tabindex="0"` : "";
-    return `<li${attrs}>
-        ${tagHtml}
-        <span class="war-tape-time">${fmtHm(tr.open ? tr.t0 : tr.t1)}</span>
-        <span class="war-tape-side ${side}">${escapeHtml(label)}</span>
-        <span class="war-tape-px">${Number(tr.open ? tr.entry : tr.exit).toLocaleString("en-US", { maximumFractionDigits: 6 })}</span>
-        <span class="war-tape-pnl ${pnlCls}">${pnlTxt}</span>
-      </li>`;
-  }
-
-
-  // Clicking any tape row (single-focus or aggregated watchlist) smoothly
-  // switches the main chart to that row's symbol + strategy.
-  function bindTapeRowClicks(el) {
-    if (!el) return;
-    const activate = (li) => {
-      const symbol = li.getAttribute("data-symbol");
-      const strategyId = li.getAttribute("data-strategy");
-      if (!symbol || !strategyId) return;
-      activeSymbolOverride = symbol;
-      selectStrategy(strategyId, allStrategies);
-    };
-    el.addEventListener("click", (ev) => {
-      const li = ev.target.closest("li[data-symbol]");
-      if (li) activate(li);
-    });
-    el.addEventListener("keydown", (ev) => {
-      if (ev.key !== "Enter" && ev.key !== " ") return;
-      const li = ev.target.closest("li[data-symbol]");
-      if (li) {
-        ev.preventDefault();
-        activate(li);
-      }
-    });
-  }
-
-  /* ---- My Watchlist Tape: aggregate selected coins x selected strategies ---- */
-  let watchRefreshSeq = 0;
-  async function refreshWatchTape() {
-    if (!watchTapeListEl) return;
-    if (!window.QAIdentity || typeof window.QAIdentity.loggedIn !== "function" || !window.QAIdentity.loggedIn()) return;
-    const seq = ++watchRefreshSeq;
-    if (!watchCoins.length || !watchStrategyIds.length) {
-      watchTapeListEl.innerHTML = `<li class="muted">${escapeHtml(t("watchTapeEmpty"))}</li>`;
-      return;
-    }
-    const chosen = allStrategies.filter((s) => watchStrategyIds.includes(s.id));
-    const pairs = [];
-    chosen.forEach((s) => {
-      watchCoins.forEach((coin) => pairs.push({ s, coin }));
-    });
-    const capped = pairs.slice(0, MAX_WATCH_PAIRS);
-    const nowS = Date.now() / 1000;
-    const results = await Promise.all(
-      capped.map(async (p) => {
-        try {
-          const bars = await barsOf(p.coin, p.s.interval);
-          const spec = catalog.get(p.s.id);
-          if (!spec || typeof spec.run !== "function" || !bars || !bars.length) return [];
-          const trades = spec.run(bars) || [];
-          return trades
-            .filter((tr) => Math.max(tr.t0 || 0, tr.t1 || 0) >= nowS - THREE_HOURS_S)
-            .map((tr) => ({ tr, tag: p.coin.replace("USDT", "") + " · " + p.s.name, coin: p.coin, sid: p.s.id }));
-        } catch {
-          return [];
-        }
-      })
-    );
-    if (seq !== watchRefreshSeq) return; // a newer selection change superseded this run
-    const merged = results
-      .flat()
-      .sort((a, b) => (b.tr.t1 || b.tr.t0) - (a.tr.t1 || a.tr.t0))
-      .slice(0, TAPE_MAX);
-    if (!merged.length) {
-      watchTapeListEl.innerHTML = `<li class="muted">${escapeHtml(t("warTapeEmpty"))}</li>`;
-      return;
-    }
-    watchTapeListEl.innerHTML = merged.map(({ tr, tag, coin, sid }) => tapeRowHtml(tr, tag, coin, sid)).join("");
-  }
-
-  /* ---- 60s open-window countdown (visual only, see runOpenWindowCountdown) ---- */
-  function clearCountdown() {
-    if (countdownTimer) clearInterval(countdownTimer);
-    countdownTimer = null;
-    if (countdownEl) {
-      countdownEl.hidden = true;
-      countdownEl.classList.remove("is-warn", "is-danger", "is-locked");
-    }
-  }
-
-  function updateCountdownUi(remainMs, totalMs, phase) {
-    if (!countdownEl || !countdownFillEl || !countdownLabelEl) return;
-    countdownEl.hidden = false;
-    const pct = Math.max(0, Math.min(100, (remainMs / totalMs) * 100));
-    countdownFillEl.style.width = pct + "%";
-    countdownEl.classList.toggle("is-warn", phase === "warn");
-    countdownEl.classList.toggle("is-danger", phase === "danger");
-    countdownEl.classList.toggle("is-locked", phase === "locked");
-    if (phase === "locked") {
-      countdownLabelEl.textContent = t("warLocked");
-    } else {
-      const secs = Math.max(0, Math.ceil(remainMs / 1000));
-      countdownLabelEl.textContent = secs + "s " + t("warCountdownLabel");
-    }
-  }
-
-  // Visual-only countdown: spoken narration used to rely on the removed Web
-  // Speech API. The open-signal voice line for this strategy/symbol (if any)
-  // is now sourced from the backend live_feed.json feed via
-  // pollLiveFeedAudio() instead, so there is no duplicate/competing speech.
-  function runOpenWindowCountdown(strategyName) {
-    clearCountdown();
-    pushCrowdToast(crowdLockEventText(activeStrategy ? activeStrategy.symbol : "BTCUSDT"));
-    signalsToday += 1;
-    paintCounters();
-
-    const total = 60000;
-    const startTs = Date.now();
-    updateCountdownUi(total, total, "normal");
-    countdownTimer = setInterval(() => {
-      const elapsed = Date.now() - startTs;
-      const remain = total - elapsed;
-      if (remain <= 0) {
-        clearInterval(countdownTimer);
-        countdownTimer = null;
-        updateCountdownUi(0, total, "locked");
-        setTimeout(() => {
-          if (countdownEl) countdownEl.hidden = true;
-        }, 3500);
-        return;
-      }
-      const phase = remain <= 10000 ? "danger" : remain <= 30000 ? "warn" : "normal";
-      updateCountdownUi(remain, total, phase);
-    }, 200);
-  }
-
-  /* ---- Poll focused strategy + multi-coin normalized 6H overlay chart ---- */
+  /* Poll strategy signals only — never re-init TradingView here. */
   let activeRefreshSeq = 0;
-  async function refreshActive() {
+  async function refreshActiveSignals() {
     if (!activeStrategy) return;
     const seq = ++activeRefreshSeq;
     const s = activeStrategy;
     const sym = effectiveSymbol(s);
-    const coins = watchCoins.length ? watchCoins.slice() : [sym];
-    const focus = focusCoin();
-    mountChart();
-    if (!warChart) return;
-
-    const barSets = await Promise.all(
-      coins.map(async (coin) => {
-        try {
-          const bars = await barsOf(coin, CHART_INTERVAL);
-          return { coin, bars };
-        } catch {
-          return { coin, bars: [] };
-        }
-      })
-    );
+    let signalBars = [];
+    try {
+      signalBars = await barsOf(sym, s.interval);
+    } catch {
+      return;
+    }
     if (seq !== activeRefreshSeq || activeStrategy !== s) return;
-
-    let anchorBars = [];
-    barSets.forEach(({ coin, bars }) => {
-      if (coin === focus && bars && bars.length) anchorBars = bars;
-    });
-    if (!anchorBars.length) {
-      const first = barSets.find((x) => x.bars && x.bars.length);
-      anchorBars = first ? first.bars : [];
-    }
-    if (!anchorBars.length) return;
-
-    const lastBarTime = anchorBars[anchorBars.length - 1].time;
-    const windowFrom = lastBarTime - SIX_HOURS_S;
-
-    clearChartSeries();
-    chartMetaByCoin.clear();
-
-    const overlays = [];
-    const focusPack = barSets.find((x) => x.coin === focus) || barSets[0];
-    barSets.forEach(({ coin, bars }) => {
-      if (!bars || !bars.length || coin === focusPack.coin) return;
-      const pack = normalizeWindow(bars, windowFrom);
-      if (!pack) return;
-      chartMetaByCoin.set(coin, pack);
-      overlays.push({ coin, pack });
-    });
-
-    overlays.forEach(({ coin, pack }) => {
-      const series = addLineSeries(warChart, coinColor(coin, false), 1.5, 0.6);
-      series.setData(pack.line);
-      overlaySeriesMap.set(coin, series);
-    });
-
-    const focusBars = focusPack.bars;
-    const focusNorm = normalizeWindow(focusBars, windowFrom);
-    let markerNorm = null;
-    if (focusNorm) {
-      markerNorm = focusNorm;
-      chartMetaByCoin.set(focusPack.coin, focusNorm);
-      warSeries = addCandleSeries(warChart);
-      warSeries.setData(focusNorm.normalized);
-      ensureZeroLine(warSeries);
-      requestAnimationFrame(() => lockChartToWindow(focusNorm.slice));
-    }
-
-    renderLegend();
-
-    const signalBars = focusBars;
-    if (!signalBars || !signalBars.length || activeStrategy !== s) return;
+    if (!signalBars.length) return;
 
     const spec = catalog.get(s.id);
     if (!spec || typeof spec.run !== "function") return;
@@ -1766,34 +1444,6 @@
       trades = [];
     }
     if (seq !== activeRefreshSeq || activeStrategy !== s) return;
-
-    if (warSeries && markerNorm) {
-      const inWindow = (ts) => ts >= windowFrom && ts <= lastBarTime;
-      const barTimes = new Set(markerNorm.slice.map((b) => b.time));
-      const snapTime = (ts) => {
-        if (barTimes.has(ts)) return ts;
-        let best = null;
-        let bestDiff = Infinity;
-        markerNorm.slice.forEach((b) => {
-          const diff = Math.abs(b.time - ts);
-          if (diff < bestDiff) {
-            bestDiff = diff;
-            best = b.time;
-          }
-        });
-        return bestDiff <= 120 ? best : null;
-      };
-      warSeries.setMarkers(
-        trades.flatMap((tr) => {
-          const marks = [];
-          const tBuy = snapTime(tr.t0);
-          const tSell = !tr.open ? snapTime(tr.t1) : null;
-          if (tBuy && inWindow(tBuy)) marks.push({ time: tBuy, position: "belowBar", color: "#00873c", shape: "arrowUp", text: "BUY" });
-          if (tSell && inWindow(tSell)) marks.push({ time: tSell, position: "aboveBar", color: "#d0021b", shape: "arrowDown", text: "SELL" });
-          return marks;
-        })
-      );
-    }
 
     renderSelectedMatrix();
 
@@ -1808,6 +1458,14 @@
       runOpenWindowCountdown(s.name);
     }
   }
+
+  function refreshActive() {
+    return refreshActiveSignals();
+  }
+
+  /* ========================================================= */
+  /* [END LOCKED MODULE: TRADINGVIEW CHART ENGINE]             */
+  /* ========================================================= */
 
   function paintStatus() {
     if (!statusTextEl || !activeStrategy) return;
@@ -1830,7 +1488,7 @@
     } catch {
       /* private mode */
     }
-    mountChart();
+    loadTvChartForFocus();
     refreshActive();
   }
 

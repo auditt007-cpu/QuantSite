@@ -109,10 +109,15 @@
           </div>
 
           <div class="war-chart-frame">
+            <!-- ========================================================= -->
+            <!-- [LOCKED MODULE: TRADINGVIEW CHART ENGINE]                 -->
+            <!-- DO NOT MODIFY OR RE-INITIALIZE DURING OTHER FEATURE EDITS -->
+            <!-- ========================================================= -->
             <div class="war-chart-legend" id="warChartLegend" aria-label="Chart legend"></div>
-            <div id="warChart" class="war-chart chart-container"></div>
+            <div id="tv_chart_container" class="war-chart chart-container"></div>
             <div class="war-chart-tooltip" id="warChartTooltip" hidden></div>
-            <button type="button" class="chart-touch-toggle chart-touch-toggle-left" data-target="warChart" data-i18n="chartTouchOn">🔍 開啟互動</button>
+            <!-- [END LOCKED MODULE: TRADINGVIEW CHART ENGINE] -->
+            <button type="button" class="chart-touch-toggle chart-touch-toggle-left" data-target="tv_chart_container" data-i18n="chartTouchOn">🔍 開啟互動</button>
             <div class="scan-hud" id="scanHud" aria-hidden="true">
               <div class="scan-hud-bar"><div class="scan-hud-fill" id="scanHudFill"></div></div>
               <div class="scan-hud-text" id="scanHudText"></div>
@@ -240,8 +245,9 @@
   <script src="./js/pack-catalog.js"></script>
   <script src="./js/binance-feed.js"></script>
   <script src="./js/engine-list.js"></script>
-  <script src="./js/lightweight-charts.standalone.production.js"></script>
-  <script src="./js/live-room.js?v=feed4"></script>
+  <script src="https://s3.tradingview.com/tv.js" async></script>
+  <script src="./js/tv-chart-manager.js?v=tv1"></script>
+  <script src="./js/live-room.js?v=tv1"></script>
   <script src="./js/mobile-ux.js"></script>
 </body>
 </html>
