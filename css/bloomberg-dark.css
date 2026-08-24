@@ -62,7 +62,7 @@ body.nav-drawer-open .topbar {
 .bb-util-dot { background: var(--color-up); }
 
 /* Price ticker — gray bar, dark square quote boxes */
-.ticker, .ticker-bar { background: #f2f2f2; border-bottom: 1px solid #e0e0e0; border-top: 1px solid #e0e0e0; }
+.ticker, .ticker-bar { background: #f2f2f2; border-bottom: 1px solid #e0e0e0; border-top: 1px solid #e0e0e0; border-radius: 0; }
 .ticker-pill { color: #ffffff; border: 1px solid #333333; background: #1a1a1a !important; border-radius: 0 !important; padding: 0 12px; gap: 8px; }
 .ticker-pill .tp-sym { color: #ffffff !important; font-weight: 700; }
 .ticker-pill .tp-px { color: #ffffff; font-weight: 700; }
@@ -210,7 +210,10 @@ input:focus, textarea:focus, select:focus { border-color: var(--color-accent); o
   .nav-actions .nav-link-live,
   .topbar.nav-open .nav-actions .nav-link-live {
     color: #ff3b30 !important;
-    justify-content: flex-start !important;
+    display: grid !important;
+    grid-template-columns: auto 1fr auto;
+    justify-content: stretch !important;
+    align-items: center !important;
     gap: 8px !important;
   }
   .nav-actions .nav-link::after,
