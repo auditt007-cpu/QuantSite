@@ -7,16 +7,16 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#0b0e14">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#f8fafc">
   <title>QUANT ALPHA · 量化戰情指揮部</title>
   <link rel="stylesheet" href="./styles.css" />
   <link rel="stylesheet" href="./css/mobile-global.css?v=nav4" />
   <link rel="stylesheet" href="./css/bloomberg-system.css" />
-  <link rel="stylesheet" href="./css/live-room.css?v=cmd1" />
+  <link rel="stylesheet" href="./css/live-room.css?v=cmd2" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Roboto+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
 </head>
 <body class="live-page war-cmd" data-title-key="titleLive">
   <div class="wrap wide">
@@ -71,17 +71,21 @@
 
     <main class="cmd-main">
       <div class="cmd-voice-bar" id="cmdVoiceBar">
-        <button type="button" class="cmd-voice-btn is-off" id="liveMuteBtn" aria-pressed="false">
-          <span class="cmd-voice-pulse" aria-hidden="true"></span>
-          <span id="liveMuteLabel" data-i18n="liveMuteOff">🔊 實況語音播報：未啟用</span>
-        </button>
+        <div class="cmd-toolbar">
+          <button type="button" class="cmd-voice-btn is-off" id="liveMuteBtn" aria-pressed="false">
+            <span class="cmd-voice-pulse" aria-hidden="true"></span>
+            <span id="liveMuteLabel" data-i18n="liveMuteOff">🔊 實況語音播報：未啟用</span>
+          </button>
+          <button type="button" class="cmd-add-btn" id="cmdAddBtn" data-i18n="watchAdd">➕ 添加幣種</button>
+        </div>
       </div>
-      <p class="cmd-lead" data-i18n="liveSub">8 幣戰情矩陣 · 僅在真實開平倉翻轉時播報 · 與 Telegram 頻道同步</p>
-      <section class="coin-grid" id="coinGrid" aria-label="8-coin sparkline matrix"></section>
+      <div class="cmd-add-panel" id="cmdAddPanel" aria-label="Restore coins"></div>
+      <p class="cmd-lead" data-i18n="liveSub">自選戰情矩陣 · 僅播報組合內真實開平倉 · 點擊卡片放大</p>
+      <section class="coin-grid" id="coinGrid" aria-label="Watchlist sparkline matrix"></section>
       <section class="radar-board" aria-label="1-hour open ticker">
         <header class="radar-head">
           <span class="radar-kicker">戰情雷達</span>
-          <span class="radar-title" data-i18n="radarTitle">近 1 小時開倉流水</span>
+          <span class="radar-title" data-i18n="radarTitle">近 1 小時開倉流水（僅自選）</span>
         </header>
         <div class="radar-viewport" id="radarViewport">
           <div class="radar-list" id="radarList">
@@ -104,6 +108,20 @@
     </footer>
   </div>
 
+  <div class="coin-modal-bg" id="coinModalBg" role="dialog" aria-modal="true" aria-labelledby="coinModalTitle">
+    <div class="coin-modal">
+      <div class="coin-modal-head">
+        <h3 id="coinModalTitle">BTC/USDT</h3>
+        <button type="button" class="coin-modal-x" id="coinModalClose" aria-label="關閉">×</button>
+      </div>
+      <div class="coin-modal-meta" id="coinModalMeta"></div>
+      <div class="coin-modal-spark-wrap">
+        <canvas class="coin-modal-spark" id="coinModalSpark" width="640" height="280"></canvas>
+      </div>
+      <div class="coin-modal-marks" id="coinModalMarks"></div>
+    </div>
+  </div>
+
   <div class="voice-hint" id="voiceHint" hidden>
     <span class="voice-hint-dot" aria-hidden="true"></span>
     <span data-i18n="voiceHint">點擊開啟實盤語音，接收即時戰情</span>
@@ -118,6 +136,6 @@
   <script src="./js/identity.js"></script>
   <script src="./js/compliance.js"></script>
   <script src="./js/lead-bind.js"></script>
-  <script src="./js/live-room.js?v=cmd1"></script>
+  <script src="./js/live-room.js?v=cmd2"></script>
 </body>
 </html>

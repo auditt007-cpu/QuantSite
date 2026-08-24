@@ -1,5 +1,6 @@
 ﻿(function () {
-  const COINS = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "DOGEUSDT", "SUIUSDT", "PEPEUSDT"];
+  const ALL_COINS = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "DOGEUSDT", "SUIUSDT", "PEPEUSDT"];
+  const WATCH_KEY = "qa_live_watch_coins_v2";
   const MUTE_KEY = "qa_live_mute";
   const HINT_KEY = "qa_live_voice_hint_seen";
   const FEED_MS = 8000;
@@ -7,6 +8,7 @@
   const HOUR_S = 3600;
 
   const state = {
+    watch: loadWatch(),
     klines: {},
     tickers: {},
     lastPx: {},
@@ -15,6 +17,7 @@
     voiceOn: false,
     queue: [],
     speaking: false,
+    modalSym: null,
   };
 
   function t(key, fallback) {
@@ -53,10 +56,25 @@
   }
 
   function fmtTime(ts) {
-    const d = new Date((Number(ts) > 1e12 ? Number(ts) : Number(ts) * 1000));
+    const d = new Date(Number(ts) > 1e12 ? Number(ts) : Number(ts) * 1000);
     if (!isFinite(d.getTime())) return "—";
     const p = (n) => String(n).padStart(2, "0");
     return p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
+  }
+
+  function fmt12hSpeech(ts) {
+    const d = new Date(Number(ts) > 1e12 ? Number(ts) : Number(ts) * 1000);
+    if (!isFinite(d.getTime())) {
+      const now = new Date();
+      return fmt12hSpeech(now.getTime());
+    }
+    let h = d.getHours();
+    const m = String(d.getMinutes()).padStart(2, "0");
+    const am = h < 12;
+    const period = am ? "上午" : "下午";
+    h = h % 12;
+    if (h === 0) h = 12;
+    return period + " " + String(h).padStart(2, "0") + ":" + m;
   }
 
   function isBuy(ev) {
@@ -65,7 +83,31 @@
     return true;
   }
 
-  /* ---- voice: MRT-like chime then urgent zh-TW ---- */
+  function loadWatch() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(WATCH_KEY) || "null");
+      if (Array.isArray(raw) && raw.length) {
+        return raw.filter((s) => ALL_COINS.indexOf(s) >= 0);
+      }
+    } catch {
+      /* private */
+    }
+    return ALL_COINS.slice();
+  }
+
+  function saveWatch() {
+    try {
+      localStorage.setItem(WATCH_KEY, JSON.stringify(state.watch));
+    } catch {
+      /* private */
+    }
+  }
+
+  function inWatch(sym) {
+    return state.watch.indexOf(sym) >= 0;
+  }
+
+  /* ---- voice ---- */
   function loadVoicePref() {
     try {
       return localStorage.getItem(MUTE_KEY) !== "0";
@@ -92,9 +134,9 @@
         if (ctx.state === "suspended") ctx.resume();
         const now = ctx.currentTime;
         const notes = [
-          { f: 880, t: 0, d: 0.22 },
-          { f: 1318.5, t: 0.2, d: 0.28 },
-          { f: 1760, t: 0.46, d: 0.38 },
+          { f: 880, t: 0, d: 0.18 },
+          { f: 1318.5, t: 0.16, d: 0.22 },
+          { f: 1760, t: 0.36, d: 0.28 },
         ];
         notes.forEach((n) => {
           const o = ctx.createOscillator();
@@ -102,14 +144,14 @@
           o.type = "sine";
           o.frequency.value = n.f;
           g.gain.setValueAtTime(0.0001, now + n.t);
-          g.gain.exponentialRampToValueAtTime(0.18, now + n.t + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.16, now + n.t + 0.015);
           g.gain.exponentialRampToValueAtTime(0.0001, now + n.t + n.d);
           o.connect(g);
           g.connect(ctx.destination);
           o.start(now + n.t);
           o.stop(now + n.t + n.d + 0.02);
         });
-        setTimeout(resolve, 1050);
+        setTimeout(resolve, 820);
       } catch {
         resolve();
       }
@@ -131,7 +173,7 @@
       if (!window.speechSynthesis || !text) return resolve();
       const u = new SpeechSynthesisUtterance(text);
       u.lang = "zh-TW";
-      u.rate = 1.2;
+      u.rate = 1.32;
       u.pitch = 1.12;
       u.volume = 1;
       const voice = pickTwVoice();
@@ -163,11 +205,12 @@
   function voiceLine(ev) {
     const coin = String(ev.symbol || "").replace(/USDT$/i, "");
     const px = fmtPx(ev.price);
+    const when = fmt12hSpeech(ev.ts || Date.now());
     const buy = isBuy(ev);
     if (buy) {
-      return "報告長官！" + coin + " 出現突破信號，多頭開倉，現價 " + px + "，拉升中！";
+      return "報告長官！" + when + "，" + coin + " 出現突破信號，多頭開倉，現價 " + px + "，衝刺中！";
     }
-    return "注意！" + coin + " 觸發共振波段，空單進場，現價 " + px + "！";
+    return "注意！" + when + "，" + coin + " 觸發共振波段，空單進場，現價 " + px + "！";
   }
 
   function paintVoiceBtn() {
@@ -226,48 +269,42 @@
     }
   }
 
-  /* ---- 8-coin canvas sparklines ---- */
-  function cardHtml(sym) {
-    return (
-      '<article class="coin-card" data-sym="' +
-      sym +
-      '">' +
-      '<div class="coin-card-head"><span class="coin-pair">' +
-      pairLabel(sym) +
-      '</span><span class="coin-chg" data-chg>—</span></div>' +
-      '<div class="coin-px" data-px>—</div>' +
-      '<canvas class="coin-spark" data-spark="' +
-      sym +
-      '"></canvas>' +
-      "</article>"
-    );
-  }
-
-  function drawSpark(sym) {
-    const canvas = document.querySelector('canvas[data-spark="' + sym + '"]');
+  /* ---- canvas sparklines (fixed height for mobile) ---- */
+  function drawSparkOn(canvas, sym, tall) {
     if (!canvas) return;
     const rows = state.klines[sym] || [];
     const closes = rows.map((r) => r.c);
-    const dpr = window.devicePixelRatio || 1;
-    const cssW = Math.max(120, canvas.clientWidth || 160);
-    const cssH = Math.max(72, canvas.clientHeight || 88);
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const parentW = canvas.parentElement ? canvas.parentElement.clientWidth : 0;
+    const cssW = Math.max(160, canvas.clientWidth || parentW || 280);
+    const cssH = tall ? Math.max(220, canvas.clientHeight || 280) : 160;
+    canvas.style.width = "100%";
+    canvas.style.height = cssH + "px";
     canvas.width = Math.floor(cssW * dpr);
     canvas.height = Math.floor(cssH * dpr);
     const ctx = canvas.getContext("2d");
+    if (!ctx) return;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, cssW, cssH);
-    if (closes.length < 2) return;
+    ctx.fillStyle = "#f8fafc";
+    ctx.fillRect(0, 0, cssW, cssH);
+    if (closes.length < 2) {
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "12px Inter, sans-serif";
+      ctx.fillText("載入行情…", 12, cssH / 2);
+      return;
+    }
     const min = Math.min.apply(null, closes);
     const max = Math.max.apply(null, closes);
     const span = max - min || 1;
-    const pad = 8;
+    const pad = 10;
     const w = cssW - pad * 2;
     const h = cssH - pad * 2;
     const last = closes[closes.length - 1];
     const first = closes[0];
     const up = last >= first;
-    const stroke = up ? "#00f59b" : "#ff3b69";
-    const fill = up ? "rgba(0,245,155,0.16)" : "rgba(255,59,105,0.14)";
+    const stroke = up ? "#10b981" : "#ef4444";
+    const fill = up ? "rgba(16,185,129,0.14)" : "rgba(239,68,68,0.12)";
     ctx.beginPath();
     closes.forEach((c, i) => {
       const x = pad + (i / (closes.length - 1)) * w;
@@ -288,22 +325,19 @@
       else ctx.lineTo(x, y);
     });
     ctx.strokeStyle = stroke;
-    ctx.lineWidth = 1.8;
-    ctx.shadowColor = stroke;
-    ctx.shadowBlur = 10;
+    ctx.lineWidth = 2;
     ctx.stroke();
-    ctx.shadowBlur = 0;
     const marks = state.events.filter((e) => e.symbol === sym && Date.now() / 1000 - e.ts < HOUR_S);
     marks.forEach((ev) => {
       const px = Number(ev.price);
       if (!Number.isFinite(px)) return;
       let idx = closes.length - 1;
       if (rows.length) {
-        const t = ev.ts * 1000;
+        const tms = ev.ts * 1000;
         let best = 0;
         let dist = Infinity;
         rows.forEach((r, i) => {
-          const d = Math.abs(r.t - t);
+          const d = Math.abs(r.t - tms);
           if (d < dist) {
             dist = d;
             best = i;
@@ -315,20 +349,40 @@
       const y = pad + h - ((px - min) / span) * h;
       const buy = isBuy(ev);
       ctx.beginPath();
-      ctx.arc(x, Math.max(pad, Math.min(pad + h, y)), 4.2, 0, Math.PI * 2);
-      ctx.fillStyle = buy ? "#00f59b" : "#ff3b69";
-      ctx.shadowColor = ctx.fillStyle;
-      ctx.shadowBlur = 12;
+      ctx.arc(x, Math.max(pad, Math.min(pad + h, y)), 4.5, 0, Math.PI * 2);
+      ctx.fillStyle = buy ? "#10b981" : "#ef4444";
       ctx.fill();
-      ctx.shadowBlur = 0;
-      ctx.font = "10px JetBrains Mono, monospace";
-      ctx.fillStyle = buy ? "#00f59b" : "#ff3b69";
-      ctx.fillText((buy ? "BUY @" : "SELL @") + " " + fmtPx(px), x + 6, Math.max(12, y - 6));
+      ctx.font = "11px Roboto Mono, monospace";
+      ctx.fillStyle = buy ? "#059669" : "#dc2626";
+      ctx.fillText((buy ? "BUY @" : "SELL @") + " " + fmtPx(px), x + 6, Math.max(14, y - 6));
     });
   }
 
-  function paintCards() {
-    COINS.forEach((sym) => {
+  function drawSpark(sym) {
+    drawSparkOn(document.querySelector('canvas[data-spark="' + sym + '"]'), sym, false);
+  }
+
+  function cardHtml(sym) {
+    return (
+      '<article class="coin-card" data-sym="' +
+      sym +
+      '" tabindex="0" role="button">' +
+      '<button type="button" class="coin-remove" data-remove="' +
+      sym +
+      '" aria-label="移除" title="移出自選">×</button>' +
+      '<div class="coin-card-head"><span class="coin-pair">' +
+      pairLabel(sym) +
+      '</span><span class="coin-chg" data-chg>—</span></div>' +
+      '<div class="coin-px" data-px>—</div>' +
+      '<div class="coin-spark-wrap"><canvas class="coin-spark" data-spark="' +
+      sym +
+      '" width="320" height="160"></canvas></div>' +
+      "</article>"
+    );
+  }
+
+  function paintCardsMeta() {
+    state.watch.forEach((sym) => {
       const card = document.querySelector('.coin-card[data-sym="' + sym + '"]');
       if (!card) return;
       const tk = state.tickers[sym] || {};
@@ -348,6 +402,162 @@
         }
       }
       drawSpark(sym);
+    });
+  }
+
+  function renderGrid() {
+    const grid = document.getElementById("coinGrid");
+    if (!grid) return;
+    if (!state.watch.length) {
+      grid.innerHTML =
+        '<p class="radar-idle">' +
+        escapeHtml(t("watchEmpty", "自選組合為空，請點「添加幣種」恢復監控")) +
+        "</p>";
+      return;
+    }
+    grid.innerHTML = state.watch.map(cardHtml).join("");
+    paintCardsMeta();
+    paintAddPanel();
+  }
+
+  function paintAddPanel() {
+    const panel = document.getElementById("cmdAddPanel");
+    if (!panel) return;
+    const missing = ALL_COINS.filter((s) => !inWatch(s));
+    if (!missing.length) {
+      panel.innerHTML = '<span class="radar-idle">自選已滿（8/8）</span>';
+      return;
+    }
+    panel.innerHTML = missing
+      .map(
+        (s) =>
+          '<button type="button" class="cmd-add-chip" data-add="' +
+          s +
+          '">➕ ' +
+          pairLabel(s) +
+          "</button>",
+      )
+      .join("");
+  }
+
+  function removeCoin(sym) {
+    state.watch = state.watch.filter((s) => s !== sym);
+    saveWatch();
+    if (state.modalSym === sym) closeModal();
+    renderGrid();
+    paintRadar();
+  }
+
+  function addCoin(sym) {
+    if (!ALL_COINS.includes(sym) || inWatch(sym)) return;
+    state.watch.push(sym);
+    saveWatch();
+    renderGrid();
+    refreshMarket();
+    paintRadar();
+  }
+
+  function bindGrid() {
+    const grid = document.getElementById("coinGrid");
+    if (!grid || grid.getAttribute("data-bound") === "1") return;
+    grid.setAttribute("data-bound", "1");
+    grid.addEventListener("click", (ev) => {
+      const rm = ev.target.closest("[data-remove]");
+      if (rm) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        removeCoin(rm.getAttribute("data-remove"));
+        return;
+      }
+      const card = ev.target.closest(".coin-card");
+      if (card) openModal(card.getAttribute("data-sym"));
+    });
+  }
+
+  function bindAddUi() {
+    const btn = document.getElementById("cmdAddBtn");
+    const panel = document.getElementById("cmdAddPanel");
+    if (btn && panel) {
+      btn.addEventListener("click", () => {
+        panel.classList.toggle("is-open");
+        paintAddPanel();
+      });
+      panel.addEventListener("click", (ev) => {
+        const chip = ev.target.closest("[data-add]");
+        if (!chip) return;
+        addCoin(chip.getAttribute("data-add"));
+        if (!ALL_COINS.some((s) => !inWatch(s))) panel.classList.remove("is-open");
+      });
+    }
+  }
+
+  /* ---- modal zoom ---- */
+  function openModal(sym) {
+    if (!sym || !inWatch(sym)) return;
+    state.modalSym = sym;
+    const bg = document.getElementById("coinModalBg");
+    const title = document.getElementById("coinModalTitle");
+    const meta = document.getElementById("coinModalMeta");
+    const marks = document.getElementById("coinModalMarks");
+    const canvas = document.getElementById("coinModalSpark");
+    if (!bg) return;
+    const tk = state.tickers[sym] || {};
+    const px = tk.last != null ? tk.last : state.lastPx[sym];
+    const chg = Number(tk.chg);
+    if (title) title.textContent = pairLabel(sym);
+    if (meta) {
+      meta.innerHTML =
+        "<span>現價 <b>" +
+        escapeHtml(fmtPx(px)) +
+        "</b></span>" +
+        "<span>24H " +
+        (Number.isFinite(chg) ? (chg >= 0 ? "+" : "") + chg.toFixed(2) + "%" : "—") +
+        "</span>" +
+        "<span>監控中 · 1m 折線</span>";
+    }
+    const hourMarks = state.events.filter((e) => e.symbol === sym && Date.now() / 1000 - e.ts <= HOUR_S);
+    if (marks) {
+      marks.innerHTML = hourMarks.length
+        ? hourMarks
+            .slice(0, 8)
+            .map((e) => {
+              const buy = isBuy(e);
+              return (
+                "<div>" +
+                fmtTime(e.ts) +
+                " · " +
+                (buy ? "🟢 BUY" : "🔴 SELL") +
+                " @ " +
+                fmtPx(e.price) +
+                " · " +
+                escapeHtml(e.name || "") +
+                "</div>"
+              );
+            })
+            .join("")
+        : "<div>近 1 小時尚無開倉標記</div>";
+    }
+    bg.classList.add("is-open");
+    requestAnimationFrame(() => drawSparkOn(canvas, sym, true));
+  }
+
+  function closeModal() {
+    state.modalSym = null;
+    const bg = document.getElementById("coinModalBg");
+    if (bg) bg.classList.remove("is-open");
+  }
+
+  function bindModal() {
+    const bg = document.getElementById("coinModalBg");
+    const x = document.getElementById("coinModalClose");
+    if (x) x.addEventListener("click", closeModal);
+    if (bg) {
+      bg.addEventListener("click", (ev) => {
+        if (ev.target === bg) closeModal();
+      });
+    }
+    document.addEventListener("keydown", (ev) => {
+      if (ev.key === "Escape") closeModal();
     });
   }
 
@@ -375,7 +585,7 @@
 
   async function loadTickers() {
     try {
-      const q = encodeURIComponent(JSON.stringify(COINS));
+      const q = encodeURIComponent(JSON.stringify(ALL_COINS));
       const rows = await fetchJson("https://api.binance.com/api/v3/ticker/24hr?symbols=" + q);
       const map = {};
       (rows || []).forEach((r) => {
@@ -389,8 +599,9 @@
 
   async function refreshMarket() {
     await loadTickers();
+    const targets = state.watch.length ? state.watch : ALL_COINS;
     const packs = await Promise.all(
-      COINS.map(async (sym) => {
+      targets.map(async (sym) => {
         try {
           const rows = await loadKlines(sym);
           return [sym, rows];
@@ -405,10 +616,12 @@
         state.lastPx[sym] = rows[rows.length - 1].c;
       }
     });
-    paintCards();
+    paintCardsMeta();
+    if (state.modalSym) {
+      drawSparkOn(document.getElementById("coinModalSpark"), state.modalSym, true);
+    }
   }
 
-  /* ---- event-driven 1h radar (exec_log side-changes only) ---- */
   function liveFeedUrl() {
     return "https://api.quantalpha.space/live_feed.json?t=" + Date.now();
   }
@@ -459,12 +672,16 @@
     const list = document.getElementById("radarList");
     if (!list) return;
     const now = Date.now() / 1000;
+    const watchSet = new Set(state.watch);
     const rows = state.events
-      .filter((e) => now - e.ts <= HOUR_S)
+      .filter((e) => watchSet.has(e.symbol) && now - e.ts <= HOUR_S)
       .sort((a, b) => b.ts - a.ts)
       .slice(0, 40);
     if (!rows.length) {
-      list.innerHTML = '<div class="radar-idle">' + escapeHtml(t("radarIdle", "⏳ 戰情雷達全天候掃描中，各幣種策略就緒...")) + "</div>";
+      list.innerHTML =
+        '<div class="radar-idle">' +
+        escapeHtml(t("radarIdle", "⏳ 戰情雷達全天候掃描中，各幣種策略就緒...")) +
+        "</div>";
       return;
     }
     const html = rows
@@ -515,25 +732,31 @@
         flat.forEach((ev) => {
           if (state.seenKeys.has(ev.key)) return;
           state.seenKeys.add(ev.key);
+          if (!inWatch(ev.symbol)) return;
           if (now - ev.ts <= HOUR_S) enqueueVoice(voiceLine(ev));
         });
       }
       paintRadar();
-      paintCards();
+      paintCardsMeta();
     } catch {
       /* feed optional */
     }
   }
 
   function boot() {
-    const grid = document.getElementById("coinGrid");
-    if (grid) grid.innerHTML = COINS.map(cardHtml).join("");
+    renderGrid();
+    bindGrid();
+    bindAddUi();
+    bindModal();
     bindVoice();
     refreshMarket();
     refreshFeed();
     setInterval(refreshMarket, KLINE_MS);
     setInterval(refreshFeed, FEED_MS);
-    window.addEventListener("resize", () => paintCards());
+    window.addEventListener("resize", () => {
+      paintCardsMeta();
+      if (state.modalSym) drawSparkOn(document.getElementById("coinModalSpark"), state.modalSym, true);
+    });
     const style = document.createElement("style");
     style.textContent =
       "@keyframes radarScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}";
