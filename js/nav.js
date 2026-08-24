@@ -26,12 +26,7 @@
     bar.id = "tickerBar";
     bar.setAttribute("aria-label", "Market ticker");
     bar.innerHTML = '<div class="ticker-track" id="tickerTrack"></div>';
-    const marquee = document.getElementById("qaFlashMarquee") || document.getElementById("bloomberg-marquee-bar");
-    if (marquee && marquee.parentNode) {
-      marquee.parentNode.insertBefore(bar, marquee);
-    } else {
-      topbar.insertAdjacentElement("afterend", bar);
-    }
+    topbar.insertAdjacentElement("afterend", bar);
   }
 
   function ensureTickerMarquee() {
@@ -120,89 +115,6 @@
     if (host && lang) host.appendChild(lang);
   }
 
-  function installFlashMarqueeCss() {
-    let link = document.querySelector('link[data-qa-flash="1"]');
-    if (!link) {
-      link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.setAttribute("data-qa-flash", "1");
-      document.head.appendChild(link);
-    }
-    link.href = "./css/marquee-ticker.css?v=mq8";
-  }
-
-  function flashMarqueeHtml() {
-    return (
-      '<div class="qa-flash-badge" data-i18n="flashMarqueeTag">即時快訊</div>' +
-      '<div class="qa-flash-viewport">' +
-      '<div class="qa-flash-track" id="qaFlashTrack"></div></div>'
-    );
-  }
-
-  function lockFlashMarquee() {
-    const bar = document.getElementById("qaFlashMarquee");
-    if (!bar) return;
-    let badge = bar.querySelector(".qa-flash-badge");
-    let vp = bar.querySelector(".qa-flash-viewport");
-    let track = document.getElementById("qaFlashTrack") || bar.querySelector(".qa-flash-track");
-    if (!badge) {
-      badge = document.createElement("div");
-      badge.className = "qa-flash-badge";
-      badge.setAttribute("data-i18n", "flashMarqueeTag");
-      badge.textContent = "即時快訊";
-      bar.appendChild(badge);
-    }
-    if (!vp) {
-      vp = document.createElement("div");
-      vp.className = "qa-flash-viewport";
-      bar.appendChild(vp);
-    }
-    if (!track) {
-      track = document.createElement("div");
-      track.className = "qa-flash-track";
-      track.id = "qaFlashTrack";
-    }
-    if (badge.parentNode !== bar) bar.insertBefore(badge, bar.firstChild);
-    if (vp.parentNode !== bar) bar.appendChild(vp);
-    if (badge && vp.previousElementSibling !== badge) bar.insertBefore(vp, badge.nextSibling);
-    if (track.parentNode !== vp) vp.appendChild(track);
-    Array.prototype.slice.call(bar.childNodes).forEach((node) => {
-      if (node !== badge && node !== vp) bar.removeChild(node);
-    });
-  }
-
-  window.QALockFlashMarquee = lockFlashMarquee;
-
-  function mountFlashMarquee() {
-    installFlashMarqueeCss();
-    let bar = document.getElementById("qaFlashMarquee");
-    if (!bar) {
-      bar = document.createElement("div");
-      bar.id = "qaFlashMarquee";
-      bar.className = "qa-flash-marquee";
-      bar.setAttribute("aria-label", "Flash news ticker");
-      bar.innerHTML = flashMarqueeHtml();
-      const chrome = document.querySelector(".site-sticky-chrome");
-      const ticker = document.getElementById("tickerBar");
-      const topbar = document.querySelector(".topbar");
-      if (chrome && chrome.parentNode) chrome.insertAdjacentElement("afterend", bar);
-      else if (ticker && ticker.parentNode) ticker.insertAdjacentElement("afterend", bar);
-      else if (topbar) topbar.insertAdjacentElement("afterend", bar);
-    }
-    lockFlashMarquee();
-  }
-
-  function loadFlashMarquee() {
-    if (window.__qaFlashMarqueeLoaded) return;
-    const hasNewsJs = Array.prototype.some.call(document.scripts, (s) => (s.src || "").includes("news.js"));
-    if (hasNewsJs) return;
-    window.__qaFlashMarqueeLoaded = true;
-    const s = document.createElement("script");
-    s.src = "./js/flash-marquee.js?v=mq8";
-    s.defer = true;
-    document.head.appendChild(s);
-  }
-
   function ensureLiveNavLink() {
     const nav = document.querySelector(".nav-actions");
     if (!nav || nav.querySelector(".nav-link-live")) return;
@@ -218,12 +130,10 @@
   }
 
   ensureBloombergCss();
-  mountFlashMarquee();
   ensureUtilBar();
   ensureCryptoTicker();
   ensureTickerMarquee();
   ensureLiveNavLink();
-  loadFlashMarquee();
 
   const toggle = document.getElementById("navToggle");
   const bar = document.querySelector(".topbar");

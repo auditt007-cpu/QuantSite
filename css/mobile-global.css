@@ -48,7 +48,7 @@ body.nav-drawer-open .site-sticky-chrome {
   .topbar {
     z-index: 100;
     position: relative;
-    background: #fff;
+    background: var(--bg-main);
   }
 
   .nav-actions {
@@ -85,7 +85,7 @@ body.has-bb-util .site-sticky-chrome {
     position: relative !important;
     z-index: 10001 !important;
     isolation: isolate;
-    background: #fff;
+    background: var(--bg-main);
     pointer-events: auto !important;
   }
 
@@ -127,9 +127,9 @@ body.has-bb-util .site-sticky-chrome {
   .topbar.nav-open .nav-actions {
     position: relative;
     z-index: 2;
-    background: #ffffff;
-    border: 1px solid #000000;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-line);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
     padding: 8px;
     margin-top: 4px;
     pointer-events: auto !important;

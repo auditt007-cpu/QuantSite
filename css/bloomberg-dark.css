@@ -1,0 +1,139 @@
+/* ========== bloomberg.com light editorial override layer ========== */
+html, body { background-color: var(--bg-main); color: var(--text-main); font-family: var(--font); }
+.wrap { background: var(--bg-main); }
+
+/* Black header band (Bloomberg-style) */
+.site-sticky-chrome { background: #000000; }
+.topbar { background: #000000; border-bottom: 1px solid #333333; padding: 10px 0; }
+.brand { gap: 12px; max-width: min(320px, 36vw); }
+.logo { width: 14px; height: 14px; background: var(--color-accent); }
+.brand h1 { font-size: 15px; letter-spacing: 0.16em; color: #ffffff; font-weight: 700; }
+.site-slogan { color: #b3b3b3; font-size: 10px; letter-spacing: 0.06em; }
+
+/* Navigation in black header */
+.nav-link { color: #b3b3b3; font-weight: 600; font-size: 12px; padding: 8px 10px; }
+.nav-link:hover { color: #ffffff; text-decoration: none; background: rgba(255,255,255,0.08); }
+.lang-pills { border: 1px solid #555555; }
+.lang-pills button { color: #b3b3b3; background: #000000; }
+.lang-pills button.active { color: #000000; background: #ffffff; }
+
+/* Auth / login */
+.auth-btn { color: #ffffff; border: 1px solid #555555; background: #000000; }
+.auth-btn::after { background: var(--color-accent); }
+
+/* Black utility bar */
+.bb-util-bar { background: #000000; color: #ffffff; border-bottom: 1px solid #333333; }
+.bb-util-node { color: #ffffff; }
+.bb-util-dot { background: var(--color-up); }
+
+/* Price ticker — white bar with black text, Bloomberg-style */
+.ticker, .ticker-bar { background: #ffffff; border-bottom: 1px solid var(--border-line); border-top: 1px solid var(--border-line); }
+.ticker-pill { color: #000000; border-right: 1px solid var(--border-line); padding: 0 18px; }
+.ticker-pill .tp-sym { color: #6b6b6b; font-weight: 600; }
+.ticker-pill .tp-px { color: #000000; font-weight: 700; }
+.ticker-pill .tp-chg { color: #6b6b6b; }
+.ticker-pill .tp-chg.up { color: var(--color-up); }
+.ticker-pill .tp-chg.down { color: var(--color-down); }
+
+/* Hero */
+.hero { margin-top: 24px; }
+.hero-h1 { color: #000000; font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
+.hero-h2 { color: #6b6b6b; font-size: 13px; line-height: 1.55; }
+
+/* Buttons — Bloomberg primary is black fill / white text */
+.btn, .action-btn { background: #ffffff; color: #000000; border: 1px solid #000000; }
+.btn:hover { background: #000000; border-color: #000000; color: #ffffff; }
+.btn-cta { color: #ffffff; background: #000000; border-color: #000000; }
+.btn-cta:hover { background: #333333; border-color: #333333; color: #ffffff; }
+
+/* KPI */
+.home-kpi { background: var(--bg-surface); border: 1px solid var(--border-line); border-radius: 0; }
+.kpi { border-bottom: 1px solid var(--border-line); }
+.kpi span { color: var(--text-muted); font-size: 10px; letter-spacing: 0.08em; font-weight: 600; }
+.kpi b { color: #000000; font-size: 24px; font-weight: 700; }
+.kpi b.is-up { color: var(--color-up); }
+.kpi b.is-down { color: var(--color-down); }
+.kpi-sub { color: var(--text-muted); }
+
+/* Data boards */
+.home-boards-section { margin: 24px 0 32px; }
+.hb-card { background: #ffffff; border: 1px solid var(--border-line); }
+.hb-head { padding: 12px 14px 10px; border-bottom: 1px solid var(--border-line); margin-bottom: 0; }
+.hb-kicker { color: var(--color-accent); font-size: 10px; font-weight: 700; letter-spacing: 0.1em; }
+.hb-title { color: #000000; font-size: 14px; font-weight: 700; }
+.hb-period { color: #6b6b6b; background: #f7f7f7; border: 1px solid var(--border-line); border-radius: 0; }
+.hb-table th { color: #6b6b6b; border-bottom: 1px solid var(--border-line); font-size: 10px; font-weight: 600; }
+.hb-table td { color: #000000; border-bottom: 1px solid var(--border-line); }
+.hb-table tbody tr:hover { background: rgba(0,0,0,0.03); }
+.hb-table tbody tr.is-profit { background: rgba(51,135,54,0.04); }
+.hb-table tbody tr.is-profit:hover { background: rgba(51,135,54,0.08); }
+.hb-rank { color: #6b6b6b; }
+.hb-model { color: #000000; }
+.hb-model .hb-model-en { color: #6b6b6b; }
+.hb-num { color: #000000; }
+.hb-num.is-up { color: var(--color-up); }
+.hb-num.is-down { color: var(--color-down); }
+.hb-go { color: #6b6b6b; }
+.hb-foot-note { color: #6b6b6b; }
+
+/* Lab paper */
+.lab-paper { color: #000000; }
+.lab-paper h2 { color: #000000; font-size: 18px; font-weight: 700; border-bottom: 1px solid var(--border-line); padding-bottom: 10px; }
+.lab-paper .muted { color: #6b6b6b; }
+.paper-block { background: #f7f7f7; border: 1px solid var(--border-line); padding: 14px; }
+.paper-block h3 { color: #000000; font-size: 14px; }
+.paper-math { background: #ffffff; color: #000000; border: 1px solid var(--border-line); }
+.paper-list code { color: var(--color-accent); background: #ffffff; }
+
+/* Risk banner */
+.risk-banner { background: #f7f7f7; border: 1px solid var(--border-line); color: #6b6b6b; font-size: 11px; }
+
+/* Footer — black Bloomberg band */
+.site-foot { background: #000000; border-top: 1px solid #333333; color: #b3b3b3; font-size: 12px; }
+.site-foot a { color: #b3b3b3; }
+.site-foot a:hover { color: #ffffff; }
+.foot-brand { color: #b3b3b3; font-size: 11px; }
+.foot-official { color: #b3b3b3; }
+
+/* Floating action button */
+.tg-fab { background: #000000; color: #ffffff; border: 1px solid #333333; }
+.tg-fab:hover { background: var(--color-accent); color: #000000; border-color: var(--color-accent); }
+.fab-dot { background: var(--color-up); }
+
+/* Modals */
+.modal-bg { background: rgba(0,0,0,0.55); }
+.modal { background: #ffffff; border: 1px solid var(--border-line); color: #000000; }
+.modal h3 { color: #000000; border-bottom: 1px solid var(--border-line); padding-bottom: 10px; }
+.modal-x { color: #6b6b6b; }
+.modal-x:hover { color: var(--color-accent); }
+
+/* Onboarding */
+.onboard { background: #f7f7f7; border: 1px solid var(--border-line); }
+.onboard p { color: #000000; }
+.onboard .muted { color: #6b6b6b; }
+.newbie { background: #ffffff; border: 1px solid var(--border-line); }
+#newbieClock { color: var(--color-accent); }
+#newbieBar { background: var(--color-accent); }
+
+/* Toast */
+.toast { background: #000000; color: #ffffff; border: 1px solid #333333; }
+
+/* Inputs */
+input, textarea, select { background: #ffffff; color: #000000; border: 1px solid var(--border-line); }
+input:focus, textarea:focus, select:focus { border-color: var(--color-accent); outline: none; }
+
+/* Mobile nav drawer */
+@media (max-width: 768px) {
+  .site-sticky-chrome { background: #000000; }
+  .topbar,
+  .topbar.nav-open,
+  body.nav-drawer-open .topbar { background: #000000; border-bottom: 1px solid #333333; }
+  .nav-actions,
+  .topbar.nav-open .nav-actions,
+  body.nav-drawer-open .nav-actions { background: #000000; border: 1px solid #333333; border-top: 0; }
+  .nav-actions .nav-link { color: #ffffff; border-bottom: 1px solid #333333; }
+  .nav-actions .nav-link:hover { background: rgba(255,255,255,0.08); color: #ffffff; }
+  .brand { max-width: 60vw; }
+  .home-hero .hero-top { flex-direction: column; align-items: stretch; gap: 16px; }
+  .home-hero .hero-cta { justify-content: flex-start; }
+}

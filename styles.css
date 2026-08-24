@@ -1,20 +1,22 @@
 :root {
-  /* Bloomberg Design System tokens */
+  /* bloomberg.com Design System tokens (light editorial finance) */
   --bg-main: #ffffff;
-  --bg-surface: #f8fafc;
+  --bg-surface: #f7f7f7;
   --bg-pill: #000000;
-  --border-line: #000000;
-  --border-subtle: #e2e8f0;
+  --border-line: #e0e0e0;
+  --border-subtle: #f2f2f2;
 
   /* 文字系统 */
   --text-main: #000000;
-  --text-muted: #475569;
+  --text-muted: #6b6b6b;
+  --text-body: #333333;
   --text-inverse: #ffffff;
 
   /* 金融信号色 */
-  --color-up: #16a34a;
-  --color-down: #dc2626;
-  --color-tag: #000000;
+  --color-up: #338736;
+  --color-down: #e51503;
+  --color-tag: #fb8b1e;
+  --color-accent: #fb8b1e;
 
   /* 兼容旧变量名 */
   --bg: var(--bg-main);
@@ -23,13 +25,13 @@
   --grid: var(--border-subtle);
   --neon: var(--color-up);
   --red: var(--color-down);
-  --warn: #d97706;
-  --cyan: var(--text-main);
+  --warn: #ffb800;
+  --cyan: var(--color-accent);
   --text: var(--text-main);
   --muted: var(--text-muted);
   --radius: 0;
-  --font: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
-  --mono: "JetBrains Mono", "Roboto Mono", "SF Mono", Consolas, monospace;
+  --font: "Helvetica Neue", Arial, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "BWHaasMono", "JetBrains Mono", "Roboto Mono", "SF Mono", Consolas, monospace;
 
   /* Global stacking: cards < sticky/ticker/nav < modal */
   --z-base: 1;
