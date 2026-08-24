@@ -652,8 +652,8 @@ LIVE_FEED_KLINE_LIMIT = 150
 # ---------------------------------------------------------------------------
 AUDIO_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "audio")
 AUDIO_VOICE = "zh-TW-HsiaoChenNeural"
-AUDIO_RATE = "+2%"
-AUDIO_PITCH = "+8Hz"
+AUDIO_RATE = "+22%"
+AUDIO_PITCH = "+18Hz"
 # Site is served by GitHub Pages from the repo root (see CNAME -> quantalpha.space).
 # _ssh_push.py fetches everything under AUDIO_DIR back into <repo>/audio/ so it
 # becomes reachable at https://quantalpha.space/audio/<file>.mp3 once pushed.
@@ -668,8 +668,8 @@ WELCOME_TEXTS = [
     "您好呀，作戰室已為您連線全球節點。行情波動很大，記得看好我的信號提醒，祝您今天交易順利、穩穩收米喔～",
 ]
 
-# Idle-state comfort lines: live.html plays one at random after 5 minutes
-# with no new signal, so the room never feels dead/abandoned.
+# Idle clips kept on disk for legacy caches; the live command deck never
+# plays them — voice fires only on genuine side-change events.
 IDLE_TEXTS = [
     "行情還在蓄力哦，哥哥再耐心等一下下嘛～",
     "目前盤面有點無聊，但我還在幫你死死盯著呢！",
@@ -1775,7 +1775,6 @@ def main():
     else:
         AUDIO_EXECUTOR.submit(ensure_welcome_audio)
         AUDIO_EXECUTOR.submit(ensure_funnel_audio)
-        AUDIO_EXECUTOR.submit(ensure_idle_audio)
     threading.Thread(target=feed_publish_loop, name="feed-publish", daemon=True).start()
     while True:
         try:

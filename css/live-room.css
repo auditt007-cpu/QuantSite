@@ -1,1591 +1,299 @@
-/* Live War Room — Top-20 marquee lives in styles.css; this file covers the
-   single War Room terminal + compact strategy checkbox matrix + crowd toast. */
-
-/* ---- Right-aligned status row, sits above the LIVE WAR ROOM title and
-   lines up with the chart panel's right edge below it (same column). ---- */
-.war-top-status {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  flex-wrap: wrap;
-  gap: 8px 14px;
-  margin: 8px 0 0;
-  padding: 0;
-  border: none;
-  font-family: var(--mono);
-  font-size: 12px;
-}
-.live-status-item { display: inline-flex; align-items: baseline; gap: 6px; white-space: nowrap; }
-.live-status-item b {
-  font-variant-numeric: tabular-nums;
-  color: var(--color-up);
-  font-weight: 800;
-}
-.live-status-sep { color: var(--text-muted); }
-.live-dot,
-.war-status-dot {
-  width: 8px; height: 8px; border-radius: 50%; background: var(--color-up);
-  display: inline-block; margin-right: 2px;
-  animation: liveDotPulse 1.5s ease-in-out infinite;
-}
-@keyframes liveDotPulse {
-  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.45); }
-  50% { opacity: 0.6; box-shadow: 0 0 0 5px rgba(22, 163, 74, 0); }
-}
-.live-mute-btn {
-  font-family: inherit; font-size: 11px; font-weight: 700; letter-spacing: 0.02em;
-  color: var(--text-main); background: #ffffff; border: 1px solid var(--border-line); padding: 5px 10px;
-  cursor: pointer; white-space: nowrap;
-}
-.live-mute-btn:hover { background: var(--bg-surface); }
-
-/* ---- Head ---- */
-/* .war-room below has 16px of its own padding, so its inner chart frame's
-   right edge sits 16px left of this column's outer edge — match that here
-   so .war-top-status lines up with the chart panel exactly, not the wider
-   outer column. */
-.live-room-head { margin: 12px 0 4px; padding-right: 16px; }
-
-/* ---- War Room Terminal (single big view) ---- */
-.war-room {
-  margin: 18px 0 20px;
-  padding: 16px;
-  border: 2px solid #000000;
-  background: #ffffff;
-}
-.war-room-status {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--mono);
-  font-size: 13px;
-  font-weight: 800;
-  padding-bottom: 10px;
-  margin-bottom: 12px;
-  border-bottom: 1px solid var(--border-subtle);
-}
-.war-chart-frame {
-  border: 1px solid var(--border-subtle);
-  background: var(--bg-surface);
-  margin-bottom: 14px;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  min-height: 560px;
-  width: 100%;
-}
-.war-chart,
-#tv_chart_container {
-  width: 100%;
-  height: 560px;
-  min-height: 560px;
-  flex: 0 0 auto;
-}
-#tv_chart_container iframe,
-#tv_chart_container > div {
-  width: 100% !important;
-  height: 100% !important;
-  display: block;
-}
-.war-chart-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 8px 10px 0;
-  min-height: 32px;
-}
-.war-legend-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 3px 10px;
-  border: 1px solid var(--border-line);
-  border-radius: 999px;
-  background: #ffffff;
-  color: var(--text-main);
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-  user-select: none;
-}
-.war-legend-pill.is-focus {
-  border-color: #c9a227;
-  box-shadow: 0 0 0 1px rgba(201, 162, 39, 0.35);
-}
-.war-legend-swatch {
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
-  flex-shrink: 0;
-}
-.war-chart-tooltip {
-  position: absolute;
-  z-index: 5;
-  pointer-events: none;
-  min-width: 180px;
-  padding: 8px 10px;
-  border: 1px solid #27272a;
-  border-radius: 4px;
-  background: rgba(9, 9, 11, 0.94);
-  color: #e2e8f0;
-  font-family: var(--mono);
-  font-size: 11px;
-  line-height: 1.45;
-}
-.war-chart-tooltip .tip-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-}
-.war-chart-tooltip .tip-sym { font-weight: 800; color: #f8fafc; }
-.war-chart-tooltip .tip-pct { color: #38bdf8; }
-.war-chart-tooltip .tip-px { color: #94a3b8; }
-
-/* ---- Scan HUD: small "the engine is always working" status widget.
-   Progress bar oscillates for atmosphere; the text describes the real
-   scan cadence (60s poll across the strategy matrix), nothing invented. ---- */
-.scan-hud {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 4;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  width: min(220px, 46vw);
-  padding: 6px 9px;
-  background: rgba(9, 9, 11, 0.72);
-  border: 1px solid rgba(56, 189, 248, 0.35);
-  border-radius: 4px;
-  pointer-events: none;
-  backdrop-filter: blur(2px);
-}
-.scan-hud-bar {
-  height: 3px;
-  background: rgba(148, 163, 184, 0.25);
-  border-radius: 2px;
-  overflow: hidden;
-}
-.scan-hud-fill {
-  height: 100%;
-  width: 90%;
-  background: linear-gradient(90deg, #16a34a, #38bdf8);
-  transition: width 0.9s ease;
-}
-.scan-hud-text {
-  font-family: var(--mono);
-  font-size: 9.5px;
-  line-height: 1.3;
-  color: #86efac;
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: clip;
-}
-.scan-hud-text::after {
-  content: "▌";
-  margin-left: 1px;
-  animation: scanCursorBlink 0.9s step-end infinite;
-}
-@keyframes scanCursorBlink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
-}
-@media (max-width: 768px) {
-  .scan-hud { width: min(180px, 58vw); padding: 5px 7px; top: 6px; right: 6px; }
-  .scan-hud-text { font-size: 9px; }
+html.live-page,
+body.live-page.war-cmd {
+  background: #0b0e14;
+  color: #e5e7eb;
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
-/* ---- Global signal flash: a 0.5s edge glow on real BUY/SELL pushes. ---- */
-.screen-flash-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9000;
-  pointer-events: none;
-  opacity: 0;
-}
-.screen-flash-overlay.flash-buy {
-  animation: pulseGreenFlash 0.5s ease-out;
-}
-.screen-flash-overlay.flash-sell {
-  animation: pulseRedFlash 0.5s ease-out;
-}
-@keyframes pulseGreenFlash {
-  0% { opacity: 1; box-shadow: inset 0 0 60px 10px rgba(16, 185, 129, 0.55); }
-  100% { opacity: 0; box-shadow: inset 0 0 60px 10px rgba(16, 185, 129, 0); }
-}
-@keyframes pulseRedFlash {
-  0% { opacity: 1; box-shadow: inset 0 0 60px 10px rgba(244, 63, 94, 0.55); }
-  100% { opacity: 0; box-shadow: inset 0 0 60px 10px rgba(244, 63, 94, 0); }
+body.live-page.war-cmd .topbar,
+body.live-page.war-cmd .ticker-bar,
+body.live-page.war-cmd .bb-marquee,
+body.live-page.war-cmd .site-foot {
+  background: #0b0e14;
+  border-color: #1f2937;
+  color: #e5e7eb;
 }
 
-.selected-matrix-container {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-height: 48px;
-  height: auto;
-  overflow: visible;
-  margin-bottom: 14px;
-  padding: 12px;
-  border: 1px solid var(--border-line);
-  border-radius: 4px;
-  background: #ffffff;
-}
-.selected-matrix-head {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px 20px;
-  width: 100%;
-}
-.selected-matrix-head .selected-matrix-label {
-  flex: 1 1 220px;
-  min-width: 0;
-}
-.selected-matrix-rows {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  gap: 0;
-}
-.selected-matrix-empty {
-  margin: 4px 0 0;
-  font-size: 11px;
-  font-family: var(--mono);
-}
-.selected-matrix-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 10px 16px;
-  padding: 10px 0;
-  border-top: 1px solid var(--border-subtle);
-}
-.selected-matrix-row:first-child {
-  border-top: 0;
-  padding-top: 2px;
-}
-.selected-matrix-row.is-focused {
-  background: #f8fafc;
-  margin: 0 -12px;
-  padding: 10px 12px;
-  border-radius: 4px;
-}
-.selected-matrix-row-pill {
-  flex: 0 1 280px;
-  min-width: 200px;
-  max-width: 100%;
-}
-.selected-matrix-row .war-tape-inline {
-  flex: 1 1 280px;
-  min-width: 0;
-}
-.selected-matrix-row .war-tape-inline .war-tape-row-empty {
-  color: var(--text-muted);
-  font-size: 11px;
-  padding: 4px 0;
-  border: 0;
-  background: transparent;
-}
-.selected-matrix-label {
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
-  font-family: var(--mono);
-}
-.selected-matrix-pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  flex: 1 1 auto;
-}
-.selected-matrix-pills .muted {
-  color: var(--text-muted);
-  font-size: 11px;
-  font-family: var(--mono);
-}
-.selected-matrix-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border: 1px solid var(--border-line);
-  border-radius: 999px;
-  background: #ffffff;
-  color: var(--text-main);
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 700;
-}
-.selected-matrix-pill button {
-  border: 0;
-  background: transparent;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-size: 13px;
-  line-height: 1;
-  padding: 0 2px;
-}
-.selected-matrix-pill button:hover { color: var(--color-down); }
-.war-tape-inline {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  max-height: none;
-  overflow: visible;
-  flex: 1 1 auto;
-}
-.war-tape-inline li {
-  flex: 0 1 auto;
-  border: 1px solid var(--border-subtle);
-  border-radius: 4px;
-  padding: 6px 8px;
-  background: var(--bg-surface);
-  border-bottom: 0;
-  font-size: 12px;
-  font-family: var(--mono);
-  color: var(--text-main);
-}
-.war-tape-inline li.muted {
-  color: var(--text-muted);
-  background: #ffffff;
-  border-style: dashed;
-}
-.war-tape-inline .war-tape-time { color: var(--text-muted); }
-.war-tape-inline .war-tape-side.buy { color: var(--color-up); }
-.war-tape-inline .war-tape-side.sell { color: var(--color-down); }
-.war-tape-inline .war-tape-px { color: var(--text-main); }
-.war-tape-inline .war-tape-pnl.up { color: var(--color-up); }
-.war-tape-inline .war-tape-pnl.down { color: var(--color-down); }
-
-.war-countdown { margin: 4px 0 16px; }
-.war-countdown-bar {
-  height: 10px;
-  background: #e2e8f0;
-  border: 1px solid #000000;
-  overflow: hidden;
-}
-.war-countdown-fill {
-  height: 100%;
-  width: 100%;
-  background: #16a34a;
-  transition: width 0.25s linear, background-color 0.3s ease;
-}
-.war-countdown.is-warn .war-countdown-fill { background: #d97706; }
-.war-countdown.is-danger .war-countdown-fill { background: #dc2626; animation: warCountdownDanger 0.4s steps(2, jump-none) infinite; }
-.war-countdown.is-locked .war-countdown-fill { background: #111827; }
-@keyframes warCountdownDanger {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
-}
-.war-countdown-label {
-  margin-top: 6px;
-  font-family: var(--mono);
-  font-size: 12px;
-  font-weight: 700;
-  text-align: center;
-  color: var(--text-muted);
-}
-.war-countdown.is-warn .war-countdown-label { color: #92400e; }
-.war-countdown.is-danger .war-countdown-label { color: #b91c1c; font-weight: 800; }
-.war-countdown.is-locked .war-countdown-label { color: #111827; }
-
-.war-tape-h { margin: 0 0 10px; font-size: 13px; letter-spacing: 0.06em; color: var(--text-main); }
-.war-tape-list {
-  list-style: none;
-  margin: 0; padding: 0;
-  max-height: 260px;
-  overflow-y: auto;
-}
-.war-tape-list li {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 7px 2px;
-  border-bottom: 1px solid var(--border-subtle);
-  font-size: 12px;
-  font-family: var(--mono);
-}
-.war-tape-list li:last-child { border-bottom: 0; }
-.war-tape-list li[data-symbol] { cursor: pointer; }
-.war-tape-list li[data-symbol]:hover,
-.war-tape-list li[data-symbol]:focus-visible {
-  background: var(--bg-surface);
-  outline: none;
-}
-.war-tape-time { color: var(--text-muted); flex: 0 0 auto; }
-.war-tape-side { flex: 0 0 auto; font-weight: 800; }
-.war-tape-side.buy { color: var(--color-up); }
-.war-tape-side.sell { color: var(--color-down); }
-.war-tape-px { flex: 1 1 auto; text-align: right; color: var(--text-main); }
-.war-tape-pnl { flex: 0 0 auto; font-weight: 700; min-width: 64px; text-align: right; }
-.war-tape-pnl.up { color: var(--color-up); }
-.war-tape-pnl.down { color: var(--color-down); }
-
-/* ---- Two-step selection funnel: coins (multi) -> strategies (multi) ---- */
-.watch-funnel {
-  margin: 4px 0 26px;
-  border-top: 2px solid #000000;
-  padding-top: 14px;
-}
-.funnel-step { margin-bottom: 20px; }
-.funnel-step:last-child { margin-bottom: 0; }
-.matrix-h {
-  margin: 0 0 10px;
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-.coin-pills { display: flex; flex-wrap: wrap; gap: 8px; }
-.coin-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border: 1px solid var(--border-line);
-  background: #ffffff;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  user-select: none;
-  transition: background-color 0.12s ease, color 0.12s ease;
-}
-.coin-pill input { position: absolute; opacity: 0; width: 0; height: 0; }
-.coin-pill.is-checked { background: #000000; color: #ffffff; }
-.coin-pill:hover { background: var(--bg-surface); }
-.coin-pill.is-checked:hover { background: #1f2937; }
-
-.matrix-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 2px 16px;
-}
-.matrix-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 7px 4px;
-  font-size: 12.5px;
-  cursor: pointer;
-  border-bottom: 1px solid var(--border-subtle);
-  user-select: none;
-}
-.matrix-row:hover { background: var(--bg-surface); }
-.matrix-row.is-checked {
-  font-weight: 800;
-  background: #fffdf5;
-  box-shadow: inset 2px 0 0 #c9a227;
-}
-.matrix-check { accent-color: #000000; width: 15px; height: 15px; flex-shrink: 0; }
-.matrix-dot { width: 7px; height: 7px; border-radius: 50%; background: transparent; flex-shrink: 0; }
-.matrix-dot.is-hot {
-  background: #16a34a;
-  animation: liveDotPulse 1.4s ease-in-out infinite;
-}
-.matrix-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1 1 auto; min-width: 0; }
-.matrix-wr {
-  flex-shrink: 0;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
-}
-.matrix-row.is-focused .matrix-name::after { content: " 👁"; }
-
-.watch-tape-block { margin-top: 18px; }
-.watch-tape-list .war-tape-side.buy,
-.watch-tape-list .war-tape-side.sell { min-width: 34px; }
-.watch-tape-tag {
-  flex: 0 0 auto;
-  font-size: 10.5px;
-  color: var(--text-muted);
-  border: 1px solid var(--border-subtle);
-  padding: 1px 6px;
-  margin-right: 4px;
+body.live-page.war-cmd .brand-text h1,
+body.live-page.war-cmd .nav-link,
+body.live-page.war-cmd .term-home-link {
+  color: #e5e7eb;
 }
 
-/* ---- Crowd activity toast capsules (bottom-left, Copart style) ---- */
-.crowd-toast-stack {
-  position: fixed;
-  left: 16px;
-  bottom: max(16px, env(safe-area-inset-bottom));
-  z-index: 70;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-width: min(360px, calc(100vw - 32px));
-  pointer-events: none;
-}
-.crowd-toast {
-  font-family: var(--mono);
-  font-size: 11.5px;
-  line-height: 1.4;
-  color: #ffffff;
-  background: rgba(0, 0, 0, 0.88);
-  border: 1px solid #334155;
-  padding: 8px 12px;
-  opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 0.28s ease, transform 0.28s ease;
-}
-.crowd-toast.is-in { opacity: 1; transform: translateY(0); }
-.crowd-toast.is-out { opacity: 0; transform: translateY(-6px); }
-
-@media (max-width: 768px) {
-  /* ---- Micro top status bar: one line, 11px, tight to the H2 title ---- */
-  .live-room-head { margin: 6px 0 2px; }
-  .war-top-status {
-    font-size: 11px;
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 8px;
-    margin: 4px 0 0;
-    overflow: visible;
-    height: auto;
-  }
-  .live-status-sep { display: none; }
-  .live-status-item { gap: 4px; flex: 0 1 auto; min-width: 0; }
-  .live-mute-btn {
-    flex: 1 1 100%;
-    max-width: 100%;
-    padding: 8px 10px;
-    font-size: 11px;
-    white-space: normal;
-    line-height: 1.35;
-    min-height: 40px;
-    text-align: left;
-  }
-
-  .live-room-head { padding-right: 12px; }
-  .war-room { padding: 12px; margin: 14px 0 16px; }
-  .war-room-status { font-size: 12px; }
-
-  /* ---- Edge-to-edge K-line: bleed the chart frame out of .war-room's
-     padding, drop the border, so the chart fills the full viewport width. ---- */
-  .war-chart-frame {
-    margin: 0 0 14px;
-    border-left: 0;
-    border-right: 0;
-    border-radius: 0;
-  }
-  .war-chart { height: 360px; max-width: 100%; }
-  .war-chart-legend { padding: 8px 12px 0; }
-
-  .coin-pill { padding: 6px 10px; font-size: 11px; }
-  .matrix-list { grid-template-columns: 1fr 1fr; gap: 0 10px; }
-  .matrix-row { font-size: 12px; padding: 8px 2px; }
-  /* Hide the long English strategy alias on small screens — keep only the
-     Chinese core term so the two-column grid never truncates/wraps. */
-  .matrix-name-en { display: none; }
-
-  /* ---- Bottom watchlist marquee: never let it cover the chart's x-axis
-     or the footer logo when it sticks near the viewport bottom. ---- */
-  .watch-tape-block {
-    position: relative;
-    z-index: 99;
-    padding-bottom: 60px;
-  }
-
-  .crowd-toast-stack {
-    left: 8px; right: 8px; bottom: 8px;
-    max-width: none;
-  }
-  .crowd-toast {
-    font-size: 10.5px;
-    padding: 7px 10px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+body.live-page.war-cmd {
+  background-image:
+    linear-gradient(rgba(31, 41, 55, 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(31, 41, 55, 0.18) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-attachment: fixed;
 }
 
-/* ---- Live page: sticky header + ticker stack ---- */
-body.live-page .live-sticky-chrome {
+body.live-page.war-cmd .wrap {
+  max-width: 1280px;
+  overflow-x: hidden;
+}
+
+.cmd-main {
+  padding: 12px 0 28px;
+}
+
+.cmd-voice-bar {
   position: sticky;
   top: 0;
-  z-index: 45;
-  background: #ffffff;
-  box-shadow: 0 1px 0 #000000;
+  z-index: 40;
+  display: flex;
+  justify-content: center;
+  padding: 8px 0 12px;
+  background: linear-gradient(180deg, #0b0e14 70%, transparent);
 }
-body.has-bb-util.live-page .live-sticky-chrome {
-  top: 28px;
-}
-body.live-page .topbar {
+
+.cmd-voice-btn {
   position: relative;
-  top: auto;
-  z-index: auto;
-}
-
-/* 24H Finance Radio — full-width bar under marquee (always visible) */
-.finance-radio-bar,
-.finance-radio-dock {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  width: 100%;
-  padding: 6px 10px;
-  border-bottom: 1px solid #000;
-  background: #fff;
-  box-sizing: border-box;
-}
-.finance-radio-btn {
-  border: 1px solid #000;
-  background: #fff;
-  color: #000;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.03em;
-  padding: 6px 10px;
-  white-space: nowrap;
-  cursor: pointer;
-}
-.finance-radio-bar.is-live .finance-radio-btn,
-.finance-radio-dock.is-live .finance-radio-btn {
-  background: #ecfdf5;
-  border-color: #16a34a;
-}
-.finance-radio-station {
-  font-family: ui-monospace, "JetBrains Mono", SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 11px;
-  font-weight: 700;
-  color: #000;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-}
-.finance-radio-hint {
-  font-size: 11px;
-  color: #64748b;
-  font-weight: 600;
-}
-.live-slogan-line {
-  margin: 6px 0 0;
-  font-size: 13px;
-  font-weight: 700;
-  color: #166534;
-  line-height: 1.45;
-}
-@media (min-width: 901px) {
-  body.live-page .war-room-page-grid {
-    grid-template-columns: minmax(0, 1fr) 360px;
-    overflow: visible;
-  }
-  body.live-page .editorial-rail.vps-exec-rail {
-    display: flex !important;
-    min-width: 320px;
-  }
-}
-
-body.live-page .editorial-rail.vps-exec-rail {
-  position: sticky;
-  top: var(--live-chrome-h, 132px);
-  align-self: start;
-  max-height: calc(100vh - var(--live-chrome-h, 132px) - 12px);
-  padding-top: 0;
-  padding-left: 20px;
-}
-body.live-page:not(.has-bb-util) .editorial-rail.vps-exec-rail {
-  top: var(--live-chrome-h, 132px);
-  max-height: calc(100vh - var(--live-chrome-h, 132px) - 12px);
-}
-
-/* Right rail starts flush under chrome; sticks to K-line after scroll */
-body.live-page .war-room-page-grid {
-  align-items: start;
-  border-top: none;
-  overflow: visible;
-}
-body.live-page .editorial-main {
-  overflow: visible;
-}
-body.live-page .sidebar-rail-inner {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  padding-top: 0;
-  min-width: 0;
-}
-body.live-page .sidebar-header-aligned {
-  border: 1px solid #1f2428;
-  border-bottom: none;
-  background: #0c0d0e;
-  padding: 10px 14px;
-  margin-bottom: 0;
-  overflow: hidden;
-  font-family: "JetBrains Mono", "Roboto Mono", "SF Pro Display", -apple-system, sans-serif;
-}
-body.live-page .sidebar-header-aligned .main-title-flex {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: #f1f5f9;
-  overflow: hidden;
-  min-width: 0;
-}
-body.live-page .vps-live-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: #10b981;
-  line-height: 1;
-  white-space: nowrap;
-  overflow: hidden;
-}
-body.live-page .vps-live-badge::before {
-  content: "";
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #10b981;
-  flex-shrink: 0;
-  animation: vpsLivePulse 1.5s ease-in-out infinite;
-}
-@keyframes vpsLivePulse {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 1; }
-}
-body.live-page .sidebar-header-aligned .status-dot.green {
-  width: auto;
-  height: auto;
-  border-radius: 0;
-  background: transparent;
-  animation: none;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: #10b981;
-  white-space: nowrap;
-}
-
-/* ---- Execution tape: Bloomberg / Binance dark live table ---- */
-.exec-tape-board {
-  background: #0c0d0e;
-  color: #f1f5f9;
-  font-family: "JetBrains Mono", "Roboto Mono", "SF Pro Display", -apple-system, sans-serif;
-  padding: 10px 14px 14px;
-  border: 1px solid #1f2428;
-  border-top: none;
-}
-.exec-tape-meta {
-  color: #64748b;
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  margin-bottom: 10px;
-  line-height: 1.45;
-}
-.exec-tape-table {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-.exec-tape-head,
-.exec-tape-row {
-  display: grid;
-  grid-template-columns: minmax(65px, 1fr) 55px 75px minmax(80px, 1fr);
-  column-gap: 8px;
-  align-items: center;
-}
-.exec-tape-head {
-  padding: 0 2px 8px;
-  margin-bottom: 2px;
-  border-bottom: 1px solid #1f2428;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #64748b;
-}
-.exec-tape-head .tape-price {
-  text-align: right;
-}
-.exec-tape-viewport {
-  height: 480px;
-  overflow-y: hidden;
-  position: relative;
-}
-.exec-tape-body {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-.exec-tape-row {
-  padding: 7px 2px;
-  border-bottom: 1px solid rgba(31, 36, 40, 0.65);
-  font-size: 11px;
-  line-height: 1.2;
-  font-variant-numeric: tabular-nums;
-}
-.exec-tape-row:last-child {
-  border-bottom: none;
-}
-.exec-tape-row.is-new {
-  animation: tapeRowFadeIn 0.55s ease;
-}
-.exec-tape-row .tape-time {
-  color: #94a3b8;
-  font-weight: 500;
-}
-.exec-tape-row .tape-pair {
-  color: #f8fafc;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.exec-tape-row .tape-price {
-  color: #cbd5e1;
-  font-weight: 600;
-  text-align: right;
-  white-space: nowrap;
-}
-.exec-tape-row .tape-pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 3px;
-  min-width: 38px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 10px;
+  min-height: 44px;
+  padding: 8px 22px;
+  border-radius: 999px;
+  border: 1px solid #1f2937;
+  background: #111827;
+  color: #94a3b8;
   font-weight: 800;
-  letter-spacing: 0.06em;
-  line-height: 1.2;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  overflow: hidden;
 }
-.exec-tape-row .tape-count {
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0;
-  opacity: 0.9;
+
+.cmd-voice-btn.is-on {
+  color: #00f59b;
+  border-color: rgba(0, 245, 155, 0.55);
+  box-shadow: 0 0 18px rgba(0, 245, 155, 0.28);
 }
-.exec-tape-row .tape-pair {
+
+.cmd-voice-btn.is-on .cmd-voice-pulse {
+  position: absolute;
+  inset: -6px;
+  border-radius: inherit;
+  border: 1px solid rgba(0, 245, 155, 0.45);
+  animation: voicePulse 1.6s ease-out infinite;
+}
+
+.cmd-lead {
+  text-align: center;
+  margin: 0 0 16px;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.coin-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.coin-card {
+  min-width: 0;
+  background: #0d1118;
+  border: 1px solid #1f2937;
+  border-radius: 10px;
+  padding: 12px 12px 8px;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 1px;
-  min-width: 0;
+  gap: 6px;
 }
-.exec-tape-row .tape-pair-main {
+
+.coin-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.coin-pair {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #f8fafc;
+}
+
+.coin-chg {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+
+.coin-chg.is-up {
+  color: #00f59b;
+  background: rgba(0, 245, 155, 0.12);
+}
+
+.coin-chg.is-down {
+  color: #ff3b69;
+  background: rgba(255, 59, 105, 0.12);
+}
+
+.coin-px {
+  font-size: 20px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #f8fafc;
+  line-height: 1.15;
+}
+
+.coin-spark {
+  display: block;
+  width: 100%;
+  height: 88px;
+}
+
+.radar-board {
+  margin-top: 18px;
+  border: 1px solid #1f2937;
+  background: #0d1118;
+  border-radius: 10px;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
 }
-.exec-tape-row .tape-strat {
-  font-size: 9px;
-  font-weight: 600;
-  color: #64748b;
-  letter-spacing: 0.02em;
+
+.radar-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #1f2937;
+}
+
+.radar-kicker {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: #f59e0b;
+  text-transform: uppercase;
+}
+
+.radar-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #e5e7eb;
+}
+
+.radar-viewport {
+  height: 220px;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
+  position: relative;
 }
-.exec-tape-row .tape-action-buy .tape-pill {
-  color: #10b981;
-  background: rgba(16, 185, 129, 0.14);
+
+.radar-list {
+  display: flex;
+  flex-direction: column;
 }
-.exec-tape-row .tape-action-sell .tape-pill {
-  color: #f43f5e;
-  background: rgba(244, 63, 94, 0.14);
+
+.radar-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  padding: 9px 14px;
+  border-bottom: 1px solid rgba(31, 41, 55, 0.7);
+  font-size: 12px;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  color: #cbd5e1;
 }
-.exec-tape-empty {
-  grid-column: 1 / -1;
-  padding: 24px 4px;
+
+.radar-row .t {
+  color: #94a3b8;
+}
+
+.radar-row.is-buy .side {
+  color: #00f59b;
+  text-shadow: 0 0 8px rgba(0, 245, 155, 0.45);
+}
+
+.radar-row.is-sell .side {
+  color: #ff3b69;
+  text-shadow: 0 0 8px rgba(255, 59, 105, 0.4);
+}
+
+.radar-row .pnl.is-up {
+  color: #00f59b;
+}
+
+.radar-row .pnl.is-down {
+  color: #ff3b69;
+}
+
+.radar-idle {
+  padding: 28px 14px;
   text-align: center;
   color: #64748b;
-  font-size: 11px;
-  letter-spacing: 0.03em;
-}
-.exec-tape-table.is-batch .exec-tape-head {
-  display: none;
-}
-.exec-tape-table.is-batch .exec-tape-viewport {
-  overflow-y: auto;
-}
-.tape-batch {
-  padding: 10px 2px 12px;
-  border-bottom: 1px solid rgba(31, 36, 40, 0.85);
-}
-.tape-batch:last-child {
-  border-bottom: none;
-}
-.tape-batch.is-new {
-  animation: tapeRowFadeIn 0.55s ease;
-}
-.tape-batch-kicker-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-.tape-batch-kicker {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #f59e0b;
-}
-.tape-batch .tape-time {
-  color: #94a3b8;
-  font-size: 11px;
-  font-weight: 500;
-}
-.tape-batch-title {
-  margin: 2px 0 8px;
   font-size: 13px;
-  font-weight: 700;
-  color: #f8fafc;
-  line-height: 1.35;
 }
-.tape-batch-tf {
-  display: inline-block;
-  margin-left: 6px;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  color: #94a3b8;
-}
-.tape-batch-action {
-  margin-bottom: 6px;
-}
-.tape-batch-action .tape-pill {
-  display: inline-flex;
+
+.voice-hint {
+  position: fixed;
+  top: 72px;
+  right: 16px;
+  z-index: 80;
+  display: flex;
   align-items: center;
-  justify-content: center;
-  min-width: 0;
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-}
-.tape-batch-action.tape-action-buy .tape-pill {
-  color: #10b981;
-  background: rgba(16, 185, 129, 0.12);
-}
-.tape-batch-action.tape-action-sell .tape-pill {
-  color: #f43f5e;
-  background: rgba(244, 63, 94, 0.12);
-}
-.tape-batch-syms {
-  margin-top: 4px;
-}
-.tape-batch-sym {
-  display: grid;
-  grid-template-columns: minmax(72px, 1.1fr) minmax(0, 1fr) minmax(0, 0.9fr) minmax(0, 0.9fr);
-  column-gap: 8px;
-  align-items: baseline;
-  padding: 7px 0;
-  border-top: 1px solid #161a1d;
-  font-size: 11px;
-  color: #cbd5e1;
-}
-.tape-batch-pair {
+  gap: 8px;
+  max-width: min(280px, calc(100vw - 24px));
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #111827;
+  border: 1px solid rgba(245, 158, 11, 0.55);
+  color: #fde68a;
+  font-size: 12px;
   font-weight: 700;
-  color: #f8fafc;
-  white-space: nowrap;
+  box-shadow: 0 0 22px rgba(245, 158, 11, 0.25);
+  animation: hintBreathe 1.8s ease-in-out infinite;
 }
-.tape-batch-kv {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: #94a3b8;
+
+.voice-hint[hidden] {
+  display: none !important;
 }
-.tape-batch-kv code {
-  font-family: inherit;
-  color: #e2e8f0;
-  font-weight: 600;
+
+.voice-hint-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f59e0b;
+  box-shadow: 0 0 10px #f59e0b;
 }
-@keyframes tapeRowFadeIn {
-  0% {
-    opacity: 0;
-    transform: translateY(-6px);
-    background: rgba(241, 245, 249, 0.04);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-    background: transparent;
-  }
+
+@keyframes voicePulse {
+  0% { opacity: 0.85; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.12); }
 }
-@media (max-width: 900px) {
-  body.live-page .editorial-rail.vps-exec-rail {
-    position: static;
-    max-height: none;
-    margin-top: 16px;
-    padding-left: 0;
-  }
-  body.live-page .sidebar-rail-inner {
-    padding-top: 0;
-  }
-  body.live-page .war-top-status {
-    justify-content: flex-start;
-  }
-  .exec-tape-viewport {
-    height: 320px;
-  }
+
+@keyframes hintBreathe {
+  0%, 100% { opacity: 0.82; }
+  50% { opacity: 1; }
 }
-@media (max-width: 768px) {
-  body.has-bb-util.live-page .live-sticky-chrome {
-    top: 0;
-  }
-  body.live-page .live-sticky-chrome {
-    position: sticky;
-    top: 0;
+
+@media (max-width: 1100px) {
+  .coin-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-/* ---------------------------------------------------------------------
- * Mobile: the exec-tape rail ("SYSTEM EXECUTION") becomes a bottom-sheet
- * drawer, opened by a small floating pill above the watch tape. The rail
- * markup itself is unchanged — only its position/transform differ here.
- * ------------------------------------------------------------------- */
-.config-sheet-handle,
-.config-sheet-apply,
-.config-dock-btn,
-.mobile-live-dock,
-.mobile-sheet-backdrop,
-.mobile-tape-pill,
-.mobile-sheet-close { display: none; }
-
-@media (max-width: 768px) {
-  .mobile-sheet-backdrop[hidden] { display: none !important; }
-  .mobile-sheet-backdrop:not([hidden]) {
-    display: block !important;
-    position: fixed;
-    inset: 0;
-    z-index: 190;
-    background: rgba(0, 0, 0, 0.55);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-  }
-
-  .mobile-live-dock {
-    display: flex;
-    align-items: stretch;
-    gap: 8px;
-    position: fixed;
-    left: 12px;
-    right: 12px;
-    bottom: max(12px, env(safe-area-inset-bottom));
-    z-index: 180;
-  }
-  body.tape-sheet-open .mobile-live-dock,
-  body.config-sheet-open .mobile-live-dock { display: none !important; }
-
-  .mobile-tape-pill {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex: 1 1 42%;
-    min-width: 0;
-    position: relative;
-    left: auto;
-    right: auto;
-    bottom: auto;
-    z-index: auto;
-    padding: 10px 12px;
-    border: 1px solid #1f2428;
-    border-radius: 999px;
-    background: #0c0d0e;
-    color: #f1f5f9;
-    font-family: "JetBrains Mono", "Roboto Mono", "SF Pro Display", -apple-system, sans-serif;
-    font-size: 11px;
-    font-weight: 700;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
-  }
-  .mobile-tape-pill-dot {
-    width: 7px; height: 7px; border-radius: 50%; background: #10b981; flex-shrink: 0;
-    animation: liveDotPulse 1.5s ease-in-out infinite;
-  }
-  .mobile-tape-pill-text {
-    flex: 1 1 auto;
-    min-width: 0;
-    text-align: left;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
-  .mobile-tape-pill-chevron { color: #64748b; flex-shrink: 0; }
-  .mobile-tape-pill[aria-expanded="true"] .mobile-tape-pill-chevron { transform: rotate(180deg); }
-
-  .config-dock-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex: 1 1 58%;
-    min-width: 0;
-    padding: 10px 12px;
-    border: 1px solid #000000;
-    border-radius: 999px;
-    background: #f8fafc;
-    color: #0c0d0e;
-    font-family: "SF Pro Display", -apple-system, sans-serif;
-    font-size: 12px;
-    font-weight: 800;
-    letter-spacing: 0.01em;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .mobile-sheet-close {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-left: auto;
-    width: 22px;
-    height: 22px;
-    border: 1px solid #334155;
-    border-radius: 50%;
-    background: transparent;
-    color: #94a3b8;
-    font-size: 11px;
-    cursor: pointer;
-  }
-
-  /* styles.css hides all .editorial-rail on mobile — re-enable exec tape drawer */
-  body.live-page .editorial-rail.vps-exec-rail {
-    display: flex !important;
-    flex-direction: column;
-    position: fixed !important;
-    left: 0;
-    right: 0;
-    top: auto;
-    bottom: 0;
-    z-index: 200;
-    max-height: 72vh;
-    margin: 0;
-    padding: 0;
-    border-radius: 16px 16px 0 0;
-    overflow-y: auto;
-    transform: translateY(110%);
-    transition: transform 0.28s ease;
-    box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.45);
-    pointer-events: none;
-  }
-  body.live-page.tape-sheet-open .editorial-rail.vps-exec-rail {
-    pointer-events: auto;
-  }
-  body.live-page.tape-sheet-open .editorial-rail.vps-exec-rail {
-    transform: translateY(0);
-  }
-  body.live-page .exec-tape-viewport { height: auto; max-height: 50vh; }
-
-  /* Config funnel becomes a half-screen bottom sheet; hidden from main flow. */
-  body.live-page .watch-funnel.config-sheet {
-    display: flex;
-    flex-direction: column;
-    position: fixed !important;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    top: auto;
-    z-index: 200;
-    width: 100%;
-    height: 75vh;
-    max-height: 75vh;
-    margin: 0;
-    padding: 0 0 env(safe-area-inset-bottom);
-    border: 0;
-    border-top: none;
-    border-radius: 16px 16px 0 0;
-    background: #121316;
-    color: #e2e8f0;
-    transform: translateY(110%);
-    transition: transform 0.28s ease;
-    box-shadow: 0 -16px 40px rgba(0, 0, 0, 0.5);
-    overflow: hidden;
-  }
-  body.live-page.config-sheet-open .watch-funnel.config-sheet {
-    transform: translateY(0);
-  }
-  body.live-page.config-sheet-open,
-  body.live-page.tape-sheet-open {
-    overflow: hidden;
-  }
-  .config-sheet-handle {
-    display: block !important;
-    width: 40px;
-    height: 4px;
-    margin: 10px auto 8px;
-    border-radius: 999px;
-    background: #64748b;
-    flex-shrink: 0;
-  }
-  .config-sheet-scroll {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: 0 14px 12px;
-  }
-  body.live-page .config-sheet .funnel-step { margin-bottom: 16px; }
-  body.live-page .config-sheet .matrix-h {
-    color: #94a3b8;
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    margin-bottom: 8px;
-  }
-  body.live-page .config-sheet .coin-pills {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 8px;
-  }
-  body.live-page .config-sheet .coin-pill {
-    justify-content: center;
-    padding: 8px 4px;
-    border: 1px solid #2a2e34;
-    border-radius: 999px;
-    background: #1a1c20;
-    color: #cbd5e1;
-    font-size: 12px;
-  }
-  body.live-page .config-sheet .coin-pill.is-checked {
-    background: rgba(16, 185, 129, 0.14);
-    border-color: #10b981;
-    color: #10b981;
-  }
-  body.live-page .config-sheet .coin-pill:hover { background: #1a1c20; }
-  body.live-page .config-sheet .coin-pill.is-checked:hover {
-    background: rgba(16, 185, 129, 0.18);
-  }
-  body.live-page .config-sheet .matrix-list {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-  body.live-page .config-sheet .matrix-row {
-    gap: 6px;
-    padding: 8px 8px;
-    border: 1px solid #2a2e34;
-    border-radius: 8px;
-    background: #1a1c20;
-    color: #e2e8f0;
-    font-size: 12px;
-    font-weight: 600;
-  }
-  body.live-page .config-sheet .matrix-row:hover { background: #1a1c20; }
-  body.live-page .config-sheet .matrix-row.is-checked {
-    background: rgba(16, 185, 129, 0.12);
-    border-color: #10b981;
-    box-shadow: none;
-    font-weight: 800;
-  }
-  body.live-page .config-sheet .matrix-dot { display: none; }
-  body.live-page .config-sheet .matrix-name-en { display: none; }
-  body.live-page .config-sheet .matrix-name {
-    color: #f1f5f9;
-    white-space: normal;
-    line-height: 1.25;
-  }
-  body.live-page .config-sheet .matrix-row.is-focused .matrix-name::after { content: none; }
-  body.live-page .config-sheet .matrix-wr {
-    color: #64748b;
-    font-size: 9px;
-  }
-  body.live-page .config-sheet .matrix-check { accent-color: #10b981; }
-  .config-sheet-apply {
-    display: block !important;
-    flex-shrink: 0;
-    width: calc(100% - 28px);
-    margin: 0 14px 12px;
-    padding: 12px 10px;
-    border: none;
-    border-radius: 10px;
-    background: #10b981;
-    color: #052e16;
-    font-size: 14px;
-    font-weight: 800;
-    letter-spacing: 0.02em;
-  }
-
-  .watch-tape-block { padding-bottom: 84px; }
-}
-
-/* P0–P2 live.html phone layout (375–414px): single column, no x-scroll, denser type */
-@media (max-width: 768px) {
-  body.live-page {
-    max-width: 100vw;
-  }
-  body.live-page .wrap.wide {
-    padding-left: 12px;
-    padding-right: 12px;
-    box-sizing: border-box;
-    max-width: 100%;
-    width: 100%;
-  }
-  body.live-page .editorial-grid,
-  body.live-page .war-room-page-grid {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    max-width: 100%;
-    grid-template-columns: 1fr !important;
+@media (max-width: 767px) {
+  .coin-grid {
+    grid-template-columns: 1fr;
     gap: 12px;
-    margin-top: 8px;
-    overflow: visible;
   }
-  body.live-page .editorial-main,
-  body.live-page .editorial-rail {
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
-    padding-left: 0;
-    padding-right: 0;
-    border-right: 0;
-    overflow: visible;
+  .coin-spark {
+    height: 110px;
   }
-  body.live-page .war-room {
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-    padding: 10px 12px;
-    margin: 8px 0 12px;
-    overflow: visible;
+  .voice-hint {
+    top: auto;
+    bottom: 16px;
+    right: 12px;
+    left: 12px;
+    max-width: none;
   }
-  body.live-page .war-chart-frame {
-    position: relative;
-    left: 50%;
-    right: 50%;
-    width: 100vw;
-    max-width: 100vw;
-    margin: 0 0 12px;
-    margin-left: -50vw;
-    margin-right: -50vw;
-    overflow: visible;
-    border-left: 0;
-    border-right: 0;
-  }
-  body.live-page .war-chart,
-  body.live-page .chart-container,
-  body.live-page #tv_chart_container {
-    display: block;
-    width: 100%;
-    height: 360px;
-    min-height: 360px;
-    max-width: 100%;
-    position: relative;
-  }
-  body.live-page .war-chart-legend {
-    padding: 6px 8px 0;
-    gap: 4px;
-  }
-  body.live-page .exec-tape-table {
-    width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  body.live-page .exec-tape-head,
-  body.live-page .exec-tape-row {
-    min-width: 300px;
-    grid-template-columns: 62px 48px minmax(58px, 1fr) minmax(72px, 0.9fr);
-    column-gap: 6px;
-  }
-  body.live-page .tape-batch-sym {
-    grid-template-columns: 1fr 1fr;
-    row-gap: 4px;
-  }
-  body.live-page .exec-tape-row .tape-time,
-  body.live-page .exec-tape-row .tape-price,
-  body.live-page .exec-tape-row .tape-pair {
-    white-space: nowrap;
-  }
-  body.live-page .h2 {
-    font-size: 16px;
-    line-height: 1.3;
-    margin: 0 0 4px;
-  }
-  body.live-page .live-room-head {
-    padding-right: 0;
-    margin: 4px 0 2px;
-  }
-}
-
-/* ---------------------------------------------------------------------
- * live.html — Galaxy / high-DPI phones (≈320–430px): prevent toolbar overlap
- * from absolute positioning, nowrap flex rows, and system font scaling.
- * ------------------------------------------------------------------- */
-@media (max-width: 768px) {
-  body.live-page {
-    -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%;
-  }
-
-  body.live-page .live-room-head,
-  body.live-page .war-room-status,
-  body.live-page .sidebar-header-aligned .main-title-flex,
-  body.live-page .selected-matrix-head {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    gap: 8px !important;
-    height: auto !important;
-    min-height: 0 !important;
-    position: static !important;
-  }
-
-  body.live-page .live-room-head .btn,
-  body.live-page .live-room-head button,
-  body.live-page .war-room-status button,
-  body.live-page .war-top-status button,
-  body.live-page .sidebar-header-aligned button,
-  body.live-page .mobile-sheet-close {
-    position: static !important;
-    transform: none !important;
-    top: auto !important;
-    right: auto !important;
-    bottom: auto !important;
-    left: auto !important;
-    flex-shrink: 0;
-  }
-
-  body.live-page .war-top-status {
-    flex-wrap: wrap !important;
-    overflow: visible !important;
-    width: 100%;
-  }
-
-  body.live-page .war-chart-frame {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    height: auto !important;
-    overflow: visible;
-  }
-
-  body.live-page .war-chart-legend {
-    order: 1;
-    flex-wrap: wrap;
-    gap: 6px;
-    padding: 6px 8px 0;
-    min-height: 0;
-  }
-
-  body.live-page .war-chart-frame .chart-touch-toggle {
-    position: static !important;
-    order: 2;
-    align-self: flex-start;
-    margin: 0 8px;
-    top: auto !important;
-    right: auto !important;
-    left: auto !important;
-    transform: none !important;
-    min-height: 36px;
-    padding: 6px 12px;
-    font-size: 12px;
-  }
-
-  body.live-page .war-chart-frame .scan-hud {
-    position: static !important;
-    order: 3;
-    width: calc(100% - 16px) !important;
-    max-width: calc(100% - 16px) !important;
-    margin: 0 8px;
-    top: auto !important;
-    right: auto !important;
-    pointer-events: none;
-  }
-
-  body.live-page .war-chart-frame .scan-hud-text {
-    white-space: normal;
-    overflow: visible;
-    text-overflow: unset;
-    line-height: 1.35;
-  }
-
-  body.live-page .war-chart {
-    order: 4;
-  }
-
-  body.live-page .war-chart-tooltip {
-    order: 5;
-  }
-
-  body.live-page .mobile-view-tabs {
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    width: 100% !important;
-    max-width: 100% !important;
-    gap: 6px !important;
-    padding: 4px 0 !important;
-  }
-
-  body.live-page .mobile-view-tabs::-webkit-scrollbar {
-    display: none;
-  }
-
-  body.live-page .mobile-view-tabs .mv-tab {
-    flex: 0 0 auto;
-    min-height: 36px;
-    padding: 6px 12px;
-    font-size: 13px;
-  }
-
-  body.live-page .config-sheet .coin-pills {
-    display: grid !important;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    overflow: visible !important;
-    flex-wrap: unset !important;
-  }
-
-  body.live-page .sidebar-header-aligned .main-title-flex {
-    row-gap: 6px;
-  }
-
-  body.live-page .sidebar-header-aligned .mobile-sheet-close {
-    margin-left: auto;
-    flex: 0 0 auto;
-  }
-
-  body.live-page .selected-matrix-head .selected-matrix-label {
-    flex: 1 1 100%;
-  }
-
-  body.live-page .selected-matrix-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  body.live-page .selected-matrix-row-pill {
-    flex: 1 1 auto;
-    min-width: 0;
-    max-width: 100%;
-  }
-
-  body.live-page .mobile-live-dock {
-    flex-wrap: nowrap;
-    gap: 8px;
-  }
-
-  body.live-page .mobile-tape-pill,
-  body.live-page .config-dock-btn {
-    flex: 1 1 0;
-    min-width: 0;
-    min-height: 44px;
+  .cmd-voice-bar {
+    padding-top: 4px;
   }
 }

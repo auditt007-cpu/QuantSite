@@ -3,26 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- iOS Safari 专属高清大图标（防白色方块） -->
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#09090b">
-  <title>QUANT ALPHA · 實時作戰室</title>
+  <meta name="theme-color" content="#0b0e14">
+  <title>QUANT ALPHA · 量化戰情指揮部</title>
   <link rel="stylesheet" href="./styles.css" />
   <link rel="stylesheet" href="./css/mobile-global.css?v=nav4" />
-  <link rel="stylesheet" href="./css/bbg-terminal.css" />
   <link rel="stylesheet" href="./css/bloomberg-system.css" />
-  <link rel="stylesheet" href="./css/live-room.css?v=av4" />
+  <link rel="stylesheet" href="./css/live-room.css?v=cmd1" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
 </head>
-<body class="editorial-light live-page" data-title-key="titleLive">
+<body class="live-page war-cmd" data-title-key="titleLive">
   <div class="wrap wide">
-    <div class="live-sticky-chrome">
     <header class="topbar">
       <a class="brand" href="./index.html">
         <div class="logo"></div>
@@ -65,160 +62,41 @@
         <span class="ticker-pill" data-sym="DOGEUSDT"><span class="tp-sym">DOGE</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
       </div>
     </div>
-
     <div id="bloomberg-marquee-bar" class="bb-marquee" aria-label="Flash news ticker">
       <span class="bb-tag" data-i18n="flashMarqueeTag">即時快訊</span>
       <div class="bb-track-wrap">
         <div class="bb-track" id="bbMarqueeTrack"></div>
       </div>
     </div>
-    <div class="finance-radio-bar" id="financeRadioDock">
-      <button type="button" class="finance-radio-btn" id="financeRadioToggle" aria-pressed="false" data-i18n="financeRadioOff">📻 24H 財經電台: OFF</button>
-      <span class="finance-radio-station" id="financeRadioStation"></span>
-      <span class="finance-radio-hint" data-i18n="financeRadioHint">跟隨頁面語言自動切源 · 可隨時關閉</span>
-    </div>
-    </div>
 
-    <div class="mobile-view-tabs" id="mobileViewTabs" role="tablist">
-      <button type="button" class="mv-tab is-active" data-view="strategies" data-i18n="mvTabStrategies">🎯 核心監控 / 策略</button>
-      <button type="button" class="mv-tab" data-view="leaderboard" data-i18n="mvTabLeaderboard">🏆 收益 TOP 5</button>
-      <button type="button" class="mv-tab" data-view="news" data-i18n="mvTabNews">⚡ 7x24 快訊</button>
-    </div>
-    <div class="editorial-grid war-room-page-grid">
-      <div class="editorial-main">
-      <div class="mv-panel mv-panel-strategies" data-mv-panel="strategies">
-        <section class="live-room-head">
-          <div class="kicker desk-only" data-i18n="liveKicker">LIVE WAR ROOM</div>
-          <h2 class="h2" data-i18n="liveTitle">實時量化作戰室</h2>
-          <p class="live-slogan-line" id="liveSloganLine" data-i18n="vpsExecMeta">🟢 15m/1h 收盤信號觸發 · 與 Telegram 頻道同步聚合</p>
-          <p class="muted desk-only" data-i18n="liveSub">單一大屏監控 · 3 小時內有效買賣點 · 60 秒開倉窗口語音倒計時</p>
-          <p>
-            <a id="btnGetStrategy" class="btn-cta" href="https://t.me/grid_quant_bot" target="_blank" rel="noopener" data-get-strategy>获取策略</a>
-          </p>
-          <div class="war-top-status" id="warTopStatus">
-            <span class="live-status-item">
-              <span class="live-dot" aria-hidden="true"></span>
-              <span data-i18n="liveWatchersLabel">LIVE WATCHERS</span>
-              <b id="liveWatchersCount">—</b>
-            </span>
-            <span class="live-status-sep" aria-hidden="true">·</span>
-            <span class="live-status-item">
-              <span data-i18n="liveSignalsLabel">今日觸發信號</span>
-              <b id="liveSignalsCount">—</b>
-            </span>
-            <span class="live-status-sep" aria-hidden="true">·</span>
-            <button type="button" class="live-mute-btn" id="liveMuteBtn" data-i18n="liveMuteOn">🔊 作戰室語音播報：開啟</button>
-          </div>
-        </section>
-
-        <section class="war-room" id="warRoom">
-          <div class="war-room-status" id="warStatus">
-            <span class="war-status-dot" aria-hidden="true"></span>
-            <span id="warStatusText" data-i18n="warStatusIdle">⚪ 請於下方勾選策略以啟動監控</span>
-          </div>
-
-          <div class="war-chart-frame">
-            <!-- ========================================================= -->
-            <!-- [LOCKED MODULE: TRADINGVIEW CHART ENGINE]                 -->
-            <!-- DO NOT MODIFY OR RE-INITIALIZE DURING OTHER FEATURE EDITS -->
-            <!-- ========================================================= -->
-            <div class="war-chart-legend" id="warChartLegend" aria-label="Chart legend"></div>
-            <div id="tv_chart_container" class="war-chart chart-container"></div>
-            <div class="war-chart-tooltip" id="warChartTooltip" hidden></div>
-            <!-- [END LOCKED MODULE: TRADINGVIEW CHART ENGINE] -->
-            <button type="button" class="chart-touch-toggle chart-touch-toggle-left" data-target="tv_chart_container" data-i18n="chartTouchOn">🔍 開啟互動</button>
-            <div class="scan-hud" id="scanHud" aria-hidden="true">
-              <div class="scan-hud-bar"><div class="scan-hud-fill" id="scanHudFill"></div></div>
-              <div class="scan-hud-text" id="scanHudText"></div>
-            </div>
-          </div>
-
-          <div class="war-countdown" id="warCountdown" hidden>
-            <div class="war-countdown-bar"><div class="war-countdown-fill" id="warCountdownFill"></div></div>
-            <div class="war-countdown-label" id="warCountdownLabel">60s</div>
-          </div>
-
-          <div id="selected-matrix-container" class="selected-matrix-container">
-            <div class="selected-matrix-head">
-              <span class="selected-matrix-label" data-i18n="warSelectedLabel">🎯 已監控組合</span>
-              <span class="selected-matrix-label" data-i18n="warTapeTitle">📡 3 小時內有效買賣點</span>
-            </div>
-            <div class="selected-matrix-rows" id="selectedMatrixRows">
-              <p class="muted selected-matrix-empty" data-i18n="watchTapeEmpty">請於下方勾選幣種與策略</p>
-            </div>
-          </div>
-
-          <div class="war-tape-block watch-tape-block" id="watchTapeBlock">
-            <h3 class="war-tape-h" data-i18n="watchTapeTitle">⭐ 我的專屬關注流水 (My Watchlist Tape)</h3>
-            <ul class="war-tape-list watch-tape-list" id="watchTapeList">
-              <li class="muted" data-i18n="watchTapeEmpty">請於下方勾選幣種與策略，開始生成專屬關注流水</li>
-            </ul>
-          </div>
-        </section>
-
-        <section class="watch-funnel config-sheet" id="watchFunnel">
-          <div class="config-sheet-handle" id="configSheetHandle" aria-hidden="true"></div>
-          <div class="config-sheet-scroll">
-            <div class="funnel-step">
-              <h3 class="matrix-h" data-i18n="configSheetCoins">監控幣種</h3>
-              <div class="coin-pills" id="coinPills"></div>
-            </div>
-            <div class="funnel-step">
-              <h3 class="matrix-h" data-i18n="configSheetStrats">策略模型</h3>
-              <div class="matrix-list" id="matrixList"></div>
-            </div>
-          </div>
-          <button type="button" class="config-sheet-apply" id="configSheetApply">✅ 確認並應用組合 (1)</button>
-        </section>
+    <main class="cmd-main">
+      <div class="cmd-voice-bar" id="cmdVoiceBar">
+        <button type="button" class="cmd-voice-btn is-off" id="liveMuteBtn" aria-pressed="false">
+          <span class="cmd-voice-pulse" aria-hidden="true"></span>
+          <span id="liveMuteLabel" data-i18n="liveMuteOff">🔊 實況語音播報：未啟用</span>
+        </button>
       </div>
-
-      <section class="mv-panel mv-panel-leaderboard rail-block week-board-desk" data-mv-panel="leaderboard">
-        <div class="kicker kicker-plain">ALPHA</div>
-        <h3 class="rail-h" data-week-title>📊 近 7 天收益榜 TOP 5</h3>
-        <p class="muted lb-period-note" data-lb-period></p>
-        <ol class="week-list" data-week-board></ol>
-      </section>
-      <section class="mv-panel mv-panel-news rail-block flash-desk" data-mv-panel="news">
-        <div class="kicker" data-i18n="flashKicker">FLASH NEWS</div>
-        <h3 class="rail-h" data-i18n="flashTitle">⚡ 7x24 即時快訊</h3>
-        <ul class="flash-list" id="flashNews" aria-live="polite"></ul>
-      </section>
-      </div>
-      <aside class="editorial-rail vps-exec-rail" id="vpsExecRail" aria-label="Order execution feed">
-        <div class="sidebar-rail-inner">
-          <div class="sidebar-header-aligned">
-            <div class="main-title-flex">
-              <span data-i18n="vpsExecTitle">執行流水</span>
-              <span class="vps-live-badge" data-i18n="vpsLiveBadge">LIVE</span>
-              <button type="button" class="mobile-sheet-close" id="mobileSheetClose" data-i18n="close" aria-label="Close">關閉</button>
-            </div>
+      <p class="cmd-lead" data-i18n="liveSub">8 幣戰情矩陣 · 僅在真實開平倉翻轉時播報 · 與 Telegram 頻道同步</p>
+      <section class="coin-grid" id="coinGrid" aria-label="8-coin sparkline matrix"></section>
+      <section class="radar-board" aria-label="1-hour open ticker">
+        <header class="radar-head">
+          <span class="radar-kicker">戰情雷達</span>
+          <span class="radar-title" data-i18n="radarTitle">近 1 小時開倉流水</span>
+        </header>
+        <div class="radar-viewport" id="radarViewport">
+          <div class="radar-list" id="radarList">
+            <div class="radar-idle" data-i18n="radarIdle">⏳ 戰情雷達全天候掃描中，各幣種策略就緒...</div>
           </div>
-          <section class="vps-exec-board exec-tape-board">
-            <div class="exec-tape-meta" id="vpsExecUpdated">——</div>
-            <div class="exec-tape-table" role="table" aria-label="Order execution feed">
-              <div class="exec-tape-head" role="row">
-                <span class="tape-col tape-time" role="columnheader" data-i18n="vpsColTime">TIME</span>
-                <span class="tape-col tape-action" role="columnheader" data-i18n="vpsColAction">ACTION</span>
-                <span class="tape-col tape-pair" role="columnheader" data-i18n="vpsColSym">PAIR</span>
-                <span class="tape-col tape-price" role="columnheader" data-i18n="vpsColPx">PRICE</span>
-              </div>
-              <div class="exec-tape-viewport" id="vpsExecViewport">
-                <div class="exec-tape-body" id="vpsExecList" aria-live="polite">
-                  <div class="exec-tape-empty" data-i18n="vpsExecEmpty">暫無成交動作</div>
-                </div>
-              </div>
-            </div>
-          </section>
         </div>
-      </aside>
-    </div>
+      </section>
+    </main>
 
     <footer class="site-foot">
       <p class="foot-disc" data-i18n="footDisc">QuantAlpha 是獨立的量化研究與演算法編譯工具，不構成任何投資建議。虛擬資產波動劇烈，請嚴格做好部位風控。</p>
       <nav class="foot-links">
         <a href="./about.html" data-i18n="navAbout">[ 關於我們 ]</a>
         <span class="foot-sep">·</span>
-        <a href="./terminal.html" data-i18n="navTerminal">策略廣場</a>
+        <a href="./strategies.html" data-i18n="navTerminal">策略廣場</a>
         <span class="foot-sep">·</span>
         <a href="https://t.me/grid_quant_bot" target="_blank" rel="noopener" data-get-strategy data-i18n="footTg">[ Telegram 獲取策略 ]</a>
       </nav>
@@ -226,19 +104,11 @@
     </footer>
   </div>
 
-  <div class="toast" id="toast"></div>
-  <div class="screen-flash-overlay" id="screenFlashOverlay" aria-hidden="true"></div>
-  <div class="mobile-sheet-backdrop" id="mobileSheetBackdrop" hidden></div>
-  <div class="mobile-live-dock">
-    <button type="button" class="mobile-tape-pill" id="mobileTapePill" aria-expanded="false" aria-controls="vpsExecRail">
-      <span class="mobile-tape-pill-dot" aria-hidden="true"></span>
-      <span class="mobile-tape-pill-text" id="mobileTapePillText" data-i18n="vpsExecTitle">執行流水</span>
-      <span class="mobile-tape-pill-chevron" aria-hidden="true">▲</span>
-    </button>
-    <button type="button" class="config-dock-btn" id="configDockBtn" aria-expanded="false" aria-controls="watchFunnel">
-      ⚙️ 配置監控組合 (已選 1)
-    </button>
+  <div class="voice-hint" id="voiceHint" hidden>
+    <span class="voice-hint-dot" aria-hidden="true"></span>
+    <span data-i18n="voiceHint">點擊開啟實盤語音，接收即時戰情</span>
   </div>
+  <div class="toast" id="toast"></div>
 
   <script src="./js/nav.js?v=nav5"></script>
   <script src="./config.js"></script>
@@ -246,20 +116,8 @@
   <script src="./js/i18n-boot.js"></script>
   <script src="./js/news.js?v=av2"></script>
   <script src="./js/identity.js"></script>
-    <script src="./js/compliance.js"></script>
+  <script src="./js/compliance.js"></script>
   <script src="./js/lead-bind.js"></script>
-  <script src="./js/offline-klines.js"></script>
-  <script src="./js/indicators.js"></script>
-  <script src="./js/strategy-catalog.js"></script>
-  <script src="./js/master-catalog.js"></script>
-  <script src="./js/strategies-pack.js"></script>
-  <script src="./js/pack-catalog.js"></script>
-  <script src="./js/binance-feed.js"></script>
-  <script src="./js/engine-list.js"></script>
-  <script src="https://s3.tradingview.com/tv.js" async></script>
-  <script src="./js/tv-chart-manager.js?v=av3"></script>
-  <script src="./js/finance-radio.js?v=av3"></script>
-  <script src="./js/live-room.js?v=av4"></script>
-  <script src="./js/mobile-ux.js"></script>
+  <script src="./js/live-room.js?v=cmd1"></script>
 </body>
 </html>
