@@ -391,10 +391,46 @@
     if (apply) apply.textContent = t("configSheetApply").replace("{n}", String(n));
   }
 
+  function parkMobileSheet(el, slotId) {
+    if (!el || el.parentElement === document.body) return;
+    let slot = document.getElementById(slotId);
+    if (!slot) {
+      slot = document.createElement("div");
+      slot.id = slotId;
+      slot.style.display = "none";
+      el.parentNode.insertBefore(slot, el);
+    }
+    document.body.appendChild(el);
+  }
+
+  function restoreMobileSheet(el, slotId) {
+    const slot = document.getElementById(slotId);
+    if (!el || !slot || !slot.parentNode) return;
+    if (el.parentNode === slot.parentNode) return;
+    slot.parentNode.insertBefore(el, slot);
+  }
+
+  function syncMobileSheetPortals() {
+    const sheet = document.getElementById("watchFunnel");
+    const rail = document.getElementById("vpsExecRail");
+    if (isMobile()) {
+      parkMobileSheet(sheet, "watchFunnelSlot");
+      parkMobileSheet(rail, "vpsExecRailSlot");
+    } else {
+      restoreMobileSheet(sheet, "watchFunnelSlot");
+      restoreMobileSheet(rail, "vpsExecRailSlot");
+      closeConfigSheet();
+      document.body.classList.remove("tape-sheet-open");
+      syncBackdrop();
+    }
+  }
+
   function closeConfigSheet() {
     document.body.classList.remove("config-sheet-open");
     const dock = document.getElementById("configDockBtn");
     if (dock) dock.setAttribute("aria-expanded", "false");
+    const sheet = document.getElementById("watchFunnel");
+    if (sheet) sheet.style.transform = "";
     syncBackdrop();
   }
 
@@ -402,9 +438,12 @@
     document.body.classList.remove("tape-sheet-open");
     const tapePill = document.getElementById("mobileTapePill");
     if (tapePill) tapePill.setAttribute("aria-expanded", "false");
+    syncMobileSheetPortals();
     document.body.classList.add("config-sheet-open");
     const dock = document.getElementById("configDockBtn");
     if (dock) dock.setAttribute("aria-expanded", "true");
+    const sheet = document.getElementById("watchFunnel");
+    if (sheet) sheet.style.transform = "";
     syncBackdrop();
   }
 
@@ -461,6 +500,8 @@
     dragEl.addEventListener("touchstart", onStart, { passive: true });
     dragEl.addEventListener("touchmove", onMove, { passive: true });
     dragEl.addEventListener("touchend", onEnd, { passive: true });
+    syncMobileSheetPortals();
+    window.addEventListener("resize", syncMobileSheetPortals);
     paintConfigCounts();
   }
 
@@ -488,6 +529,7 @@
     }
     function openTape() {
       closeConfigSheet();
+      syncMobileSheetPortals();
       document.body.classList.add("tape-sheet-open");
       pill.setAttribute("aria-expanded", "true");
       syncBackdrop();
