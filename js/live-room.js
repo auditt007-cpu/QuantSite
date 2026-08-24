@@ -172,7 +172,95 @@
   }
 
   function isClose(ev) {
-    return String(ev.event || "").toLowerCase() === "close" || /平倉/.test(String(ev.action || ""));
+    if (ev && ev.kind === "close_agg") return true;
+    return String(ev.event || "").toLowerCase() === "close" || /平倉|Close/i.test(String(ev.action || ""));
+  }
+
+  function closePnlAbs(ev) {
+    const pnl = Number(ev && ev.pnl_pct);
+    return Number.isFinite(pnl) ? Math.abs(pnl) : 0;
+  }
+
+  /** Friction / reset closes with ~0% PnL — never render or speak. */
+  function isZeroValueClose(ev) {
+    if (!ev || !isClose(ev) || ev.kind === "close_agg") return false;
+    if (!/平倉|Close/i.test(String(ev.action || "")) && String(ev.event || "").toLowerCase() !== "close") {
+      return false;
+    }
+    const pnl = Number(ev.pnl_pct);
+    if (!Number.isFinite(pnl)) return true; /* missing PnL on close = noise */
+    return Math.abs(pnl) < 0.05;
+  }
+
+  /**
+   * Consumer pipeline: drop 0.0% closes, then fold same-second mass micro-closes
+   * into one radar summary row.
+   */
+  function pruneAndCollapseEvents(events) {
+    if (!events || !events.length) return [];
+    const kept = [];
+    events.forEach((ev) => {
+      if (isZeroValueClose(ev)) return;
+      kept.push(ev);
+    });
+
+    const opens = [];
+    const closes = [];
+    kept.forEach((ev) => {
+      if (isClose(ev) && ev.kind !== "close_agg") closes.push(ev);
+      else opens.push(ev);
+    });
+
+    const buckets = {};
+    const order = [];
+    closes.forEach((ev) => {
+      const sec = Math.floor(Number(ev.ts) || 0);
+      const key = [sec, String(ev.name || ""), String(ev.interval || "1h")].join("|");
+      if (!buckets[key]) {
+        buckets[key] = [];
+        order.push(key);
+      }
+      buckets[key].push(ev);
+    });
+
+    const out = opens.slice();
+    order.forEach((key) => {
+      const group = buckets[key];
+      const allMicro = group.every((e) => closePnlAbs(e) < 0.5);
+      if (group.length >= 3 && allMicro) {
+        let sum = 0;
+        let n = 0;
+        group.forEach((e) => {
+          const p = Number(e.pnl_pct);
+          if (Number.isFinite(p)) {
+            sum += p;
+            n += 1;
+          }
+        });
+        const avg = n ? sum / n : 0;
+        const head = group[0];
+        out.push({
+          kind: "close_agg",
+          key: "agg|" + key,
+          ts: head.ts,
+          symbol: "ALL",
+          name: head.name || "量化策略",
+          interval: head.interval || "1h",
+          strategyId: head.strategyId,
+          event: "close",
+          action: "平倉",
+          side: head.side,
+          pnl_pct: avg,
+          aggCount: group.length,
+          avgPnl: avg,
+        });
+        return;
+      }
+      group.forEach((e) => out.push(e));
+    });
+
+    out.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+    return out;
   }
 
   function isBuy(ev) {
@@ -242,9 +330,9 @@
   }
 
   function bumpCum(ev) {
-    if (!isClose(ev)) return;
+    if (!isClose(ev) || isZeroValueClose(ev) || (ev && ev.kind === "close_agg")) return;
     const pnl = Number(ev.pnl_pct);
-    if (!Number.isFinite(pnl)) return;
+    if (!Number.isFinite(pnl) || Math.abs(pnl) < 0.05) return;
     const sk = String(ev.symbol || "_");
     const nk = String(ev.name || "_");
     state.cum.bySym[sk] = (Number(state.cum.bySym[sk]) || 0) + pnl;
@@ -492,16 +580,22 @@
 
   function announceEvents(events) {
     if (!events || !events.length || !state.voiceOn) return;
+    const actionable = (events || []).filter((ev) => {
+      if (!ev || ev.kind === "close_agg") return false;
+      if (isZeroValueClose(ev)) return false;
+      return true;
+    });
+    if (!actionable.length) return;
     /* Hourly storm: collapse audio to one line; tape still paints fully */
-    if (events.length > AUDIO_STORM_N) {
-      events.filter(isClose).forEach((ev) => bumpCum(ev));
+    if (actionable.length > AUDIO_STORM_N) {
+      actionable.filter((e) => isClose(e) && !isZeroValueClose(e)).forEach((ev) => bumpCum(ev));
       clearAudioQueue();
       enqueueVoice(STORM_LINE, { chime: true, force: true });
       return;
     }
     const buckets = {};
     const order = [];
-    events
+    actionable
       .filter((e) => !isClose(e))
       .forEach((ev) => {
         const key = [
@@ -521,7 +615,7 @@
       const line = voiceOpenGroup(buckets[key]);
       if (line) lines.push(line);
     });
-    events.filter(isClose).forEach((ev) => {
+    actionable.filter(isClose).forEach((ev) => {
       bumpCum(ev);
       const line = voiceCloseLine(ev);
       if (line) lines.push(line);
@@ -550,7 +644,13 @@
     }
     const rows = state.events
       .slice()
-      .filter((e) => e && (isClose(e) || String(e.event || "open").toLowerCase() === "open" || e.side || e.action))
+      .filter(
+        (e) =>
+          e &&
+          e.kind !== "close_agg" &&
+          !isZeroValueClose(e) &&
+          (isClose(e) || String(e.event || "open").toLowerCase() === "open" || e.side || e.action),
+      )
       .sort((a, b) => (a.ts || 0) - (b.ts || 0))
       .slice(-3);
     const lines = rows.map(voiceForEvent).filter(Boolean);
@@ -1040,6 +1140,18 @@
   }
 
   function miniLineHtml(ev) {
+    if (ev.kind === "close_agg") {
+      const avg = Number(ev.avgPnl != null ? ev.avgPnl : ev.pnl_pct);
+      return (
+        escapeHtml(fmt12h(ev.ts)) +
+        " 到期平倉×" +
+        escapeHtml(String(ev.aggCount || 0)) +
+        " · 均 " +
+        escapeHtml(Number.isFinite(avg) ? fmtPnl(avg) : "—") +
+        " · " +
+        stratAnchor(ev)
+      );
+    }
     const close = isClose(ev);
     const buy = isBuy(ev);
     const pnl = Number(ev.pnl_pct);
@@ -1058,7 +1170,12 @@
       const el = document.querySelector('[data-mini="' + sym + '"]');
       if (!el) return;
       const rows = state.events
-        .filter((e) => e.symbol === sym && now - e.ts <= HOUR_S)
+        .filter((e) => {
+          if (!e || now - e.ts > HOUR_S) return false;
+          if (e.kind === "close_agg") return false;
+          if (isZeroValueClose(e)) return false;
+          return e.symbol === sym;
+        })
         .sort((a, b) => b.ts - a.ts)
         .slice(0, 3);
       if (!rows.length) {
@@ -1715,7 +1832,7 @@
         strategyId: g.strategy_id,
       });
     });
-    return out;
+    return pruneAndCollapseEvents(out);
   }
 
   function pnlOf(ev) {
@@ -1740,7 +1857,12 @@
     const now = Date.now() / 1000;
     const watchSet = new Set(state.watch.map(normSym));
     const rows = state.events
-      .filter((e) => watchSet.has(normSym(e.symbol)) && now - e.ts <= HOUR_S)
+      .filter((e) => {
+        if (!e || now - e.ts > HOUR_S) return false;
+        if (isZeroValueClose(e)) return false;
+        if (e.kind === "close_agg") return true;
+        return watchSet.has(normSym(e.symbol));
+      })
       .sort((a, b) => b.ts - a.ts)
       .slice(0, 40);
     list.textContent = "";
@@ -1754,6 +1876,28 @@
     }
     const frag = document.createDocumentFragment();
     const buildRow = (ev) => {
+      if (ev.kind === "close_agg") {
+        const avg = Number(ev.avgPnl != null ? ev.avgPnl : ev.pnl_pct);
+        const avgTxt = Number.isFinite(avg) ? avg.toFixed(1) + "%" : "—";
+        const row = document.createElement("div");
+        row.className = "radar-row is-agg";
+        row.innerHTML =
+          '<span class="t">[' +
+          fmt12h(ev.ts) +
+          "]</span>" +
+          '<span class="side">⚪ 全網資產</span>' +
+          "<span>| " +
+          escapeHtml(String(ev.aggCount || 0)) +
+          " 套" +
+          stratAnchor(ev) +
+          " (" +
+          escapeHtml(String(ev.interval || "1h").toUpperCase()) +
+          ") 策略到期平倉</span>" +
+          '<span class="pnl">| 平均盈虧: ' +
+          escapeHtml(avgTxt) +
+          "</span>";
+        return row;
+      }
       const buy = isBuy(ev);
       const close = isClose(ev);
       const pnl = close ? Number(ev.pnl_pct) : pnlOf(ev);
@@ -1786,7 +1930,6 @@
       return row;
     };
     rows.forEach((ev) => frag.appendChild(buildRow(ev)));
-    /* duplicate for seamless scroll */
     rows.forEach((ev) => frag.appendChild(buildRow(ev)));
     list.appendChild(frag);
     list.style.animation = rows.length > 6 ? "radarScroll 28s linear infinite" : "none";
