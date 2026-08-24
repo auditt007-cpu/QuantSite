@@ -21,6 +21,15 @@ try:
 except ImportError:  # pragma: no cover - edge-tts not installed yet on this host
     edge_tts = None
 
+try:
+    from dotenv import load_dotenv
+
+    _here = os.path.dirname(os.path.abspath(__file__))
+    load_dotenv(os.path.join(_here, ".env"))
+    load_dotenv(os.path.join(_here, "..", "..", ".env"))
+except Exception:
+    pass
+
 BOT_TOKEN = os.environ.get("TG_BOT_TOKEN", "").strip()
 CHANNEL = (
     os.environ.get("TG_CHANNEL_ID", "").strip()
@@ -902,8 +911,12 @@ def _pnl_pct(side, entry_px, exit_px):
 
 
 def _exec_event_key(ev):
-    return "{0}|{1}|{2}|{3}".format(
-        ev.get("strategy_id"), ev.get("symbol"), ev.get("event"), ev.get("bar_ts")
+    return "{0}|{1}|{2}|{3}|{4}".format(
+        ev.get("strategy_id"),
+        ev.get("symbol"),
+        ev.get("event"),
+        ev.get("bar_ts"),
+        ev.get("interval") or "",
     )
 
 
@@ -912,15 +925,7 @@ def load_exec_log():
         with open(LIVE_EXEC_LOG_PATH, "r", encoding="utf-8") as f:
             data = json.load(f)
         rows = data if isinstance(data, list) else []
-        # Drop candle-open stamps left by the old logged_at=bar_ts write path
-        # (TIME column stuck at 14:00 / other hour marks).
-        cleaned = []
-        for ev in rows:
-            ts = int(ev.get("logged_at") or 0)
-            if ts > 0 and (ts % 3600) <= 5:
-                continue
-            cleaned.append(ev)
-        return cleaned
+        return [ev for ev in rows if isinstance(ev, dict)]
     except Exception:
         return []
 
@@ -1034,6 +1039,157 @@ def prune_hold_exec_log(events):
         reverse=True,
     )
     return kept[:LIVE_EXEC_LOG_MAX]
+
+
+def _tape_side_norm(side):
+    s = str(side or "")
+    if "SHORT" in s:
+        return "SHORT"
+    return "LONG"
+
+
+def _price_bucket(ev):
+    px = ev.get("exit_price") if ev.get("event") == "close" else ev.get("price")
+    try:
+        return "{0:.8g}".format(float(px))
+    except (TypeError, ValueError):
+        return "na"
+
+
+def _ms_to_sec(ts):
+    try:
+        n = int(float(ts))
+    except (TypeError, ValueError):
+        return 0
+    if n > 10_000_000_000:
+        return int(n / 1000)
+    return n
+
+
+def events_to_tape_rows(events, now_sec):
+    """Map TG scan_events() hits onto the live exec tape (same trigger clock)."""
+    rows = []
+    for ev in events:
+        bar_sec = _ms_to_sec(ev.get("close_ms") or ev.get("bar_ts") or 0)
+        rows.append(
+            {
+                "strategy_id": ev.get("strat_id"),
+                "name_zh": ev.get("strat_name"),
+                "name_en": ev.get("strat_name"),
+                "symbol": ev.get("sym"),
+                "interval": ev.get("tf") or "1h",
+                "event": "open",
+                "side": ev.get("side"),
+                "prev_side": ev.get("prev_side"),
+                "price": round(float(ev.get("px") or 0), 8),
+                "sl_pct": ev.get("sl_pct"),
+                "tp_pct": ev.get("tp_pct"),
+                "bar_ts": bar_sec,
+                "logged_at": bar_sec or int(now_sec),
+            }
+        )
+    return rows
+
+
+def collapse_exec_log_batches(events, limit=24):
+    """Same grouping as TG: (strategy, side, timeframe, bar)."""
+    if not events:
+        return []
+    if events and events[0].get("kind") == "batch":
+        return events[:limit]
+    buckets = {}
+    order = []
+    for ev in events:
+        if ev.get("kind") == "batch":
+            key = (
+                ev.get("name_zh"),
+                ev.get("side"),
+                ev.get("interval"),
+                int(ev.get("bar_ts") or 0),
+            )
+            if key not in buckets:
+                buckets[key] = ev
+                order.append(key)
+            continue
+        name = ev.get("name_zh") or ev.get("name_en") or ev.get("strategy_id") or "量化策略"
+        side = _tape_side_norm(ev.get("side"))
+        tf = str(ev.get("interval") or "1h")
+        bar = int(ev.get("bar_ts") or 0)
+        key = (name, side, tf, bar)
+        if key not in buckets:
+            buckets[key] = {
+                "kind": "batch",
+                "name_zh": name,
+                "interval": tf,
+                "side": side,
+                "action": action_label(side, ev.get("prev_side")),
+                "logged_at": int(ev.get("logged_at") or 0),
+                "bar_ts": bar,
+                "symbols": [],
+            }
+            order.append(key)
+        g = buckets[key]
+        px = ev.get("exit_price") if ev.get("event") == "close" else ev.get("price")
+        g["symbols"].append(
+            {
+                "symbol": ev.get("symbol"),
+                "price": px,
+                "sl_pct": ev.get("sl_pct"),
+                "tp_pct": ev.get("tp_pct"),
+                "event": ev.get("event") or "open",
+            }
+        )
+        try:
+            logged = int(ev.get("logged_at") or 0)
+            if logged and (not g.get("logged_at") or logged < int(g["logged_at"])):
+                g["logged_at"] = logged
+        except (TypeError, ValueError):
+            pass
+        if ev.get("prev_side") and ev.get("prev_side") != side:
+            g["action"] = action_label(side, ev.get("prev_side"))
+    out = []
+    for key in order:
+        g = buckets[key]
+        if g.get("kind") == "batch" and not g.get("symbols") and g.get("strategy_count"):
+            out.append(g)
+            continue
+        seen = set()
+        uniq = []
+        for s in g.get("symbols") or []:
+            k = s.get("symbol")
+            if not k or k in seen:
+                continue
+            seen.add(k)
+            uniq.append(s)
+        g["symbols"] = uniq
+        g["strategy_count"] = len(uniq)
+        if uniq:
+            out.append(g)
+        if len(out) >= limit:
+            break
+    return out
+
+
+def collapse_exec_log_display(events, limit=24):
+    return collapse_exec_log_batches(events, limit=limit)
+
+
+def attach_exec_tape(feed):
+    """Stamp the TG event tape onto a live_feed payload (never dump hourly holds)."""
+    if feed is None:
+        feed = {}
+    raw = load_exec_log()
+    feed["exec_log"] = collapse_exec_log_batches(raw)
+    feed["exec_log_raw_count"] = len(raw)
+    feed["exec_mode"] = "event-driven"
+    feed["scan_tf"] = "15m+1h"
+    return feed
+
+
+def append_tape_from_events(events):
+    now_sec = int(time.time())
+    fresh = events_to_tape_rows(events, now_sec)
+    return save_exec_log(merge_exec_log(load_exec_log(), fresh))
 
 
 def _signal_cache_key(sid, sym, side, bar_ts_i):
@@ -1207,35 +1363,30 @@ def build_live_feed_matrix():
 
     signals = []
     closed = []
-    fresh_log = []
     with cf.ThreadPoolExecutor(max_workers=LIVE_FEED_WORKERS) as ex:
         futs = [ex.submit(scan_one, spec, pool, now_sec) for spec in specs]
         for fut in futs:
-            hits, closes, log_events = fut.result()
+            hits, closes, _log_events = fut.result()
             signals.extend(hits)
             closed.extend(closes)
-            fresh_log.extend(log_events)
-    fresh_log = cap_strategy_log_events(fresh_log)
     signals.sort(key=lambda x: x["bar_ts"], reverse=True)
     closed.sort(key=lambda x: x["bar_ts"], reverse=True)
-    # First cycle after upgrade/restart: snapshot holdings only. The old
-    # tape was a new-bar dump of every still-active signal — drop it.
-    existing = [] if _POSITION_STATE_HYDRATING else prune_hold_exec_log(load_exec_log())
-    exec_log = save_exec_log(merge_exec_log(existing, fresh_log))
     save_position_state()
 
-    return {
+    payload = {
         "updated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "period_hours": 3,
         "poll_sec": FEED_PUBLISH_SEC,
-        "scan_tf": LIVE_FEED_TF,
-        "symbols": SCAN_SYMBOLS,
+        "scan_tf": "15m+1h",
+        "exec_mode": "event-driven",
+        "symbols": SYMBOLS,
         "strategy_count": len(specs),
         "signal_count": len(signals),
         "active_signals_3h": signals,
         "closed_signals_3h": closed[:60],
-        "exec_log": exec_log,
+        "exec_log": [],
     }
+    return attach_exec_tape(payload)
 
 
 def atomic_write_json(path, raw):
@@ -1309,18 +1460,20 @@ def should_emit(sid, sym, tf, side, bar_ts):
     return True
 
 
-def tg_send(text):
+def tg_send(text, parse_mode="HTML"):
     if not BOT_TOKEN:
         raise RuntimeError("TG_BOT_TOKEN missing")
+    if not text or not str(text).strip():
+        return None
     url = "https://api.telegram.org/bot{0}/sendMessage".format(BOT_TOKEN)
-    body = urllib.parse.urlencode(
-        {
-            "chat_id": CHANNEL,
-            "text": text,
-            "parse_mode": "HTML",
-            "disable_web_page_preview": "true",
-        }
-    ).encode("utf-8")
+    payload = {
+        "chat_id": CHANNEL,
+        "text": text,
+        "disable_web_page_preview": "true",
+    }
+    if parse_mode:
+        payload["parse_mode"] = parse_mode
+    body = urllib.parse.urlencode(payload).encode("utf-8")
     req = urllib.request.Request(
         url,
         data=body,
@@ -1335,8 +1488,11 @@ def tg_send(text):
 
 
 def fmt_tw_time_ms(ms):
-    tw = datetime.fromtimestamp(ms / 1000.0, tz=timezone(timedelta(hours=8)))
-    return time.strftime("%Y-%m-%d %H:%M", tw.timetuple())
+    if not ms:
+        tw = datetime.now(timezone(timedelta(hours=8)))
+    else:
+        tw = datetime.fromtimestamp(ms / 1000.0, tz=timezone(timedelta(hours=8)))
+    return tw.strftime("%Y-%m-%d %H:%M")
 
 
 def sl_tp_display_pcts(side, px, sl, tp):
@@ -1357,57 +1513,111 @@ def side_banner(side):
     return "🔴 【看空 · 做空 SHORT】"
 
 
-def send_tg_signal(strat, sym, side, px, sl, tp, bar_ts, src):
-    """Build Taiwan-friendly + institutional bilingual TG alert card (HTML)."""
-    coin = sym.replace("USDT", "")
-    tf_label = strat["tf"].upper()
-    sl_pct, tp_pct = sl_tp_display_pcts(side, px, sl, tp)
-    tw_time = fmt_tw_time_ms(bar_ts)
-    terminal_url = "https://quantalpha.space/terminal.html"
+def action_label(side, prev_side=None):
+    if prev_side and prev_side != side:
+        return "空頭平倉翻多 (BUY)" if side == "LONG" else "多頭平倉翻空 (SELL)"
+    if side == "LONG":
+        return "多頭開倉 (BUY)"
+    return "空頭開倉 (SELL)"
+
+
+def action_emoji(side):
+    return "🟢" if side == "LONG" else "🔴"
+
+
+def _esc(s):
     return (
-        "<b>⚡ QUANT ALPHA · LIVE SIGNAL</b>\n"
-        "【 量化異動訊號 · 即時推播 】\n"
-        "\n"
-        "{0}\n"
-        "\n"
-        "📌 標的 <b>{1}</b> · 週期 <b>{2}</b>\n"
-        "📊 策略 <b>{3}</b>\n"
-        "<i>{4}</i>\n"
-        "\n"
-        "💰 建議進場點 (Entry): <b>{5}</b> USDT\n"
-        "🛑 風控止損位 (Stop Loss): <b>{6}</b> ({7:.2f}%)\n"
-        "🎯 目標止盈位 (Take Profit): <b>{8}</b> ({9:+.2f}%)\n"
-        "⚖️ 盈虧比 (Risk/Reward): <b>1 : 2.0</b>\n"
-        "\n"
-        "🕐 台灣時間 (UTC+8): <b>{10}</b>\n"
-        "📡 行情來源 (Feed): {11}\n"
-        "\n"
-        '🔗 <a href="{12}">Quant Alpha 策略廣場 · Strategy Plaza</a>\n'
-        "\n"
-        "⚠️ 提醒：量化模型訊號僅供參考，請嚴格執行止損止盈，切勿重倉抗單。"
-    ).format(
-        side_banner(side),
-        coin,
-        tf_label,
-        strat["zht"],
-        strat["en"],
-        fmt_px(px),
-        fmt_px(sl),
-        sl_pct,
-        fmt_px(tp),
-        tp_pct,
-        tw_time,
-        src.upper(),
-        terminal_url,
+        str(s)
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
     )
 
 
-def format_alert(strat, sym, side, px, sl, tp, bar_ts, src):
-    return send_tg_signal(strat, sym, side, px, sl, tp, bar_ts, src)
+def format_symbol_row(ev):
+    coin = ev["sym"].replace("USDT", "")
+    return (
+        "• <b>{0}/USDT</b>\n"
+        "  現價：<code>{1}</code> ｜ 止損：<code>{2:.1f}%</code> ｜ 止盈：<code>{3:+.1f}%</code>"
+    ).format(_esc(coin), _esc(fmt_px(ev["px"])), ev["sl_pct"], ev["tp_pct"])
+
+
+def format_batch_message(group_events):
+    """One Telegram card for a (strategy, side, tf) batch."""
+    if not group_events:
+        return ""
+    head = group_events[0]
+    name = head.get("strat_name") or "量化策略"
+    tf_label = str(head.get("tf") or "1h").upper()
+    side = head["side"]
+    # Prefer open/flip label from the first event; if any flip, use flip wording when all flip.
+    flips = [e for e in group_events if e.get("prev_side") and e.get("prev_side") != e["side"]]
+    if flips and len(flips) == len(group_events):
+        act = action_label(side, flips[0].get("prev_side"))
+    else:
+        act = action_label(side, None)
+    ts_ms = max(int(e.get("close_ms") or 0) for e in group_events)
+    tw = fmt_tw_time_ms(ts_ms)
+    rows = "\n\n".join(format_symbol_row(e) for e in group_events)
+    return (
+        "🚨 <b>【實盤信號觸發】量化共振波段</b>\n"
+        "📌 <b>策略模型</b>：{0} ({1})\n"
+        "⚡ <b>操作方向</b>：{2} {3}\n"
+        "⏱️ <b>觸發時間</b>：<code>{4} (UTC+8)</code>\n"
+        "\n"
+        "━━━━━━━━━━━━━━━━━━━\n"
+        "{5}\n"
+        "━━━━━━━━━━━━━━━━━━━\n"
+        "💡 <i>風控提示：嚴格執行分批止盈，單筆倉位建議不超過總資金 5%。</i>"
+    ).format(_esc(name), _esc(tf_label), action_emoji(side), _esc(act), _esc(tw), rows)
+
+
+def send_tg_signal(strat, sym, side, px, sl, tp, bar_ts, src, prev_side=None):
+    """Legacy single-card builder kept for callers; prefer format_batch_message."""
+    sl_pct, tp_pct = sl_tp_display_pcts(side, px, sl, tp)
+    ev = {
+        "strat_name": strat.get("zht") or strat.get("en") or strat.get("id") or "量化策略",
+        "tf": strat.get("tf") or "1h",
+        "side": side,
+        "sym": sym,
+        "px": px,
+        "sl_pct": sl_pct,
+        "tp_pct": tp_pct,
+        "prev_side": prev_side,
+        "close_ms": bar_ts,
+    }
+    return format_batch_message([ev])
+
+
+def format_alert(strat, sym, side, px, sl, tp, bar_ts, src, prev_side=None):
+    return send_tg_signal(strat, sym, side, px, sl, tp, bar_ts, src, prev_side=prev_side)
+
+
+def aggregate_events(events):
+    """Group by (strategy name, side, timeframe); preserve discovery order of groups."""
+    buckets = {}
+    order = []
+    for ev in events:
+        key = (ev["strat_name"], ev["side"], ev["tf"])
+        if key not in buckets:
+            buckets[key] = []
+            order.append(key)
+        buckets[key].append(ev)
+    messages = []
+    for key in order:
+        msg = format_batch_message(buckets[key])
+        if msg:
+            messages.append(msg)
+    return messages
+
+
+ENGINE_WARM = False
 
 
 def scan_events():
-    alerts = []
+    """Collect genuine side-change events this tick (no Telegram send yet)."""
+    global ENGINE_WARM
+    events = []
     for strat in STRATEGY_MATRIX:
         tf = strat["tf"]
         for sym in SYMBOLS:
@@ -1422,8 +1632,14 @@ def scan_events():
             if side not in ("LONG", "SHORT"):
                 continue
             bar_ts = data["t"][-1]
-            if not should_emit(strat["id"], sym, tf, side, bar_ts):
+            key = state_key(strat["id"], sym, tf)
+            prev = SIGNAL_STATE.get(key)
+            if not ENGINE_WARM:
+                SIGNAL_STATE[key] = {"side": side, "bar_ts": bar_ts}
                 continue
+            if prev and prev.get("side") == side:
+                continue
+            SIGNAL_STATE[key] = {"side": side, "bar_ts": bar_ts}
             c = data["c"]
             h, l = data["h"], data["l"]
             px = c[-1]
@@ -1431,21 +1647,45 @@ def scan_events():
             if risk <= 0:
                 risk = px * 0.004
             sl, tp = levels(px, side, risk)
-            alerts.append(format_alert(strat, sym, side, px, sl, tp, data["close_ms"], data["src"]))
+            sl_pct, tp_pct = sl_tp_display_pcts(side, px, sl, tp)
+            prev_side = prev.get("side") if prev else None
+            events.append(
+                {
+                    "strat_id": strat["id"],
+                    "strat_name": strat.get("zht") or strat.get("en") or strat["id"],
+                    "tf": tf,
+                    "side": side,
+                    "sym": sym,
+                    "px": px,
+                    "sl": sl,
+                    "tp": tp,
+                    "sl_pct": sl_pct,
+                    "tp_pct": tp_pct,
+                    "bar_ts": bar_ts,
+                    "close_ms": data.get("close_ms") or bar_ts,
+                    "src": data.get("src"),
+                    "prev_side": prev_side,
+                }
+            )
             log("signal {0} {1} {2} {3} bar={4}".format(strat["id"], sym, tf, side, bar_ts))
-    return alerts
+    return events
 
 
 def cycle():
-    # Live feed first and on its own fast dedicated fetch (~seconds) — never
-    # blocked by the heavier legacy pool refresh below.
+    # Plaza 3h book first (fast dedicated 1h fetch). Exec tape is NOT this
+    # hourly dump — it is written later from the same scan_events() as TG.
     t0 = time.time()
+    feed = None
     try:
         feed = build_live_feed_matrix()
         write_live_feed(feed)
         log(
-            "live_feed.json written signals={0} symbols={1} strategies={2} took={3:.1f}s".format(
-                feed["signal_count"], len(SYMBOLS), feed["strategy_count"], time.time() - t0
+            "live_feed.json written signals={0} symbols={1} strategies={2} tape={3} took={4:.1f}s".format(
+                feed["signal_count"],
+                len(SYMBOLS),
+                feed["strategy_count"],
+                len(feed.get("exec_log") or []),
+                time.time() - t0,
             )
         )
     except Exception as exc:
@@ -1456,14 +1696,69 @@ def cycle():
     ok = sum(1 for s in SYMBOLS for t in TIMEFRAMES if (s, t) in KLINE_POOL)
     log("pool refreshed {0}/{1} series".format(ok, len(SYMBOLS) * len(TIMEFRAMES)))
 
-    alerts = scan_events()
-    if not alerts:
+    global ENGINE_WARM
+    events = scan_events()
+    if not ENGINE_WARM:
+        ENGINE_WARM = True
+        log("warmup complete — silent until a real open/close/breakout")
+        return 0
+    if not events:
         log("no new events this tick")
         return 0
-    for msg in alerts:
+
+    raw = append_tape_from_events(events)
+    if feed is not None:
+        feed["exec_log"] = collapse_exec_log_batches(raw)
+        feed["exec_log_raw_count"] = len(raw)
+        feed["updated_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        try:
+            write_live_feed(feed)
+        except Exception as exc:
+            log("live_feed tape patch error: {0}".format(exc))
+
+    messages = aggregate_events(events)
+    sent = 0
+    for msg in messages:
+        if not msg or not str(msg).strip():
+            continue
         tg_send(msg)
-    log("pushed {0} event(s) to {1}".format(len(alerts), CHANNEL))
-    return len(alerts)
+        sent += 1
+    if sent:
+        log(
+            "pushed {0} batch message(s) covering {1} signal(s) to {2}".format(
+                sent, len(events), CHANNEL
+            )
+        )
+    else:
+        log("no new events this tick")
+    return sent
+
+
+def demo_batch_message():
+    """Simulated multi-symbol batch for channel QA."""
+    now_ms = int(time.time() * 1000)
+    samples = [
+        ("SUIUSDT", 0.8195, -2.0, 4.0),
+        ("PEPEUSDT", 0.000004, -0.9, 0.9),
+        ("SHIBUSDT", 0.000005, -8.1, 10.3),
+        ("FETUSDT", 0.1654, -1.8, 3.6),
+    ]
+    events = []
+    for sym, px, sl_pct, tp_pct in samples:
+        events.append(
+            {
+                "strat_name": "樞軸點突破",
+                "tf": "1h",
+                "side": "LONG",
+                "sym": sym,
+                "px": px,
+                "sl_pct": sl_pct,
+                "tp_pct": tp_pct,
+                "prev_side": None,
+                "close_ms": now_ms,
+            }
+        )
+    return format_batch_message(events)
 
 
 def main():
@@ -1501,8 +1796,21 @@ if __name__ == "__main__":
         help="Purge and regenerate welcome/funnel MP3s with current TTS voice; "
         "purge sig_*.mp3 so new signals use the new voice.",
     )
+    ap.add_argument(
+        "--test-batch",
+        action="store_true",
+        help="Send one simulated aggregated multi-symbol signal to the channel, then exit.",
+    )
     args = ap.parse_args()
     if args.regen_audio:
         regenerate_all_audio()
+        raise SystemExit(0)
+    if args.test_batch:
+        if not BOT_TOKEN:
+            raise SystemExit("TG_BOT_TOKEN missing")
+        msg = demo_batch_message()
+        print(msg)
+        tg_send(msg)
+        log("test-batch pushed to {0}".format(CHANNEL))
         raise SystemExit(0)
     main()

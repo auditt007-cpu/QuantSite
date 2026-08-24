@@ -321,8 +321,50 @@
   }
 
   function vpsSigKey(sig) {
+    if (sig && sig.kind === "batch") {
+      const syms = (sig.symbols || []).map((s) => s.symbol).join(",");
+      return ["batch", sig.name_zh, sig.side, sig.interval, sig.bar_ts, syms].join("|");
+    }
     const count = Number(sig.strategy_count) || 1;
     return [sig.strategy_id || "multi", sig.symbol, sig.event, sig.bar_ts, sig.side, count].join("|");
+  }
+
+  function fmtTapePct(n) {
+    const x = Number(n);
+    if (!Number.isFinite(x)) return "—";
+    const sign = x > 0 ? "+" : "";
+    return sign + x.toFixed(1) + "%";
+  }
+
+  function vpsBatchHtml(g, isNew) {
+    const short = String(g.side || "").includes("SHORT");
+    const actionCls = short ? "tape-action-sell" : "tape-action-buy";
+    const action = g.action || (short ? "空頭開倉 (SELL)" : "多頭開倉 (BUY)");
+    const tf = String(g.interval || "1h").toUpperCase();
+    const name = g.name_zh || g.name_en || "量化策略";
+    const rows = (g.symbols || [])
+      .map((s) => {
+        return (
+          `<div class="tape-batch-sym">` +
+          `<span class="tape-batch-pair">${escapeHtml(fmtTapePair(s.symbol))}</span>` +
+          `<span class="tape-batch-kv">${escapeHtml(t("vpsTapePx"))} <code>${escapeHtml(fmtTapePrice(s.price))}</code></span>` +
+          `<span class="tape-batch-kv">${escapeHtml(t("vpsTapeSl"))} <code>${escapeHtml(fmtTapePct(s.sl_pct))}</code></span>` +
+          `<span class="tape-batch-kv">${escapeHtml(t("vpsTapeTp"))} <code>${escapeHtml(fmtTapePct(s.tp_pct))}</code></span>` +
+          `</div>`
+        );
+      })
+      .join("");
+    return (
+      `<article class="tape-batch${isNew ? " is-new" : ""}" role="article">` +
+      `<header class="tape-batch-kicker-row">` +
+      `<span class="tape-batch-kicker">${escapeHtml(t("vpsTapeSignal"))}</span>` +
+      `<span class="tape-time">${fmtVpsTime(g.bar_ts || g.logged_at)}</span>` +
+      `</header>` +
+      `<div class="tape-batch-title">${escapeHtml(name)} <span class="tape-batch-tf">${escapeHtml(tf)}</span></div>` +
+      `<div class="tape-batch-action ${actionCls}"><span class="tape-pill">${escapeHtml(action)}</span></div>` +
+      `<div class="tape-batch-syms">${rows}</div>` +
+      `</article>`
+    );
   }
 
   function collapseVpsRows(rows) {
@@ -449,7 +491,11 @@
       if (!res.ok) return;
       const data = await res.json();
       scheduleVpsPoll(Number(data.poll_sec) ? Number(data.poll_sec) * 1000 : 5000);
-      const merged = collapseVpsRows(vpsFeedRows(data)).slice(0, 20);
+      const rowsIn = vpsFeedRows(data);
+      const isBatch = rowsIn.some((r) => r && r.kind === "batch");
+      const table = document.querySelector(".exec-tape-table");
+      if (table) table.classList.toggle("is-batch", isBatch);
+      const merged = (isBatch ? rowsIn : collapseVpsRows(rowsIn)).slice(0, isBatch ? 16 : 20);
       if (updatedEl && data.updated_at) {
         lastFeedUpdatedAt = data.updated_at;
         paintFeedSyncLabel();
@@ -465,6 +511,7 @@
       const rows = merged.map((sig) => {
         const key = vpsSigKey(sig);
         nextKeys.add(key);
+        if (sig.kind === "batch") return vpsBatchHtml(sig, !lastVpsKeys.has(key));
         return vpsRowHtml(sig, !lastVpsKeys.has(key));
       });
       lastVpsKeys = nextKeys;
@@ -620,6 +667,13 @@
   }
 
   function latestExecSummary() {
+    const batch = document.querySelector("#vpsExecList .tape-batch");
+    if (batch) {
+      const title = batch.querySelector(".tape-batch-title");
+      const action = batch.querySelector(".tape-pill");
+      const bits = [title, action].map((el) => (el ? el.textContent.trim() : "")).filter(Boolean);
+      return bits.length ? bits.join(" · ") : t("vpsExecTitle");
+    }
     const row = document.querySelector("#vpsExecList .exec-tape-row");
     if (!row) return t("vpsExecTitle");
     const pair = row.querySelector(".tape-pair");
@@ -694,17 +748,17 @@
   const SCAN_HUD_LINES = {
     "zh-Hant": [
       "🟢 45套機構策略正24小時自動盯盤",
-      "📡 發現開平倉信號即時同步至執行流水",
+      "📡 15m/1h 方向變化即同步至頻道與執行流水",
       "⏱ 演算法運作正常，耐心等待下一個信號",
     ],
     "zh-CN": [
       "🟢 45套机构策略正24小时自动盯盘",
-      "📡 发现开平仓信号即时同步至执行流水",
+      "📡 15m/1h 方向变化即同步至频道与执行流水",
       "⏱ 算法运行正常，耐心等待下一个信号",
     ],
     en: [
       "🟢 45 institutional strategies scanning markets 24/7",
-      "📡 Open/close signals sync to the execution feed in real time",
+      "📡 15m/1h side-changes sync to Telegram and the tape",
       "⏱ Engine nominal — standing by for the next signal",
     ],
   };

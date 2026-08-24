@@ -913,6 +913,107 @@ body.live-page .sidebar-header-aligned .status-dot.green {
   font-size: 11px;
   letter-spacing: 0.03em;
 }
+.exec-tape-table.is-batch .exec-tape-head {
+  display: none;
+}
+.exec-tape-table.is-batch .exec-tape-viewport {
+  overflow-y: auto;
+}
+.tape-batch {
+  padding: 10px 2px 12px;
+  border-bottom: 1px solid rgba(31, 36, 40, 0.85);
+}
+.tape-batch:last-child {
+  border-bottom: none;
+}
+.tape-batch.is-new {
+  animation: tapeRowFadeIn 0.55s ease;
+}
+.tape-batch-kicker-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.tape-batch-kicker {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #f59e0b;
+}
+.tape-batch .tape-time {
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 500;
+}
+.tape-batch-title {
+  margin: 2px 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #f8fafc;
+  line-height: 1.35;
+}
+.tape-batch-tf {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+}
+.tape-batch-action {
+  margin-bottom: 6px;
+}
+.tape-batch-action .tape-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+.tape-batch-action.tape-action-buy .tape-pill {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+}
+.tape-batch-action.tape-action-sell .tape-pill {
+  color: #f43f5e;
+  background: rgba(244, 63, 94, 0.12);
+}
+.tape-batch-syms {
+  margin-top: 4px;
+}
+.tape-batch-sym {
+  display: grid;
+  grid-template-columns: minmax(72px, 1.1fr) minmax(0, 1fr) minmax(0, 0.9fr) minmax(0, 0.9fr);
+  column-gap: 8px;
+  align-items: baseline;
+  padding: 7px 0;
+  border-top: 1px solid #161a1d;
+  font-size: 11px;
+  color: #cbd5e1;
+}
+.tape-batch-pair {
+  font-weight: 700;
+  color: #f8fafc;
+  white-space: nowrap;
+}
+.tape-batch-kv {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #94a3b8;
+}
+.tape-batch-kv code {
+  font-family: inherit;
+  color: #e2e8f0;
+  font-weight: 600;
+}
 @keyframes tapeRowFadeIn {
   0% {
     opacity: 0;
@@ -1299,6 +1400,10 @@ body.live-page .sidebar-header-aligned .status-dot.green {
     min-width: 300px;
     grid-template-columns: 62px 48px minmax(58px, 1fr) minmax(72px, 0.9fr);
     column-gap: 6px;
+  }
+  body.live-page .tape-batch-sym {
+    grid-template-columns: 1fr 1fr;
+    row-gap: 4px;
   }
   body.live-page .exec-tape-row .tape-time,
   body.live-page .exec-tape-row .tape-price,
