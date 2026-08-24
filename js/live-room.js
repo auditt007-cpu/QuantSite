@@ -369,6 +369,127 @@
     vpsBoardTimer = setInterval(refreshVpsExecBoard, 15000);
   }
 
+  /* ---------------------------------------------------------------------
+   * Scan HUD — small "always working" status widget above the chart. The
+   * progress bar is decorative (bounded oscillation), but the rotating
+   * text describes the engine's real behavior (60s scan cadence across the
+   * 45-strategy x 20-symbol matrix), not invented computation claims.
+   * ------------------------------------------------------------------- */
+  const SCAN_HUD_LINES = {
+    "zh-Hant": [
+      "[系統] 每 60 秒掃描一次全市場訊號矩陣…",
+      "[系統] 45 組策略 × 20 個交易對持續運算中…",
+      "[系統] 演算法運作正常，耐心等待下一個訊號。",
+    ],
+    "zh-CN": [
+      "[系统] 每 60 秒扫描一次全市场信号矩阵…",
+      "[系统] 45 组策略 × 20 个交易对持续运算中…",
+      "[系统] 算法运行正常，耐心等待下一个信号。",
+    ],
+    en: [
+      "[SYSTEM] Scanning the full signal matrix every 60s…",
+      "[SYSTEM] 45 strategies x 20 pairs running continuously…",
+      "[SYSTEM] Engine nominal, standing by for the next signal.",
+    ],
+  };
+  let scanHudIdx = 0;
+  let scanHudTypeTimer = null;
+  function scanHudTypeLine(line) {
+    const el = document.getElementById("scanHudText");
+    if (!el) return;
+    clearTimeout(scanHudTypeTimer);
+    let i = 0;
+    const step = () => {
+      i++;
+      el.textContent = line.slice(0, i);
+      if (i < line.length) scanHudTypeTimer = setTimeout(step, 26);
+    };
+    step();
+  }
+  function scanHudRotate() {
+    const arr = SCAN_HUD_LINES[langKey()] || SCAN_HUD_LINES.en;
+    scanHudTypeLine(arr[scanHudIdx % arr.length]);
+    scanHudIdx++;
+  }
+  function bindScanHud() {
+    if (!document.getElementById("scanHud")) return;
+    scanHudRotate();
+    setInterval(scanHudRotate, 15000);
+    const fill = document.getElementById("scanHudFill");
+    if (fill) {
+      const pulse = () => {
+        fill.style.width = (85 + Math.random() * 14).toFixed(0) + "%";
+      };
+      pulse();
+      setInterval(pulse, 2200);
+    }
+    window.addEventListener("quant-lang", () => {
+      scanHudIdx = 0;
+      scanHudRotate();
+    });
+  }
+
+  /* ---------------------------------------------------------------------
+   * Screen edge flash — a 0.5s green/red glow on the whole viewport for a
+   * real BUY/SELL push from the VPS execution feed.
+   * ------------------------------------------------------------------- */
+  function triggerScreenFlash(action) {
+    const el = document.getElementById("screenFlashOverlay");
+    if (!el) return;
+    el.classList.remove("flash-buy", "flash-sell");
+    void el.offsetWidth; // restart the CSS animation if it's already mid-flash
+    el.classList.add(action === "SELL" ? "flash-sell" : "flash-buy");
+    setTimeout(() => el.classList.remove("flash-buy", "flash-sell"), 520);
+  }
+
+  /* ---------------------------------------------------------------------
+   * Idle-state voice comfort: if 5 minutes pass with no fresh signal from
+   * the VPS feed, play one random "still watching" clip. Reset on any new
+   * signal so it only ever fires during genuinely quiet stretches.
+   * ------------------------------------------------------------------- */
+  const IDLE_VOICE_URLS = ["./audio/idle_1.mp3", "./audio/idle_2.mp3"];
+  const IDLE_TIMEOUT_MS = 5 * 60 * 1000;
+  let idleTimer = null;
+  function scheduleIdleVoice() {
+    if (idleTimer) clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => {
+      playUrl(randomFrom(IDLE_VOICE_URLS));
+      scheduleIdleVoice();
+    }, IDLE_TIMEOUT_MS);
+  }
+
+  /* ---------------------------------------------------------------------
+   * High-conviction alert: real signals from "focus" strategies (Donchian
+   * breakout / mean-reversion family) get a distinct urgent voice line
+   * instead of the normal per-strategy clip.
+   * ------------------------------------------------------------------- */
+  const FOCUS_STRATEGY_IDS = new Set(["qk", "strat-001", "strat-019", "strat-007", "strat-008", "strat-011"]);
+  const HIGH_CONVICTION_AUDIO_URL = "./audio/alert_high_conviction.mp3";
+  function playHighConvictionAlert() {
+    playUrl(HIGH_CONVICTION_AUDIO_URL, () => speakTextLine(t("highConvictionVoice")));
+  }
+
+  // De-dupe key for flash/alert triggers so a signal sitting in the 3h
+  // active/closed window doesn't re-fire every 20s poll.
+  const seenFeedFxKeys = new Set();
+  async function pollLiveFeedFx() {
+    try {
+      const res = await fetch("./live_feed.json", { cache: "no-store" });
+      if (!res.ok) return;
+      const data = await res.json();
+      const all = (data.active_signals_3h || []).concat(data.closed_signals_3h || []);
+      const fresh = all.filter((sig) => sig && !seenFeedFxKeys.has(vpsSigKey(sig)));
+      if (!fresh.length) return;
+      fresh.forEach((sig) => seenFeedFxKeys.add(vpsSigKey(sig)));
+      scheduleIdleVoice();
+      const last = fresh[fresh.length - 1];
+      triggerScreenFlash(vpsTapeAction(last));
+      if (FOCUS_STRATEGY_IDS.has(last.strategy_id)) playHighConvictionAlert();
+    } catch {
+      /* live_feed.json optional for this decorative layer */
+    }
+  }
+
   function bindLiveChromeOffset() {
     const apply = () => {
       const chrome = document.querySelector(".live-sticky-chrome");
@@ -643,12 +764,22 @@
     });
   }
 
+  // Strategy display names are "中文核心詞 (English Alias)". Splitting them
+  // lets mobile hide the English half (too long for a 2-col grid) while
+  // desktop keeps showing both — same underlying name, no data change.
+  function splitStrategyName(name) {
+    const s = String(name || "");
+    const m = s.match(/^(.*?)\s*(\([^)]*\))\s*$/);
+    return m ? { zh: m[1], en: m[2] } : { zh: s, en: "" };
+  }
   function matrixRowHtml(s) {
     const checked = watchStrategyIds.includes(s.id);
+    const parts = splitStrategyName(s.name);
+    const enHtml = parts.en ? ` <span class="matrix-name-en">${escapeHtml(parts.en)}</span>` : "";
     return `<label class="matrix-row${checked ? " is-checked" : ""}" data-row="${s.id}">
         <input type="checkbox" class="matrix-check" data-select="${s.id}" ${checked ? "checked" : ""} />
         <span class="matrix-dot${isHot(s.id) ? " is-hot" : ""}" data-dot="${s.id}" aria-hidden="true"></span>
-        <span class="matrix-name">${escapeHtml(s.name)}</span>
+        <span class="matrix-name">${escapeHtml(parts.zh)}${enHtml}</span>
       </label>`;
   }
   function renderMatrix(strategies) {
@@ -1457,6 +1588,10 @@
     setInterval(pollLiveFeedAudio, 20000);
     bindVpsExecBoard();
     bindLiveChromeOffset();
+    bindScanHud();
+    scheduleIdleVoice();
+    pollLiveFeedFx();
+    setInterval(pollLiveFeedFx, 20000);
 
     let savedId = null;
     try {

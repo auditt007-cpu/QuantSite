@@ -98,6 +98,10 @@
             <div class="war-chart-legend" id="warChartLegend" aria-label="Chart legend"></div>
             <div id="warChart" class="war-chart chart-container"></div>
             <div class="war-chart-tooltip" id="warChartTooltip" hidden></div>
+            <div class="scan-hud" id="scanHud" aria-hidden="true">
+              <div class="scan-hud-bar"><div class="scan-hud-fill" id="scanHudFill"></div></div>
+              <div class="scan-hud-text" id="scanHudText"></div>
+            </div>
           </div>
 
           <div class="war-countdown" id="warCountdown" hidden>
@@ -176,6 +180,7 @@
   </div>
 
   <div class="toast" id="toast"></div>
+  <div class="screen-flash-overlay" id="screenFlashOverlay" aria-hidden="true"></div>
 
   <script src="./js/nav.js"></script>
   <script src="./config.js"></script>

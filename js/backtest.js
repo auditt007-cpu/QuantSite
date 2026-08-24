@@ -244,10 +244,76 @@ function fmtSignedPct(x) {
   return sign + n.toFixed(1) + "%";
 }
 
+/* ---------------------------------------------------------------------
+ * Human-readable KPI subtitles. Every number below is derived from the
+ * exact same backtest result already painted on the card (or, for
+ * buy-and-hold, from the exact same kline window) — no invented figures.
+ * ------------------------------------------------------------------- */
+function buyHoldReturnOf(winBars) {
+  if (!winBars || winBars.length < 2) return null;
+  const p0 = Number(winBars[0].close);
+  const p1 = Number(winBars[winBars.length - 1].close);
+  if (!p0 || !isFinite(p0) || !isFinite(p1)) return null;
+  return (p1 - p0) / p0;
+}
+
+function coinLabel() {
+  return String(SYMBOL || "BTCUSDT").replace(/USDT$/i, "");
+}
+
+function paintHumanSubs(st, ctx) {
+  const coin = coinLabel();
+  const wrPct = Number(st.hit) * 100;
+  if ($("mWrSub") && Number.isFinite(wrPct)) {
+    const per10 = Math.max(0, Math.min(10, Math.round(wrPct / 10)));
+    $("mWrSub").textContent = t("subWrTpl").replace("{n}", String(per10));
+  }
+  if ($("mPfSub")) {
+    const pf = Number(st.pf);
+    $("mPfSub").textContent = isFinite(pf) && pf > 0
+      ? t("subPfTpl").replace("{pf}", pf.toFixed(2))
+      : t("subPfInf");
+  }
+  if ($("navDdSub")) {
+    const ddAbs = Math.abs(Number(st.mdd) * 100);
+    $("navDdSub").textContent = Number.isFinite(ddAbs) ? t("subMddTpl").replace("{pct}", ddAbs.toFixed(1)) : "";
+  }
+  if ($("moneyPnlSub") && ctx) {
+    const roiPct = Number(st.ret) * 100;
+    const bh = buyHoldReturnOf(ctx.winBars);
+    if (bh != null && Number.isFinite(roiPct)) {
+      const bhPct = bh * 100;
+      const diff = roiPct - bhPct;
+      $("moneyPnlSub").textContent = diff >= 0
+        ? t("subRoiBeatTpl").replace("{coin}", coin).replace("{pct}", diff.toFixed(1))
+        : t("subRoiBehindTpl").replace("{coin}", coin).replace("{bh}", bhPct.toFixed(1)).replace("{roi}", roiPct.toFixed(1));
+    } else {
+      $("moneyPnlSub").textContent = "";
+    }
+  }
+}
+
+function paintCtaBanner() {
+  const s = spec();
+  const nameEl = $("cta-strat-name");
+  if (nameEl) nameEl.textContent = (s && s.name) || engineId;
+  const btn = $("ctaBannerBtn");
+  if (!btn) return;
+  const loggedIn = window.QAIdentity && typeof window.QAIdentity.loggedIn === "function" && window.QAIdentity.loggedIn();
+  if (loggedIn) {
+    btn.href = "./member.html";
+    btn.textContent = t("ctaBannerBtnBound");
+  } else {
+    btn.href = "./member.html#login";
+    btn.textContent = t("ctaBannerBtn");
+  }
+}
+
 function paintPine() {
   const s = spec();
   if ($("stratSelect")) $("stratSelect").value = engineId;
   if ($("engineChip") && s) $("engineChip").textContent = s.name || engineId;
+  paintCtaBanner();
   if ($("sampleHint") && !lastCtx) $("sampleHint").textContent = t("btAwaitRun");
   const locked = isMasterSpec(s) || (s && s.id === "ai");
   const gate = $("masterGate");
@@ -489,11 +555,43 @@ function bindBacktestParams() {
     bl.addEventListener("change", () => {
       interval = resolveInterval();
       syncDock();
+      syncPeriodPills();
       if ($("btChartReveal") && $("btChartReveal").classList.contains("is-open")) {
         load(interval).catch((e) => toast(e.message, "warn"));
       }
     });
   }
+  bindPeriodPills();
+  syncPeriodPills();
+}
+
+function syncPeriodPills() {
+  const bl = $("btLookback");
+  const cur = String((bl && bl.value) || "");
+  document.querySelectorAll(".period-pill").forEach((btn) => {
+    btn.classList.toggle("is-active", btn.getAttribute("data-period") === cur);
+  });
+}
+
+function bindPeriodPills() {
+  const wrap = $("periodPills");
+  if (!wrap || wrap.getAttribute("data-bound") === "1") return;
+  wrap.setAttribute("data-bound", "1");
+  wrap.addEventListener("click", (ev) => {
+    const btn = ev.target.closest(".period-pill");
+    if (!btn) return;
+    const days = btn.getAttribute("data-period");
+    const bl = $("btLookback");
+    if (!bl || bl.value === days) {
+      syncPeriodPills();
+      return;
+    }
+    bl.value = days;
+    syncPeriodPills();
+    interval = resolveInterval();
+    syncDock();
+    executeBacktest().catch((e) => toast(e.message, "warn"));
+  });
 }
 
 function fmtUsd0(n) {
@@ -610,6 +708,7 @@ function paintRetail(eq, st, trades, ctx) {
 
 function refreshBacktestCardI18n() {
   if (window.QAApplyI18n) window.QAApplyI18n();
+  paintCtaBanner();
   if (lastCtx) {
     const winOffset = lastCtx.winIdx - lastCtx.runStart;
     const rawTrades = spec().run(lastCtx.runBars);
@@ -713,6 +812,22 @@ function applyLeaderboardPeriodToCard() {
   if ($("moneyEnd") && Number.isFinite(pnl)) {
     $("moneyEnd").textContent = "$" + fmtUsd0(START_EQ + pnl);
   }
+  const wrPct = Number(row.win_rate) * 100;
+  if ($("mWrSub") && Number.isFinite(wrPct)) {
+    const per10 = Math.max(0, Math.min(10, Math.round(wrPct / 10)));
+    $("mWrSub").textContent = t("subWrTpl").replace("{n}", String(per10));
+  }
+  const pfVal = Number(row.profit_factor);
+  if ($("mPfSub")) {
+    $("mPfSub").textContent = isFinite(pfVal) && pfVal > 0
+      ? t("subPfTpl").replace("{pf}", pfVal.toFixed(2))
+      : t("subPfInf");
+  }
+  const ddAbs = Math.abs(Number(row.max_drawdown) * 100);
+  if ($("navDdSub") && Number.isFinite(ddAbs)) {
+    $("navDdSub").textContent = t("subMddTpl").replace("{pct}", ddAbs.toFixed(1));
+  }
+  if ($("moneyPnlSub")) $("moneyPnlSub").textContent = "";
 }
 
 function chartHostWidth(el) {
@@ -967,6 +1082,7 @@ function run(silent) {
   paintSampleHint(ctx);
   paintNav(eq, st, ctx);
   paintRetail(eq, st, trades, ctx);
+  paintHumanSubs(st, ctx);
   if ($("mWr")) {
     $("mWr").textContent = (st.hit * 100).toFixed(1) + "%";
     if (window.QAUi) window.QAUi.flash($("mWr"), st.hit < 0.5);
@@ -1211,6 +1327,7 @@ function bindChrome() {
 bindChrome();
 window.addEventListener("quant-lang", () => refreshBacktestCardI18n());
 window.addEventListener("qa-leaderboard-ready", () => applyLeaderboardPeriodToCard());
+window.addEventListener("quant-auth", () => paintCtaBanner());
 function ensureDeskBound() {
   bindDesk();
 }

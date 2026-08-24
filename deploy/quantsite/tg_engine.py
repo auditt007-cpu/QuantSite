@@ -651,6 +651,16 @@ WELCOME_TEXTS = [
     "您好呀，作戰室已為您連線全球節點。行情波動很大，記得看好我的信號提醒，祝您今天交易順利、穩穩收米喔～",
 ]
 
+# Idle-state comfort lines: live.html plays one at random after 5 minutes
+# with no new signal, so the room never feels dead/abandoned.
+IDLE_TEXTS = [
+    "行情還在蓄力哦，哥哥再耐心等一下下嘛～",
+    "目前盤面有點無聊，但我還在幫你死死盯著呢！",
+]
+# Played (instead of the normal per-signal clip) when a real signal fires
+# from a "focus" strategy (Donchian breakout / mean reversion family).
+HIGH_CONVICTION_TEXT = "出現高確定性信號，請注意！"
+
 
 def _tts_generate_sync(text, out_path):
     if edge_tts is None:
@@ -710,6 +720,28 @@ def ensure_funnel_audio(force=False):
             log("funnel multi audio failed: {0}".format(exc))
 
 
+def ensure_idle_audio(force=False):
+    """Pre-generate the idle-comfort clips + the high-conviction alert clip.
+    Same skip-if-exists behavior as ensure_welcome_audio()."""
+    os.makedirs(AUDIO_DIR, exist_ok=True)
+    for i, text in enumerate(IDLE_TEXTS, start=1):
+        path = os.path.join(AUDIO_DIR, "idle_{0}.mp3".format(i))
+        if not force and os.path.exists(path) and os.path.getsize(path) > 1000:
+            continue
+        try:
+            _tts_generate_sync(text, path)
+            log("idle audio generated: idle_{0}.mp3".format(i))
+        except Exception as exc:
+            log("idle audio failed ({0}): {1}".format(i, exc))
+    alert_path = os.path.join(AUDIO_DIR, "alert_high_conviction.mp3")
+    if force or not (os.path.exists(alert_path) and os.path.getsize(alert_path) > 500):
+        try:
+            _tts_generate_sync(HIGH_CONVICTION_TEXT, alert_path)
+            log("alert audio generated: alert_high_conviction.mp3")
+        except Exception as exc:
+            log("alert audio failed: {0}".format(exc))
+
+
 def _purge_audio_glob(prefix):
     """Remove cached mp3 files matching prefix (e.g. 'sig_' or 'welcome_')."""
     if not os.path.isdir(AUDIO_DIR):
@@ -733,11 +765,13 @@ def regenerate_all_audio():
     n_sig = _purge_audio_glob("sig_")
     n_wel = _purge_audio_glob("welcome_")
     n_fun = _purge_audio_glob("funnel_")
+    n_idl = _purge_audio_glob("idle_")
     log(
-        "audio purge removed welcome={0} funnel={1} signal={2}".format(n_wel, n_fun, n_sig)
+        "audio purge removed welcome={0} funnel={1} signal={2} idle={3}".format(n_wel, n_fun, n_sig, n_idl)
     )
     ensure_welcome_audio(force=True)
     ensure_funnel_audio(force=True)
+    ensure_idle_audio(force=True)
     log(
         "audio regen complete voice={0} rate={1} pitch={2}".format(
             AUDIO_VOICE, AUDIO_RATE, AUDIO_PITCH
@@ -1371,6 +1405,7 @@ def main():
     else:
         AUDIO_EXECUTOR.submit(ensure_welcome_audio)
         AUDIO_EXECUTOR.submit(ensure_funnel_audio)
+        AUDIO_EXECUTOR.submit(ensure_idle_audio)
     while True:
         try:
             cycle()

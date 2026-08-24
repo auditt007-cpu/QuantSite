@@ -1544,7 +1544,10 @@
         dateFormat: "yyyy-MM-dd",
         timeFormatter: (time) => {
           const ts = unixOf(time);
-          return intra ? mdHmLocal(ts) : mdLocal(ts);
+          if (!intra) return mdLocal(ts);
+          // Mobile screens are too narrow for "MM-DD HH:mm" without wrapping/
+          // overlap — drop the date prefix there and show plain HH:mm.
+          return mobile ? hmLocal(ts) : mdHmLocal(ts);
         },
       },
       timeScale: {
@@ -1557,7 +1560,8 @@
         lockVisibleTimeRangeOnResize: true,
         tickMarkFormatter: (time) => {
           const ts = unixOf(time);
-          return intra ? mdHmLocal(ts) : mdLocal(ts);
+          if (!intra) return mdLocal(ts);
+          return mobile ? hmLocal(ts) : mdHmLocal(ts);
         },
       },
       handleScroll: {

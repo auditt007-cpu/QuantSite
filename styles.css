@@ -1673,6 +1673,45 @@ body.sheet-open { overflow: hidden; }
   font-family: inherit;
   font-size: 13px;
 }
+.bt-param select.bt-lookback-native {
+  /* Kept in the DOM (JS reads .value directly) but replaced visually by
+     the quick period pills below — no more long calendar-style dropdown. */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+.period-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.period-pill {
+  flex: 1 1 auto;
+  white-space: nowrap;
+  padding: 9px 10px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #000000;
+  background: #ffffff;
+  border: 1px solid #000000;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.period-pill:hover { background: #f1f5f9; }
+.period-pill.is-active {
+  background: #000000;
+  color: #ffffff;
+}
+@media (max-width: 480px) {
+  .period-pill { flex: 1 1 30%; font-size: 11px; padding: 8px 6px; }
+}
 .exec-label { margin: 0; font-size: 11px; letter-spacing: 0.08em; font-weight: 700; }
 .exec-bar select {
   width: 100%;

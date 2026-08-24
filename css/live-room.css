@@ -126,6 +126,84 @@
 .war-chart-tooltip .tip-pct { color: #38bdf8; }
 .war-chart-tooltip .tip-px { color: #94a3b8; }
 
+/* ---- Scan HUD: small "the engine is always working" status widget.
+   Progress bar oscillates for atmosphere; the text describes the real
+   scan cadence (60s poll across the strategy matrix), nothing invented. ---- */
+.scan-hud {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: min(220px, 46vw);
+  padding: 6px 9px;
+  background: rgba(9, 9, 11, 0.72);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 4px;
+  pointer-events: none;
+  backdrop-filter: blur(2px);
+}
+.scan-hud-bar {
+  height: 3px;
+  background: rgba(148, 163, 184, 0.25);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.scan-hud-fill {
+  height: 100%;
+  width: 90%;
+  background: linear-gradient(90deg, #16a34a, #38bdf8);
+  transition: width 0.9s ease;
+}
+.scan-hud-text {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  line-height: 1.3;
+  color: #86efac;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+}
+.scan-hud-text::after {
+  content: "▌";
+  margin-left: 1px;
+  animation: scanCursorBlink 0.9s step-end infinite;
+}
+@keyframes scanCursorBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+@media (max-width: 768px) {
+  .scan-hud { width: min(180px, 58vw); padding: 5px 7px; top: 6px; right: 6px; }
+  .scan-hud-text { font-size: 9px; }
+}
+
+/* ---- Global signal flash: a 0.5s edge glow on real BUY/SELL pushes. ---- */
+.screen-flash-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  pointer-events: none;
+  opacity: 0;
+}
+.screen-flash-overlay.flash-buy {
+  animation: pulseGreenFlash 0.5s ease-out;
+}
+.screen-flash-overlay.flash-sell {
+  animation: pulseRedFlash 0.5s ease-out;
+}
+@keyframes pulseGreenFlash {
+  0% { opacity: 1; box-shadow: inset 0 0 60px 10px rgba(16, 185, 129, 0.55); }
+  100% { opacity: 0; box-shadow: inset 0 0 60px 10px rgba(16, 185, 129, 0); }
+}
+@keyframes pulseRedFlash {
+  0% { opacity: 1; box-shadow: inset 0 0 60px 10px rgba(244, 63, 94, 0.55); }
+  100% { opacity: 0; box-shadow: inset 0 0 60px 10px rgba(244, 63, 94, 0); }
+}
+
 .selected-matrix-container {
   display: flex;
   flex-direction: column;
@@ -436,17 +514,51 @@
 .crowd-toast.is-out { opacity: 0; transform: translateY(-6px); }
 
 @media (max-width: 768px) {
-  .war-top-status { font-size: 11px; justify-content: flex-start; }
-  .live-mute-btn { padding: 4px 8px; font-size: 10px; }
+  /* ---- Micro top status bar: one line, 11px, tight to the H2 title ---- */
+  .live-room-head { margin: 6px 0 2px; }
+  .war-top-status {
+    font-size: 11px;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    gap: 6px 8px;
+    margin: 4px 0 0;
+    overflow-x: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .war-top-status::-webkit-scrollbar { display: none; }
+  .live-status-item { gap: 4px; }
+  .live-mute-btn { padding: 3px 7px; font-size: 10px; }
 
   .live-room-head { padding-right: 12px; }
   .war-room { padding: 12px; margin: 14px 0 16px; }
-  .war-chart { height: 280px; }
   .war-room-status { font-size: 12px; }
+
+  /* ---- Edge-to-edge K-line: bleed the chart frame out of .war-room's
+     padding, drop the border, so the chart fills the full viewport width. ---- */
+  .war-chart-frame {
+    margin: 0 -12px 14px;
+    border-left: 0;
+    border-right: 0;
+    border-radius: 0;
+  }
+  .war-chart { height: 300px; }
+  .war-chart-legend { padding: 8px 12px 0; }
 
   .coin-pill { padding: 6px 10px; font-size: 11px; }
   .matrix-list { grid-template-columns: 1fr 1fr; gap: 0 10px; }
   .matrix-row { font-size: 12px; padding: 8px 2px; }
+  /* Hide the long English strategy alias on small screens — keep only the
+     Chinese core term so the two-column grid never truncates/wraps. */
+  .matrix-name-en { display: none; }
+
+  /* ---- Bottom watchlist marquee: never let it cover the chart's x-axis
+     or the footer logo when it sticks near the viewport bottom. ---- */
+  .watch-tape-block {
+    position: relative;
+    z-index: 99;
+    padding-bottom: 60px;
+  }
 
   .crowd-toast-stack {
     left: 8px; right: 8px; bottom: 8px;

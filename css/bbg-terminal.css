@@ -90,6 +90,16 @@
 
 .bbg-pnl-val.is-loss { color: #ef4444; }
 
+.bbg-human-sub {
+  margin: 6px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  line-height: 1.4;
+}
+.bbg-human-sub:empty { display: none; }
+.bbg-human-sub-inline { display: block; margin-top: 3px; }
+
 .bbg-metrics-matrix {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -338,4 +348,63 @@
   .bbg-terminal-card { padding: 12px; margin: 10px auto; }
   .bbg-flow-value { font-size: 18px; }
   .bbg-footer-bar { flex-direction: column; }
+}
+
+/* ---- Bottom conversion CTA: black/gold, sits right under the equity
+   curve — the one dead-end-breaking exit from the report toward TG bind. */
+.strategy-cta-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 16px 0;
+  padding: 18px 20px;
+  background: linear-gradient(135deg, #0b0f10 0%, #131a1c 100%);
+  border: 1px solid #c9a227;
+  border-radius: 10px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+}
+.strategy-cta-banner .cta-text {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+.strategy-cta-banner .cta-title {
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.4;
+  color: #f7d774;
+  margin-bottom: 6px;
+}
+.strategy-cta-banner .cta-title span#cta-strat-name {
+  color: #10e28a;
+}
+.strategy-cta-banner .cta-desc {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #cbd5e1;
+}
+.strategy-cta-banner .cta-btn-gold {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 13px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #0b0f10;
+  background: linear-gradient(135deg, #ffe58a 0%, #c9a227 100%);
+  border: 1px solid #c9a227;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(201, 162, 39, 0.35);
+  transition: transform 0.08s ease, filter 0.15s ease;
+}
+.strategy-cta-banner .cta-btn-gold:hover { filter: brightness(1.05); }
+.strategy-cta-banner .cta-btn-gold:active { transform: translateY(1px) scale(0.99); }
+@media (max-width: 768px) {
+  .strategy-cta-banner { flex-direction: column; align-items: stretch; padding: 16px; }
+  .strategy-cta-banner .cta-btn-gold { text-align: center; justify-content: center; }
 }

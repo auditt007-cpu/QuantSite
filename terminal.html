@@ -116,19 +116,26 @@
           </label>
           <label class="bt-param">
             <span class="exec-label" data-i18n="lookback">回測時間區間</span>
-            <select id="btLookback">
+            <select id="btLookback" class="bt-lookback-native">
               <option value="1" data-i18n="look1d">1天</option>
               <option value="3" data-i18n="look3d">3天</option>
               <option value="5" data-i18n="look5d">5天</option>
-              <option value="7" data-i18n="look7d">7天</option>
+              <option value="7" selected data-i18n="look7d">7天</option>
               <option value="10" data-i18n="look10d">10天</option>
               <option value="15" data-i18n="look15d">15天</option>
               <option value="20" data-i18n="look20d">20天</option>
-              <option value="30" selected data-i18n="look30d">30天</option>
+              <option value="30" data-i18n="look30d">30天</option>
               <option value="60" data-i18n="look60d">60天</option>
               <option value="90" data-i18n="look90d">90天</option>
               <option value="180" data-i18n="look180d">180天</option>
             </select>
+            <div class="period-pills" id="periodPills" role="group" aria-label="Quick period select">
+              <button type="button" class="period-pill" data-period="3" data-i18n="pillPeriod3">近 3 天</button>
+              <button type="button" class="period-pill is-active" data-period="7" data-i18n="pillPeriod7">近 7 天</button>
+              <button type="button" class="period-pill" data-period="30" data-i18n="pillPeriod30">近 30 天</button>
+              <button type="button" class="period-pill" data-period="90" data-i18n="pillPeriod90">近 90 天</button>
+              <button type="button" class="period-pill" data-period="180" data-i18n="pillPeriod180">180 天全週期</button>
+            </div>
           </label>
         </div>
 
@@ -160,15 +167,18 @@
                   <span class="bbg-pnl-tag" data-i18n="moneyNetProfit">歷史淨賺</span>
                   <span class="bbg-pnl-val" id="moneyPnl">+$0.00 USDT (+0.0%)</span>
                 </div>
+                <p class="bbg-human-sub" id="moneyPnlSub"></p>
               </div>
               <div class="bbg-metrics-matrix">
                 <div class="bbg-metric-cell">
                   <span class="bbg-metric-title" data-i18n="statWr">勝率</span>
                   <span class="bbg-metric-number bbg-accent-gold" id="mWr">—</span>
+                  <p class="bbg-human-sub" id="mWrSub"></p>
                 </div>
                 <div class="bbg-metric-cell">
                   <span class="bbg-metric-title" data-i18n="statPf">盈虧比</span>
                   <span class="bbg-metric-number bbg-bright-white" id="mPf">—</span>
+                  <p class="bbg-human-sub" id="mPfSub"></p>
                 </div>
                 <div class="bbg-metric-cell">
                   <span class="bbg-metric-title" data-i18n="statTrades">交易筆數</span>
@@ -183,7 +193,10 @@
             <div class="bbg-status-strip" id="navLine">
               <div class="bbg-strip-item"><span data-i18n="lblNavStart">起始淨值</span> <strong id="navStart">$10,000.00</strong></div>
               <div class="bbg-strip-item"><span data-i18n="lblNavNow">當前淨值</span> <strong id="navNow">$10,000.00</strong></div>
-              <div class="bbg-strip-item"><span data-i18n="lblMaxDd">最大回撤</span> <strong id="navDd" class="bbg-loss-text">0.0%</strong></div>
+              <div class="bbg-strip-item">
+                <span data-i18n="lblMaxDd">最大回撤</span> <strong id="navDd" class="bbg-loss-text">0.0%</strong>
+                <span class="bbg-human-sub bbg-human-sub-inline" id="navDdSub"></span>
+              </div>
               <div class="bbg-strip-item"><span data-i18n="lblPeriod">回測用時</span> <strong id="navDur" class="bbg-win-text">30 DAYS</strong></div>
             </div>
             <div class="bbg-trades-section">
@@ -203,6 +216,17 @@
             <h3 class="zone-title" data-i18n="gmEquity">淨值曲線</h3>
             <div id="equityChart" class="lc-chart chart-container"></div>
           </div>
+
+          <div class="strategy-cta-banner" id="strategyCtaBanner">
+            <div class="cta-text">
+              <div class="cta-title">
+                <span data-i18n="ctaBannerTitlePrefix">⚡ 想要在實盤中自動執行【</span><span id="cta-strat-name">—</span><span data-i18n="ctaBannerTitleSuffix">】？</span>
+              </div>
+              <div class="cta-desc" data-i18n="ctaBannerDesc">當該策略觸發下一次買入/賣出信號時，毫秒級推送至您的 Telegram。</div>
+            </div>
+            <a href="./member.html#login" class="cta-btn-gold" id="ctaBannerBtn" data-i18n="ctaBannerBtn">🔔 免費開啟 TG 信號實時推送</a>
+          </div>
+
           <details class="pine-box source-module sheet-extra">
             <summary data-i18n="pineHead">💻 查看底層原始碼 (PineScript) ▾</summary>
             <div class="pine-toolbar">
