@@ -46,6 +46,7 @@
     paintRaf: 0,
     lastPaintAt: 0,
     pendingTicks: {},
+    radarRaf: 0,
     disposed: false,
     cum: loadCum(),
   };
@@ -257,7 +258,12 @@
     return Math.max(a, b);
   }
 
-  /* ---- voice ---- */
+  /* ---- voice: single FIFO AudioQueue (never parallel speak) ---- */
+  const AUDIO_GAP_MS = 800;
+  const AUDIO_STORM_N = 5;
+  const STORM_LINE =
+    "當前發生大面積整點異動，已觸發多套策略，請查閱戰情面板。";
+
   function loadVoicePref() {
     try {
       return localStorage.getItem(MUTE_KEY) !== "0";
@@ -321,6 +327,11 @@
   function speakLine(text) {
     return new Promise((resolve) => {
       if (!window.speechSynthesis || !text) return resolve();
+      try {
+        window.speechSynthesis.cancel();
+      } catch {
+        /* */
+      }
       const u = new SpeechSynthesisUtterance(text);
       u.lang = "zh-TW";
       u.rate = 1.3;
@@ -328,9 +339,22 @@
       u.volume = 1;
       const voice = pickTwVoice();
       if (voice) u.voice = voice;
-      u.onend = () => resolve();
-      u.onerror = () => resolve();
-      window.speechSynthesis.speak(u);
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        resolve();
+      };
+      u.onend = finish;
+      u.onerror = finish;
+      try {
+        window.speechSynthesis.speak(u);
+      } catch {
+        finish();
+        return;
+      }
+      /* some browsers stall without onend — hard cap */
+      setTimeout(finish, Math.min(12000, 1800 + String(text).length * 80));
     });
   }
 
@@ -338,10 +362,30 @@
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
+  function clearAudioQueue() {
+    state.queue = [];
+    try {
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+    } catch {
+      /* */
+    }
+  }
+
   async function drainQueue() {
     if (state.speaking) return;
     state.speaking = true;
     while (state.queue.length && state.voiceOn) {
+      /* Storm throttle: backlog > 5 → one summary, drop the rest */
+      if (state.queue.length > AUDIO_STORM_N) {
+        state.queue = [
+          {
+            text: STORM_LINE,
+            chime: true,
+            pauseAfter: AUDIO_GAP_MS,
+            storm: true,
+          },
+        ];
+      }
       const raw = state.queue.shift();
       const job = typeof raw === "string" ? { text: raw, chime: true } : raw || {};
       if (!job.text) continue;
@@ -350,30 +394,56 @@
         if (!state.voiceOn) break;
       }
       await speakLine(job.text);
-      if (job.pauseAfter) await sleep(job.pauseAfter);
+      if (!state.voiceOn) break;
+      const gap = job.pauseAfter != null ? job.pauseAfter : AUDIO_GAP_MS;
+      if (gap > 0 && state.queue.length) await sleep(gap);
     }
     state.speaking = false;
+    if (state.queue.length && state.voiceOn) drainQueue();
   }
 
   function enqueueVoice(text, opts) {
     if (!state.voiceOn || !text) return;
     const o = opts || {};
+    if (state.queue.length >= AUDIO_STORM_N && !o.force) {
+      state.queue = [
+        {
+          text: STORM_LINE,
+          chime: true,
+          pauseAfter: AUDIO_GAP_MS,
+          storm: true,
+        },
+      ];
+      drainQueue();
+      return;
+    }
     state.queue.push({
       text: text,
       chime: o.chime !== false,
-      pauseAfter: o.pauseAfter || 0,
+      pauseAfter: o.pauseAfter != null ? o.pauseAfter : AUDIO_GAP_MS,
     });
     drainQueue();
   }
 
   function enqueueBurst(lines) {
     if (!state.voiceOn || !lines || !lines.length) return;
+    if (lines.length > AUDIO_STORM_N) {
+      clearAudioQueue();
+      state.queue.push({
+        text: STORM_LINE,
+        chime: true,
+        pauseAfter: AUDIO_GAP_MS,
+        storm: true,
+      });
+      drainQueue();
+      return;
+    }
     lines.forEach((text, i) => {
       if (!text) return;
       state.queue.push({
         text: text,
         chime: i === 0,
-        pauseAfter: i < lines.length - 1 ? 600 : 0,
+        pauseAfter: AUDIO_GAP_MS,
       });
     });
     drainQueue();
@@ -421,7 +491,14 @@
   }
 
   function announceEvents(events) {
-    if (!events || !events.length) return;
+    if (!events || !events.length || !state.voiceOn) return;
+    /* Hourly storm: collapse audio to one line; tape still paints fully */
+    if (events.length > AUDIO_STORM_N) {
+      events.filter(isClose).forEach((ev) => bumpCum(ev));
+      clearAudioQueue();
+      enqueueVoice(STORM_LINE, { chime: true, force: true });
+      return;
+    }
     const buckets = {};
     const order = [];
     events
@@ -431,7 +508,7 @@
           stratAlias(ev.name),
           isBuy(ev) ? "B" : "S",
           String(ev.interval || ""),
-          String(Math.floor(Number(ev.ts) || 0)),
+          String(Math.floor((Number(ev.ts) || 0) / 5) * 5),
         ].join("|");
         if (!buckets[key]) {
           buckets[key] = [];
@@ -439,17 +516,22 @@
         }
         buckets[key].push(ev);
       });
+    const lines = [];
     order.forEach((key) => {
       const line = voiceOpenGroup(buckets[key]);
-      if (line) enqueueVoice(line);
+      if (line) lines.push(line);
     });
-    events
-      .filter(isClose)
-      .forEach((ev) => {
-        bumpCum(ev);
-        const line = voiceCloseLine(ev);
-        if (line) enqueueVoice(line);
-      });
+    events.filter(isClose).forEach((ev) => {
+      bumpCum(ev);
+      const line = voiceCloseLine(ev);
+      if (line) lines.push(line);
+    });
+    if (lines.length > AUDIO_STORM_N) {
+      clearAudioQueue();
+      enqueueVoice(STORM_LINE, { chime: true, force: true });
+      return;
+    }
+    enqueueBurst(lines);
   }
 
   function voiceForEvent(ev) {
@@ -496,6 +578,9 @@
   }
 
   function bindVoice() {
+    const btn = document.getElementById("liveMuteBtn");
+    if (!btn || btn.getAttribute("data-bound") === "1") return;
+    btn.setAttribute("data-bound", "1");
     state.voiceOn = !loadVoicePref();
     paintVoiceBtn();
     let seen = false;
@@ -505,8 +590,6 @@
       seen = false;
     }
     showHint(!state.voiceOn && !seen);
-    const btn = document.getElementById("liveMuteBtn");
-    if (!btn) return;
     btn.addEventListener("click", () => {
       state.voiceOn = !state.voiceOn;
       saveVoiceOn(state.voiceOn);
@@ -519,9 +602,9 @@
       }
       if (state.voiceOn) {
         icebreakerVoice();
-      } else if (window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-        state.queue = [];
+      } else {
+        clearAudioQueue();
+        state.speaking = false;
       }
     });
     const hint = document.getElementById("voiceHint");
@@ -1644,6 +1727,14 @@
   }
 
   function paintRadar() {
+    if (state.radarRaf) return;
+    state.radarRaf = requestAnimationFrame(() => {
+      state.radarRaf = 0;
+      paintRadarNow();
+    });
+  }
+
+  function paintRadarNow() {
     const list = document.getElementById("radarList");
     if (!list) return;
     const now = Date.now() / 1000;
@@ -1652,49 +1743,52 @@
       .filter((e) => watchSet.has(normSym(e.symbol)) && now - e.ts <= HOUR_S)
       .sort((a, b) => b.ts - a.ts)
       .slice(0, 40);
+    list.textContent = "";
     if (!rows.length) {
-      list.innerHTML =
-        '<div class="radar-idle">' +
-        escapeHtml(t("radarIdle", "⏳ 戰情雷達全天候掃描中，各幣種策略就緒...")) +
-        "</div>";
+      const idle = document.createElement("div");
+      idle.className = "radar-idle";
+      idle.textContent = t("radarIdle", "⏳ 戰情雷達全天候掃描中，各幣種策略就緒...");
+      list.appendChild(idle);
+      list.style.animation = "none";
       return;
     }
-    const html = rows
-      .map((ev) => {
-        const buy = isBuy(ev);
-        const close = isClose(ev);
-        const pnl = close ? Number(ev.pnl_pct) : pnlOf(ev);
-        const pnlCls = pnl == null || !Number.isFinite(pnl) ? "" : pnl >= 0 ? " is-up" : " is-down";
-        const act = close
-          ? "平倉 " + (Number.isFinite(pnl) ? fmtPnl(pnl) : "—")
-          : (buy ? "多頭開倉" : "空頭開倉") + " @ " + fmtPx(ev.price);
-        const livePnl =
-          !close && pnl != null ? " | 當前浮盈 " + fmtPnl(pnl) : "";
-        return (
-          '<div class="radar-row ' +
-          (close ? (Number(pnl) > 0 ? "is-buy" : "is-sell") : buy ? "is-buy" : "is-sell") +
-          '">' +
-          '<span class="t">[' +
-          fmt12h(ev.ts) +
-          "]</span>" +
-          '<span class="side">' +
-          (buy && !close ? "🟢 " : close && Number(pnl) > 0 ? "🟢 " : "🔴 ") +
-          escapeHtml(pairLabel(ev.symbol)) +
-          "</span>" +
-          "<span>| " +
-          stratAnchor(ev) +
-          " (" +
-          escapeHtml(String(ev.interval || "1h").toUpperCase()) +
-          ")</span>" +
-          "<span>| " +
-          escapeHtml(act) +
-          "</span>" +
-          (livePnl ? '<span class="pnl' + pnlCls + '">' + escapeHtml(livePnl) + "</span>" : "") +
-          "</div>"
-        );
-      })
-      .join("");
-    list.innerHTML = html + html;
+    const frag = document.createDocumentFragment();
+    const buildRow = (ev) => {
+      const buy = isBuy(ev);
+      const close = isClose(ev);
+      const pnl = close ? Number(ev.pnl_pct) : pnlOf(ev);
+      const pnlCls = pnl == null || !Number.isFinite(pnl) ? "" : pnl >= 0 ? " is-up" : " is-down";
+      const act = close
+        ? "平倉 " + (Number.isFinite(pnl) ? fmtPnl(pnl) : "—")
+        : (buy ? "多頭開倉" : "空頭開倉") + " @ " + fmtPx(ev.price);
+      const livePnl = !close && pnl != null ? " | 當前浮盈 " + fmtPnl(pnl) : "";
+      const row = document.createElement("div");
+      row.className =
+        "radar-row " +
+        (close ? (Number(pnl) > 0 ? "is-buy" : "is-sell") : buy ? "is-buy" : "is-sell");
+      row.innerHTML =
+        '<span class="t">[' +
+        fmt12h(ev.ts) +
+        "]</span>" +
+        '<span class="side">' +
+        (buy && !close ? "🟢 " : close && Number(pnl) > 0 ? "🟢 " : "🔴 ") +
+        escapeHtml(pairLabel(ev.symbol)) +
+        "</span>" +
+        "<span>| " +
+        stratAnchor(ev) +
+        " (" +
+        escapeHtml(String(ev.interval || "1h").toUpperCase()) +
+        ")</span>" +
+        "<span>| " +
+        escapeHtml(act) +
+        "</span>" +
+        (livePnl ? '<span class="pnl' + pnlCls + '">' + escapeHtml(livePnl) + "</span>" : "");
+      return row;
+    };
+    rows.forEach((ev) => frag.appendChild(buildRow(ev)));
+    /* duplicate for seamless scroll */
+    rows.forEach((ev) => frag.appendChild(buildRow(ev)));
+    list.appendChild(frag);
     list.style.animation = rows.length > 6 ? "radarScroll 28s linear infinite" : "none";
   }
 
@@ -1796,7 +1890,11 @@
     state.paintTimer = 0;
     if (state.paintRaf) cancelAnimationFrame(state.paintRaf);
     state.paintRaf = 0;
+    if (state.radarRaf) cancelAnimationFrame(state.radarRaf);
+    state.radarRaf = 0;
     state.pendingTicks = {};
+    clearAudioQueue();
+    state.speaking = false;
     if (handlers.resize) {
       window.removeEventListener("resize", handlers.resize);
       handlers.resize = null;

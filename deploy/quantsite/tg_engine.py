@@ -1120,7 +1120,113 @@ def events_to_tape_rows(events, now_sec):
                 "logged_at": fired,
             }
         )
-    return rows
+    return smooth_tape_storm(rows, int(now_sec))
+
+
+def smooth_tape_storm(rows, base_sec=None):
+    """Buffer before signals.json: dedupe, resonance merge, and jitter identical stamps.
+
+    Hour boundaries fire 15m+1h(+5m heartbeat) together; without this step every
+    row shares the same logged_at and the frontend sees a signal storm.
+    """
+    if not rows:
+        return []
+    base = int(base_sec or time.time())
+    seen = set()
+    uniq = []
+    for ev in rows:
+        k = _exec_event_key(ev)
+        if not k or k in seen:
+            continue
+        seen.add(k)
+        uniq.append(dict(ev))
+
+    # Prefer majors when one strategy fans out across many coins
+    uniq = cap_strategy_log_events(uniq, max_per_strategy=MAX_TAPE_EVENTS_PER_STRATEGY)
+
+    # Same-second same-direction opens -> multi-strategy resonance batches
+    resonance = {}
+    kept = []
+    storm = len(uniq) >= 8
+    for ev in uniq:
+        side = _tape_side_norm(ev.get("side"))
+        kind = ev.get("event") or "open"
+        try:
+            bucket = int(ev.get("logged_at") or base) // 5
+        except (TypeError, ValueError):
+            bucket = base // 5
+        if kind != "open":
+            kept.append(ev)
+            continue
+        key = (bucket, side, "open")
+        resonance.setdefault(key, []).append(ev)
+
+    for key, group in resonance.items():
+        strats = {
+            (g.get("name_zh") or g.get("strategy_id") or "")
+            for g in group
+            if (g.get("name_zh") or g.get("strategy_id"))
+        }
+        if len(group) >= 4 and len(strats) >= 2:
+            # Collapse into one resonance tape row (batch-ready)
+            syms = []
+            seen_sym = set()
+            for g in sorted(group, key=lambda e: _priority_rank(e.get("symbol"))):
+                sym = g.get("symbol")
+                if not sym or sym in seen_sym:
+                    continue
+                seen_sym.add(sym)
+                syms.append(g)
+                if len(syms) >= 5:
+                    break
+            head = syms[0]
+            kept.append(
+                {
+                    "strategy_id": "resonance_" + str(key[0]),
+                    "name_zh": "多策略共振",
+                    "name_en": "Multi-strategy confluence",
+                    "symbol": head.get("symbol"),
+                    "interval": head.get("interval") or "1h",
+                    "event": "open",
+                    "side": key[1],
+                    "price": head.get("price"),
+                    "bar_ts": head.get("bar_ts") or 0,
+                    "logged_at": int(head.get("logged_at") or base),
+                    "storm": True,
+                    "resonance": True,
+                    "resonance_n": len(group),
+                    "resonance_symbols": [s.get("symbol") for s in syms],
+                }
+            )
+            # Keep a few individual rows for panel detail (jittered below)
+            for g in syms[1:3]:
+                g = dict(g)
+                g["storm"] = True
+                kept.append(g)
+        else:
+            for g in group:
+                if storm:
+                    g["storm"] = True
+                kept.append(g)
+
+    # Inject 1–2s (and light stagger) so timestamps are never identical
+    kept.sort(
+        key=lambda e: (
+            -(1 if e.get("resonance") else 0),
+            _priority_rank(e.get("symbol")),
+            -(e.get("bar_ts") or 0),
+        )
+    )
+    out = []
+    for i, ev in enumerate(kept):
+        row = dict(ev)
+        # 0,1,2,1,2,3... capped so a storm spreads over a few seconds of wall clock
+        jitter = (i % 3) + (i // 3)
+        row["logged_at"] = int(base) + min(int(jitter), 6)
+        if len(kept) >= 8:
+            row["storm"] = True
+        out.append(row)
+    return out
 
 
 def collapse_exec_log_batches(events, limit=24):
@@ -1185,6 +1291,20 @@ def collapse_exec_log_batches(events, limit=24):
             pass
         if ev.get("prev_side") and ev.get("prev_side") != side:
             g["action"] = action_label(side, ev.get("prev_side"))
+        # Expand resonance helper symbols into the batch card
+        for extra in ev.get("resonance_symbols") or []:
+            if not extra or extra == ev.get("symbol"):
+                continue
+            g["symbols"].append(
+                {
+                    "symbol": extra,
+                    "price": None,
+                    "sl_pct": None,
+                    "tp_pct": None,
+                    "event": "open",
+                    "pnl_pct": None,
+                }
+            )
     out = []
     for key in order:
         g = buckets[key]
@@ -1948,6 +2068,15 @@ def cycle():
     except Exception as exc:
         log("heartbeat pulse error: {0}".format(exc))
         traceback.print_exc()
+
+    # Hour-boundary storm breaker: when 15m+1h already flooded the tape,
+    # choke 5m micro / stale pulse so we do not stack another dozen rows.
+    if len(events) >= 8:
+        micro = micro[:1]
+        pulse = []
+    elif len(events) >= 4:
+        micro = micro[:2]
+        pulse = pulse[:1]
 
     tape_events = list(events) + list(micro) + list(pulse)
     if tape_events:
