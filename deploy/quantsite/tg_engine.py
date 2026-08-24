@@ -911,7 +911,16 @@ def load_exec_log():
     try:
         with open(LIVE_EXEC_LOG_PATH, "r", encoding="utf-8") as f:
             data = json.load(f)
-        return data if isinstance(data, list) else []
+        rows = data if isinstance(data, list) else []
+        # Drop candle-open stamps left by the old logged_at=bar_ts write path
+        # (TIME column stuck at 14:00 / other hour marks).
+        cleaned = []
+        for ev in rows:
+            ts = int(ev.get("logged_at") or 0)
+            if ts > 0 and (ts % 3600) <= 5:
+                continue
+            cleaned.append(ev)
+        return cleaned
     except Exception:
         return []
 
