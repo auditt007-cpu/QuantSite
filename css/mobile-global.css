@@ -52,6 +52,24 @@ body.nav-drawer-open .site-sticky-chrome {
     background: #fff;
   }
 
+  .nav-actions {
+    display: none !important;
+  }
+  .topbar.nav-open .nav-actions {
+    display: flex !important;
+  }
+
+  .lang-pills,
+  .nav-actions .lang-pills {
+    height: 44px;
+  }
+  .lang-pills button,
+  .nav-actions .lang-pills button {
+    min-width: 48px;
+    min-height: 44px;
+    padding: 0 12px;
+  }
+
   body.has-bb-util .topbar {
     top: 28px;
   }
@@ -124,6 +142,9 @@ body.has-bb-util .site-sticky-chrome {
     padding: 8px;
     margin-top: 4px;
     pointer-events: auto !important;
+    width: 100%;
+    flex-basis: 100%;
+    order: 99;
   }
 
   .topbar.nav-open .nav-actions a,
