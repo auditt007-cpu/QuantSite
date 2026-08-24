@@ -245,10 +245,14 @@ function wire() {
   lang = detectLang();
   parentInviteFromUrl();
   applyI18n();
-  if ($("btnChannel")) $("btnChannel").href = cfg.tgChannelUrl;
-  if ($("btnChannel2")) $("btnChannel2").href = cfg.tgChannelUrl;
-  if ($("btnOpenBot")) $("btnOpenBot").href = cfg.tgBotUrl;
-  if ($("tgFab")) $("tgFab").href = cfg.tgChannelUrl;
+  if ($("btnChannel")) $("btnChannel").href = "#";
+  if ($("btnChannel2")) $("btnChannel2").href = "#";
+  if ($("btnOpenBot") && window.QACommunity && typeof window.QACommunity.bindUrl === "function") {
+    $("btnOpenBot").href = window.QACommunity.bindUrl();
+  } else if ($("btnOpenBot")) {
+    $("btnOpenBot").href = cfg.tgBotUrl ? String(cfg.tgBotUrl).replace(/\/$/, "") + "?start=bind" : "#";
+  }
+  if ($("tgFab")) $("tgFab").href = "#";
   wireOtp();
   if (location.hash === "#login") openModal("loginModal");
   if (location.hash === "#dash") location.href = "./member.html";

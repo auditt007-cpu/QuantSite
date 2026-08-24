@@ -10,8 +10,18 @@
     return String(cfg.tgBotUser || "@grid_quant_bot").replace(/^@/, "");
   }
 
+  function communityBase() {
+    if (root.QACommunity && typeof root.QACommunity.endpoint === "function") {
+      return root.QACommunity.endpoint();
+    }
+    return String(cfg.COMMUNITY_ENDPOINT || cfg.tgBotUrl || "").replace(/\/$/, "") || "https://t.me/" + botUser();
+  }
+
   function botStartUrl(startParam) {
-    return "https://t.me/" + botUser() + "?start=" + encodeURIComponent(startParam);
+    if (root.QACommunity && typeof root.QACommunity.endpoint === "function") {
+      return root.QACommunity.endpoint(startParam);
+    }
+    return communityBase() + "?start=" + encodeURIComponent(startParam);
   }
 
   function fbclidFromLocation() {
@@ -66,10 +76,10 @@
       wrap.innerHTML =
         '<div class="modal">' +
         '<button type="button" class="modal-x" data-close-claim aria-label="關閉">×</button>' +
-        "<h3>兌換碼已就緒</h3>" +
+        "<h3>節點訂閱碼已就緒</h3>" +
         '<p class="muted" id="claimTokenMsg"></p>' +
         '<p style="font-size:1.35rem;letter-spacing:.12em;font-weight:700;margin:12px 0" id="claimTokenCode"></p>' +
-        '<button type="button" class="btn-cta compact" data-open-bot>前往 Telegram 綁定</button>' +
+        '<button type="button" class="btn-cta compact" data-open-bot>前往節點通道綁定</button>' +
         '<button type="button" class="btn ghost" data-close-claim>關閉</button>' +
         "</div>";
       document.body.appendChild(wrap);
@@ -87,13 +97,13 @@
     if (code) code.textContent = token;
     if (msg) {
       msg.textContent = copied
-        ? "您的專屬兌換碼：" + token + "（已複製）。若跳轉後未自動填入，請直接在對話框發送此碼。"
-        : "您的專屬兌換碼：" + token + "。剪貼簿不可用，請手動複製後在 Telegram 對話框發送此碼。";
+        ? "您的專屬訂閱碼：" + token + "（已複製）。若跳轉後未自動填入，請直接在對話框發送此碼。"
+        : "您的專屬訂閱碼：" + token + "。剪貼簿不可用，請手動複製後在節點通道對話框發送此碼。";
     }
     toast(
       copied
-        ? "您的專屬兌換碼：" + token + "（已複製）。若跳轉後未自動填入，請直接在對話框發送此碼。"
-        : "您的專屬兌換碼：" + token + "（請手動複製）",
+        ? "您的專屬訂閱碼：" + token + "（已複製）。若跳轉後未自動填入，請直接在對話框發送此碼。"
+        : "您的專屬訂閱碼：" + token + "（請手動複製）",
       copied ? "ok" : "err",
     );
   }
@@ -141,6 +151,10 @@
     } catch {
       /* */
     }
+    /* Lead only on explicit subscribe CTA — never on bare page load */
+    if (root.QAMetaEvents && typeof root.QAMetaEvents.trackLead === "function") {
+      root.QAMetaEvents.trackLead({ content_name: "node_stream_subscribe" });
+    }
     try {
       await fetch(hubBase() + "/api/leads/bind", {
         method: "POST",
@@ -150,7 +164,7 @@
         credentials: "omit",
       });
     } catch {
-      /* offline / CORS — still open TG with start payload */
+      /* offline / CORS — still open community with start payload */
     }
     showClaimModal(token, copied);
     setTimeout(function () {
@@ -163,12 +177,16 @@
     if (!el || !el.closest) return false;
     if (el.id === "paySupport") return false;
     if (el.matches && el.matches("[data-keep-channel]")) return false;
-    if (el.matches && el.matches("[data-get-strategy], #ctaBannerBtn, #btnGetStrategy, #tgFab, #btnChannel, #btnChannel2, a.cta-btn-gold, a.tg-fab")) {
+    if (
+      el.matches &&
+      el.matches(
+        "[data-get-strategy], [data-community-open], #ctaBannerBtn, #btnGetStrategy, #tgFab, #btnChannel, #btnChannel2, a.cta-btn-gold, a.tg-fab",
+      )
+    ) {
       return true;
     }
     const href = (el.getAttribute && (el.getAttribute("href") || el.getAttribute("data-href"))) || "";
-    if (/t\.me\/quant_alpha_signals/i.test(href)) return true;
-    if (/t\.me\/grid_quant_bot/i.test(href) && !/start=VIP/i.test(href) && el.id !== "paySupport") return true;
+    if (/t\.me\//i.test(href) && el.id !== "paySupport" && el.id !== "btnOpenBot") return true;
     return false;
   }
 
@@ -186,15 +204,29 @@
 
   function retargetHrefs() {
     fbclidFromLocation();
-    const bot = "https://t.me/" + botUser();
-    document.querySelectorAll("a[href*='quant_alpha_signals'], #tgFab, #btnChannel, #btnChannel2").forEach((a) => {
-      if (a.id === "paySupport") return;
-      a.setAttribute("href", bot);
+    const bot = communityBase();
+    document.querySelectorAll("[data-community-open], #tgFab, #btnChannel, #btnChannel2, #btnGetStrategy, a[data-get-strategy]").forEach((a) => {
+      if (a.id === "paySupport" || a.id === "btnOpenBot") return;
+      if (a.tagName === "A") {
+        a.setAttribute("href", "#");
+        a.setAttribute("role", "button");
+      }
       a.setAttribute("data-get-strategy", "1");
+      a.setAttribute("data-community-open", "1");
     });
+    const bind = document.getElementById("btnOpenBot");
+    if (bind && root.QACommunity && typeof root.QACommunity.bindUrl === "function") {
+      bind.setAttribute("href", root.QACommunity.bindUrl());
+    }
+    void bot;
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", retargetHrefs);
   else retargetHrefs();
-  root.QALeadBind = { claimStrategy: claimStrategy, fbclidFromLocation: fbclidFromLocation, makeToken: makeToken, botStartUrl: botStartUrl };
+  root.QALeadBind = {
+    claimStrategy: claimStrategy,
+    fbclidFromLocation: fbclidFromLocation,
+    makeToken: makeToken,
+    botStartUrl: botStartUrl,
+  };
 })(typeof window !== "undefined" ? window : globalThis);

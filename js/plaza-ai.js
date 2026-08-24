@@ -339,7 +339,7 @@
     const badge = s.ai
       ? '<span class="ai-badge">' + t("mktBadgeAi", "AI 挖礦") + "</span>"
       : grid
-        ? '<span class="grid-hero-badge">🔥 24H 震盪套利 · 自動收租</span>'
+        ? '<span class="grid-hero-badge">⚡ 24H 波動率套利流水線</span>'
         : '<span class="classic-badge">' + t("mktBadgeClassic", "量化經典") + "</span>";
     const principle = briefCopy(s.principle || s.description || s.copy || "", 200);
     const sym = ((s.symbols && s.symbols[0]) || "BTCUSDT").replace(/USDT$/i, "") + "USDT";

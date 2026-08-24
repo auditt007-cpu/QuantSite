@@ -282,7 +282,16 @@ async function verifyTx() {
 parentInviteFromUrl();
 showPanels();
 applyAuthUi();
-if ($("btnChannel")) $("btnChannel").href = cfg.tgChannelUrl;
+if ($("btnChannel")) $("btnChannel").href = "#";
+if ($("btnOpenBot") && window.QACommunity && typeof window.QACommunity.bindUrl === "function") {
+  $("btnOpenBot").href = window.QACommunity.bindUrl();
+} else if ($("btnOpenBot")) {
+  const u = String((cfg && cfg.COMMUNITY_ENDPOINT) || (cfg && cfg.tgBotUrl) || "").replace(/\/$/, "");
+  $("btnOpenBot").href = u ? u + "?start=bind" : "#";
+}
+if ($("paySupport") && window.QACommunity && typeof window.QACommunity.endpoint === "function") {
+  $("paySupport").href = window.QACommunity.endpoint();
+}
 if ($("btnOpenBot")) $("btnOpenBot").href = cfg.tgBotUrl;
 if ($("wallet")) $("wallet").textContent = cfg.usdtWallet;
 if ($("paySupport")) $("paySupport").href = cfg.tgSupportUrl || cfg.tgBotUrl;

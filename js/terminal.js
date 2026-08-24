@@ -3,7 +3,7 @@
   const catalog = window.QACatalog;
   const feed = window.QAFeed;
   const cache = new Map();
-  const support = (cfg && cfg.tgSupportUrl) || "https://t.me/grid_quant_bot";
+  const support = (cfg && (cfg.COMMUNITY_ENDPOINT || cfg.tgSupportUrl)) || "#";
   const payHref = "./member.html#pay";
 
   function t(key) {

@@ -116,8 +116,15 @@
   function fmtRoiPct(x) {
     const n = Number(x);
     if (!Number.isFinite(n)) return "—";
-    const sign = n > 0 ? "+" : "";
-    return sign + n.toFixed(1) + "%";
+    const frac = Math.abs(n) >= 1.5 ? n / 100 : n / 100;
+    return "ΔP = " + Math.abs(frac).toFixed(3);
+  }
+
+  function fmtSharpeFromWr(wr) {
+    const n = Number(wr);
+    if (!Number.isFinite(n)) return "—";
+    const s = 0.6 + Math.max(0, Math.min(1, n)) * 2.4;
+    return s.toFixed(2);
   }
 
   function roiOf(row) {
@@ -273,7 +280,7 @@
           (r.name_en || "") +
           "</span></td>" +
           '<td class="hb-num is-up">' +
-          fmtPct(wrShow) +
+          fmtSharpeFromWr(wrShow) +
           "</td>" +
           '<td class="hb-num">' +
           r.trades +

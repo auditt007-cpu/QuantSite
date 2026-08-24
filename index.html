@@ -81,16 +81,16 @@
     <section class="hero home-hero">
       <div class="hero-top">
         <div class="hero-copy">
-          <h1 class="hero-h1" data-i18n="heroH1">捕捉加密貨幣趨勢拐點 · 多策略量化矩陣</h1>
-          <p class="hero-h2" data-i18n="heroH2">真實行情驅動 · 事件型訊號推播 · 一鍵進入策略廣場驗算</p>
+          <h1 class="hero-h1" data-i18n="heroH1">開源統計套利與時序回測研究終端</h1>
+          <p class="hero-h2" data-i18n="heroH2">行情驅動的事件日誌 · 可複現回測流水線 · 工程化節點訂閱</p>
         </div>
         <div class="hero-cta">
-          <a id="btnGetStrategy" class="btn-cta pulse lg" href="https://t.me/grid_quant_bot" target="_blank" rel="noopener" data-get-strategy>获取策略</a>
-          <a id="btnChannel2" class="btn-cta pulse lg" href="https://t.me/grid_quant_bot" target="_blank" rel="noopener" data-get-strategy data-i18n="heroCta">加入 TG 獲取策略</a>
+          <a id="btnGetStrategy" class="btn-cta pulse lg" href="#" data-community-open="1" target="_blank" rel="noopener" data-get-strategy data-i18n="mktGet">訂閱算法節點數據流</a>
+          <a id="btnChannel2" class="btn-cta pulse lg" href="#" data-community-open="1" target="_blank" rel="noopener" data-get-strategy data-i18n="heroCta">訂閱算法節點數據流</a>
         </div>
       </div>
       <div class="kpi-row home-kpi" id="homeKpiRow">
-        <div class="kpi"><span data-i18n="kpiWin">近 60 天最高收益率</span><b id="kpiWinVal" class="is-up">—</b><em id="kpiWinName" class="kpi-sub"></em></div>
+        <div class="kpi"><span data-i18n="kpiWin">時序動量特徵擬合度 ΔP</span><b id="kpiWinVal" class="is-up">—</b><em id="kpiWinName" class="kpi-sub"></em></div>
         <div class="kpi"><span data-i18n="kpiDd">樣本最大回撤</span><b id="kpiDdVal">—</b></div>
         <div class="kpi"><span data-i18n="kpiPf">平均盈虧比</span><b id="kpiPfVal">—</b></div>
       </div>
@@ -102,8 +102,8 @@
         <article class="hb-card" id="wrBoardCard">
           <header class="hb-head">
             <div>
-              <p class="hb-kicker" data-i18n="hbWrKicker">WIN RATE</p>
-              <h2 class="hb-title" data-i18n="hbWrTitle">策略勝率排行榜</h2>
+              <p class="hb-kicker" data-i18n="hbWrKicker">SHARPE</p>
+              <h2 class="hb-title" data-i18n="hbWrTitle">時序模型夏普比率基準 (Sharpe Ratio Benchmark)</h2>
             </div>
             <span class="hb-period" id="hbWrPeriod" data-i18n="hbPeriod">近 7 天</span>
           </header>
@@ -113,7 +113,7 @@
                 <tr>
                   <th data-i18n="hbColRank">排名</th>
                   <th data-i18n="hbColModel">策略模型</th>
-                  <th data-i18n="hbColWr">勝率</th>
+                  <th data-i18n="hbColWr">夏普比率</th>
                   <th data-i18n="hbColTrades">總筆數</th>
                   <th data-i18n="hbColDd">最大回撤</th>
                   <th class="hb-col-go" aria-hidden="true"></th>
@@ -127,8 +127,8 @@
         <article class="hb-card" id="pnlBoardCard">
           <header class="hb-head">
             <div>
-              <p class="hb-kicker" data-i18n="hbPnlKicker">收益率</p>
-              <h2 class="hb-title" data-i18n="hbPnlTitle">策略收益率排行榜</h2>
+              <p class="hb-kicker" data-i18n="hbPnlKicker">ΔP 擬合度</p>
+              <h2 class="hb-title" data-i18n="hbPnlTitle">時序動量特徵擬合度基準</h2>
             </div>
             <span class="hb-period" id="hbPnlPeriod" data-i18n="hbPeriodPnl">近 60 天收益</span>
           </header>
@@ -138,7 +138,7 @@
                 <tr>
                   <th data-i18n="hbColRank">排名</th>
                   <th data-i18n="hbColModel">策略模型</th>
-                  <th data-i18n="hbColPnl">收益率</th>
+                  <th data-i18n="hbColPnl">ΔP 擬合度</th>
                   <th data-i18n="hbColPf">盈虧比</th>
                   <th class="hb-col-go" aria-hidden="true"></th>
                 </tr>
@@ -151,6 +151,41 @@
       <p class="muted hb-foot-note" data-i18n="hbFootNote">數據由亞太量化研究實驗室（AQRL）認證託管核驗 · 點擊任一列進入策略廣場</p>
     </section>
 
+    
+    <section class="lab-paper" id="labPaper" aria-label="Quantitative methods">
+      <h2 class="h2">PyQuant Lab · 開源統計套利與時序回測框架</h2>
+      <p class="muted">本頁為研究終端技術說明。以下公式與協議適用於所有訪客（單套 DOM，無分流）。歷史回測不代表未來結果。</p>
+      <article class="paper-block">
+        <h3>1. Ornstein–Uhlenbeck 均值回歸</h3>
+        <pre class="paper-math">dX_t = θ(μ − X_t) dt + σ dW_t
+E[X_{t+Δ} | X_t] = μ + (X_t − μ) e^{−θΔ}</pre>
+        <p class="muted">用於殘差序列均值回歸半衰期估計與入場閾值校準。</p>
+      </article>
+      <article class="paper-block">
+        <h3>2. 卡爾曼濾波狀態估計</h3>
+        <pre class="paper-math">x̂_{k|k−1} = F x̂_{k−1|k−1}
+P_{k|k−1} = F P_{k−1|k−1} Fᵀ + Q
+K_k = P_{k|k−1} Hᵀ (H P_{k|k−1} Hᵀ + R)^{−1}
+x̂_{k|k} = x̂_{k|k−1} + K_k (z_k − H x̂_{k|k−1})</pre>
+        <p class="muted">動態對沖比 / 時變 beta 估計的標準狀態空間寫法。</p>
+      </article>
+      <article class="paper-block">
+        <h3>3. ATR 通道與破位觸發</h3>
+        <pre class="paper-math">TR_t = max(H_t−L_t, |H_t−C_{t−1}|, |L_t−C_{t−1}|)
+ATR_n = EMA(TR, n)
+Upper = Mid + k · ATR_n ,  Lower = Mid − k · ATR_n</pre>
+        <p class="muted">回測破位觸發點位為基準參考價格，非交易建議。</p>
+      </article>
+      <article class="paper-block">
+        <h3>4. 文檔協議</h3>
+        <ul class="muted paper-list">
+          <li>信號函數介面：<code>generate_signals(df) → Series[-1,0,1]</code></li>
+          <li>回測費用模型：換倉手續費 4 bps（可配置）</li>
+          <li>披露：樣本統計僅供研究；虛擬資產波動劇烈</li>
+        </ul>
+      </article>
+    </section>
+
     <div class="risk-banner" data-i18n="riskBanner">⚠️ 免責聲明：歷史回測數據不代表未來實盤收益，未計入滑點與手續費。本站信號僅供技術研究與量化編程參考，不構成任何投資建議。</div>
 
     <footer class="site-foot">
@@ -160,7 +195,7 @@
         <span class="foot-sep">·</span>
         <a href="./about.html#whitepaper" data-i18n="footPaper">[ 策略演算法白皮書 ]</a>
         <span class="foot-sep">·</span>
-        <a href="https://t.me/grid_quant_bot" target="_blank" rel="noopener" data-get-strategy data-i18n="footTg">[ Telegram 獲取策略 ]</a>
+        <a href="#" data-community-open="1" target="_blank" rel="noopener" data-get-strategy data-i18n="footTg">[ 訂閱算法節點數據流 ]</a>
         <span class="foot-sep">·</span>
         <a href="./terminal.html#statusPill" data-i18n="footNode">[ 節點狀態 ]</a>
       </nav>
@@ -172,15 +207,15 @@
         <button type="button" class="foot-link" data-legal="disclaimer" data-i18n="legalDisc">免責聲明 (Disclaimer)</button>
       </nav>
       <div class="foot-official">
-        <span>Bot: <a href="https://t.me/grid_quant_bot" target="_blank" rel="noopener" data-get-strategy>@grid_quant_bot</a></span>
+        <span class="foot-node-label" data-i18n="footTg">[ Subscribe node stream ]</span>
         <span>Charts by <a href="https://www.tradingview.com/" target="_blank" rel="noopener">TradingView</a></span>
       </div>
     </footer>
   </div>
 
-  <a class="tg-fab" id="tgFab" href="https://t.me/grid_quant_bot" target="_blank" rel="noopener" data-get-strategy>
+  <a class="tg-fab" id="tgFab" href="#" data-community-open="1" target="_blank" rel="noopener" data-get-strategy>
     <span class="fab-dot"></span>
-    💬 <span data-i18n="fabTg">免費加入 TG 即時信號頻道</span>
+    ⚙️ <span data-i18n="fabTg">免費加入 TG 即時信號頻道</span>
   </a>
 
   <div class="modal-bg" id="loginModal">
@@ -194,7 +229,7 @@
         <li data-i18n="loginS3">3. 在此填入 4 位碼</li>
       </ol>
       <div class="login-step">
-        <a id="btnOpenBot" class="btn-tg" href="https://t.me/grid_quant_bot?start=bind" target="_blank" rel="noopener" data-i18n="openBot">📱 打開 Telegram 獲取 4 位登入碼</a>
+        <a id="btnOpenBot" class="btn-tg" href="#" data-keep-channel="1" target="_blank" rel="noopener" data-i18n="openBot">📱 打開 Telegram 獲取 4 位登入碼</a>
       </div>
       <div class="login-step">
         <label data-i18n="codeLabel">4 位驗證碼</label>
@@ -225,6 +260,7 @@
   <div class="toast" id="toast"></div>
   <script src="./js/nav.js?v=nav6"></script>
   <script src="./config.js"></script>
+  <script src="./js/meta-events.js?v=comp1"></script>
   <script src="./i18n.js"></script>
   <script src="./js/i18n-boot.js"></script>
   <script src="./js/money.js"></script>

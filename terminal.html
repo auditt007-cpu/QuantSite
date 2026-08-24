@@ -110,6 +110,39 @@
         <div class="term-tabs" id="termTabs" role="tablist"></div>
         <div class="market-grid" id="gridAll"></div>
         <button type="button" class="btn ghost grid-more" id="gridMore" hidden data-i18n="gridMore">載入更多策略</button>
+        <section class="lab-paper" id="labPaper" aria-label="Quantitative methods">
+      <h2 class="h2">PyQuant Lab · 開源統計套利與時序回測框架</h2>
+      <p class="muted">本頁為研究終端技術說明。以下公式與協議適用於所有訪客（單套 DOM，無分流）。歷史回測不代表未來結果。</p>
+      <article class="paper-block">
+        <h3>1. Ornstein–Uhlenbeck 均值回歸</h3>
+        <pre class="paper-math">dX_t = θ(μ − X_t) dt + σ dW_t
+E[X_{t+Δ} | X_t] = μ + (X_t − μ) e^{−θΔ}</pre>
+        <p class="muted">用於殘差序列均值回歸半衰期估計與入場閾值校準。</p>
+      </article>
+      <article class="paper-block">
+        <h3>2. 卡爾曼濾波狀態估計</h3>
+        <pre class="paper-math">x̂_{k|k−1} = F x̂_{k−1|k−1}
+P_{k|k−1} = F P_{k−1|k−1} Fᵀ + Q
+K_k = P_{k|k−1} Hᵀ (H P_{k|k−1} Hᵀ + R)^{−1}
+x̂_{k|k} = x̂_{k|k−1} + K_k (z_k − H x̂_{k|k−1})</pre>
+        <p class="muted">動態對沖比 / 時變 beta 估計的標準狀態空間寫法。</p>
+      </article>
+      <article class="paper-block">
+        <h3>3. ATR 通道與破位觸發</h3>
+        <pre class="paper-math">TR_t = max(H_t−L_t, |H_t−C_{t−1}|, |L_t−C_{t−1}|)
+ATR_n = EMA(TR, n)
+Upper = Mid + k · ATR_n ,  Lower = Mid − k · ATR_n</pre>
+        <p class="muted">回測破位觸發點位為基準參考價格，非交易建議。</p>
+      </article>
+      <article class="paper-block">
+        <h3>4. 文檔協議</h3>
+        <ul class="muted paper-list">
+          <li>信號函數介面：<code>generate_signals(df) → Series[-1,0,1]</code></li>
+          <li>回測費用模型：換倉手續費 4 bps（可配置）</li>
+          <li>披露：樣本統計僅供研究；虛擬資產波動劇烈</li>
+        </ul>
+      </article>
+    </section>
         <p class="disc-foot desk-only" data-i18n="discFoot">歷史回測數據不代表未來實盤收益，未計入滑點與手續費。本站信號僅供技術研究，不構成投資建議。</p>
         <p class="disc-mini" data-i18n="discMini">僅供數據研究</p>
       </section>
@@ -317,7 +350,7 @@
         <span class="foot-sep">·</span>
         <a href="./about.html#whitepaper" data-i18n="footPaper">[ 策略演算法白皮書 ]</a>
         <span class="foot-sep">·</span>
-        <a href="https://t.me/grid_quant_bot" target="_blank" rel="noopener" data-get-strategy data-i18n="footTg">[ Telegram 獲取策略 ]</a>
+        <a href="#" data-community-open="1" target="_blank" rel="noopener" data-get-strategy data-i18n="footTg">[ Telegram 獲取策略 ]</a>
         <span class="foot-sep">·</span>
         <a href="./terminal.html#statusPill" data-i18n="footNode">[ 節點狀態 ]</a>
       </nav>
@@ -361,7 +394,7 @@
       <p class="share-brand">QUANT ALPHA</p>
       <p class="share-line" id="shareLine">$10,000 → $10,000</p>
       <p class="share-sub" id="shareSub"></p>
-      <p class="share-qr muted">t.me/grid_quant_bot</p>
+      <p class="share-qr muted" data-i18n="footTg">[ Subscribe node stream ]</p>
     </div>
     <button type="button" class="btn-cta compact" id="shareClose" data-i18n="close">關閉</button>
   </div>
@@ -369,6 +402,7 @@
 
   <script src="./js/nav.js?v=nav6"></script>
   <script src="./config.js"></script>
+  <script src="./js/meta-events.js?v=comp1"></script>
   <script src="./i18n.js"></script>
   <script src="./js/i18n-boot.js"></script>
   <script src="./js/news.js?v=av2"></script>
