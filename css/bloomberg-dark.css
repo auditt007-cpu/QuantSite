@@ -4,7 +4,8 @@ html, body { background-color: var(--bg-main); color: var(--text-main); font-fam
 
 /* Black header band (Bloomberg-style) */
 .site-sticky-chrome { background: #000000; }
-.topbar { background: #000000; border-bottom: 1px solid #333333; padding: 10px 0; }
+.topbar,
+body.has-bb-util .topbar { background: #000000; border-bottom: 1px solid #333333; padding: 10px 0; }
 .brand { gap: 12px; max-width: min(320px, 36vw); }
 .logo { width: 14px; height: 14px; background: var(--color-accent); }
 .brand h1 { font-size: 15px; letter-spacing: 0.16em; color: #ffffff; font-weight: 700; }
