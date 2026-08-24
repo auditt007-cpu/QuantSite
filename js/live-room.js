@@ -279,8 +279,8 @@
   }
 
   function liveFeedUrl() {
-    // Same-origin HTTPS only — never fetch http://IP (Mixed Content).
-    return "/live_feed.json?t=" + Date.now();
+    // HTTPS API subdomain — safe from GitHub Pages (no Mixed Content); CORS * on api.
+    return "https://api.quantalpha.space/live_feed.json?t=" + Date.now();
   }
 
   function fmtVpsTime(barTs) {
