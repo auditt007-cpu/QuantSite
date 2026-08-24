@@ -11,8 +11,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#09090b">
   <title>QUANT ALPHA · 策略廣場</title>
-  <link rel="stylesheet" href="./styles.css?v=mq7" />
-  <link rel="stylesheet" href="./css/mobile-global.css?v=mq7" />
+  <link rel="stylesheet" href="./styles.css?v=mq8" />
+  <link rel="stylesheet" href="./css/mobile-global.css?v=mq8" />
   <link rel="stylesheet" href="./css/mobile-subpages.css" />
   <link rel="stylesheet" href="./css/bbg-terminal.css" />
   <link rel="stylesheet" href="./css/bloomberg-system.css?v=layout2" />
@@ -20,154 +20,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
-  <style id="qaFlashMarqueeCss">
-#qaFlashMarquee {
-  display: grid !important;
-  grid-template-columns: max-content minmax(0, 1fr) !important;
-  grid-template-rows: 40px !important;
-  align-items: center !important;
-  column-gap: 12px !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  min-width: 0 !important;
-  height: 40px !important;
-  min-height: 40px !important;
-  max-height: 40px !important;
-  margin: 0 0 16px !important;
-  padding: 0 16px !important;
-  background: #000000 !important;
-  box-sizing: border-box !important;
-  overflow: hidden !important;
-  position: relative !important;
-  z-index: 10 !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  flex-shrink: 0 !important;
-  float: none !important;
-  transform: none !important;
-  contain: none !important;
-}
-
-#qaFlashMarquee > .qa-flash-badge {
-  grid-column: 1 !important;
-  grid-row: 1 !important;
-  position: relative !important;
-  left: auto !important;
-  right: auto !important;
-  top: auto !important;
-  bottom: auto !important;
-  float: none !important;
-  transform: none !important;
-  z-index: 2 !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  height: 24px !important;
-  min-height: 24px !important;
-  max-height: 24px !important;
-  margin: 0 !important;
-  padding: 0 10px !important;
-  background: #ff5500 !important;
-  color: #ffffff !important;
-  font-size: 12px !important;
-  font-weight: 700 !important;
-  line-height: 1 !important;
-  letter-spacing: 0.04em !important;
-  white-space: nowrap !important;
-  border: 0 !important;
-  border-radius: 2px !important;
-  box-sizing: border-box !important;
-  overflow: hidden !important;
-}
-
-#qaFlashMarquee > .qa-flash-viewport {
-  grid-column: 2 !important;
-  grid-row: 1 !important;
-  min-width: 0 !important;
-  max-width: 100% !important;
-  width: auto !important;
-  height: 40px !important;
-  overflow: hidden !important;
-  position: relative !important;
-  z-index: 1 !important;
-  display: block !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  isolation: auto !important;
-}
-
-#qaFlashMarquee .qa-flash-track {
-  display: inline-flex !important;
-  flex-wrap: nowrap !important;
-  align-items: center !important;
-  white-space: nowrap !important;
-  width: max-content !important;
-  height: 40px !important;
-  line-height: 40px !important;
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
-  margin-right: 0 !important;
-  padding: 0 !important;
-  position: relative !important;
-  float: none !important;
-  transform: none !important;
-  will-change: auto;
-  animation: qa-flash-scroll 25s linear infinite !important;
-}
-
-#qaFlashMarquee.is-paused .qa-flash-track,
-#qaFlashMarquee:hover .qa-flash-track {
-  animation-play-state: paused !important;
-}
-
-#qaFlashMarquee .qa-flash-item {
-  display: inline-block !important;
-  padding-right: 48px !important;
-  color: #e5e7eb !important;
-  font-size: 13px !important;
-  line-height: 40px !important;
-  white-space: nowrap !important;
-}
-
-#qaFlashMarquee a {
-  color: #e5e7eb !important;
-  text-decoration: none !important;
-  font-size: 13px !important;
-  line-height: 40px !important;
-  white-space: nowrap !important;
-  border: 0 !important;
-  outline: 0 !important;
-  background: transparent !important;
-}
-
-#qaFlashMarquee a:hover {
-  color: #ffffff !important;
-  text-decoration: underline !important;
-}
-
-@keyframes qa-flash-scroll {
-  0% { margin-left: 0; }
-  100% { margin-left: -50%; }
-}
-
-@media (max-width: 768px) {
-  #qaFlashMarquee {
-    padding: 0 8px !important;
-    column-gap: 8px !important;
-    margin-bottom: 12px !important;
-  }
-  #qaFlashMarquee > .qa-flash-badge {
-    padding: 0 8px !important;
-    font-size: 11px !important;
-  }
-  #qaFlashMarquee a,
-  #qaFlashMarquee .qa-flash-item {
-    font-size: 12px !important;
-    padding-right: 32px !important;
-  }
-}
-  </style>
-  <link rel="stylesheet" href="./css/marquee-ticker.css?v=mq6" data-qa-flash="1" />
+  
+  <link rel="stylesheet" href="./css/marquee-ticker.css?v=mq8" data-qa-flash="1" />
 </head>
 <body class="editorial-light plaza-page" data-title-key="titleTerminal">
   <div class="wrap wide">
@@ -548,12 +402,12 @@ Upper = Mid + k · ATR_n ,  Lower = Mid − k · ATR_n</pre>
   </div>
   <div class="toast" id="toast"></div>
 
-  <script src="./js/nav.js?v=nav11"></script>
+  <script src="./js/nav.js?v=nav12"></script>
   <script src="./config.js"></script>
   <script src="./js/meta-events.js?v=comp1"></script>
   <script src="./i18n.js"></script>
   <script src="./js/i18n-boot.js"></script>
-  <script src="./js/news.js?v=mq6"></script>
+  <script src="./js/news.js?v=mq8"></script>
   <script src="./js/money.js"></script>
   <script src="./js/clipboard.js"></script>
   <script src="./js/identity.js"></script>

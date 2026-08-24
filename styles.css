@@ -1081,13 +1081,14 @@ input.is-focused, textarea.is-focused, select.is-focused {
   line-height: 40px;
   min-width: max-content;
   transform: none;
+  will-change: transform;
   animation: qaTickerMarquee 60s linear infinite;
 }
 .ticker-bar.is-paused .ticker-track,
 .ticker.is-paused .ticker-track { animation-play-state: paused; }
 @keyframes qaTickerMarquee {
-  0% { margin-left: 0; }
-  100% { margin-left: -50%; }
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
 .ticker-pill {
   display: inline-flex;

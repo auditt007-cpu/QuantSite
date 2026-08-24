@@ -128,7 +128,7 @@
       link.setAttribute("data-qa-flash", "1");
       document.head.appendChild(link);
     }
-    link.href = "./css/marquee-ticker.css?v=mq6";
+    link.href = "./css/marquee-ticker.css?v=mq8";
   }
 
   function flashMarqueeHtml() {
@@ -139,16 +139,19 @@
     );
   }
 
-  function setImp(el, prop, val) {
-    if (el) el.style.setProperty(prop, val, "important");
-  }
-
   function lockFlashMarquee() {
     const bar = document.getElementById("qaFlashMarquee");
     if (!bar) return;
-    const badge = bar.querySelector(".qa-flash-badge");
+    let badge = bar.querySelector(".qa-flash-badge");
     let vp = bar.querySelector(".qa-flash-viewport");
     let track = document.getElementById("qaFlashTrack") || bar.querySelector(".qa-flash-track");
+    if (!badge) {
+      badge = document.createElement("div");
+      badge.className = "qa-flash-badge";
+      badge.setAttribute("data-i18n", "flashMarqueeTag");
+      badge.textContent = "即時快訊";
+      bar.appendChild(badge);
+    }
     if (!vp) {
       vp = document.createElement("div");
       vp.className = "qa-flash-viewport";
@@ -159,80 +162,12 @@
       track.className = "qa-flash-track";
       track.id = "qaFlashTrack";
     }
-    if (badge && badge.parentNode !== bar) bar.insertBefore(badge, bar.firstChild);
+    if (badge.parentNode !== bar) bar.insertBefore(badge, bar.firstChild);
     if (vp.parentNode !== bar) bar.appendChild(vp);
     if (badge && vp.previousElementSibling !== badge) bar.insertBefore(vp, badge.nextSibling);
     if (track.parentNode !== vp) vp.appendChild(track);
     Array.prototype.slice.call(bar.childNodes).forEach((node) => {
       if (node !== badge && node !== vp) bar.removeChild(node);
-    });
-
-    setImp(bar, "display", "grid");
-    setImp(bar, "grid-template-columns", "max-content minmax(0, 1fr)");
-    setImp(bar, "grid-template-rows", "40px");
-    setImp(bar, "align-items", "center");
-    setImp(bar, "column-gap", "12px");
-    setImp(bar, "width", "100%");
-    setImp(bar, "height", "40px");
-    setImp(bar, "min-height", "40px");
-    setImp(bar, "max-height", "40px");
-    setImp(bar, "overflow", "hidden");
-    setImp(bar, "background", "#000000");
-    setImp(bar, "box-sizing", "border-box");
-    setImp(bar, "padding", "0 16px");
-    setImp(bar, "margin", "0 0 16px");
-    setImp(bar, "position", "relative");
-    setImp(bar, "border", "0");
-    setImp(bar, "float", "none");
-    setImp(bar, "transform", "none");
-
-    if (badge) {
-      setImp(badge, "position", "relative");
-      setImp(badge, "left", "auto");
-      setImp(badge, "top", "auto");
-      setImp(badge, "float", "none");
-      setImp(badge, "transform", "none");
-      setImp(badge, "z-index", "2");
-      setImp(badge, "display", "inline-flex");
-      setImp(badge, "align-items", "center");
-      setImp(badge, "height", "24px");
-      setImp(badge, "padding", "0 10px");
-      setImp(badge, "margin", "0");
-      setImp(badge, "background", "#ff5500");
-      setImp(badge, "color", "#ffffff");
-      setImp(badge, "font-size", "12px");
-      setImp(badge, "font-weight", "700");
-      setImp(badge, "white-space", "nowrap");
-      setImp(badge, "border", "0");
-    }
-
-    setImp(vp, "min-width", "0");
-    setImp(vp, "width", "auto");
-    setImp(vp, "max-width", "100%");
-    setImp(vp, "height", "40px");
-    setImp(vp, "overflow", "hidden");
-    setImp(vp, "position", "relative");
-    setImp(vp, "z-index", "1");
-    setImp(vp, "display", "block");
-    setImp(vp, "margin", "0");
-    setImp(vp, "padding", "0");
-    setImp(vp, "float", "none");
-
-    setImp(track, "display", "inline-flex");
-    setImp(track, "white-space", "nowrap");
-    setImp(track, "height", "40px");
-    setImp(track, "line-height", "40px");
-    setImp(track, "position", "relative");
-    setImp(track, "float", "none");
-    setImp(track, "padding", "0");
-    setImp(track, "transform", "none");
-    setImp(track, "overflow", "visible");
-
-    bar.querySelectorAll("a").forEach((a) => {
-      setImp(a, "color", "#e5e7eb");
-      setImp(a, "text-decoration", "none");
-      setImp(a, "border", "0");
-      setImp(a, "background", "transparent");
     });
   }
 
@@ -240,18 +175,13 @@
 
   function mountFlashMarquee() {
     installFlashMarqueeCss();
-    const bar = document.createElement("div");
-    bar.id = "qaFlashMarquee";
-    bar.className = "qa-flash-marquee";
-    bar.setAttribute("aria-label", "Flash news ticker");
-    bar.innerHTML = flashMarqueeHtml();
-    const stale =
-      document.getElementById("qaFlashMarquee") ||
-      document.getElementById("bloomberg-marquee-bar") ||
-      document.querySelector(".qa-flash-marquee, .bb-marquee, .news-ticker-container");
-    if (stale && stale.parentNode) {
-      stale.parentNode.replaceChild(bar, stale);
-    } else {
+    let bar = document.getElementById("qaFlashMarquee");
+    if (!bar) {
+      bar = document.createElement("div");
+      bar.id = "qaFlashMarquee";
+      bar.className = "qa-flash-marquee";
+      bar.setAttribute("aria-label", "Flash news ticker");
+      bar.innerHTML = flashMarqueeHtml();
       const chrome = document.querySelector(".site-sticky-chrome");
       const ticker = document.getElementById("tickerBar");
       const topbar = document.querySelector(".topbar");
@@ -259,9 +189,6 @@
       else if (ticker && ticker.parentNode) ticker.insertAdjacentElement("afterend", bar);
       else if (topbar) topbar.insertAdjacentElement("afterend", bar);
     }
-    document.querySelectorAll("#bloomberg-marquee-bar, .bb-marquee, .news-ticker-container").forEach((el) => {
-      if (el !== bar) el.remove();
-    });
     lockFlashMarquee();
   }
 
@@ -271,7 +198,7 @@
     if (hasNewsJs) return;
     window.__qaFlashMarqueeLoaded = true;
     const s = document.createElement("script");
-    s.src = "./js/flash-marquee.js?v=mq6";
+    s.src = "./js/flash-marquee.js?v=mq8";
     s.defer = true;
     document.head.appendChild(s);
   }
