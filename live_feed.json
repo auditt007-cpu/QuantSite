@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-24T18:30:39Z",
+  "updated_at": "2026-08-24T18:32:59Z",
   "period_hours": 3,
   "poll_sec": 5,
   "scan_tf": "15m+1h",
@@ -1294,6 +1294,28 @@
   "exec_log": [
     {
       "kind": "batch",
+      "name_zh": "EMA雙均交叉",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787596318,
+      "bar_ts": 1787596200,
+      "event": "open",
+      "strategy_id": "ema_12_26_15m_1",
+      "symbols": [
+        {
+          "symbol": "RENDERUSDT",
+          "price": 1.4871,
+          "sl_pct": -1.1229910564185284,
+          "tp_pct": 2.245982112837072,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
       "name_zh": "EMA三均共振",
       "interval": "15m",
       "side": "SHORT",
@@ -1845,28 +1867,6 @@
         }
       ],
       "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "EMA50趨勢突破",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787595350,
-      "bar_ts": 1787595300,
-      "event": "open",
-      "strategy_id": "trend50_15m_43",
-      "symbols": [
-        {
-          "symbol": "PEPEUSDT",
-          "price": 4.02e-06,
-          "sl_pct": -0.49751243781094057,
-          "tp_pct": 0.49751243781094057,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
     }
   ],
   "exec_log_raw_count": 200
