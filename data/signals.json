@@ -1,24 +1,54 @@
 {
-  "updated_at": "2026-08-24T15:52:20Z",
+  "updated_at": "2026-08-24T15:54:28Z",
   "venue": "coinbase",
   "poll_sec": 5,
   "exec_log": [
     {
       "kind": "batch",
-      "name_zh": "EMA快線交叉",
+      "name_zh": "量均突破",
       "interval": "15m",
       "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787586678,
+      "action": "多頭平倉翻空 (SELL)",
+      "logged_at": 1787586745,
       "bar_ts": 1787586300,
       "event": "open",
-      "strategy_id": "ema_5_13_15m_3",
+      "strategy_id": "vol_ma_15m_39",
       "symbols": [
         {
-          "symbol": "ONDOUSDT",
-          "price": 0.37742,
-          "sl_pct": -1.2739123522865865,
-          "tp_pct": 2.547559747761111,
+          "symbol": "DOGEUSDT",
+          "price": 0.09134,
+          "sl_pct": -0.8999343113641223,
+          "tp_pct": 1.7998686227282752,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "NEARUSDT",
+          "price": 2.001,
+          "sl_pct": -1.028535732133931,
+          "tp_pct": 2.0570214892553613,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
+      "name_zh": "成交量價差VSA",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "多頭平倉翻空 (SELL)",
+      "logged_at": 1787586744,
+      "bar_ts": 1787586300,
+      "event": "open",
+      "strategy_id": "vsa_15m_27",
+      "symbols": [
+        {
+          "symbol": "DOGEUSDT",
+          "price": 0.09134,
+          "sl_pct": -0.8999343113641223,
+          "tp_pct": 1.7998686227282752,
           "event": "open",
           "pnl_pct": null
         },
@@ -29,9 +59,17 @@
           "tp_pct": 1.8944506774833836,
           "event": "open",
           "pnl_pct": null
+        },
+        {
+          "symbol": "SOLUSDT",
+          "price": 96.44,
+          "sl_pct": -0.8343125259228623,
+          "tp_pct": 1.6686260887598507,
+          "event": "open",
+          "pnl_pct": null
         }
       ],
-      "strategy_count": 2
+      "strategy_count": 3
     },
     {
       "kind": "batch",
@@ -39,11 +77,19 @@
       "interval": "15m",
       "side": "LONG",
       "action": "多頭開倉 (BUY)",
-      "logged_at": 1787586679,
+      "logged_at": 1787586743,
       "bar_ts": 1787586300,
       "event": "close",
       "strategy_id": "vol_ma_15m_39",
       "symbols": [
+        {
+          "symbol": "DOGEUSDT",
+          "price": null,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -1.2326989619377184
+        },
         {
           "symbol": "ONDOUSDT",
           "price": null,
@@ -85,7 +131,37 @@
           "pnl_pct": -0.7715278243706465
         }
       ],
-      "strategy_count": 5
+      "strategy_count": 6
+    },
+    {
+      "kind": "batch",
+      "name_zh": "EMA快線交叉",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787586678,
+      "bar_ts": 1787586300,
+      "event": "open",
+      "strategy_id": "ema_5_13_15m_3",
+      "symbols": [
+        {
+          "symbol": "ONDOUSDT",
+          "price": 0.37742,
+          "sl_pct": -1.2739123522865865,
+          "tp_pct": 2.547559747761111,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "LINKUSDT",
+          "price": 11.587,
+          "sl_pct": -0.9472253387416918,
+          "tp_pct": 1.8944506774833836,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 2
     },
     {
       "kind": "batch",
@@ -242,36 +318,6 @@
         }
       ],
       "strategy_count": 10
-    },
-    {
-      "kind": "batch",
-      "name_zh": "成交量價差VSA",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787586614,
-      "bar_ts": 1787586300,
-      "event": "open",
-      "strategy_id": "vsa_15m_27",
-      "symbols": [
-        {
-          "symbol": "LINKUSDT",
-          "price": 11.587,
-          "sl_pct": -0.9472253387416918,
-          "tp_pct": 1.8944506774833836,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "SOLUSDT",
-          "price": 96.44,
-          "sl_pct": -0.8343125259228623,
-          "tp_pct": 1.6686260887598507,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 2
     },
     {
       "kind": "batch",
@@ -454,28 +500,6 @@
         }
       ],
       "strategy_count": 3
-    },
-    {
-      "kind": "batch",
-      "name_zh": "量均突破",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787586479,
-      "bar_ts": 1787586300,
-      "event": "open",
-      "strategy_id": "vol_ma_15m_39",
-      "symbols": [
-        {
-          "symbol": "NEARUSDT",
-          "price": 2.001,
-          "sl_pct": -1.028535732133931,
-          "tp_pct": 2.0570214892553613,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
     },
     {
       "kind": "batch",
