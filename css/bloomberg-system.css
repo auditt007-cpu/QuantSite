@@ -133,37 +133,70 @@ body.has-bb-util .wrap.wide {
 
 body.has-bb-util .topbar {
   top: 28px;
-  z-index: 35;
+  z-index: 120;
   background: #ffffff;
 }
 
-.ticker-bar {
-  position: relative;
-  z-index: 100;
-  background: #ffffff;
-  height: 40px;
-  min-height: 40px;
-  max-height: 40px;
-  line-height: 40px;
-  overflow: hidden;
-  flex-shrink: 0;
-  contain: none;
-}
-
-/* ---- Header / Topbar ---- */
+/* Topbar must never inherit ticker height/line-height clamps */
 .topbar {
   background: #ffffff;
   border-bottom: 1px solid #000000;
   border-radius: 0;
   padding: 10px 0 12px;
   gap: 10px;
+  min-height: 56px;
+  height: auto !important;
+  max-height: none !important;
+  line-height: normal !important;
+  overflow: visible !important;
+  contain: none !important;
 }
 
-.brand h1 {
+.topbar .nav-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  height: auto !important;
+  max-height: none !important;
+  line-height: normal !important;
+  overflow: visible !important;
+}
+
+.topbar .nav-link,
+.topbar .term-home-link {
+  display: inline-flex !important;
+  align-items: center !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+  min-height: 32px !important;
+  height: auto !important;
+  max-height: none !important;
+  padding: 6px 8px !important;
+  white-space: nowrap;
+  overflow: visible !important;
+  color: #000000;
+  text-decoration: none;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.topbar .brand,
+.topbar .brand-text,
+.topbar .brand h1,
+.topbar .site-slogan {
+  overflow: visible !important;
+  max-height: none !important;
+  line-height: 1.25 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.topbar .brand h1 {
   font-size: 15px;
   font-weight: 900;
   letter-spacing: -0.8px;
-  line-height: 1.15;
   text-transform: uppercase;
   color: #000000;
 }
@@ -367,6 +400,8 @@ body.has-bb-util .topbar {
   overflow: hidden;
   flex-shrink: 0;
   contain: none;
+  position: relative;
+  z-index: 2;
 }
 
 .ticker-pill {
