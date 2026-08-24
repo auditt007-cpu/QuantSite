@@ -43,10 +43,14 @@ SYMBOLS = [
     "OPUSDT", "ARBUSDT", "PEPEUSDT", "SHIBUSDT", "TIAUSDT", "INJUSDT",
     "RENDERUSDT", "AAVEUSDT",
 ]
-# Mainstream scan pool — keeps VPS CPU on liquid majors only
+# Mainstream scan pool — includes live-room 8 so tape rows match the war-room watchlist
 SCAN_SYMBOLS = [
-    "BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "DOGEUSDT",
-    "LINKUSDT", "AVAXUSDT", "ADAUSDT",
+    "BTCUSDT", "ETHUSDT", "SOLUSDT", "ONDOUSDT", "DOGEUSDT", "SUIUSDT",
+    "NEARUSDT", "PEPEUSDT", "BNBUSDT", "XRPUSDT", "LINKUSDT", "AVAXUSDT",
+]
+LIVE_ROOM_SYMBOLS = [
+    "BTCUSDT", "ETHUSDT", "SOLUSDT", "ONDOUSDT", "DOGEUSDT", "SUIUSDT",
+    "NEARUSDT", "PEPEUSDT",
 ]
 # Per-strategy tape cap: prefer these when multiple symbols fire same cycle
 PRIORITY_SYMBOLS = ["BTCUSDT", "ETHUSDT", "SOLUSDT"]
@@ -54,8 +58,9 @@ MAX_TAPE_EVENTS_PER_STRATEGY = 3
 TIMEFRAMES = ("15m", "1h")
 POLL_SEC = 60
 FEED_PUBLISH_SEC = 5
+HEARTBEAT_SEC = 180
 KLINE_LIMIT = 200
-POOL_WORKERS = 10
+POOL_WORKERS = 8
 LIVE_FEED_WORKERS = 8
 LIVE_FEED_TF = "1h"
 LIVE_FEED_WINDOW_SEC = 3 * 3600
@@ -77,6 +82,8 @@ SSL_CTX.check_hostname = False
 SSL_CTX.verify_mode = ssl.CERT_NONE
 
 SIGNAL_STATE = {}
+HEARTBEAT_STATE = {}
+HEARTBEAT_POOL = {}
 KLINE_POOL = {}
 LIVE_POSITION_STATE = {}
 LIVE_POSITION_LOCK = threading.Lock()
@@ -107,25 +114,47 @@ def okx_inst(sym):
 
 
 def binance_interval(tf):
-    return "15m" if tf == "15m" else "1h"
+    if tf in ("1m", "5m", "15m"):
+        return tf
+    return "1h"
 
 
 def okx_bar(tf):
-    return "15m" if tf == "15m" else "1H"
+    return {"1m": "1m", "5m": "5m", "15m": "15m"}.get(tf, "1H")
+
+
+def bar_duration_ms(tf):
+    mins = {"1m": 1, "5m": 5, "15m": 15}.get(tf, 60)
+    return mins * 60 * 1000
+
+
+def fetch_binance_klines(sym, tf, limit):
+    interval = binance_interval(tf)
+    last_exc = None
+    for host in ("https://data-api.binance.vision", "https://api.binance.com"):
+        url = "{0}/api/v3/klines?symbol={1}&interval={2}&limit={3}".format(
+            host, sym, interval, limit
+        )
+        try:
+            rows = http_json(url)
+            now_ms = int(time.time() * 1000)
+            if rows and int(rows[-1][6]) > now_ms:
+                rows = rows[:-1]
+            need = 30 if limit <= 80 else 60
+            if len(rows) < min(need, limit):
+                raise RuntimeError("binance insufficient bars")
+            return pack_rows(rows, "binance", binance=True, tf=tf)
+        except Exception as exc:
+            last_exc = exc
+    raise last_exc
 
 
 def fetch_klines(sym, tf):
-    interval = binance_interval(tf)
-    url = (
-        "https://api.binance.com/api/v3/klines?symbol={0}&interval={1}&limit={2}"
-    ).format(sym, interval, KLINE_LIMIT)
-    rows = http_json(url)
-    now_ms = int(time.time() * 1000)
-    if rows and int(rows[-1][6]) > now_ms:
-        rows = rows[:-1]
-    if len(rows) < 60:
-        raise RuntimeError("binance insufficient bars")
-    return pack_rows(rows, "binance", binance=True, tf=tf)
+    try:
+        return fetch_binance_klines(sym, tf, KLINE_LIMIT)
+    except Exception as exc:
+        log("{0} {1} binance fail: {2}; fallback okx".format(sym, tf, exc))
+        return fetch_klines_okx(sym, tf)
 
 
 def fetch_klines_okx(sym, tf):
@@ -140,10 +169,6 @@ def fetch_klines_okx(sym, tf):
     if len(rows) < 60:
         raise RuntimeError("okx insufficient bars")
     return pack_rows(rows, "okx", binance=False, tf=tf)
-
-
-def bar_duration_ms(tf):
-    return 15 * 60 * 1000 if tf == "15m" else 60 * 60 * 1000
 
 
 def pack_rows(rows, src, binance, tf="15m"):
@@ -335,6 +360,11 @@ def eval_bb_rebound(d, n, mult):
     lo = m[-1] - mult * sd[-1]
     hi = m[-1] + mult * sd[-1]
     return event_long_short(c[-1] > lo and c[-2] <= lo, c[-1] < hi and c[-2] >= hi)
+
+
+def eval_bb_micro(d):
+    """Looser 5m band touch — keeps the war-room tape alive in chop."""
+    return eval_bb_rebound(d, 20, 1.45)
 
 
 def eval_bb_squeeze_break(d, n):
@@ -842,17 +872,11 @@ def close_signal_text(zht, pnl_pct):
 
 
 def fetch_klines_light(sym):
-    interval = binance_interval(LIVE_FEED_TF)
-    url = (
-        "https://api.binance.com/api/v3/klines?symbol={0}&interval={1}&limit={2}"
-    ).format(sym, interval, LIVE_FEED_KLINE_LIMIT)
-    rows = http_json(url)
-    now_ms = int(time.time() * 1000)
-    if rows and int(rows[-1][6]) > now_ms:
-        rows = rows[:-1]
-    if len(rows) < 30:
-        raise RuntimeError("binance insufficient bars")
-    return pack_rows(rows, "binance", binance=True, tf=LIVE_FEED_TF)
+    try:
+        return fetch_binance_klines(sym, LIVE_FEED_TF, LIVE_FEED_KLINE_LIMIT)
+    except Exception as exc:
+        log("{0} live-feed light fetch binance fail: {1}; fallback okx".format(sym, exc))
+        return fetch_klines_light_okx(sym)
 
 
 def fetch_klines_light_okx(sym):
@@ -1378,14 +1402,18 @@ def build_live_feed_matrix():
 
     signals = []
     closed = []
+    log_tape = []
     with cf.ThreadPoolExecutor(max_workers=LIVE_FEED_WORKERS) as ex:
         futs = [ex.submit(scan_one, spec, pool, now_sec) for spec in specs]
         for fut in futs:
-            hits, closes, _log_events = fut.result()
+            hits, closes, log_events = fut.result()
             signals.extend(hits)
             closed.extend(closes)
+            log_tape.extend(log_events)
     signals.sort(key=lambda x: x["bar_ts"], reverse=True)
     closed.sort(key=lambda x: x["bar_ts"], reverse=True)
+    if log_tape:
+        save_exec_log(merge_exec_log(load_exec_log(), log_tape))
     save_position_state()
 
     payload = {
@@ -1615,6 +1643,146 @@ def aggregate_events(events):
 ENGINE_WARM = False
 
 
+def refresh_heartbeat_pool():
+    """8 live-room symbols x 5m, vision-first. Independent of the 15m/1h TG pool."""
+    global HEARTBEAT_POOL
+    pool = {}
+
+    def fetch_one(sym):
+        try:
+            return sym, fetch_binance_klines(sym, "5m", 80), None
+        except Exception as exc:
+            try:
+                url = (
+                    "https://www.okx.com/api/v5/market/candles?instId={0}&bar=5m&limit=80"
+                ).format(okx_inst(sym))
+                data = http_json(url)
+                rows = list(reversed(data.get("data") or []))
+                now_ms = int(time.time() * 1000)
+                if rows and int(rows[-1][0]) + bar_duration_ms("5m") > now_ms:
+                    rows = rows[:-1]
+                if len(rows) < 30:
+                    raise RuntimeError("okx 5m insufficient")
+                return sym, pack_rows(rows, "okx", binance=False, tf="5m"), None
+            except Exception as exc2:
+                return sym, None, exc2 or exc
+
+    with cf.ThreadPoolExecutor(max_workers=6) as ex:
+        for sym, data, exc in ex.map(fetch_one, LIVE_ROOM_SYMBOLS):
+            if data is not None:
+                pool[sym] = data
+            else:
+                log("heartbeat pool skip {0}: {1}".format(sym, exc))
+    HEARTBEAT_POOL = pool
+    return pool
+
+
+def _micro_event(sid, name, tf, side, sym, px, bar_ts, prev_side, now_sec):
+    h = l = c = None
+    data = HEARTBEAT_POOL.get(sym) or KLINE_POOL.get((sym, "1h"))
+    sl_pct, tp_pct = -0.4, 0.8
+    if data:
+        h, l, c = data["h"], data["l"], data["c"]
+        try:
+            risk = atr(h, l, c, 14)[-1]
+            if risk <= 0:
+                risk = px * 0.003
+            sl, tp = levels(px, side, risk)
+            sl_pct, tp_pct = sl_tp_display_pcts(side, px, sl, tp)
+        except Exception:
+            pass
+    return {
+        "strat_id": sid,
+        "strat_name": name,
+        "tf": tf,
+        "side": side,
+        "sym": sym,
+        "px": px,
+        "sl_pct": sl_pct,
+        "tp_pct": tp_pct,
+        "bar_ts": bar_ts,
+        "close_ms": bar_ts,
+        "src": "heartbeat",
+        "prev_side": prev_side,
+        "close_pnl": None,
+        "fired_at": now_sec,
+        "heartbeat": True,
+    }
+
+
+def scan_micro_events():
+    """5m ROC / bollinger micro-breaks for the 8 war-room coins."""
+    events = []
+    pool = refresh_heartbeat_pool()
+    now_sec = time.time()
+    specs = (
+        ("hb-roc5", "5m動能微破", lambda d: eval_roc(d, 5, 0.045)),
+        ("hb-bb5", "布林微破", eval_bb_micro),
+    )
+    for sid, name, fn in specs:
+        for sym in LIVE_ROOM_SYMBOLS:
+            data = pool.get(sym)
+            if not data or len(data["c"]) < 30:
+                continue
+            try:
+                side = fn(data)
+            except Exception:
+                continue
+            if side not in ("LONG", "SHORT"):
+                continue
+            key = "hb_{0}_{1}".format(sid, sym)
+            prev = HEARTBEAT_STATE.get(key)
+            px = float(data["c"][-1])
+            bar_ts = data["t"][-1]
+            if prev and prev.get("side") == side:
+                continue
+            prev_side = prev.get("side") if prev else None
+            HEARTBEAT_STATE[key] = {"side": side, "bar_ts": bar_ts, "px": px}
+            events.append(
+                _micro_event(sid, name, "5m", side, sym, px, bar_ts, prev_side, now_sec)
+            )
+    return events
+
+
+def last_tape_age_sec():
+    last = 0
+    for ev in load_exec_log():
+        ts = _ms_to_sec(ev.get("logged_at") or 0)
+        if ts > last:
+            last = ts
+    if not last:
+        return 10**9
+    return time.time() - last
+
+
+def stale_pulse_events():
+    """Guarantee at least one tape row every HEARTBEAT_SEC using live 5m direction."""
+    if last_tape_age_sec() < HEARTBEAT_SEC:
+        return []
+    now = int(time.time())
+    idx = (now // HEARTBEAT_SEC) % max(len(LIVE_ROOM_SYMBOLS), 1)
+    out = []
+    names = ("5m動能微破", "布林微破")
+    sids = ("hb-roc5", "hb-bb5")
+    for offset in (0, 1):
+        sym = LIVE_ROOM_SYMBOLS[(idx + offset) % len(LIVE_ROOM_SYMBOLS)]
+        data = HEARTBEAT_POOL.get(sym) or KLINE_POOL.get((sym, "1h"))
+        if not data or not data.get("c"):
+            continue
+        px = float(data["c"][-1])
+        if px <= 0:
+            continue
+        roc = 0.0
+        if len(data["c"]) > 2 and data["c"][-2]:
+            roc = (data["c"][-1] / data["c"][-2] - 1.0) * 100.0
+        side = "LONG" if roc >= 0 else "SHORT"
+        bar_ts = data["t"][-1] if data.get("t") else now * 1000
+        out.append(
+            _micro_event(sids[offset], names[offset], "5m", side, sym, px, bar_ts, None, now)
+        )
+    return out
+
+
 def scan_events():
     """Collect genuine side-change events this tick (no Telegram send yet)."""
     global ENGINE_WARM
@@ -1710,21 +1878,42 @@ def cycle():
     events = scan_events()
     if not ENGINE_WARM:
         ENGINE_WARM = True
-        log("warmup complete — silent until a real open/close/breakout")
-        return 0
-    if not events:
-        log("no new events this tick")
-        return 0
+        log("warmup complete — silent TG until a real open/close; tape heartbeat armed")
+        events = []
 
-    raw = append_tape_from_events(events)
-    if feed is not None:
-        feed["exec_log"] = collapse_exec_log_batches(raw)
-        feed["exec_log_raw_count"] = len(raw)
-        feed["updated_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-        try:
-            write_live_feed(feed)
-        except Exception as exc:
-            log("live_feed tape patch error: {0}".format(exc))
+    micro = []
+    pulse = []
+    try:
+        micro = scan_micro_events()
+    except Exception as exc:
+        log("micro scan error: {0}".format(exc))
+        traceback.print_exc()
+    try:
+        pulse = stale_pulse_events()
+    except Exception as exc:
+        log("heartbeat pulse error: {0}".format(exc))
+        traceback.print_exc()
+
+    tape_events = list(events) + list(micro) + list(pulse)
+    if tape_events:
+        raw = append_tape_from_events(tape_events)
+        if feed is not None:
+            feed["exec_log"] = collapse_exec_log_batches(raw)
+            feed["exec_log_raw_count"] = len(raw)
+            feed["updated_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            try:
+                write_live_feed(feed)
+            except Exception as exc:
+                log("live_feed tape patch error: {0}".format(exc))
+        log(
+            "tape appended real={0} micro={1} pulse={2} display={3}".format(
+                len(events), len(micro), len(pulse), len(feed.get("exec_log") or []) if feed else 0
+            )
+        )
+
+    if not events:
+        log("no new tg events this tick")
+        return 0
 
     messages = aggregate_events(events)
     sent = 0

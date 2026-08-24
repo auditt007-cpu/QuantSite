@@ -163,14 +163,29 @@
     return true;
   }
 
+  function normSym(s) {
+    return String(s || "")
+      .toUpperCase()
+      .replace(/USDT$/i, "USDT")
+      .replace(/[^A-Z0-9]/g, "");
+  }
+
+  function inWatch(sym) {
+    const n = normSym(sym);
+    if (!n) return false;
+    return state.watch.some((s) => normSym(s) === n);
+  }
+
   function loadWatch() {
     try {
       const raw = JSON.parse(localStorage.getItem(WATCH_KEY) || "null");
       if (Array.isArray(raw) && raw.length) {
         const mapped = [];
         raw.forEach((s) => {
-          const n = COIN_ALIAS[s] || s;
-          if (ALL_COINS.indexOf(n) >= 0 && mapped.indexOf(n) < 0) mapped.push(n);
+          const aliased = COIN_ALIAS[s] || s;
+          const n = normSym(aliased);
+          const hit = ALL_COINS.find((c) => normSym(c) === n);
+          if (hit && mapped.indexOf(hit) < 0) mapped.push(hit);
         });
         if (mapped.length) return mapped;
       }
@@ -1463,8 +1478,19 @@
     }, 900);
   }
 
+  function liveFeedUrls() {
+    const t = Date.now();
+    const urls = ["https://api.quantalpha.space/live_feed.json?t=" + t];
+    try {
+      urls.push(new URL("./live_feed.json?t=" + t, document.baseURI).href);
+    } catch {
+      urls.push("./live_feed.json?t=" + t);
+    }
+    return urls;
+  }
+
   function liveFeedUrl() {
-    return "https://api.quantalpha.space/live_feed.json?t=" + Date.now();
+    return liveFeedUrls()[0];
   }
 
   function toSec(n) {
@@ -1482,7 +1508,7 @@
           out.push({
             key: [g.name_zh, g.side, g.interval, g.logged_at || g.bar_ts, s.symbol, s.event || "open"].join("|"),
             ts: toSec(g.logged_at) || toSec(g.bar_ts),
-            symbol: s.symbol,
+            symbol: normSym(s.symbol),
             price: s.price,
             side: g.side,
             action: g.action,
@@ -1499,7 +1525,7 @@
       out.push({
         key: [g.strategy_id, g.symbol, g.event, g.logged_at || g.bar_ts, g.side].join("|"),
         ts: toSec(g.logged_at) || toSec(g.bar_ts),
-        symbol: g.symbol,
+        symbol: normSym(g.symbol),
         price: g.price,
         side: g.side,
         action: g.action,
@@ -1525,9 +1551,9 @@
     const list = document.getElementById("radarList");
     if (!list) return;
     const now = Date.now() / 1000;
-    const watchSet = new Set(state.watch);
+    const watchSet = new Set(state.watch.map(normSym));
     const rows = state.events
-      .filter((e) => watchSet.has(e.symbol) && now - e.ts <= HOUR_S)
+      .filter((e) => watchSet.has(normSym(e.symbol)) && now - e.ts <= HOUR_S)
       .sort((a, b) => b.ts - a.ts)
       .slice(0, 40);
     if (!rows.length) {
@@ -1577,11 +1603,33 @@
   }
 
   async function refreshFeed() {
+    const urls = liveFeedUrls();
+    let data = null;
+    let lastErr = null;
+    for (let i = 0; i < urls.length; i++) {
+      try {
+        const row = await fetchJson(urls[i]);
+        if (row && (Array.isArray(row.exec_log) || row.updated_at)) {
+          data = row;
+          break;
+        }
+      } catch (err) {
+        lastErr = err;
+      }
+    }
+    if (!data) {
+      try {
+        console.warn("[QALive] feed fetch failed", lastErr);
+      } catch {
+        /* */
+      }
+      return;
+    }
     try {
-      const data = await fetchJson(liveFeedUrl());
       const flat = flattenFeed(data);
       const now = Date.now() / 1000;
       state.events = flat.filter((e) => e.ts && now - e.ts <= HOUR_S * 6);
+      let freshN = 0;
       if (state.seenKeys == null) {
         state.seenKeys = new Set(flat.map((e) => e.key));
         let hydrated = false;
@@ -1604,12 +1652,27 @@
           if (now - ev.ts > HOUR_S) return;
           fresh.push(ev);
         });
+        freshN = fresh.length;
         announceEvents(fresh);
       }
       paintRadar();
       paintCardsMeta();
-    } catch {
-      /* feed optional */
+      try {
+        console.info("[QALive] feed", {
+          updated: data.updated_at,
+          tape: flat.length,
+          shown1h: state.events.filter((e) => now - e.ts <= HOUR_S && inWatch(e.symbol)).length,
+          fresh: freshN,
+        });
+      } catch {
+        /* */
+      }
+    } catch (err) {
+      try {
+        console.warn("[QALive] feed parse", err);
+      } catch {
+        /* */
+      }
     }
   }
 
