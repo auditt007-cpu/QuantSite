@@ -1,0 +1,304 @@
+/* Site-wide mobile: toolbar overlap prevention + reliable header ticker */
+
+@media (max-width: 768px) {
+  html,
+  body {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  /* ---- Nav drawer above charts / overlays ---- */
+  body.nav-drawer-open {
+    overflow: hidden;
+  }
+
+  body.nav-drawer-open::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 9998;
+  }
+
+  .topbar {
+    z-index: 9999;
+    position: sticky;
+    top: 0;
+    background: #fff;
+  }
+
+  body.has-bb-util .topbar {
+    top: 28px;
+  }
+
+  body.live-page .live-sticky-chrome {
+    z-index: 9999;
+    overflow: visible;
+  }
+
+  body.has-bb-util.live-page .live-sticky-chrome {
+    top: 28px;
+  }
+
+  .topbar.nav-open .nav-actions {
+    position: relative;
+    z-index: 10000;
+    background: #ffffff;
+    border: 1px solid #000000;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    padding: 8px;
+    margin-top: 4px;
+  }
+
+  /* ---- Toolbars: flow layout, no absolute overlap ---- */
+  .topbar,
+  .nav-end,
+  .term-tabs,
+  .mobile-view-tabs,
+  .lab-top,
+  .bt-meta,
+  .bbg-status-strip,
+  .sidebar-header-aligned .main-title-flex,
+  .selected-matrix-head,
+  .ai-bt-head {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  .topbar button,
+  .topbar .btn,
+  .term-tabs button,
+  .mobile-view-tabs button,
+  .chart-touch-toggle,
+  .chart-frame-rel .chart-touch-toggle,
+  .lab-top button,
+  .sidebar-header-aligned button {
+    position: static !important;
+    transform: none !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    flex-shrink: 0;
+  }
+
+  .term-tabs,
+  .mobile-view-tabs,
+  .filter-tabs {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    width: 100% !important;
+    max-width: 100% !important;
+    white-space: nowrap;
+    padding: 4px 0 8px !important;
+  }
+
+  .term-tabs::-webkit-scrollbar,
+  .mobile-view-tabs::-webkit-scrollbar,
+  .filter-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .term-tab,
+  .mv-tab,
+  .filter-tabs button {
+    flex: 0 0 auto;
+    min-height: 36px;
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  /* ---- Chart controls: document flow (terminal + live) ---- */
+  .chart-frame-rel,
+  .lab-chart-frame,
+  .war-chart-frame {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    height: auto !important;
+    overflow: visible;
+    position: relative;
+  }
+
+  .chart-frame-rel .chart-touch-toggle,
+  .lab-chart-frame .chart-touch-toggle,
+  .war-chart-frame .chart-touch-toggle {
+    order: 1;
+    align-self: flex-start;
+    margin: 0 8px;
+    min-height: 36px;
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .war-chart-frame .scan-hud {
+    position: static !important;
+    order: 2;
+    width: calc(100% - 16px) !important;
+    max-width: calc(100% - 16px) !important;
+    margin: 0 8px;
+    pointer-events: none;
+  }
+
+  .war-chart-frame .scan-hud-text {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+    line-height: 1.35;
+  }
+
+  .war-chart-frame .war-chart-legend {
+    order: 0;
+    flex-wrap: wrap;
+  }
+
+  .war-chart-frame .war-chart,
+  .chart-frame-rel .chart-container,
+  .lab-chart-frame .chart-container {
+    order: 3;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .bt-meta,
+  .bt-meta.five {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  .thumb-dock,
+  .mobile-view-tabs,
+  .mobile-live-dock,
+  .tg-fab,
+  .toast {
+    padding-bottom: calc(8px + env(safe-area-inset-bottom)) !important;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="search"],
+  select,
+  textarea,
+  .otp-cell {
+    font-size: 16px !important;
+  }
+
+  .modal-bg {
+    z-index: 9998;
+    align-items: flex-start;
+    padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .modal,
+  .modal.login-modal,
+  .modal.wide {
+    width: 90% !important;
+    max-width: 380px !important;
+    max-height: 85vh;
+    margin: auto;
+    border-radius: 12px;
+    overflow-y: auto;
+    box-sizing: border-box;
+  }
+}
+
+/* ---- Header crypto ticker: always visible, never collapse ---- */
+.ticker-bar {
+  display: flex !important;
+  align-items: center;
+  flex: 0 0 auto;
+  flex-shrink: 0;
+  width: 100%;
+  max-width: 100%;
+  min-height: 36px;
+  height: auto;
+  overflow: hidden;
+  visibility: visible !important;
+  opacity: 1 !important;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 2;
+  contain: layout style;
+}
+
+.live-sticky-chrome .ticker-bar,
+.wrap > .ticker-bar,
+.wrap .ticker-bar {
+  display: flex !important;
+}
+
+.ticker-track {
+  display: inline-flex;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  align-items: center;
+  min-width: max-content;
+  min-height: 28px;
+  will-change: transform;
+  animation: qaTickerMarquee 60s linear infinite;
+}
+
+.ticker-bar.is-paused .ticker-track {
+  animation-play-state: paused;
+}
+
+.ticker-pill {
+  flex: 0 0 auto;
+}
+
+#bloomberg-marquee-bar,
+.bb-marquee {
+  display: flex !important;
+  flex-shrink: 0;
+  width: 100%;
+  max-width: 100%;
+  min-height: 32px;
+  overflow: hidden;
+  visibility: visible !important;
+}
+
+@media (max-width: 768px) {
+  .ticker-bar,
+  #bloomberg-marquee-bar,
+  .bb-marquee {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    min-width: 0;
+  }
+
+  .ticker-track {
+    overflow: visible;
+  }
+
+  .bb-track-wrap {
+    overflow: hidden !important;
+    min-width: 0 !important;
+    flex: 1 1 auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track {
+    animation: none;
+    transform: none;
+    overflow-x: auto;
+    max-width: 100%;
+  }
+}

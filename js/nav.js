@@ -17,22 +17,60 @@
     );
   }
 
+  function ensureCryptoTicker() {
+    if (document.getElementById("tickerBar")) return;
+    const topbar = document.querySelector(".topbar");
+    if (!topbar) return;
+    const bar = document.createElement("div");
+    bar.className = "ticker-bar";
+    bar.id = "tickerBar";
+    bar.setAttribute("aria-label", "Market ticker");
+    bar.innerHTML = '<div class="ticker-track" id="tickerTrack"></div>';
+    const marquee = document.getElementById("bloomberg-marquee-bar");
+    if (marquee && marquee.parentNode) {
+      marquee.parentNode.insertBefore(bar, marquee);
+    } else {
+      topbar.insertAdjacentElement("afterend", bar);
+    }
+  }
+
   function ensureTickerMarquee() {
+    ensureCryptoTicker();
     const bar = document.getElementById("tickerBar") || document.querySelector(".ticker-bar");
     const track = document.getElementById("tickerTrack") || (bar && bar.querySelector(".ticker-track"));
-    if (!bar || !track || track.getAttribute("data-marquee-built") === "1") return;
+    if (!bar || !track) return;
+    const need = TICKER_SYMBOLS.length * 2;
+    if (track.getAttribute("data-marquee-built") === "1" && track.children.length >= need) return;
     track.setAttribute("data-marquee-built", "1");
     const pills = TICKER_SYMBOLS.map(tickerPillHtml).join("");
-    // Duplicate the full pill set once so a translateX(-50%) loop is seamless (same
-    // technique as .bb-track / bbMarquee for the flash-news ticker).
     track.innerHTML = pills + pills;
-    const pause = () => bar.classList.add("is-paused");
-    const resume = () => bar.classList.remove("is-paused");
+    bar.classList.remove("is-empty");
+    let pauseTimer = null;
+    const resume = () => {
+      bar.classList.remove("is-paused");
+      if (pauseTimer) clearTimeout(pauseTimer);
+      pauseTimer = null;
+    };
+    const pause = () => {
+      bar.classList.add("is-paused");
+      if (pauseTimer) clearTimeout(pauseTimer);
+      pauseTimer = setTimeout(resume, 3500);
+    };
+    if (bar.getAttribute("data-ticker-bound") === "1") return;
+    bar.setAttribute("data-ticker-bound", "1");
     bar.addEventListener("mouseenter", pause);
     bar.addEventListener("mouseleave", resume);
     bar.addEventListener("touchstart", pause, { passive: true });
     bar.addEventListener("touchend", resume, { passive: true });
     bar.addEventListener("touchcancel", resume, { passive: true });
+  }
+
+  function restartTickerAnimation() {
+    document.querySelectorAll(".ticker-track").forEach((track) => {
+      track.style.animation = "none";
+      void track.offsetWidth;
+      track.style.animation = "";
+    });
   }
 
   function ensureBloombergCss() {
@@ -128,6 +166,7 @@
 
   ensureBloombergCss();
   ensureUtilBar();
+  ensureCryptoTicker();
   ensureTickerMarquee();
   ensureFlashMarquee();
   normalizeMarqueeTag();
@@ -241,15 +280,29 @@
   }
 
   let tickerLiveSub = null;
+  let tickerPollTimer = null;
 
   window.addEventListener("quant-feed-region", () => {
     refreshTicker();
   });
 
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+      ensureTickerMarquee();
+      restartTickerAnimation();
+      refreshTicker();
+    }
+  });
+
   function startTickerLoop() {
+    ensureTickerMarquee();
     if (tickerLiveSub) {
       tickerLiveSub.close();
       tickerLiveSub = null;
+    }
+    if (tickerPollTimer) {
+      clearInterval(tickerPollTimer);
+      tickerPollTimer = null;
     }
     refreshTicker();
     const syms = collectTickerSyms();
@@ -257,14 +310,24 @@
     if (feed && typeof feed.subscribeMarketTickers === "function" && syms.length) {
       tickerLiveSub = feed.subscribeMarketTickers(syms, applyTickerRow);
     } else {
-      setInterval(refreshTicker, 2500);
+      tickerPollTimer = setInterval(refreshTicker, 2500);
     }
   }
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", () => setTimeout(startTickerLoop, 0));
-  } else {
-    setTimeout(startTickerLoop, 0);
+  function bootTicker() {
+    ensureCryptoTicker();
+    ensureTickerMarquee();
+    restartTickerAnimation();
+    startTickerLoop();
   }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => setTimeout(bootTicker, 0));
+  } else {
+    setTimeout(bootTicker, 0);
+  }
+  window.addEventListener("load", () => {
+    ensureTickerMarquee();
+    restartTickerAnimation();
+  });
 
   document.addEventListener("focusin", (ev) => {
     const t = ev.target;
