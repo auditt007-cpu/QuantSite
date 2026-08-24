@@ -898,15 +898,23 @@ textarea,
 }
 
 @media (max-width: 768px) {
-  /* Sticky header stack was painting over the ticker bar on mobile */
+  /* Sticky header stack was painting over the ticker bar on mobile.
+     The site-sticky-chrome itself is no longer sticky on mobile; its
+     .topbar child becomes sticky individually so the header stays fixed
+     without pushing the news marquee under the price ticker. */
   .bb-util-bar {
+    position: relative !important;
+    top: auto !important;
+  }
+  body .site-sticky-chrome {
     position: relative !important;
     top: auto !important;
   }
   body.has-bb-util .topbar,
   .topbar {
-    position: relative !important;
-    top: auto !important;
+    position: sticky !important;
+    top: 28px !important;
+    z-index: 100 !important;
   }
   .bb-util-bar {
     padding: 0 12px;
