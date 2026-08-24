@@ -145,7 +145,11 @@
           : Number.isFinite(lb.win_rate)
             ? lb.win_rate
             : null,
-        sh: null,
+        sh: Number.isFinite(lb.sharpe)
+          ? lb.sharpe
+          : Number.isFinite(lb.profit_factor)
+            ? lb.profit_factor
+            : null,
         ret: Number.isFinite(lb.roi_pct)
           ? lb.roi_pct / 100
           : Number.isFinite(lb.net_profit_pct)
