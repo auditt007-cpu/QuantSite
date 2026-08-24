@@ -128,7 +128,7 @@
       link.setAttribute("data-qa-flash", "1");
       document.head.appendChild(link);
     }
-    link.href = "./css/marquee-ticker.css?v=mq4";
+    link.href = "./css/marquee-ticker.css?v=mq6";
   }
 
   function flashMarqueeHtml() {
@@ -221,11 +221,12 @@
     setImp(track, "display", "inline-flex");
     setImp(track, "white-space", "nowrap");
     setImp(track, "height", "40px");
+    setImp(track, "line-height", "40px");
     setImp(track, "position", "relative");
     setImp(track, "float", "none");
-    setImp(track, "margin", "0");
     setImp(track, "padding", "0");
-    setImp(track, "animation", "qa-flash-scroll 25s linear infinite");
+    setImp(track, "transform", "none");
+    setImp(track, "overflow", "visible");
 
     bar.querySelectorAll("a").forEach((a) => {
       setImp(a, "color", "#e5e7eb");
@@ -270,7 +271,7 @@
     if (hasNewsJs) return;
     window.__qaFlashMarqueeLoaded = true;
     const s = document.createElement("script");
-    s.src = "./js/flash-marquee.js?v=mq4";
+    s.src = "./js/flash-marquee.js?v=mq6";
     s.defer = true;
     document.head.appendChild(s);
   }

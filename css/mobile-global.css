@@ -341,8 +341,10 @@ body.has-bb-util .site-sticky-chrome {
   flex-wrap: nowrap;
   align-items: center;
   min-width: max-content;
-  min-height: 28px;
-  will-change: transform;
+  height: 40px;
+  min-height: 40px;
+  line-height: 40px;
+  transform: none;
   animation: qaTickerMarquee 60s linear infinite;
 }
 
@@ -352,6 +354,9 @@ body.has-bb-util .site-sticky-chrome {
 
 .ticker-pill {
   flex: 0 0 auto;
+  height: 28px !important;
+  min-height: 28px !important;
+  overflow: visible !important;
 }
 
 /* Flash marquee owned by css/marquee-ticker.css — no white/44px override */

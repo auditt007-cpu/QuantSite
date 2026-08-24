@@ -10,10 +10,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="theme-color" content="#f8fafc">
   <title>QUANT ALPHA · 量化戰情指揮部</title>
-  <link rel="stylesheet" href="./styles.css?v=layout1" />
-  <link rel="stylesheet" href="./css/mobile-global.css?v=layout1" />
+  <link rel="stylesheet" href="./styles.css?v=mq6" />
+  <link rel="stylesheet" href="./css/mobile-global.css?v=mq6" />
   <link rel="stylesheet" href="./css/bloomberg-system.css?v=layout1" />
-  <link rel="stylesheet" href="./css/live-room.css?v=mq4" />
+  <link rel="stylesheet" href="./css/live-room.css?v=mq6" />
   <link rel="stylesheet" href="./css/plaza-cards.css?v=plaza4" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -91,7 +91,7 @@
   display: block !important;
   margin: 0 !important;
   padding: 0 !important;
-  isolation: isolate !important;
+  isolation: auto !important;
 }
 
 #qaFlashMarquee .qa-flash-track {
@@ -101,10 +101,15 @@
   white-space: nowrap !important;
   width: max-content !important;
   height: 40px !important;
-  margin: 0 !important;
+  line-height: 40px !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  margin-right: 0 !important;
   padding: 0 !important;
   position: relative !important;
   float: none !important;
+  transform: none !important;
+  will-change: auto;
   animation: qa-flash-scroll 25s linear infinite !important;
 }
 
@@ -139,8 +144,8 @@
 }
 
 @keyframes qa-flash-scroll {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  0% { margin-left: 0; }
+  100% { margin-left: -50%; }
 }
 
 @media (max-width: 768px) {
@@ -160,7 +165,7 @@
   }
 }
   </style>
-  <link rel="stylesheet" href="./css/marquee-ticker.css?v=mq4" data-qa-flash="1" />
+  <link rel="stylesheet" href="./css/marquee-ticker.css?v=mq6" data-qa-flash="1" />
 </head>
 <body class="live-page war-cmd" data-title-key="titleLive">
   <div class="wrap wide">
@@ -280,12 +285,12 @@
   </div>
   <div class="toast" id="toast"></div>
 
-  <script src="./js/nav.js?v=nav10"></script>
+  <script src="./js/nav.js?v=nav11"></script>
   <script src="./config.js"></script>
   <script src="./js/meta-events.js?v=comp1"></script>
   <script src="./i18n.js"></script>
   <script src="./js/i18n-boot.js"></script>
-  <script src="./js/news.js?v=mq5"></script>
+  <script src="./js/news.js?v=mq6"></script>
   <script src="./js/identity.js"></script>
   <script src="./js/compliance.js"></script>
   <script src="./js/lead-bind.js"></script>

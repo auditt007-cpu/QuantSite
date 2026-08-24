@@ -1066,26 +1066,28 @@ input.is-focused, textarea.is-focused, select.is-focused {
   height: 40px;
   line-height: 40px;
   min-width: max-content;
-  will-change: transform;
+  transform: none;
   animation: qaTickerMarquee 60s linear infinite;
 }
 .ticker-bar.is-paused .ticker-track,
 .ticker.is-paused .ticker-track { animation-play-state: paused; }
 @keyframes qaTickerMarquee {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  0% { margin-left: 0; }
+  100% { margin-left: -50%; }
 }
 .ticker-pill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 10px;
+  padding: 0 12px;
   min-width: 0;
-  height: auto;
+  height: 28px;
   min-height: 28px;
-  border-right: 1px solid #e2e8f0;
+  line-height: 28px;
+  overflow: visible;
+  border: 1px solid #e2e8f0;
   font-variant-numeric: tabular-nums;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   flex: 0 0 auto;
   white-space: nowrap;
