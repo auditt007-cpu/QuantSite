@@ -141,7 +141,9 @@ input:focus, textarea:focus, select:focus { border-color: var(--color-accent); o
   .topbar.nav-open,
   body.nav-drawer-open .topbar { background: #000000; border-bottom: 1px solid #333333; }
 
-  .nav-actions,
+  .nav-actions {
+    display: none !important;
+  }
   .topbar.nav-open .nav-actions,
   body.nav-drawer-open .nav-actions,
   body .topbar.nav-open .nav-actions {
@@ -161,6 +163,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--color-accent); o
     max-width: 100vw !important;
     flex-direction: column !important;
     align-items: stretch !important;
+    justify-content: flex-start !important;
   }
   .nav-actions .nav-link,
   .topbar.nav-open .nav-actions .nav-link,
