@@ -321,19 +321,66 @@
   }
 
   function vpsSigKey(sig) {
-    return [sig.strategy_id, sig.symbol, sig.event, sig.bar_ts, sig.side].join("|");
+    const count = Number(sig.strategy_count) || 1;
+    return [sig.strategy_id || "multi", sig.symbol, sig.event, sig.bar_ts, sig.side, count].join("|");
+  }
+
+  function collapseVpsRows(rows) {
+    const buckets = new Map();
+    const order = [];
+    rows.forEach((sig) => {
+      const action = vpsTapeAction(sig);
+      const ts = Math.floor(vpsSortTs(sig));
+      const px = Number(sig.event === "close" ? sig.exit_price : sig.price);
+      const pxKey = Number.isFinite(px) ? px.toPrecision(6) : "na";
+      const bar = Number(sig.bar_ts) || ts;
+      const key = [fmtTapePair(sig.symbol), action, String(sig.event || "open"), String(bar), pxKey].join("|");
+      if (!buckets.has(key)) {
+        const names = [];
+        const n = String(sig.name_zh || sig.name_en || "").trim();
+        if (n) names.push(n);
+        buckets.set(key, Object.assign({}, sig, {
+          strategy_count: Number(sig.strategy_count) || 1,
+          strategy_names: names,
+        }));
+        order.push(key);
+        return;
+      }
+      const g = buckets.get(key);
+      const add = Number(sig.strategy_count) || 1;
+      g.strategy_count = (Number(g.strategy_count) || 1) + add;
+      const n = String(sig.name_zh || sig.name_en || "").trim();
+      if (n && g.strategy_names.indexOf(n) < 0) g.strategy_names.push(n);
+    });
+    return order.map((k) => buckets.get(k));
   }
 
   function vpsRowHtml(sig, isNew) {
     const action = vpsTapeAction(sig);
     const actionCls = action === "BUY" ? "tape-action-buy" : "tape-action-sell";
     const px = sig.event === "close" ? sig.exit_price : sig.price;
+    const count = Math.max(1, Number(sig.strategy_count) || 1);
+    const names = Array.isArray(sig.strategy_names) ? sig.strategy_names.filter(Boolean) : [];
+    const tip =
+      count > 1
+        ? names.slice(0, 8).join(" · ") + (names.length > 8 ? " …" : "")
+        : String(sig.name_zh || sig.name_en || "").trim();
+    const countHtml =
+      count > 1 ? `<span class="tape-count" title="${escapeHtml(tip)}">×${count}</span>` : "";
+    const stratHtml =
+      count > 1
+        ? `<span class="tape-strat" title="${escapeHtml(tip)}">多策略</span>`
+        : tip
+          ? `<span class="tape-strat" title="${escapeHtml(tip)}">${escapeHtml(tip)}</span>`
+          : "";
     return (
-      `<div class="exec-tape-row${isNew ? " is-new" : ""}" role="row">` +
+      `<div class="exec-tape-row${isNew ? " is-new" : ""}" role="row" title="${escapeHtml(tip)}">` +
       `<span class="tape-col tape-time" role="cell">${fmtVpsTime(sig.logged_at || sig.bar_ts)}</span>` +
       `<span class="tape-col tape-action ${actionCls}" role="cell">` +
-      `<span class="tape-pill">${action}</span></span>` +
-      `<span class="tape-col tape-pair" role="cell">${escapeHtml(fmtTapePair(sig.symbol))}</span>` +
+      `<span class="tape-pill">${action}${countHtml}</span></span>` +
+      `<span class="tape-col tape-pair" role="cell">` +
+      `<span class="tape-pair-main">${escapeHtml(fmtTapePair(sig.symbol))}</span>${stratHtml}` +
+      `</span>` +
       `<span class="tape-col tape-price" role="cell">${escapeHtml(fmtTapePrice(px))}</span>` +
       `</div>`
     );
@@ -402,7 +449,7 @@
       if (!res.ok) return;
       const data = await res.json();
       scheduleVpsPoll(Number(data.poll_sec) ? Number(data.poll_sec) * 1000 : 5000);
-      const merged = vpsFeedRows(data).slice(0, 20);
+      const merged = collapseVpsRows(vpsFeedRows(data)).slice(0, 20);
       if (updatedEl && data.updated_at) {
         lastFeedUpdatedAt = data.updated_at;
         paintFeedSyncLabel();
