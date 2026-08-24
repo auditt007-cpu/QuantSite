@@ -175,33 +175,62 @@
 
   const toggle = document.getElementById("navToggle");
   const bar = document.querySelector(".topbar");
-  function syncNavDrawer(open) {
-    const on = open != null ? open : bar.classList.contains("nav-open");
-    document.body.classList.toggle("nav-drawer-open", on && window.matchMedia("(max-width: 768px)").matches);
+
+  function ensureNavBackdrop() {
+    let bd = document.getElementById("navDrawerBackdrop");
+    if (!bd) {
+      bd = document.createElement("button");
+      bd.type = "button";
+      bd.id = "navDrawerBackdrop";
+      bd.className = "nav-drawer-backdrop";
+      bd.hidden = true;
+      bd.setAttribute("aria-label", "Close menu");
+      bd.addEventListener("click", () => closeNavDrawer());
+      document.body.appendChild(bd);
+    }
+    return bd;
   }
 
+  function closeNavDrawer() {
+    if (bar) bar.classList.remove("nav-open");
+    document.body.classList.remove("nav-drawer-open");
+    const bd = document.getElementById("navDrawerBackdrop");
+    if (bd) bd.hidden = true;
+  }
+
+  function syncNavDrawer(forceOpen) {
+    const mobile = window.matchMedia("(max-width: 768px)").matches;
+    const open = forceOpen != null ? !!forceOpen : !!(bar && bar.classList.contains("nav-open"));
+    if (!mobile || !open) {
+      closeNavDrawer();
+      return;
+    }
+    document.body.classList.add("nav-drawer-open");
+    const bd = ensureNavBackdrop();
+    bd.hidden = false;
+  }
+
+  window.addEventListener("pageshow", () => closeNavDrawer());
+
   if (toggle && bar) {
-    toggle.addEventListener("click", () => {
+    toggle.addEventListener("click", (ev) => {
+      ev.stopPropagation();
       bar.classList.toggle("nav-open");
-      syncNavDrawer();
-    });
-    document.addEventListener("click", (ev) => {
-      if (!bar.classList.contains("nav-open")) return;
-      if (!window.matchMedia("(max-width: 768px)").matches) return;
-      if (bar.contains(ev.target)) return;
-      bar.classList.remove("nav-open");
-      syncNavDrawer(false);
+      syncNavDrawer(bar.classList.contains("nav-open"));
     });
     document.querySelectorAll(".nav-actions a, .nav-actions button").forEach((el) => {
-      el.addEventListener("click", () => {
-        if (el.closest(".lang-pills") || el.id === "idPill") return;
-        if (window.matchMedia("(max-width: 768px)").matches) {
-          bar.classList.remove("nav-open");
-          syncNavDrawer(false);
-        }
-      });
+      el.addEventListener(
+        "click",
+        () => {
+          if (el.closest(".lang-pills") || el.id === "idPill") return;
+          closeNavDrawer();
+        },
+        true
+      );
     });
     window.addEventListener("resize", () => syncNavDrawer());
+  } else {
+    closeNavDrawer();
   }
 
   function fmtPx(n) {

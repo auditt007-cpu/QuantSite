@@ -340,35 +340,7 @@
     text-align: center;
   }
 
-  /* ---- Mobile nav drawer above charts ---- */
-  body:not(.home-boards):not(.live-page).nav-drawer-open {
-    overflow: hidden;
-  }
-
-  body:not(.home-boards):not(.live-page).nav-drawer-open::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.45);
-    z-index: 9998;
-  }
-
-  body:not(.home-boards):not(.live-page) .topbar {
-    z-index: 9999;
-    position: sticky;
-    top: 0;
-    background: #fff;
-  }
-
-  body:not(.home-boards):not(.live-page) .topbar.nav-open .nav-actions {
-    position: relative;
-    z-index: 10000;
-    background: #ffffff;
-    border: 1px solid #000000;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    padding: 8px;
-    margin-top: 4px;
-  }
+  /* Nav drawer: handled by css/mobile-global.css + nav.js */
 
   body:not(.home-boards):not(.live-page) .result-sheet.bb-sheet.open,
   body:not(.home-boards):not(.live-page) .result-sheet.bb-sheet {
