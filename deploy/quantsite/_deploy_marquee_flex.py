@@ -48,6 +48,8 @@ def main():
         "js/plaza-ai.js",
         "js/live-room.js",
         "js/terminal.js",
+        "js/i18n-boot.js",
+        "i18n.js",
         "index.html",
         "live.html",
         "strategies.html",

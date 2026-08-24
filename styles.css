@@ -44,24 +44,30 @@
   --z-drawer: 2100;
 }
 
-/* Sticky header+ticker stack: nav never paints over the price marquee */
+/* Sticky header+ticker stack: chrome is the only sticky unit */
 .site-sticky-chrome {
   position: sticky;
   top: 0;
   z-index: 120;
+  display: flex;
+  flex-direction: column;
   background: var(--bg-main, #ffffff);
 }
 body.has-bb-util .site-sticky-chrome {
   top: 28px;
 }
 .site-sticky-chrome .topbar {
-  position: relative;
-  top: auto;
+  position: relative !important;
+  top: auto !important;
   z-index: 2;
+  flex-shrink: 0;
+  overflow: hidden;
 }
 .site-sticky-chrome .ticker-bar {
-  position: relative;
-  z-index: 1;
+  position: relative !important;
+  top: auto !important;
+  z-index: 2;
+  flex-shrink: 0;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -112,7 +118,7 @@ body.nav-drawer-open::before {
   border: 0;
   border-bottom: 1px solid var(--border-line);
   border-radius: 4px;
-  position: sticky; top: 0; z-index: 120;
+  position: relative; top: auto; z-index: 120;
   min-height: 56px;
   height: auto !important;
   max-height: none !important;
