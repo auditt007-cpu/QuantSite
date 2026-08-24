@@ -261,16 +261,13 @@
   }
 
   function voiceCloseLine(ev) {
+    const when = fmt12hSpeech(ev.ts || Date.now());
+    const coin = coinSpeech(ev.symbol);
     const pnl = Number(ev.pnl_pct);
-    if (!Number.isFinite(pnl) || pnl <= 0) return "";
-    return (
-      fmt12hSpeech(ev.ts || Date.now()) +
-      "，" +
-      coinSpeech(ev.symbol) +
-      "平倉，獲利 " +
-      pnl.toFixed(1) +
-      "%。"
-    );
+    if (Number.isFinite(pnl) && pnl > 0) {
+      return when + "，" + coin + "平倉，獲利 " + pnl.toFixed(1) + "%。";
+    }
+    return when + "，" + coin + "平倉離場。";
   }
 
   function voiceOpenGroup(events) {
@@ -346,6 +343,13 @@
         name: "樞軸點突破",
         symbol: "BTCUSDT",
         pnl_pct: 3.8,
+        event: "close",
+      },
+      {
+        ts: ts + 2,
+        name: "量均突破",
+        symbol: "ETHUSDT",
+        pnl_pct: -1.2,
         event: "close",
       },
     ]);
@@ -655,19 +659,122 @@
     drawSparkOn(document.getElementById("coinModalSpark"), sym, true);
   }
 
-  function miniLine(ev) {
+  const ENGINE_TO_PLAZA = {
+    pivot: "strat_pivot_break_01",
+    vol_ma: "strat_vol_ma_01",
+    dual: "strat_dual_thrust_01",
+    kelt: "strat_keltner_break_01",
+    don_20: "strat_donchian_20_01",
+    don_10: "strat_donchian_10_01",
+    bb_sqz: "strat_bb_squeeze_01",
+    bb_reb: "strat_bb_rebound_01",
+    bb_wide: "strat_bb_wide_01",
+    st_atr: "strat_supertrend_01",
+    atr_grid: "strat_atr_grid_01",
+    vsa: "strat_vsa_01",
+    ema_12_26: "strat_ema_dual_01",
+    ema_5_13: "strat_ema_fast_01",
+    ema_triple: "strat_ema_triple_01",
+    trend50: "strat_ema50_trend_01",
+    rsi_x: "strat_rsi_cross_01",
+    rsi_div: "strat_rsi_div_01",
+    macd_h: "strat_macd_hist_01",
+    macd_s: "strat_macd_signal_01",
+    roc10: "strat_roc10_01",
+    roc20: "strat_roc20_01",
+    combo: "strat_combo_mom_01",
+  };
+
+  const NAME_TO_PLAZA = {
+    樞軸點突破: "strat_pivot_break_01",
+    樞軸點: "strat_pivot_break_01",
+    樞軸快線: "strat_pivot_break_01",
+    量均突破: "strat_vol_ma_01",
+    "Dual Thrust": "strat_dual_thrust_01",
+    Dual: "strat_dual_thrust_01",
+    DualThrust快: "strat_dual_thrust_01",
+    肯特納突破: "strat_keltner_break_01",
+    肯特納通道: "strat_keltner_break_01",
+    肯特納快: "strat_keltner_break_01",
+    唐奇安突破: "strat_donchian_20_01",
+    唐奇安突破20: "strat_donchian_20_01",
+    唐奇安突破10: "strat_donchian_10_01",
+    唐奇安10: "strat_donchian_10_01",
+    唐奇安14: "strat_donchian_20_01",
+    布林擠壓突破: "strat_bb_squeeze_01",
+    布林擠壓: "strat_bb_squeeze_01",
+    布林均值回歸: "strat_bb_rebound_01",
+    布林寬帶回歸: "strat_bb_wide_01",
+    布林回歸16: "strat_bb_wide_01",
+    ATR超級趨勢: "strat_supertrend_01",
+    ATR趨勢: "strat_supertrend_01",
+    ATR波動網格: "strat_atr_grid_01",
+    ATR網格10: "strat_atr_grid_01",
+    成交量價差VSA: "strat_vsa_01",
+    EMA雙均交叉: "strat_ema_dual_01",
+    EMA快線交叉: "strat_ema_fast_01",
+    EMA三均共振: "strat_ema_triple_01",
+    EMA50趨勢突破: "strat_ema50_trend_01",
+    EMA821: "strat_ema_fast_01",
+    RSI超賣超買交叉: "strat_rsi_cross_01",
+    RSI超賣修復: "strat_rsi_cross_01",
+    RSI背離代理: "strat_rsi_div_01",
+    RSI背離: "strat_rsi_div_01",
+    MACD柱翻轉: "strat_macd_hist_01",
+    MACD信號交叉: "strat_macd_signal_01",
+    MACD動量: "strat_macd_signal_01",
+    ROC10動能: "strat_roc10_01",
+    ROC20動能: "strat_roc20_01",
+    ROC8動能: "strat_roc10_01",
+    複合動能確認: "strat_combo_mom_01",
+    複合動能: "strat_combo_mom_01",
+    複合動能B: "strat_combo_mom_01",
+    量價突破: "strat_vol_ma_01",
+  };
+
+  function plazaIdFor(ev) {
+    const raw = String((ev && (ev.plazaId || ev.strategyId || ev.strategy_id)) || "");
+    if (/^(strat_|ai_)/.test(raw)) return raw;
+    const fams = Object.keys(ENGINE_TO_PLAZA).sort((a, b) => b.length - a.length);
+    for (let i = 0; i < fams.length; i += 1) {
+      const fam = fams[i];
+      if (raw === fam || raw.indexOf(fam + "_") === 0) return ENGINE_TO_PLAZA[fam];
+    }
+    const name = String((ev && ev.name) || "");
+    if (NAME_TO_PLAZA[name]) return NAME_TO_PLAZA[name];
+    const compact = name.replace(/[\s.\-()]/g, "");
+    if (NAME_TO_PLAZA[compact]) return NAME_TO_PLAZA[compact];
+    const keys = Object.keys(NAME_TO_PLAZA);
+    for (let i = 0; i < keys.length; i += 1) {
+      if (name.indexOf(keys[i]) >= 0 || keys[i].indexOf(name) >= 0) return NAME_TO_PLAZA[keys[i]];
+    }
+    return "strat_pivot_break_01";
+  }
+
+  function stratAnchor(ev) {
+    const id = plazaIdFor(ev);
+    const label = escapeHtml(ev.name || "量化策略");
+    return (
+      '<a class="tape-strat" href="./strategies.html?id=' +
+      encodeURIComponent(id) +
+      '">' +
+      label +
+      "</a>"
+    );
+  }
+
+  function miniLineHtml(ev) {
     const close = isClose(ev);
     const buy = isBuy(ev);
     const pnl = Number(ev.pnl_pct);
+    let act;
     if (close) {
       const ok = Number.isFinite(pnl) && pnl > 0;
-      return (
-        fmt12h(ev.ts) +
-        " " +
-        (ok ? "平倉獲利 " + fmtPnl(pnl) : "平倉 " + (Number.isFinite(pnl) ? fmtPnl(pnl) : ""))
-      );
+      act = ok ? "平倉獲利 " + fmtPnl(pnl) : "平倉 " + (Number.isFinite(pnl) ? fmtPnl(pnl) : "離場");
+    } else {
+      act = (buy ? "多頭開倉" : "空頭開倉") + " @ " + fmtPx(ev.price);
     }
-    return fmt12h(ev.ts) + " " + (buy ? "多頭開倉" : "空頭開倉") + " @ " + fmtPx(ev.price);
+    return escapeHtml(fmt12h(ev.ts)) + " " + escapeHtml(act) + " · " + stratAnchor(ev);
   }
 
   function paintMiniTapes() {
@@ -687,7 +794,7 @@
         .map((ev) => {
           const close = isClose(ev);
           const cls = close ? (Number(ev.pnl_pct) > 0 ? "is-up" : "is-down") : isBuy(ev) ? "is-up" : "is-down";
-          return '<li class="' + cls + '">' + escapeHtml(miniLine(ev)) + "</li>";
+          return '<li class="' + cls + '">' + miniLineHtml(ev) + "</li>";
         })
         .join("");
     });
@@ -855,6 +962,7 @@
         removeCoin(rm.getAttribute("data-remove"));
         return;
       }
+      if (ev.target.closest(".tape-strat")) return;
       const card = ev.target.closest(".coin-card");
       if (card && !card.classList.contains("is-leaving")) openModal(card.getAttribute("data-sym"));
     });
@@ -912,10 +1020,10 @@
                 (close
                   ? Number(e.pnl_pct) > 0
                     ? "🟢 平倉獲利 " + fmtPnl(e.pnl_pct)
-                    : "🔴 平倉 " + (Number.isFinite(Number(e.pnl_pct)) ? fmtPnl(e.pnl_pct) : "")
+                    : "🔴 平倉離場"
                   : (buy ? "🟢 BUY" : "🔴 SELL") + " @ " + fmtPx(e.price)) +
                 " · " +
-                escapeHtml(e.name || "") +
+                stratAnchor(e) +
                 "</div>"
               );
             })
@@ -1140,6 +1248,7 @@
             pnl_pct: s.pnl_pct,
             name: g.name_zh || g.name_en || "量化策略",
             interval: g.interval || "1h",
+            strategyId: g.strategy_id || s.strategy_id,
           });
         });
         return;
@@ -1156,6 +1265,7 @@
         pnl_pct: g.pnl_pct,
         name: g.name_zh || g.name_en || "量化策略",
         interval: g.interval || "1h",
+        strategyId: g.strategy_id,
       });
     });
     return out;
@@ -1210,7 +1320,7 @@
           escapeHtml(pairLabel(ev.symbol)) +
           "</span>" +
           "<span>| " +
-          escapeHtml(ev.name) +
+          stratAnchor(ev) +
           " (" +
           escapeHtml(String(ev.interval || "1h").toUpperCase()) +
           ")</span>" +

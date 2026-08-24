@@ -1136,10 +1136,13 @@ def collapse_exec_log_batches(events, limit=24):
                 "logged_at": int(ev.get("logged_at") or 0),
                 "bar_ts": bar,
                 "event": ev.get("event") or "open",
+                "strategy_id": ev.get("strategy_id"),
                 "symbols": [],
             }
             order.append(key)
         g = buckets[key]
+        if ev.get("strategy_id") and not g.get("strategy_id"):
+            g["strategy_id"] = ev.get("strategy_id")
         px = ev.get("exit_price") if ev.get("event") == "close" else ev.get("price")
         g["symbols"].append(
             {

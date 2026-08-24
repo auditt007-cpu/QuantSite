@@ -477,6 +477,26 @@
     applyFilter();
   }
 
+  function focusStrategyFromQuery() {
+    const q = new URLSearchParams(location.search);
+    const id = q.get("id") || q.get("strategy");
+    if (!id || !gridEl) return;
+    const card =
+      gridEl.querySelector('.m-card[data-id="' + id + '"]') ||
+      gridEl.querySelector('.m-card[data-engine="' + id + '"]');
+    if (card) {
+      card.classList.add("is-focus");
+      setTimeout(() => card.scrollIntoView({ behavior: "smooth", block: "center" }), 80);
+    }
+    const row =
+      allList.find((s) => s.id === id) ||
+      allList.find((s) => s.engine === id) ||
+      allList.find((s) => s.name === id);
+    if (row && window.QAPipeline && typeof window.QAPipeline.openDetail === "function") {
+      window.QAPipeline.openDetail(row);
+    }
+  }
+
   const tabDefs = [
     { id: "all", label: `${t("tabAll")} (${allList.length})` },
     { id: "hot", label: t("tabHot") },
@@ -533,6 +553,7 @@
   }
   paintGrid();
   paintPlazaCount();
+  focusStrategyFromQuery();
   window.addEventListener("quant-lang", () => {
     if (window.QALeaderboard) paintLeaderboardMeta(window.QALeaderboard);
   });
@@ -572,6 +593,7 @@
     }
     paintGrid();
     paintPlazaCount();
+    focusStrategyFromQuery();
   });
 
   /* Browser-side fillStats removed: plaza metrics come from pack / leaderboard / pipeline only. */
@@ -654,7 +676,7 @@
 
   const q = new URLSearchParams(location.search);
   const qSt = q.get("strategy") || q.get("engine");
-  if (qSt && catalog.get(qSt)) {
+  if (qSt && catalog.get(qSt) && !q.get("id")) {
     openEngine(qSt, q.get("interval") || "1h");
   }
 })();

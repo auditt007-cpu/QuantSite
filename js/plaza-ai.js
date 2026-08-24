@@ -57,7 +57,7 @@
       copy: copy,
       chart: chart,
       chart_url: chart,
-      sharpe: pickNum(row.sharpe, m.sharpe, m.sharpe_ratio),
+      sharpe: pickNum(row.sharpe, m.sharpe, m.sharpe_ratio, m.robustness, row.robustness),
       return_pct: pickNum(row.return_pct, m.return_pct, m.ret),
       max_drawdown: pickNum(row.max_drawdown, m.max_drawdown, m.mdd),
       profit_factor: pickNum(row.profit_factor, m.profit_factor, m.pf),
@@ -67,6 +67,8 @@
       interval: row.interval || row.tf || "1h",
       params: row.params,
       code: row.code,
+      category: row.category || "",
+      engine: row.engine || row.engine_id || "",
     };
   }
 
@@ -222,10 +224,12 @@
   }
 
   function chartUrl(row) {
-    const u = row.chart_url || row.chart;
+    const u = row.chart_url || row.chart || row.chart_svg;
     if (u) return u;
-    if (String(row.id || "").indexOf("ai_") === 0) return "/static/charts/" + row.id + ".svg";
-    return "";
+    const id = String(row.id || "");
+    if (!id) return "";
+    const file = id.indexOf("ai_") === 0 ? id : "ai_" + id;
+    return "/static/charts/" + file + ".svg";
   }
 
   function displayName(row) {
@@ -246,12 +250,15 @@
     let wr = Number(r.win_rate);
     if (Number.isFinite(wr) && wr > 1) wr = wr / 100;
     const copy = r.copy || "";
+    const cat = String(r.category || row.category || "");
+    const isAi = /AI/.test(cat) || String(r.id).indexOf("ai_") === 0;
     return {
       id: r.id,
       name: displayName(r),
-      engine: r.id,
+      engine: r.engine || r.id,
       tier: "free",
-      ai: true,
+      ai: isAi,
+      category: cat,
       copy: copy,
       chart: chartUrl(r),
       symbols: r.symbols && r.symbols.length ? r.symbols : ["BTCUSDT", "ETHUSDT", "SOLUSDT"],
