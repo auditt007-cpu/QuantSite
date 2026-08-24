@@ -82,10 +82,12 @@
   function fmtPx(n) {
     const x = Number(n);
     if (!Number.isFinite(x)) return "—";
-    if (x >= 1000) return x.toLocaleString("en-US", { maximumFractionDigits: 1 });
-    if (x >= 1) return x.toFixed(2);
-    if (x >= 0.01) return x.toFixed(4);
-    return x.toPrecision(4);
+    const ax = Math.abs(x);
+    if (ax >= 1000) return x.toLocaleString("en-US", { maximumFractionDigits: 1 });
+    if (ax >= 1) return x.toFixed(2);
+    if (ax >= 0.01) return x.toFixed(4);
+    if (ax >= 0.0001) return x.toFixed(6);
+    return x.toExponential(3);
   }
 
   function fmtPnl(n) {
@@ -793,10 +795,13 @@
   function fmtAxisPx(n) {
     const x = Number(n);
     if (!Number.isFinite(x)) return "—";
-    if (x >= 1000) return x.toLocaleString("en-US", { maximumFractionDigits: 1 });
-    if (x >= 1) return x.toFixed(2);
-    if (x >= 0.01) return x.toFixed(4);
-    return x.toPrecision(3);
+    const ax = Math.abs(x);
+    if (ax >= 1000) return x.toLocaleString("en-US", { maximumFractionDigits: 1 });
+    if (ax >= 1) return x.toFixed(2);
+    if (ax >= 0.01) return x.toFixed(4);
+    if (ax >= 0.0001) return x.toFixed(6);
+    /* PEPE-class micros: scientific so the axis stays readable in a narrow pad */
+    return x.toExponential(2);
   }
 
   function uniqueYTicks(min, max, last) {
@@ -842,11 +847,17 @@
     }
     const min = Math.min.apply(null, closes);
     const max = Math.max.apply(null, closes);
-    const span = max - min || 1;
+    const span = max - min || Math.abs(min) * 0.001 || 1e-12;
     const last = closes[closes.length - 1];
     const first = closes[0];
     const padL = tall ? 10 : 8;
-    const padR = tall ? 56 : 48;
+    ctx.font = (tall ? "11px" : "10px") + " Roboto Mono, monospace";
+    const labelW = Math.max(
+      ctx.measureText(fmtAxisPx(last)).width,
+      ...uniqueYTicks(min, max, last).map((v) => ctx.measureText(fmtAxisPx(v)).width),
+      36,
+    );
+    const padR = Math.max(tall ? 56 : 48, Math.ceil(labelW) + 10);
     const padT = tall ? 14 : 10;
     const padB = tall ? 24 : 20;
     const w = cssW - padL - padR;
@@ -854,12 +865,15 @@
     const up = last >= first;
     const stroke = up ? "#10b981" : "#ef4444";
     const fill = up ? "rgba(16,185,129,0.14)" : "rgba(239,68,68,0.12)";
+    const nSeg = Math.max(closes.length - 1, 1);
+    const xAt = (i) => padL + (i / nSeg) * w;
+    const yAt = (px) => padT + h - ((px - min) / span) * h;
 
     const yTicks = uniqueYTicks(min, max, last);
     ctx.strokeStyle = "#f1f5f9";
     ctx.lineWidth = 1;
     yTicks.forEach((v) => {
-      const y = padT + h - ((v - min) / span) * h;
+      const y = yAt(v);
       ctx.beginPath();
       ctx.moveTo(padL, y);
       ctx.lineTo(padL + w, y);
@@ -875,8 +889,8 @@
 
     ctx.beginPath();
     closes.forEach((c, i) => {
-      const x = padL + (i / (closes.length - 1)) * w;
-      const y = padT + h - ((c - min) / span) * h;
+      const x = xAt(i);
+      const y = yAt(c);
       if (i === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     });
@@ -887,8 +901,8 @@
     ctx.fill();
     ctx.beginPath();
     closes.forEach((c, i) => {
-      const x = padL + (i / (closes.length - 1)) * w;
-      const y = padT + h - ((c - min) / span) * h;
+      const x = xAt(i);
+      const y = yAt(c);
       if (i === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     });
@@ -901,7 +915,7 @@
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
     yTicks.forEach((v) => {
-      const y = padT + h - ((v - min) / span) * h;
+      const y = yAt(v);
       const label = fmtAxisPx(v);
       const isLast = Math.abs(v - last) / span < 0.08;
       ctx.fillStyle = isLast ? (up ? "#059669" : "#dc2626") : "#94a3b8";
@@ -921,46 +935,55 @@
       ctx.fillText(lb.text, x, padT + h + 6);
     });
 
-    const marks = state.events.filter((e) => e.symbol === sym && Date.now() / 1000 - e.ts < HOUR_S);
+    const marks = state.events.filter(
+      (e) => e && e.symbol === sym && e.kind !== "close_agg" && !isZeroValueClose(e) && Date.now() / 1000 - e.ts < HOUR_S,
+    );
     marks.forEach((ev) => {
-      const px = Number(ev.price);
-      if (!Number.isFinite(px)) return;
+      const signalPx = Number(ev.price);
       let idx = closes.length - 1;
       if (rows.length) {
         const tms = Number(ev.ts) > 1e12 ? Number(ev.ts) : Number(ev.ts) * 1000;
         let best = 0;
         let dist = Infinity;
         rows.forEach((r, i) => {
-          const d = Math.abs(r.t - tms);
+          const d = Math.abs(Number(r.t) - tms);
           if (d < dist) {
             dist = d;
             best = i;
           }
         });
-        idx = best;
+        idx = Math.min(best, closes.length - 1);
       }
-      const x = padL + (idx / (closes.length - 1)) * w;
-      const y = padT + h - ((px - min) / span) * h;
+      /* Snap to the polyline — never use raw signal px for Y (causes floating dots). */
+      const linePx = Number(closes[idx]);
+      if (!Number.isFinite(linePx)) return;
+      const x = xAt(idx);
+      const y = yAt(linePx);
       const buy = isBuy(ev) && !isClose(ev);
       const close = isClose(ev);
       ctx.beginPath();
-      ctx.arc(x, Math.max(padT, Math.min(padT + h, y)), tall ? 5 : 4.5, 0, Math.PI * 2);
+      ctx.arc(x, y, tall ? 5 : 4.5, 0, Math.PI * 2);
       ctx.fillStyle = close ? (Number(ev.pnl_pct) > 0 ? "#10b981" : "#ef4444") : buy ? "#10b981" : "#ef4444";
       ctx.fill();
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      const tagPx = Number.isFinite(signalPx) ? signalPx : linePx;
       const tag = close
         ? Number(ev.pnl_pct) > 0
           ? "平倉 +" + Number(ev.pnl_pct).toFixed(1) + "%"
           : "平倉"
-        : (buy ? "BUY @" : "SELL @") + " " + fmtAxisPx(px);
+        : (buy ? "BUY @" : "SELL @") + " " + fmtAxisPx(tagPx);
       ctx.font = "10px Roboto Mono, monospace";
       const tw = ctx.measureText(tag).width;
       let lx = x + 6;
-      let ly = Math.max(padT + 10, Math.min(padT + h - 4, y - 8));
+      let ly = y - 10;
+      if (ly < padT + 10) ly = y + 14;
       if (lx + tw > padL + w - 4) lx = Math.max(padL, x - tw - 6);
       if (lx + tw > padL + w) lx = padL + w - tw;
       ctx.textAlign = "left";
       ctx.textBaseline = "alphabetic";
-      ctx.fillStyle = "rgba(248,250,252,0.88)";
+      ctx.fillStyle = "rgba(248,250,252,0.92)";
       ctx.fillRect(lx - 2, ly - 10, tw + 4, 13);
       ctx.fillStyle = close
         ? Number(ev.pnl_pct) > 0
