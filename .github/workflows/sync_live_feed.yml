@@ -1,0 +1,43 @@
+name: Sync Live Feed
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-live-feed
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Dependencies
+        run: pip install paramiko
+
+      - name: Fetch live_feed.json from VPS
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PASS: ${{ secrets.SSH_PASS }}
+        run: python scripts/fetch_live_feed.py
+
+      - name: Commit and Push Changes
+        run: |
+          git config --local user.email "bot@quantalpha.space"
+          git config --local user.name "QuantAlpha Live Feed Bot"
+          git add live_feed.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: sync live_feed.json from VPS [skip ci]" && git push)
