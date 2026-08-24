@@ -7,13 +7,20 @@ body.live-page.war-cmd {
   font-family: Inter, "Segoe UI", "Noto Sans TC", system-ui, sans-serif;
 }
 
-body.live-page.war-cmd .topbar,
-body.live-page.war-cmd .ticker-bar,
-body.live-page.war-cmd .bb-marquee,
-body.live-page.war-cmd .site-foot {
-  background: #ffffff;
-  border-color: #e2e8f0;
-  color: #0f172a;
+body.live-page.war-cmd .bb-marquee {
+  height: 40px !important;
+  min-height: 40px !important;
+  max-height: 40px !important;
+  line-height: 40px !important;
+  flex-shrink: 0 !important;
+  overflow: hidden !important;
+  position: relative;
+  z-index: 5;
+}
+
+body.live-page.war-cmd .bb-tag {
+  height: 40px !important;
+  line-height: 40px !important;
 }
 
 body.live-page.war-cmd .brand-text h1,
@@ -378,6 +385,8 @@ body.live-page.war-cmd .wrap {
   height: 220px;
   overflow: hidden;
   position: relative;
+  padding: 10px 0 8px;
+  box-sizing: border-box;
 }
 
 .radar-list {
@@ -388,12 +397,16 @@ body.live-page.war-cmd .wrap {
 .radar-row {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 8px 12px;
-  padding: 9px 14px;
+  padding: 8px 14px;
+  min-height: 36px;
+  line-height: 1.45;
   border-bottom: 1px solid #f1f5f9;
   font-size: 12px;
   font-family: "Roboto Mono", "JetBrains Mono", ui-monospace, monospace;
   color: #334155;
+  box-sizing: border-box;
 }
 
 .radar-row .t {

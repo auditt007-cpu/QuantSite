@@ -350,12 +350,16 @@
 #bloomberg-marquee-bar,
 .bb-marquee {
   display: flex !important;
-  flex-shrink: 0;
+  flex-shrink: 0 !important;
   width: 100%;
   max-width: 100%;
-  min-height: 32px;
-  overflow: hidden;
+  height: 40px !important;
+  min-height: 40px !important;
+  max-height: 40px !important;
+  line-height: 40px !important;
+  overflow: hidden !important;
   visibility: visible !important;
+  align-items: center;
 }
 
 @media (max-width: 768px) {

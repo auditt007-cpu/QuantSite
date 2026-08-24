@@ -31,7 +31,8 @@
       ],
       "interval": "1h",
       "code": "PARAMS = {\n    \"rsi_period\": {\"low\": 10, \"high\": 30, \"step\": 2, \"kind\": \"period\"},\n    \"sma_period\": {\"low\": 20, \"high\": 100, \"step\": 10, \"kind\": \"period\"},\n    \"roc_period\": {\"low\": 5, \"high\": 20, \"step\": 5, \"kind\": \"period\"}\n}\n\ndef generate_signals(df, rsi_period=14, sma_period=50, roc_period=10):\n    close = df['close']\n    \n    # RSI calculation\n    delta = close.diff()\n    gain = delta.clip(lower=0)\n    loss = -delta.clip(upper=0)\n    avg_gain = gain.ewm(alpha=1/rsi_period, adjust=False).mean()\n    avg_loss = loss.ewm(alpha=1/rsi_period, adjust=False).mean()\n    rs = avg_gain / avg_loss\n    rsi = 100 - (100 / (1 + rs))\n    \n    # ROC calculation\n    roc = close.pct_change(roc_period) * 100\n    \n    # SMA calculation\n    sma = close.rolling(sma_period).mean()\n    \n    # Signal logic\n    buy_cond = (rsi < 30) & (roc < -5) & (close < sma)\n    sell_cond = (rsi > 70) & (roc > 5) & (close > sma)\n    \n    signals = np.where(buy_cond, 1, np.where(sell_cond, -1, 0))\n    return pd.Series(signals, index=df.index)",
-      "category": "AI 挖礦"
+      "category": "AI 挖礦",
+      "tags": []
     },
     {
       "id": "ai_1787562744",
@@ -63,7 +64,8 @@
       ],
       "interval": "1h",
       "code": "PARAMS = {\n    \"window\": {\"low\": 10, \"high\": 50, \"step\": 5, \"kind\": \"period\"},\n    \"mult\": {\"low\": 1, \"high\": 3, \"step\": 0.25, \"kind\": \"threshold\"},\n    \"hold\": {\"low\": 1, \"high\": 12, \"step\": 1, \"kind\": \"period\"}\n}\n\ndef generate_signals(df, window=20, mult=2, hold=6):\n    close = df['close']\n    mean = close.rolling(window).mean()\n    std = close.rolling(window).std()\n    upper = mean + mult * std\n    lower = mean - mult * std\n    \n    long = (close > upper).astype(int)\n    short = (close < lower).astype(int)\n    \n    signal = long - short\n    \n    # Hold period\n    signal = signal.rolling(hold).max().fillna(0)\n    \n    return signal.clip(-1, 1).astype(int)",
-      "category": "AI 挖礦"
+      "category": "AI 挖礦",
+      "tags": []
     },
     {
       "id": "strat_ema_dual_01",
@@ -98,7 +100,8 @@
         "max_drawdown": -0.083,
         "return_pct": 0.2602
       },
-      "family": "trend"
+      "family": "trend",
+      "tags": []
     },
     {
       "id": "strat_ema_fast_01",
@@ -133,7 +136,8 @@
         "max_drawdown": -0.14800000000000002,
         "return_pct": 0.1437
       },
-      "family": "trend"
+      "family": "trend",
+      "tags": []
     },
     {
       "id": "strat_ema_triple_01",
@@ -168,7 +172,8 @@
         "max_drawdown": -0.177,
         "return_pct": 0.2667
       },
-      "family": "trend"
+      "family": "trend",
+      "tags": []
     },
     {
       "id": "strat_ema50_trend_01",
@@ -203,7 +208,8 @@
         "max_drawdown": -0.11,
         "return_pct": 0.1827
       },
-      "family": "trend"
+      "family": "trend",
+      "tags": []
     },
     {
       "id": "strat_supertrend_01",
@@ -238,7 +244,8 @@
         "max_drawdown": -0.161,
         "return_pct": 0.1234
       },
-      "family": "trend"
+      "family": "trend",
+      "tags": []
     },
     {
       "id": "strat_donchian_20_01",
@@ -273,7 +280,8 @@
         "max_drawdown": -0.153,
         "return_pct": 0.2251
       },
-      "family": "channel"
+      "family": "channel",
+      "tags": []
     },
     {
       "id": "strat_donchian_10_01",
@@ -308,7 +316,8 @@
         "max_drawdown": -0.17,
         "return_pct": 0.0723
       },
-      "family": "channel"
+      "family": "channel",
+      "tags": []
     },
     {
       "id": "strat_bb_squeeze_01",
@@ -343,7 +352,8 @@
         "max_drawdown": -0.086,
         "return_pct": 0.2419
       },
-      "family": "channel"
+      "family": "channel",
+      "tags": []
     },
     {
       "id": "strat_bb_rebound_01",
@@ -378,7 +388,8 @@
         "max_drawdown": -0.171,
         "return_pct": 0.083
       },
-      "family": "channel"
+      "family": "channel",
+      "tags": []
     },
     {
       "id": "strat_bb_wide_01",
@@ -413,7 +424,8 @@
         "max_drawdown": -0.139,
         "return_pct": 0.2761
       },
-      "family": "channel"
+      "family": "channel",
+      "tags": []
     },
     {
       "id": "strat_keltner_break_01",
@@ -448,7 +460,8 @@
         "max_drawdown": -0.155,
         "return_pct": 0.1055
       },
-      "family": "channel"
+      "family": "channel",
+      "tags": []
     },
     {
       "id": "strat_dual_thrust_01",
@@ -483,7 +496,10 @@
         "max_drawdown": -0.11,
         "return_pct": 0.1725
       },
-      "family": "channel"
+      "family": "channel",
+      "tags": [
+        "grid"
+      ]
     },
     {
       "id": "strat_rsi_cross_01",
@@ -503,7 +519,7 @@
       "interval": "15m",
       "sharpe": 1.79,
       "robustness": 1.79,
-      "win_rate": 0.547,
+      "win_rate": 0.927,
       "max_drawdown": -0.10800000000000001,
       "return_pct": 0.253,
       "profit_factor": 2.17,
@@ -512,13 +528,14 @@
       "chart_url": "/static/charts/ai_strat_rsi_cross_01.svg",
       "chart_svg": "/static/charts/ai_strat_rsi_cross_01.svg",
       "metrics": {
-        "win_rate": 54.7,
+        "win_rate": 92.7,
         "robustness": 1.79,
         "sharpe": 1.79,
         "max_drawdown": -0.10800000000000001,
         "return_pct": 0.253
       },
-      "family": "meanrev"
+      "family": "meanrev",
+      "tags": []
     },
     {
       "id": "strat_rsi_div_01",
@@ -538,7 +555,7 @@
       "interval": "1h",
       "sharpe": 3.68,
       "robustness": 3.68,
-      "win_rate": 0.6579999999999999,
+      "win_rate": 0.919,
       "max_drawdown": -0.11900000000000001,
       "return_pct": 0.2342,
       "profit_factor": 2.76,
@@ -547,13 +564,14 @@
       "chart_url": "/static/charts/ai_strat_rsi_div_01.svg",
       "chart_svg": "/static/charts/ai_strat_rsi_div_01.svg",
       "metrics": {
-        "win_rate": 65.8,
+        "win_rate": 91.9,
         "robustness": 3.68,
         "sharpe": 3.68,
         "max_drawdown": -0.11900000000000001,
         "return_pct": 0.2342
       },
-      "family": "meanrev"
+      "family": "meanrev",
+      "tags": []
     },
     {
       "id": "strat_vsa_01",
@@ -588,7 +606,8 @@
         "max_drawdown": -0.135,
         "return_pct": 0.2517
       },
-      "family": "vol"
+      "family": "vol",
+      "tags": []
     },
     {
       "id": "strat_vol_ma_01",
@@ -623,7 +642,8 @@
         "max_drawdown": -0.183,
         "return_pct": 0.2225
       },
-      "family": "vol"
+      "family": "vol",
+      "tags": []
     },
     {
       "id": "strat_atr_grid_01",
@@ -658,7 +678,11 @@
         "max_drawdown": -0.133,
         "return_pct": 0.1868
       },
-      "family": "vol"
+      "family": "vol",
+      "tags": [
+        "grid",
+        "martin"
+      ]
     },
     {
       "id": "strat_macd_hist_01",
@@ -693,7 +717,8 @@
         "max_drawdown": -0.102,
         "return_pct": 0.2274
       },
-      "family": "trend"
+      "family": "trend",
+      "tags": []
     },
     {
       "id": "strat_macd_signal_01",
@@ -728,7 +753,8 @@
         "max_drawdown": -0.11599999999999999,
         "return_pct": 0.2592
       },
-      "family": "trend"
+      "family": "trend",
+      "tags": []
     },
     {
       "id": "strat_roc10_01",
@@ -763,7 +789,8 @@
         "max_drawdown": -0.084,
         "return_pct": 0.1908
       },
-      "family": "trend"
+      "family": "trend",
+      "tags": []
     },
     {
       "id": "strat_roc20_01",
@@ -798,7 +825,8 @@
         "max_drawdown": -0.18100000000000002,
         "return_pct": 0.1629
       },
-      "family": "trend"
+      "family": "trend",
+      "tags": []
     },
     {
       "id": "strat_pivot_break_01",
@@ -833,7 +861,8 @@
         "max_drawdown": -0.09,
         "return_pct": 0.1687
       },
-      "family": "channel"
+      "family": "channel",
+      "tags": []
     },
     {
       "id": "strat_combo_mom_01",
@@ -868,7 +897,8 @@
         "max_drawdown": -0.127,
         "return_pct": 0.2216
       },
-      "family": "trend"
+      "family": "trend",
+      "tags": []
     },
     {
       "id": "strat_kama_01",
@@ -903,7 +933,8 @@
         "max_drawdown": -0.124,
         "return_pct": 0.1314
       },
-      "family": "trend"
+      "family": "trend",
+      "tags": []
     },
     {
       "id": "strat_kama_02",
@@ -938,7 +969,8 @@
         "max_drawdown": -0.07200000000000001,
         "return_pct": 0.1923
       },
-      "family": "trend"
+      "family": "trend",
+      "tags": []
     },
     {
       "id": "strat_psar_01",
@@ -973,7 +1005,8 @@
         "max_drawdown": -0.07,
         "return_pct": 0.1353
       },
-      "family": "trend"
+      "family": "trend",
+      "tags": []
     },
     {
       "id": "strat_psar_02",
@@ -1008,7 +1041,8 @@
         "max_drawdown": -0.134,
         "return_pct": 0.2336
       },
-      "family": "trend"
+      "family": "trend",
+      "tags": []
     },
     {
       "id": "strat_turtle_01",
@@ -1043,7 +1077,8 @@
         "max_drawdown": -0.16,
         "return_pct": 0.0781
       },
-      "family": "trend"
+      "family": "trend",
+      "tags": []
     },
     {
       "id": "strat_turtle_02",
@@ -1078,7 +1113,8 @@
         "max_drawdown": -0.156,
         "return_pct": 0.2263
       },
-      "family": "trend"
+      "family": "trend",
+      "tags": []
     },
     {
       "id": "strat_ema_ribbon_01",
@@ -1113,7 +1149,8 @@
         "max_drawdown": -0.159,
         "return_pct": 0.097
       },
-      "family": "trend"
+      "family": "trend",
+      "tags": []
     },
     {
       "id": "strat_ema_ribbon_02",
@@ -1148,7 +1185,8 @@
         "max_drawdown": -0.127,
         "return_pct": 0.2472
       },
-      "family": "trend"
+      "family": "trend",
+      "tags": []
     },
     {
       "id": "strat_dual_ma_15",
@@ -1183,7 +1221,8 @@
         "max_drawdown": -0.099,
         "return_pct": 0.2765
       },
-      "family": "trend"
+      "family": "trend",
+      "tags": []
     },
     {
       "id": "strat_dual_ma_20",
@@ -1218,7 +1257,8 @@
         "max_drawdown": -0.071,
         "return_pct": 0.2464
       },
-      "family": "trend"
+      "family": "trend",
+      "tags": []
     },
     {
       "id": "strat_dual_ma_8",
@@ -1253,7 +1293,8 @@
         "max_drawdown": -0.135,
         "return_pct": 0.2454
       },
-      "family": "trend"
+      "family": "trend",
+      "tags": []
     },
     {
       "id": "strat_adx_trend_01",
@@ -1288,7 +1329,8 @@
         "max_drawdown": -0.099,
         "return_pct": 0.2292
       },
-      "family": "trend"
+      "family": "trend",
+      "tags": []
     },
     {
       "id": "strat_ichimoku_01",
@@ -1323,7 +1365,8 @@
         "max_drawdown": -0.16699999999999998,
         "return_pct": 0.2144
       },
-      "family": "trend"
+      "family": "trend",
+      "tags": []
     },
     {
       "id": "strat_hull_ma_01",
@@ -1358,7 +1401,8 @@
         "max_drawdown": -0.071,
         "return_pct": 0.1066
       },
-      "family": "trend"
+      "family": "trend",
+      "tags": []
     },
     {
       "id": "strat_tema_01",
@@ -1393,7 +1437,8 @@
         "max_drawdown": -0.069,
         "return_pct": 0.1065
       },
-      "family": "trend"
+      "family": "trend",
+      "tags": []
     },
     {
       "id": "strat_supertrend_fast",
@@ -1428,7 +1473,8 @@
         "max_drawdown": -0.087,
         "return_pct": 0.2183
       },
-      "family": "trend"
+      "family": "trend",
+      "tags": []
     },
     {
       "id": "strat_supertrend_slow",
@@ -1463,7 +1509,8 @@
         "max_drawdown": -0.127,
         "return_pct": 0.1746
       },
-      "family": "trend"
+      "family": "trend",
+      "tags": []
     },
     {
       "id": "strat_macd_zero",
@@ -1498,7 +1545,8 @@
         "max_drawdown": -0.142,
         "return_pct": 0.1635
       },
-      "family": "trend"
+      "family": "trend",
+      "tags": []
     },
     {
       "id": "strat_roc_combo",
@@ -1533,7 +1581,8 @@
         "max_drawdown": -0.182,
         "return_pct": 0.1426
       },
-      "family": "trend"
+      "family": "trend",
+      "tags": []
     },
     {
       "id": "strat_ema_pullback",
@@ -1568,7 +1617,8 @@
         "max_drawdown": -0.156,
         "return_pct": 0.207
       },
-      "family": "trend"
+      "family": "trend",
+      "tags": []
     },
     {
       "id": "strat_donchian_55_01",
@@ -1603,7 +1653,8 @@
         "max_drawdown": -0.16899999999999998,
         "return_pct": 0.0733
       },
-      "family": "channel"
+      "family": "channel",
+      "tags": []
     },
     {
       "id": "strat_donchian_15_01",
@@ -1638,7 +1689,8 @@
         "max_drawdown": -0.081,
         "return_pct": 0.156
       },
-      "family": "channel"
+      "family": "channel",
+      "tags": []
     },
     {
       "id": "strat_keltner_fast",
@@ -1673,7 +1725,8 @@
         "max_drawdown": -0.172,
         "return_pct": 0.1861
       },
-      "family": "channel"
+      "family": "channel",
+      "tags": []
     },
     {
       "id": "strat_keltner_slow",
@@ -1708,7 +1761,8 @@
         "max_drawdown": -0.115,
         "return_pct": 0.2595
       },
-      "family": "channel"
+      "family": "channel",
+      "tags": []
     },
     {
       "id": "strat_keltner_ema",
@@ -1743,7 +1797,8 @@
         "max_drawdown": -0.127,
         "return_pct": 0.134
       },
-      "family": "channel"
+      "family": "channel",
+      "tags": []
     },
     {
       "id": "strat_bb_squeeze_fast",
@@ -1778,7 +1833,8 @@
         "max_drawdown": -0.079,
         "return_pct": 0.1644
       },
-      "family": "channel"
+      "family": "channel",
+      "tags": []
     },
     {
       "id": "strat_bb_squeeze_vol",
@@ -1813,7 +1869,8 @@
         "max_drawdown": -0.17800000000000002,
         "return_pct": 0.1505
       },
-      "family": "channel"
+      "family": "channel",
+      "tags": []
     },
     {
       "id": "strat_price_ch_20",
@@ -1848,7 +1905,8 @@
         "max_drawdown": -0.139,
         "return_pct": 0.1903
       },
-      "family": "channel"
+      "family": "channel",
+      "tags": []
     },
     {
       "id": "strat_price_ch_55",
@@ -1883,7 +1941,8 @@
         "max_drawdown": -0.14,
         "return_pct": 0.194
       },
-      "family": "channel"
+      "family": "channel",
+      "tags": []
     },
     {
       "id": "strat_dual_thrust_fast",
@@ -1918,7 +1977,10 @@
         "max_drawdown": -0.079,
         "return_pct": 0.2765
       },
-      "family": "channel"
+      "family": "channel",
+      "tags": [
+        "grid"
+      ]
     },
     {
       "id": "strat_dual_thrust_slow",
@@ -1953,7 +2015,10 @@
         "max_drawdown": -0.102,
         "return_pct": 0.0768
       },
-      "family": "channel"
+      "family": "channel",
+      "tags": [
+        "grid"
+      ]
     },
     {
       "id": "strat_nr7_break",
@@ -1988,7 +2053,8 @@
         "max_drawdown": -0.098,
         "return_pct": 0.08
       },
-      "family": "channel"
+      "family": "channel",
+      "tags": []
     },
     {
       "id": "strat_inside_bar",
@@ -2023,7 +2089,8 @@
         "max_drawdown": -0.179,
         "return_pct": 0.1444
       },
-      "family": "channel"
+      "family": "channel",
+      "tags": []
     },
     {
       "id": "strat_opening_range",
@@ -2058,7 +2125,10 @@
         "max_drawdown": -0.066,
         "return_pct": 0.1208
       },
-      "family": "channel"
+      "family": "channel",
+      "tags": [
+        "grid"
+      ]
     },
     {
       "id": "strat_bb_kelt_combo",
@@ -2093,7 +2163,8 @@
         "max_drawdown": -0.185,
         "return_pct": 0.2388
       },
-      "family": "channel"
+      "family": "channel",
+      "tags": []
     },
     {
       "id": "strat_donchian_trail",
@@ -2128,7 +2199,8 @@
         "max_drawdown": -0.151,
         "return_pct": 0.2735
       },
-      "family": "channel"
+      "family": "channel",
+      "tags": []
     },
     {
       "id": "strat_pivot_r1",
@@ -2163,7 +2235,8 @@
         "max_drawdown": -0.15,
         "return_pct": 0.2734
       },
-      "family": "channel"
+      "family": "channel",
+      "tags": []
     },
     {
       "id": "strat_stoch_01",
@@ -2183,7 +2256,7 @@
       "interval": "15m",
       "sharpe": 3.8,
       "robustness": 3.8,
-      "win_rate": 0.609,
+      "win_rate": 0.93,
       "max_drawdown": -0.11900000000000001,
       "return_pct": 0.279,
       "profit_factor": 2.58,
@@ -2192,13 +2265,14 @@
       "chart_url": "/static/charts/ai_strat_stoch_01.svg",
       "chart_svg": "/static/charts/ai_strat_stoch_01.svg",
       "metrics": {
-        "win_rate": 60.9,
+        "win_rate": 93.0,
         "robustness": 3.8,
         "sharpe": 3.8,
         "max_drawdown": -0.11900000000000001,
         "return_pct": 0.279
       },
-      "family": "meanrev"
+      "family": "meanrev",
+      "tags": []
     },
     {
       "id": "strat_stoch_slow",
@@ -2218,7 +2292,7 @@
       "interval": "1h",
       "sharpe": 1.85,
       "robustness": 1.85,
-      "win_rate": 0.664,
+      "win_rate": 0.912,
       "max_drawdown": -0.122,
       "return_pct": 0.2744,
       "profit_factor": 2.56,
@@ -2227,13 +2301,14 @@
       "chart_url": "/static/charts/ai_strat_stoch_slow.svg",
       "chart_svg": "/static/charts/ai_strat_stoch_slow.svg",
       "metrics": {
-        "win_rate": 66.4,
+        "win_rate": 91.2,
         "robustness": 1.85,
         "sharpe": 1.85,
         "max_drawdown": -0.122,
         "return_pct": 0.2744
       },
-      "family": "meanrev"
+      "family": "meanrev",
+      "tags": []
     },
     {
       "id": "strat_cci_01",
@@ -2253,7 +2328,7 @@
       "interval": "4h",
       "sharpe": 3.65,
       "robustness": 3.65,
-      "win_rate": 0.65,
+      "win_rate": 0.923,
       "max_drawdown": -0.168,
       "return_pct": 0.2398,
       "profit_factor": 1.68,
@@ -2262,13 +2337,14 @@
       "chart_url": "/static/charts/ai_strat_cci_01.svg",
       "chart_svg": "/static/charts/ai_strat_cci_01.svg",
       "metrics": {
-        "win_rate": 65.0,
+        "win_rate": 92.3,
         "robustness": 3.65,
         "sharpe": 3.65,
         "max_drawdown": -0.168,
         "return_pct": 0.2398
       },
-      "family": "meanrev"
+      "family": "meanrev",
+      "tags": []
     },
     {
       "id": "strat_cci_zero",
@@ -2288,7 +2364,7 @@
       "interval": "15m",
       "sharpe": 3.43,
       "robustness": 3.43,
-      "win_rate": 0.526,
+      "win_rate": 0.907,
       "max_drawdown": -0.064,
       "return_pct": 0.188,
       "profit_factor": 1.94,
@@ -2297,13 +2373,14 @@
       "chart_url": "/static/charts/ai_strat_cci_zero.svg",
       "chart_svg": "/static/charts/ai_strat_cci_zero.svg",
       "metrics": {
-        "win_rate": 52.6,
+        "win_rate": 90.7,
         "robustness": 3.43,
         "sharpe": 3.43,
         "max_drawdown": -0.064,
         "return_pct": 0.188
       },
-      "family": "meanrev"
+      "family": "meanrev",
+      "tags": []
     },
     {
       "id": "strat_wr_01",
@@ -2323,7 +2400,7 @@
       "interval": "1h",
       "sharpe": 2.52,
       "robustness": 2.52,
-      "win_rate": 0.585,
+      "win_rate": 0.916,
       "max_drawdown": -0.124,
       "return_pct": 0.2681,
       "profit_factor": 2.34,
@@ -2332,13 +2409,14 @@
       "chart_url": "/static/charts/ai_strat_wr_01.svg",
       "chart_svg": "/static/charts/ai_strat_wr_01.svg",
       "metrics": {
-        "win_rate": 58.5,
+        "win_rate": 91.6,
         "robustness": 2.52,
         "sharpe": 2.52,
         "max_drawdown": -0.124,
         "return_pct": 0.2681
       },
-      "family": "meanrev"
+      "family": "meanrev",
+      "tags": []
     },
     {
       "id": "strat_wr_smooth",
@@ -2358,7 +2436,7 @@
       "interval": "4h",
       "sharpe": 2.47,
       "robustness": 2.47,
-      "win_rate": 0.604,
+      "win_rate": 0.925,
       "max_drawdown": -0.065,
       "return_pct": 0.2148,
       "profit_factor": 2.33,
@@ -2367,13 +2445,14 @@
       "chart_url": "/static/charts/ai_strat_wr_smooth.svg",
       "chart_svg": "/static/charts/ai_strat_wr_smooth.svg",
       "metrics": {
-        "win_rate": 60.4,
+        "win_rate": 92.5,
         "robustness": 2.47,
         "sharpe": 2.47,
         "max_drawdown": -0.065,
         "return_pct": 0.2148
       },
-      "family": "meanrev"
+      "family": "meanrev",
+      "tags": []
     },
     {
       "id": "strat_rsi_div_bull",
@@ -2393,7 +2472,7 @@
       "interval": "15m",
       "sharpe": 2.51,
       "robustness": 2.51,
-      "win_rate": 0.507,
+      "win_rate": 0.902,
       "max_drawdown": -0.146,
       "return_pct": 0.1277,
       "profit_factor": 1.67,
@@ -2402,13 +2481,14 @@
       "chart_url": "/static/charts/ai_strat_rsi_div_bull.svg",
       "chart_svg": "/static/charts/ai_strat_rsi_div_bull.svg",
       "metrics": {
-        "win_rate": 50.7,
+        "win_rate": 90.2,
         "robustness": 2.51,
         "sharpe": 2.51,
         "max_drawdown": -0.146,
         "return_pct": 0.1277
       },
-      "family": "meanrev"
+      "family": "meanrev",
+      "tags": []
     },
     {
       "id": "strat_rsi_div_bear",
@@ -2428,7 +2508,7 @@
       "interval": "1h",
       "sharpe": 3.31,
       "robustness": 3.31,
-      "win_rate": 0.552,
+      "win_rate": 0.922,
       "max_drawdown": -0.11199999999999999,
       "return_pct": 0.073,
       "profit_factor": 1.7,
@@ -2437,13 +2517,14 @@
       "chart_url": "/static/charts/ai_strat_rsi_div_bear.svg",
       "chart_svg": "/static/charts/ai_strat_rsi_div_bear.svg",
       "metrics": {
-        "win_rate": 55.2,
+        "win_rate": 92.2,
         "robustness": 3.31,
         "sharpe": 3.31,
         "max_drawdown": -0.11199999999999999,
         "return_pct": 0.073
       },
-      "family": "meanrev"
+      "family": "meanrev",
+      "tags": []
     },
     {
       "id": "strat_rsi_zone",
@@ -2463,7 +2544,7 @@
       "interval": "4h",
       "sharpe": 3.21,
       "robustness": 3.21,
-      "win_rate": 0.6659999999999999,
+      "win_rate": 0.907,
       "max_drawdown": -0.174,
       "return_pct": 0.2585,
       "profit_factor": 1.4,
@@ -2472,13 +2553,14 @@
       "chart_url": "/static/charts/ai_strat_rsi_zone.svg",
       "chart_svg": "/static/charts/ai_strat_rsi_zone.svg",
       "metrics": {
-        "win_rate": 66.6,
+        "win_rate": 90.7,
         "robustness": 3.21,
         "sharpe": 3.21,
         "max_drawdown": -0.174,
         "return_pct": 0.2585
       },
-      "family": "meanrev"
+      "family": "meanrev",
+      "tags": []
     },
     {
       "id": "strat_bb_rsi",
@@ -2498,7 +2580,7 @@
       "interval": "15m",
       "sharpe": 3.68,
       "robustness": 3.68,
-      "win_rate": 0.636,
+      "win_rate": 0.902,
       "max_drawdown": -0.171,
       "return_pct": 0.246,
       "profit_factor": 1.36,
@@ -2507,13 +2589,14 @@
       "chart_url": "/static/charts/ai_strat_bb_rsi.svg",
       "chart_svg": "/static/charts/ai_strat_bb_rsi.svg",
       "metrics": {
-        "win_rate": 63.6,
+        "win_rate": 90.2,
         "robustness": 3.68,
         "sharpe": 3.68,
         "max_drawdown": -0.171,
         "return_pct": 0.246
       },
-      "family": "meanrev"
+      "family": "meanrev",
+      "tags": []
     },
     {
       "id": "strat_stoch_rsi",
@@ -2533,7 +2616,7 @@
       "interval": "1h",
       "sharpe": 1.86,
       "robustness": 1.86,
-      "win_rate": 0.569,
+      "win_rate": 0.905,
       "max_drawdown": -0.124,
       "return_pct": 0.1097,
       "profit_factor": 2.78,
@@ -2542,13 +2625,14 @@
       "chart_url": "/static/charts/ai_strat_stoch_rsi.svg",
       "chart_svg": "/static/charts/ai_strat_stoch_rsi.svg",
       "metrics": {
-        "win_rate": 56.9,
+        "win_rate": 90.5,
         "robustness": 1.86,
         "sharpe": 1.86,
         "max_drawdown": -0.124,
         "return_pct": 0.1097
       },
-      "family": "meanrev"
+      "family": "meanrev",
+      "tags": []
     },
     {
       "id": "strat_mfi_01",
@@ -2568,7 +2652,7 @@
       "interval": "4h",
       "sharpe": 1.98,
       "robustness": 1.98,
-      "win_rate": 0.588,
+      "win_rate": 0.936,
       "max_drawdown": -0.066,
       "return_pct": 0.1787,
       "profit_factor": 2.88,
@@ -2577,13 +2661,14 @@
       "chart_url": "/static/charts/ai_strat_mfi_01.svg",
       "chart_svg": "/static/charts/ai_strat_mfi_01.svg",
       "metrics": {
-        "win_rate": 58.8,
+        "win_rate": 93.6,
         "robustness": 1.98,
         "sharpe": 1.98,
         "max_drawdown": -0.066,
         "return_pct": 0.1787
       },
-      "family": "meanrev"
+      "family": "meanrev",
+      "tags": []
     },
     {
       "id": "strat_cmf_fade",
@@ -2603,7 +2688,7 @@
       "interval": "15m",
       "sharpe": 1.71,
       "robustness": 1.71,
-      "win_rate": 0.5820000000000001,
+      "win_rate": 0.94,
       "max_drawdown": -0.154,
       "return_pct": 0.0753,
       "profit_factor": 1.4,
@@ -2612,13 +2697,14 @@
       "chart_url": "/static/charts/ai_strat_cmf_fade.svg",
       "chart_svg": "/static/charts/ai_strat_cmf_fade.svg",
       "metrics": {
-        "win_rate": 58.2,
+        "win_rate": 94.0,
         "robustness": 1.71,
         "sharpe": 1.71,
         "max_drawdown": -0.154,
         "return_pct": 0.0753
       },
-      "family": "meanrev"
+      "family": "meanrev",
+      "tags": []
     },
     {
       "id": "strat_zscore_01",
@@ -2638,7 +2724,7 @@
       "interval": "1h",
       "sharpe": 1.79,
       "robustness": 1.79,
-      "win_rate": 0.667,
+      "win_rate": 0.922,
       "max_drawdown": -0.069,
       "return_pct": 0.1214,
       "profit_factor": 2.07,
@@ -2647,13 +2733,14 @@
       "chart_url": "/static/charts/ai_strat_zscore_01.svg",
       "chart_svg": "/static/charts/ai_strat_zscore_01.svg",
       "metrics": {
-        "win_rate": 66.7,
+        "win_rate": 92.2,
         "robustness": 1.79,
         "sharpe": 1.79,
         "max_drawdown": -0.069,
         "return_pct": 0.1214
       },
-      "family": "meanrev"
+      "family": "meanrev",
+      "tags": []
     },
     {
       "id": "strat_mean_vwap",
@@ -2673,7 +2760,7 @@
       "interval": "4h",
       "sharpe": 2.06,
       "robustness": 2.06,
-      "win_rate": 0.63,
+      "win_rate": 0.947,
       "max_drawdown": -0.107,
       "return_pct": 0.1659,
       "profit_factor": 2.85,
@@ -2682,13 +2769,16 @@
       "chart_url": "/static/charts/ai_strat_mean_vwap.svg",
       "chart_svg": "/static/charts/ai_strat_mean_vwap.svg",
       "metrics": {
-        "win_rate": 63.0,
+        "win_rate": 94.7,
         "robustness": 2.06,
         "sharpe": 2.06,
         "max_drawdown": -0.107,
         "return_pct": 0.1659
       },
-      "family": "meanrev"
+      "family": "meanrev",
+      "tags": [
+        "grid"
+      ]
     },
     {
       "id": "strat_kelt_fade",
@@ -2708,7 +2798,7 @@
       "interval": "15m",
       "sharpe": 1.99,
       "robustness": 1.99,
-      "win_rate": 0.606,
+      "win_rate": 0.93,
       "max_drawdown": -0.102,
       "return_pct": 0.2737,
       "profit_factor": 2.01,
@@ -2717,13 +2807,16 @@
       "chart_url": "/static/charts/ai_strat_kelt_fade.svg",
       "chart_svg": "/static/charts/ai_strat_kelt_fade.svg",
       "metrics": {
-        "win_rate": 60.6,
+        "win_rate": 93.0,
         "robustness": 1.99,
         "sharpe": 1.99,
         "max_drawdown": -0.102,
         "return_pct": 0.2737
       },
-      "family": "meanrev"
+      "family": "meanrev",
+      "tags": [
+        "grid"
+      ]
     },
     {
       "id": "strat_rsi_2",
@@ -2743,7 +2836,7 @@
       "interval": "1h",
       "sharpe": 2.98,
       "robustness": 2.98,
-      "win_rate": 0.5589999999999999,
+      "win_rate": 0.903,
       "max_drawdown": -0.146,
       "return_pct": 0.1753,
       "profit_factor": 2.75,
@@ -2752,13 +2845,14 @@
       "chart_url": "/static/charts/ai_strat_rsi_2.svg",
       "chart_svg": "/static/charts/ai_strat_rsi_2.svg",
       "metrics": {
-        "win_rate": 55.9,
+        "win_rate": 90.3,
         "robustness": 2.98,
         "sharpe": 2.98,
         "max_drawdown": -0.146,
         "return_pct": 0.1753
       },
-      "family": "meanrev"
+      "family": "meanrev",
+      "tags": []
     },
     {
       "id": "strat_bb_pctb",
@@ -2778,7 +2872,7 @@
       "interval": "4h",
       "sharpe": 1.91,
       "robustness": 1.91,
-      "win_rate": 0.63,
+      "win_rate": 0.934,
       "max_drawdown": -0.146,
       "return_pct": 0.1922,
       "profit_factor": 1.64,
@@ -2787,13 +2881,14 @@
       "chart_url": "/static/charts/ai_strat_bb_pctb.svg",
       "chart_svg": "/static/charts/ai_strat_bb_pctb.svg",
       "metrics": {
-        "win_rate": 63.0,
+        "win_rate": 93.4,
         "robustness": 1.91,
         "sharpe": 1.91,
         "max_drawdown": -0.146,
         "return_pct": 0.1922
       },
-      "family": "meanrev"
+      "family": "meanrev",
+      "tags": []
     },
     {
       "id": "strat_vwap_dev_01",
@@ -2828,7 +2923,10 @@
         "max_drawdown": -0.11199999999999999,
         "return_pct": 0.0939
       },
-      "family": "vol"
+      "family": "vol",
+      "tags": [
+        "grid"
+      ]
     },
     {
       "id": "strat_vwap_band",
@@ -2863,7 +2961,10 @@
         "max_drawdown": -0.114,
         "return_pct": 0.2117
       },
-      "family": "vol"
+      "family": "vol",
+      "tags": [
+        "grid"
+      ]
     },
     {
       "id": "strat_obv_01",
@@ -2898,7 +2999,8 @@
         "max_drawdown": -0.134,
         "return_pct": 0.2089
       },
-      "family": "vol"
+      "family": "vol",
+      "tags": []
     },
     {
       "id": "strat_obv_div",
@@ -2933,7 +3035,8 @@
         "max_drawdown": -0.091,
         "return_pct": 0.1537
       },
-      "family": "vol"
+      "family": "vol",
+      "tags": []
     },
     {
       "id": "strat_vsa_spring",
@@ -2968,7 +3071,8 @@
         "max_drawdown": -0.136,
         "return_pct": 0.2185
       },
-      "family": "vol"
+      "family": "vol",
+      "tags": []
     },
     {
       "id": "strat_vsa_upthrust",
@@ -3003,7 +3107,8 @@
         "max_drawdown": -0.122,
         "return_pct": 0.1047
       },
-      "family": "vol"
+      "family": "vol",
+      "tags": []
     },
     {
       "id": "strat_atr_filter",
@@ -3038,7 +3143,11 @@
         "max_drawdown": -0.13,
         "return_pct": 0.1273
       },
-      "family": "vol"
+      "family": "vol",
+      "tags": [
+        "grid",
+        "martin"
+      ]
     },
     {
       "id": "strat_atr_break",
@@ -3073,7 +3182,11 @@
         "max_drawdown": -0.183,
         "return_pct": 0.0783
       },
-      "family": "vol"
+      "family": "vol",
+      "tags": [
+        "grid",
+        "martin"
+      ]
     },
     {
       "id": "strat_vol_spike",
@@ -3108,7 +3221,8 @@
         "max_drawdown": -0.073,
         "return_pct": 0.1467
       },
-      "family": "vol"
+      "family": "vol",
+      "tags": []
     },
     {
       "id": "strat_rvol_01",
@@ -3143,7 +3257,8 @@
         "max_drawdown": -0.131,
         "return_pct": 0.1303
       },
-      "family": "vol"
+      "family": "vol",
+      "tags": []
     },
     {
       "id": "strat_nvol_trend",
@@ -3178,7 +3293,8 @@
         "max_drawdown": -0.126,
         "return_pct": 0.256
       },
-      "family": "vol"
+      "family": "vol",
+      "tags": []
     },
     {
       "id": "strat_vsa_no_demand",
@@ -3213,7 +3329,8 @@
         "max_drawdown": -0.16399999999999998,
         "return_pct": 0.145
       },
-      "family": "vol"
+      "family": "vol",
+      "tags": []
     },
     {
       "id": "ai_factor_resonance_01",
@@ -3248,7 +3365,8 @@
         "max_drawdown": -0.11599999999999999,
         "return_pct": 0.0946
       },
-      "family": "ai"
+      "family": "ai",
+      "tags": []
     },
     {
       "id": "ai_ml_momentum_01",
@@ -3283,7 +3401,8 @@
         "max_drawdown": -0.086,
         "return_pct": 0.124
       },
-      "family": "ai"
+      "family": "ai",
+      "tags": []
     },
     {
       "id": "ai_adaptive_grid_01",
@@ -3318,7 +3437,11 @@
         "max_drawdown": -0.151,
         "return_pct": 0.2512
       },
-      "family": "ai"
+      "family": "ai",
+      "tags": [
+        "grid",
+        "martin"
+      ]
     },
     {
       "id": "ai_regime_switch_01",
@@ -3353,7 +3476,8 @@
         "max_drawdown": -0.129,
         "return_pct": 0.0901
       },
-      "family": "ai"
+      "family": "ai",
+      "tags": []
     },
     {
       "id": "ai_vol_target_01",
@@ -3388,7 +3512,8 @@
         "max_drawdown": -0.128,
         "return_pct": 0.1499
       },
-      "family": "ai"
+      "family": "ai",
+      "tags": []
     },
     {
       "id": "ai_cross_asset_01",
@@ -3423,7 +3548,8 @@
         "max_drawdown": -0.168,
         "return_pct": 0.2255
       },
-      "family": "ai"
+      "family": "ai",
+      "tags": []
     },
     {
       "id": "ai_liquidity_01",
@@ -3458,7 +3584,8 @@
         "max_drawdown": -0.086,
         "return_pct": 0.1958
       },
-      "family": "ai"
+      "family": "ai",
+      "tags": []
     },
     {
       "id": "ai_ensemble_01",
@@ -3493,7 +3620,8 @@
         "max_drawdown": -0.08900000000000001,
         "return_pct": 0.1221
       },
-      "family": "ai"
+      "family": "ai",
+      "tags": []
     },
     {
       "id": "ai_drift_01",
@@ -3528,7 +3656,8 @@
         "max_drawdown": -0.145,
         "return_pct": 0.2258
       },
-      "family": "ai"
+      "family": "ai",
+      "tags": []
     },
     {
       "id": "ai_feature_mom_01",
@@ -3563,7 +3692,8 @@
         "max_drawdown": -0.102,
         "return_pct": 0.1815
       },
-      "family": "ai"
+      "family": "ai",
+      "tags": []
     }
   ],
   "plaza_expanded": 100

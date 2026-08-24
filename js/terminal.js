@@ -211,10 +211,15 @@
     el.textContent = "—";
   }
 
+  function isGridMartin(s) {
+    const blob = ((s.tags || []).join(" ") + " " + (s.name || "") + " " + (s.id || "") + " " + (s.engine || "")).toLowerCase();
+    return /網格|馬丁|martin|grid|atr_grid|adaptive_grid/.test(blob);
+  }
+
   function kindOf(s) {
-    if (s.ai) return "hot";
+    if (isGridMartin(s)) return "grid";
+    if (s.ai) return "ai";
     const blob = ((s.tags || []).join(" ") + " " + (s.name || "")).toLowerCase();
-    if (/網格|grid|atr|超弦/.test(blob)) return "grid";
     if (/震盪|rsi|回歸|布林|squeeze|背離/.test(blob)) return "range";
     return "trend";
   }
@@ -379,7 +384,7 @@
   const tabsEl = document.getElementById("termTabs");
   const PAGE = 999;
   let pageN = PAGE;
-  let activeFilter = "all";
+  let activeFilter = "grid";
 
   async function openEngine(engine, interval) {
     showBacktest();
@@ -497,34 +502,82 @@
     }
   }
 
-  const tabDefs = [
-    { id: "all", label: `${t("tabAll")} (${allList.length})` },
-    { id: "hot", label: t("tabHot") },
-    { id: "moon", label: t("tabMoon") },
-    { id: "safe", label: t("tabSafe") },
-    { id: "grid", label: t("tabGrid") },
-    { id: "free", label: `${t("tabFree")} (${freeList.length})` },
-    { id: "master", label: `${t("tabMaster")} (${masterList.length})` },
-  ];
-  function cardMatches(card, f) {
-    const tier = card.getAttribute("data-tier");
-    const kind = card.getAttribute("data-kind");
-    const wr = Number(card.getAttribute("data-wr"));
-    const ret = Number(card.getAttribute("data-ret"));
-    const mdd = Number(card.getAttribute("data-mdd"));
+  function listMatches(s, f) {
+    const seed = seedMetrics(s);
+    const kind = kindOf(s);
     if (f === "all") return true;
-    if (f === "free" || f === "master") return tier === f;
-    if (f === "grid") return kind === "grid";
-    if (f === "hot") return Number.isFinite(wr) && wr >= 0.7;
-    if (f === "moon") return Number.isFinite(ret) && ret >= 1;
-    if (f === "safe") return Number.isFinite(mdd) && mdd > -0.1;
+    if (f === "grid") return kind === "grid" || isGridMartin(s);
+    if (f === "inst") return s.tier === "master" || (seed.sh != null && seed.sh >= 2.55);
+    if (f === "moon") return seed.ret != null && seed.ret >= 0.12;
+    if (f === "wr90") return seed.wr != null && seed.wr >= 0.9;
+    if (f === "ai") return Boolean(s.ai);
+    if (f === "free") return s.tier !== "master" && !s.ai;
     return true;
+  }
+
+  function countLane(f) {
+    return allList.filter((s) => listMatches(s, f)).length;
+  }
+
+  function buildTabDefs() {
+    return [
+      { id: "grid", label: "🔥 旗艦網格/馬丁 (明星推薦 · 高頻收租)", hero: true },
+      { id: "inst", label: "🏆 機構實盤榜 (" + countLane("inst") + ")" },
+      { id: "moon", label: "🚀 爆發投報榜" },
+      { id: "wr90", label: "🛡️ 90%+ 高勝率榜" },
+      { id: "ai", label: "🤖 AI 動態挖礦" },
+      { id: "free", label: "🆓 開源免費試用 (" + countLane("free") + ")" },
+      { id: "all", label: "全部策略 (" + allList.length + ")" },
+    ];
+  }
+
+  function renderTabs() {
+    const defs = buildTabDefs();
+    if (!tabsEl) return;
+    tabsEl.innerHTML = defs
+      .map((tb) => {
+        const on = tb.id === activeFilter;
+        return (
+          '<button type="button" class="term-tab' +
+          (on ? " active" : "") +
+          (tb.hero ? " tab-hero" : "") +
+          '" data-filter="' +
+          tb.id +
+          '">' +
+          (tb.hero ? '<span class="hot-dot">HOT</span> ' : "") +
+          tb.label +
+          "</button>"
+        );
+      })
+      .join("");
+  }
+
+  function cardMatches(card, f) {
+    const dummy = {
+      id: card.getAttribute("data-id"),
+      engine: card.getAttribute("data-engine"),
+      tier: card.getAttribute("data-tier"),
+      ai: card.getAttribute("data-ai") === "1" || card.classList.contains("ai-card"),
+      name: (card.querySelector("h3") && card.querySelector("h3").textContent) || "",
+      tags: [card.getAttribute("data-kind") || ""],
+      win_rate: Number(card.getAttribute("data-wr")),
+      sharpe: Number(card.getAttribute("data-sh")),
+      return_pct: Number(card.getAttribute("data-ret")),
+      max_drawdown: Number(card.getAttribute("data-mdd")),
+    };
+    dummy.metrics = { win_rate: dummy.win_rate, sharpe_ratio: dummy.sharpe };
+    return listMatches(dummy, f);
   }
   function applyFilter() {
     if (!gridEl) return;
     const cards = [...gridEl.querySelectorAll(".m-card")];
     cards.forEach((card) => {
-      card.classList.toggle("is-hidden", !cardMatches(card, activeFilter));
+      const show = cardMatches(card, activeFilter);
+      card.classList.toggle("is-hidden", !show);
+      if (show) {
+        card.classList.add("plaza-fade");
+        setTimeout(() => card.classList.remove("plaza-fade"), 280);
+      }
     });
     const visible = cards.filter((c) => !c.classList.contains("is-hidden"));
     visible.forEach((c) => c.classList.remove("is-paged"));
@@ -532,14 +585,12 @@
     if (more) more.hidden = true;
   }
   if (tabsEl && gridEl) {
-    tabsEl.innerHTML = tabDefs
-      .map((tb, i) => `<button type="button" class="term-tab${i === 0 ? " active" : ""}" data-filter="${tb.id}">${tb.label}</button>`)
-      .join("");
+    renderTabs();
     tabsEl.addEventListener("click", (ev) => {
       const btn = ev.target.closest("[data-filter]");
       if (!btn) return;
-      tabsEl.querySelectorAll(".term-tab").forEach((el) => el.classList.toggle("active", el === btn));
       activeFilter = btn.getAttribute("data-filter");
+      renderTabs();
       pageN = PAGE;
       applyFilter();
     });
@@ -583,14 +634,7 @@
       ({ free: LOCAL_FREE, master: LOCAL_MASTER } = localLists());
     }
     allList = aiNext.concat(merge("free", LOCAL_FREE).concat(merge("master", LOCAL_MASTER)));
-    tabDefs[0].label = `${t("tabAll")} (${allList.length})`;
-    tabDefs[5].label = `${t("tabFree")} (${merge("free", LOCAL_FREE).length})`;
-    tabDefs[6].label = `${t("tabMaster")} (${merge("master", LOCAL_MASTER).length})`;
-    if (tabsEl) {
-      tabsEl.innerHTML = tabDefs
-        .map((tb, i) => `<button type="button" class="term-tab${i === 0 ? " active" : ""}" data-filter="${tb.id}">${tb.label}</button>`)
-        .join("");
-    }
+    renderTabs();
     paintGrid();
     paintPlazaCount();
     focusStrategyFromQuery();

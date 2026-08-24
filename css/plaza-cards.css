@@ -290,3 +290,77 @@ body.plaza-page .market-grid {
   box-shadow: 0 0 0 5px rgba(56, 189, 248, 0.16);
   z-index: 2;
 }
+
+.m-card.strategy-card.plaza-card.is-hidden {
+  display: none !important;
+}
+
+.m-card.strategy-card.plaza-card.plaza-fade {
+  animation: plazaIn 0.28s ease;
+}
+
+@keyframes plazaIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+.grid-hero-badge {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 3px 8px;
+  color: #b45309;
+  background: linear-gradient(180deg, #fef3c7, #fde68a);
+  border: 1px solid #d97706;
+}
+
+.plaza-card.is-grid-hero {
+  border-color: rgba(217, 119, 6, 0.55);
+}
+
+.plaza-grid-kpi {
+  margin-bottom: 4px;
+}
+
+.term-tabs {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 0 10px;
+}
+
+.term-tab.tab-hero,
+.term-tab[data-filter="grid"] {
+  background: linear-gradient(180deg, #fef3c7, #fde68a) !important;
+  color: #b45309 !important;
+  border-color: #d97706 !important;
+  box-shadow: 0 0 10px rgba(217, 119, 6, 0.35) !important;
+  animation: gridTabPulse 2.4s ease-in-out infinite;
+  position: relative;
+}
+
+.term-tab.tab-hero.active,
+.term-tab[data-filter="grid"].active {
+  background: linear-gradient(180deg, #f59e0b, #d97706) !important;
+  color: #ffffff !important;
+}
+
+.term-tab .hot-dot {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 800;
+  background: #dc2626;
+  color: #fff;
+  padding: 1px 5px;
+  margin-right: 4px;
+  letter-spacing: 0.06em;
+}
+
+@keyframes gridTabPulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(217, 119, 6, 0.28); }
+  50% { box-shadow: 0 0 16px rgba(245, 158, 11, 0.55); }
+}

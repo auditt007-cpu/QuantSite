@@ -292,10 +292,17 @@ body.has-bb-util .topbar {
 }
 
 /* ---- Live ticker / marquee ---- */
+#bloomberg-marquee-bar,
 .bb-marquee {
-  height: 30px;
+  height: 40px !important;
+  min-height: 40px !important;
+  max-height: 40px !important;
+  line-height: 40px !important;
   border-bottom: 1px solid #000000;
   background: #ffffff;
+  flex-shrink: 0 !important;
+  overflow: hidden !important;
+  align-items: center;
 }
 
 .bb-tag {
@@ -308,6 +315,10 @@ body.has-bb-util .topbar {
   text-transform: uppercase;
   padding: 0 12px;
   border-right: 1px solid #000000;
+  height: 40px !important;
+  line-height: 40px !important;
+  display: flex;
+  align-items: center;
 }
 
 .bb-track,
@@ -864,8 +875,10 @@ textarea,
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
-    height: auto !important;
-    min-height: 36px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    line-height: 40px !important;
+    flex-shrink: 0 !important;
     position: relative;
     z-index: 2;
   }
@@ -874,7 +887,12 @@ textarea,
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
+    line-height: 40px !important;
     overflow: hidden !important;
+    flex-shrink: 0 !important;
   }
   .bbg-capital-panel {
     border-right: 0;

@@ -21,6 +21,7 @@
     modalSym: null,
     ws: null,
     wsLive: false,
+    cum: loadCum(),
   };
 
   function t(key, fallback) {
@@ -161,8 +162,41 @@
     }
   }
 
-  function inWatch(sym) {
-    return state.watch.indexOf(sym) >= 0;
+  function loadCum() {
+    try {
+      const raw = JSON.parse(localStorage.getItem("qa_live_cum_pnl_v1") || "{}");
+      return {
+        bySym: raw.bySym && typeof raw.bySym === "object" ? raw.bySym : {},
+        byStrat: raw.byStrat && typeof raw.byStrat === "object" ? raw.byStrat : {},
+      };
+    } catch {
+      return { bySym: {}, byStrat: {} };
+    }
+  }
+
+  function saveCum() {
+    try {
+      localStorage.setItem("qa_live_cum_pnl_v1", JSON.stringify(state.cum));
+    } catch {
+      /* private */
+    }
+  }
+
+  function bumpCum(ev) {
+    if (!isClose(ev)) return;
+    const pnl = Number(ev.pnl_pct);
+    if (!Number.isFinite(pnl)) return;
+    const sk = String(ev.symbol || "_");
+    const nk = String(ev.name || "_");
+    state.cum.bySym[sk] = (Number(state.cum.bySym[sk]) || 0) + pnl;
+    state.cum.byStrat[nk] = (Number(state.cum.byStrat[nk]) || 0) + pnl;
+    saveCum();
+  }
+
+  function cumFor(ev) {
+    const a = Number(state.cum.byStrat[ev.name]) || 0;
+    const b = Number(state.cum.bySym[ev.symbol]) || 0;
+    return Math.max(a, b);
   }
 
   /* ---- voice ---- */
@@ -267,6 +301,10 @@
     if (Number.isFinite(pnl) && pnl > 0) {
       return when + "，" + coin + "平倉，獲利 " + pnl.toFixed(1) + "%。";
     }
+    const cum = cumFor(ev);
+    if (cum > 0) {
+      return when + "，" + coin + "平倉離場，本策略累計獲利 " + cum.toFixed(1) + "%。";
+    }
     return when + "，" + coin + "平倉離場。";
   }
 
@@ -278,12 +316,23 @@
     const buy = isBuy(head);
     const act = buy ? "買入" : "賣出";
     if (events.length === 1) {
-      const px = fmtSpeechPx(head.price);
-      return when + "，" + alias + "，" + coinSpeech(head.symbol) + "，" + act + "，現價 " + px + "。";
+      return (
+        when +
+        "，" +
+        alias +
+        "，" +
+        coinSpeech(head.symbol) +
+        "，" +
+        act +
+        "，現價 " +
+        fmtSpeechPx(head.price) +
+        "。"
+      );
     }
-    const coins = events.map((e) => coinSpeech(e.symbol)).join("、");
-    const prices = events.map((e) => fmtSpeechPx(e.price)).join("、");
-    return when + "，" + alias + "，" + act + "：" + coins + "，現價分別為 " + prices + "。";
+    const pairs = events
+      .map((e) => coinSpeech(e.symbol) + " 現價 " + fmtSpeechPx(e.price))
+      .join("，");
+    return when + "，" + alias + "，" + act + "：" + pairs + "。";
   }
 
   function announceEvents(events) {
@@ -312,6 +361,7 @@
     events
       .filter(isClose)
       .forEach((ev) => {
+        bumpCum(ev);
         const line = voiceCloseLine(ev);
         if (line) enqueueVoice(line);
       });
@@ -319,6 +369,8 @@
 
   function demoVoiceOnce() {
     const ts = Date.now() / 1000;
+    state.cum.byStrat["量均突破"] = 43.8;
+    state.cum.bySym["ETHUSDT"] = 43.8;
     announceEvents([
       {
         ts: ts,
@@ -333,7 +385,7 @@
         ts: ts,
         name: "量均突破",
         symbol: "ETHUSDT",
-        price: 3240,
+        price: 2506,
         side: "LONG",
         event: "open",
         interval: "1h",
@@ -350,6 +402,13 @@
         name: "量均突破",
         symbol: "ETHUSDT",
         pnl_pct: -1.2,
+        event: "close",
+      },
+      {
+        ts: ts + 3,
+        name: "未知策略冷啟動",
+        symbol: "SOLUSDT",
+        pnl_pct: -0.4,
         event: "close",
       },
     ]);
@@ -769,8 +828,7 @@
     const pnl = Number(ev.pnl_pct);
     let act;
     if (close) {
-      const ok = Number.isFinite(pnl) && pnl > 0;
-      act = ok ? "平倉獲利 " + fmtPnl(pnl) : "平倉 " + (Number.isFinite(pnl) ? fmtPnl(pnl) : "離場");
+      act = "平倉 " + (Number.isFinite(pnl) ? fmtPnl(pnl) : "—");
     } else {
       act = (buy ? "多頭開倉" : "空頭開倉") + " @ " + fmtPx(ev.price);
     }
@@ -1018,9 +1076,9 @@
                 fmtTime(e.ts) +
                 " · " +
                 (close
-                  ? Number(e.pnl_pct) > 0
-                    ? "🟢 平倉獲利 " + fmtPnl(e.pnl_pct)
-                    : "🔴 平倉離場"
+                  ? Number.isFinite(Number(e.pnl_pct))
+                    ? (Number(e.pnl_pct) > 0 ? "🟢 " : "🔴 ") + "平倉 " + fmtPnl(e.pnl_pct)
+                    : "平倉"
                   : (buy ? "🟢 BUY" : "🔴 SELL") + " @ " + fmtPx(e.price)) +
                 " · " +
                 stratAnchor(e) +
@@ -1302,9 +1360,7 @@
         const pnl = close ? Number(ev.pnl_pct) : pnlOf(ev);
         const pnlCls = pnl == null || !Number.isFinite(pnl) ? "" : pnl >= 0 ? " is-up" : " is-down";
         const act = close
-          ? Number.isFinite(pnl) && pnl > 0
-            ? "平倉獲利 " + fmtPnl(pnl)
-            : "平倉 " + (Number.isFinite(pnl) ? fmtPnl(pnl) : "")
+          ? "平倉 " + (Number.isFinite(pnl) ? fmtPnl(pnl) : "—")
           : (buy ? "多頭開倉" : "空頭開倉") + " @ " + fmtPx(ev.price);
         const livePnl =
           !close && pnl != null ? " | 當前浮盈 " + fmtPnl(pnl) : "";
@@ -1344,6 +1400,17 @@
       state.events = flat.filter((e) => e.ts && now - e.ts <= HOUR_S * 6);
       if (state.seenKeys == null) {
         state.seenKeys = new Set(flat.map((e) => e.key));
+        let hydrated = false;
+        try {
+          hydrated = Boolean(localStorage.getItem("qa_live_cum_pnl_v1"));
+        } catch {
+          hydrated = false;
+        }
+        if (!hydrated) {
+          flat.forEach((ev) => {
+            if (isClose(ev)) bumpCum(ev);
+          });
+        }
       } else {
         const fresh = [];
         flat.forEach((ev) => {
@@ -1362,12 +1429,52 @@
     }
   }
 
+  function bindTapeLinks() {
+    document.addEventListener("click", (ev) => {
+      const a = ev.target.closest("a.tape-strat");
+      if (!a) return;
+      const href = a.getAttribute("href") || "";
+      let id = "";
+      try {
+        id = new URL(href, location.href).searchParams.get("id") || "";
+      } catch {
+        id = "";
+      }
+      if (!id) return;
+      ev.preventDefault();
+      openPlazaFromTape(id);
+    });
+  }
+
+  async function openPlazaFromTape(id) {
+    try {
+      if (window.QAPipeline) {
+        let rows = window.QAPipelineStrategies;
+        if ((!rows || !rows.length) && typeof window.QAPipeline.fetchRows === "function") {
+          rows = await window.QAPipeline.fetchRows();
+          window.QAPipelineStrategies = rows;
+        }
+        const hit = (rows || []).find((r) => r.id === id || r.engine === id);
+        if (hit && typeof window.QAPipeline.openDetail === "function") {
+          const card =
+            typeof window.QAPipeline.toCard === "function" ? window.QAPipeline.toCard(hit) : hit;
+          window.QAPipeline.openDetail(card);
+          return;
+        }
+      }
+    } catch {
+      /* fall through */
+    }
+    location.href = "./strategies.html?id=" + encodeURIComponent(id);
+  }
+
   function boot() {
     renderGrid();
     bindGrid();
     bindAddUi();
     bindModal();
     bindVoice();
+    bindTapeLinks();
     refreshMarket();
     refreshFeed();
     connectTickerStream();
