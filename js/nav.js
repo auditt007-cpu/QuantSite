@@ -98,9 +98,10 @@
     bar.className = "bb-util-bar";
     bar.innerHTML =
       '<div class="bb-util-left">' +
-      '<span class="bb-util-node"><i class="bb-util-dot" aria-hidden="true"></i>' +
-      '<span data-i18n="bbUtilNode">NODE READY · 24ms</span></span>' +
-      '<span class="bb-util-tz">UTC+8 / TW</span>' +
+      '<a class="bb-util-link" href="./terminal.html#statusPill" data-i18n="bbUtilStatus">节点状态</a>' +
+      '<a class="bb-util-link bb-util-link-accent" href="./terminal.html" data-i18n="bbUtilApi">API 文档</a>' +
+      '<a class="bb-util-link" href="./affiliate.html" data-i18n="bbUtilVip">VIP 专线</a>' +
+      '<a class="bb-util-link" href="./about.html" data-i18n="bbUtilContact">联系我们</a>' +
       "</div>" +
       '<div class="bb-util-right" id="bbUtilRight"></div>';
     const wrap = document.querySelector(".wrap");
@@ -110,9 +111,6 @@
       document.body.insertBefore(bar, document.body.firstChild);
     }
     document.body.classList.add("has-bb-util");
-    const host = bar.querySelector("#bbUtilRight");
-    const lang = document.querySelector(".topbar .nav-actions > .lang-pills");
-    if (host && lang) host.appendChild(lang);
   }
 
   function ensureLiveNavLink() {

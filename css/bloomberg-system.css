@@ -68,32 +68,27 @@ html, body {
 .bb-util-right {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
   min-width: 0;
 }
 
-.bb-util-node {
+.bb-util-link {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   white-space: nowrap;
-}
-
-.bb-util-dot {
-  width: 6px;
-  height: 6px;
-  background: var(--bb-up);
-  border-radius: 0;
-  flex-shrink: 0;
-}
-
-.bb-util-tz {
-  color: var(--bb-meta);
-  font-family: var(--bb-mono);
-  font-weight: 600;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 10px;
+  font-weight: 700;
   letter-spacing: 0.04em;
-  white-space: nowrap;
+  text-transform: uppercase;
 }
+
+.bb-util-link:hover { color: #cccccc; text-decoration: underline; }
+
+.bb-util-link-accent { color: var(--color-accent); }
+.bb-util-link-accent:hover { color: var(--color-accent); }
 
 .bb-util-bar .lang-pills {
   border: 1px solid #334155;
@@ -144,7 +139,7 @@ body.has-bb-util .topbar {
 .topbar {
   background: var(--bb-bg);
   border-bottom: 1px solid var(--bb-line);
-  border-radius: 0;
+  border-radius: 4px;
   padding: 10px 0 12px;
   gap: 10px;
   min-height: 56px;
@@ -282,7 +277,7 @@ body.has-bb-util .topbar {
 .btn-cta.gm-btn,
 .dock-run,
 .ai-go {
-  border-radius: 0 !important;
+  border-radius: 4px !important;
   box-shadow: none !important;
   background-image: none !important;
   font-weight: 800;
@@ -318,7 +313,7 @@ body.has-bb-util .topbar {
   background: var(--bb-bg) !important;
   color: var(--bb-ink) !important;
   border: 1px solid var(--bb-line) !important;
-  border-radius: 0 !important;
+  border-radius: 4px !important;
   box-shadow: none !important;
 }
 
@@ -328,7 +323,7 @@ body.has-bb-util .topbar {
 }
 
 .auth-btn {
-  border-radius: 0 !important;
+  border-radius: 4px !important;
   border: 1px solid var(--bb-line);
   color: var(--bb-ink);
   background: var(--bb-bg);
@@ -340,18 +335,18 @@ body.has-bb-util .topbar {
 
 .auth-btn::after {
   background: var(--bb-up);
-  border-radius: 0;
+  border-radius: 4px;
   animation: none;
 }
 
 .lang-pills {
-  border-radius: 0 !important;
+  border-radius: 4px !important;
   border: 1px solid var(--bb-line);
   overflow: hidden;
 }
 
 .lang-pills button {
-  border-radius: 0 !important;
+  border-radius: 4px !important;
   text-transform: uppercase;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -377,8 +372,9 @@ body.has-bb-util .topbar {
 }
 
 .ticker-bar {
-  border-bottom: 1px solid var(--bb-grid);
-  background: var(--bb-bg);
+  border-bottom: 1px solid #e0e0e0;
+  border-top: 1px solid #e0e0e0;
+  background: #f2f2f2;
   height: 40px;
   min-height: 40px;
   max-height: 40px;
@@ -389,11 +385,28 @@ body.has-bb-util .topbar {
   position: relative;
   z-index: 2;
 }
+.ticker-bar::before,
+.ticker-bar::after {
+  position: absolute;
+  top: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b6b6b;
+  font-size: 14px;
+  font-weight: 700;
+  pointer-events: none;
+  z-index: 3;
+}
+.ticker-bar::before { content: "<"; right: 32px; }
+.ticker-bar::after { content: ">"; right: 0; }
 
 .ticker-pill {
-  border-radius: 0;
-  border: 1px solid var(--bb-grid);
-  background: var(--bb-bg);
+  border-radius: 6px;
+  border: 1px solid #333333;
+  background: #1a1a1a;
   font-family: var(--bb-mono);
   font-size: 12px;
   height: 28px;
@@ -402,17 +415,16 @@ body.has-bb-util .topbar {
   padding: 0 12px;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   flex-shrink: 0;
   white-space: nowrap;
-  color: var(--bb-ink);
+  color: #ffffff;
 }
-
-.ticker-pill .tp-px,
-.ticker-pill .tp-chg {
-  font-family: var(--bb-mono);
-  font-weight: 700;
-}
+.ticker-pill .tp-sym { color: #ffffff; font-weight: 700; }
+.ticker-pill .tp-px { color: #ffffff; font-weight: 700; }
+.ticker-pill .tp-chg { color: #b3b3b3; font-weight: 700; }
+.ticker-pill .tp-chg.up { color: #4caf50; }
+.ticker-pill .tp-chg.down { color: #ff3b30; }
 
 /* ---- Typography helpers ---- */
 .h2,
@@ -480,7 +492,7 @@ body.has-bb-util .topbar {
 select,
 input,
 textarea {
-  border-radius: 0 !important;
+  border-radius: 4px !important;
   box-shadow: none !important;
 }
 
@@ -506,7 +518,7 @@ textarea {
 .modal {
   background: var(--bb-bg);
   border: 1px solid var(--bb-line);
-  border-radius: 0 !important;
+  border-radius: 4px !important;
   box-shadow: none !important;
   padding: 20px;
 }
@@ -519,7 +531,7 @@ textarea {
 }
 
 .modal-x {
-  border-radius: 0;
+  border-radius: 4px;
   border: 1px solid var(--bb-line);
   background: var(--bb-bg);
   color: var(--bb-ink);
@@ -529,7 +541,7 @@ textarea {
 }
 
 .otp-cell {
-  border-radius: 0 !important;
+  border-radius: 4px !important;
   border: 1px solid var(--bb-line);
   font-family: var(--bb-mono);
   font-weight: 700;
@@ -538,7 +550,7 @@ textarea {
 /* ---- Home boards Bloomberg grid ---- */
 .home-kpi {
   border: 1px solid var(--bb-line);
-  border-radius: 0;
+  border-radius: 4px;
   background: var(--bb-cell);
   gap: 0;
   padding: 0;
@@ -594,7 +606,7 @@ textarea {
 }
 
 .hb-period {
-  border-radius: 0;
+  border-radius: 4px;
   border: 1px solid var(--bb-line);
   background: var(--bb-bg);
   font-family: var(--bb-mono);
@@ -628,7 +640,7 @@ textarea {
 .bbg-terminal-card {
   background: var(--bb-bg);
   border: 1px solid var(--bb-line);
-  border-radius: 0;
+  border-radius: 4px;
   box-shadow: none;
   color: var(--bb-ink);
   padding: 0;
@@ -645,7 +657,7 @@ textarea {
   background: var(--bb-bg);
   border: 0;
   border-right: 1px solid var(--bb-grid);
-  border-radius: 0;
+  border-radius: 4px;
   padding: 16px;
 }
 
@@ -658,7 +670,7 @@ textarea {
   border: 0;
   border-left: 1px solid var(--bb-grid);
   border-bottom: 1px solid var(--bb-grid);
-  border-radius: 0;
+  border-radius: 4px;
   padding: 12px 14px;
 }
 
@@ -687,7 +699,7 @@ textarea {
   background: var(--bb-cell);
   color: var(--bb-muted);
   border: 1px solid var(--bb-grid);
-  border-radius: 0;
+  border-radius: 4px;
   margin: 0 0 14px;
   padding: 10px 14px;
 }
@@ -712,7 +724,7 @@ textarea {
   background: var(--bb-bg);
   border: 0;
   border-top: 1px solid var(--bb-grid);
-  border-radius: 0;
+  border-radius: 4px;
   padding: 12px 14px;
 }
 
@@ -722,7 +734,7 @@ textarea {
 }
 
 .bbg-tag-live {
-  border-radius: 0;
+  border-radius: 4px;
   background: #000000;
   color: var(--bb-ink);
   border: 0;
@@ -730,7 +742,7 @@ textarea {
 }
 
 .bbg-trade-pill {
-  border-radius: 0 !important;
+  border-radius: 4px !important;
   font-family: var(--bb-mono);
 }
 
@@ -747,7 +759,7 @@ textarea {
 }
 
 .bbg-trade-detail {
-  border-radius: 0;
+  border-radius: 4px;
   background: #f0fdf4;
   border: 1px solid #bbf7d0;
 }
@@ -767,7 +779,7 @@ textarea {
 }
 
 .bbg-pnl-tag {
-  border-radius: 0;
+  border-radius: 4px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -800,14 +812,14 @@ textarea {
 
 .lab-chart-frame {
   border: 1px solid var(--bb-line);
-  border-radius: 0;
+  border-radius: 4px;
   overflow: hidden;
 }
 
 .chart-container,
 #candleChart,
 #equityChart {
-  border-radius: 0 !important;
+  border-radius: 4px !important;
 }
 
 /* Term tabs / chips */
@@ -815,7 +827,7 @@ textarea {
 .seg-btn,
 .ai-chip {
   border: 1px solid var(--bb-line) !important;
-  border-radius: 0 !important;
+  border-radius: 4px !important;
   background: var(--bb-bg) !important;
   color: var(--bb-ink) !important;
   text-transform: uppercase;
@@ -834,7 +846,7 @@ textarea {
 /* Risk / footer */
 .risk-banner {
   border: 1px solid var(--bb-line);
-  border-radius: 0;
+  border-radius: 4px;
   background: var(--bb-cell);
   color: var(--bb-muted);
   font-size: 12px;
@@ -846,7 +858,7 @@ textarea {
 }
 
 .tg-fab {
-  border-radius: 0 !important;
+  border-radius: 4px !important;
   background: #000000 !important;
   color: var(--bb-ink) !important;
   border: 1px solid var(--bb-line);
@@ -858,7 +870,7 @@ textarea {
 }
 
 .toast {
-  border-radius: 0 !important;
+  border-radius: 4px !important;
   border: 1px solid var(--bb-line);
   box-shadow: none !important;
 }
@@ -869,7 +881,7 @@ input,
 textarea,
 .bt-param select {
   border: 1px solid var(--bb-line) !important;
-  border-radius: 0 !important;
+  border-radius: 4px !important;
   background: var(--bb-bg);
   font-family: var(--bb-font);
 }

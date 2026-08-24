@@ -11,13 +11,13 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#09090b">
   <title>QUANT ALPHA · 策略廣場</title>
-  <link rel="stylesheet" href="./styles.css?v=mq12" />
-  <link rel="stylesheet" href="./css/mobile-global.css?v=mq12" />
+  <link rel="stylesheet" href="./styles.css?v=mq13" />
+  <link rel="stylesheet" href="./css/mobile-global.css?v=mq13" />
   <link rel="stylesheet" href="./css/mobile-subpages.css" />
   <link rel="stylesheet" href="./css/bbg-terminal.css" />
-  <link rel="stylesheet" href="./css/bloomberg-system.css?v=layout7" />
-  <link rel="stylesheet" href="./css/bloomberg-dark.css?v=bd5" />
-  <link rel="stylesheet" href="./css/plaza-cards.css?v=plaza5" />
+  <link rel="stylesheet" href="./css/bloomberg-system.css?v=layout8" />
+  <link rel="stylesheet" href="./css/bloomberg-dark.css?v=bd6" />
+  <link rel="stylesheet" href="./css/plaza-cards.css?v=plaza6" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
@@ -338,8 +338,13 @@ Upper = Mid + k · ATR_n ,  Lower = Mid − k · ATR_n</pre>
     </div>
 
     <footer class="site-foot">
-      <p class="foot-disc" data-i18n="footDisc">QuantAlpha 是獨立的量化研究與演算法編譯工具，不構成任何投資建議。虛擬資產波動劇烈，請嚴格做好部位風控。</p>
-      <nav class="foot-links">
+      <div class="foot-cta">
+        <button type="button" class="foot-cta-btn" data-community-open="1" data-get-strategy data-i18n="footSubscribe">订阅节点数据流</button>
+        <p class="foot-disc" data-i18n="footDisc">QuantAlpha 是獨立的量化研究與演算法編譯工具，不構成任何投資建議。虛擬資產波動劇烈，請嚴格做好部位風控。</p>
+      </div>
+      <div class="foot-brand">
+        <div class="foot-logo-mark">QUANT.ALPHA</div>
+        <nav class="foot-links">
         <a href="./about.html" data-i18n="navAbout">[ 關於我們 ]</a>
         <span class="foot-sep">·</span>
         <a href="./about.html#whitepaper" data-i18n="footPaper">[ 策略演算法白皮書 ]</a>
@@ -348,7 +353,7 @@ Upper = Mid + k · ATR_n ,  Lower = Mid − k · ATR_n</pre>
         <span class="foot-sep">·</span>
         <a href="./terminal.html#statusPill" data-i18n="footNode">[ 節點狀態 ]</a>
       </nav>
-      <div class="foot-brand">QUANT ALPHA TECHNOLOGIES LTD. © 2026. All Rights Reserved.</div>
+      </div>
     </footer>
   </div>
 
@@ -394,7 +399,7 @@ Upper = Mid + k · ATR_n ,  Lower = Mid − k · ATR_n</pre>
   </div>
   <div class="toast" id="toast"></div>
 
-  <script src="./js/nav.js?v=nav15"></script>
+  <script src="./js/nav.js?v=nav16"></script>
   <script src="./config.js"></script>
   <script src="./js/meta-events.js?v=comp1"></script>
   <script src="./i18n.js"></script>
@@ -412,7 +417,7 @@ Upper = Mid + k · ATR_n ,  Lower = Mid − k · ATR_n</pre>
   <script src="./js/pack-catalog.js"></script>
   <script src="./js/binance-feed.js?v=fs1"></script>
   <script src="./js/engine-list.js"></script>
-  <script src="./js/plaza-ai.js?v=plaza5"></script>
+  <script src="./js/plaza-ai.js?v=plaza6"></script>
   <script src="./js/lib/grademark.min.js"></script>
   <script src="./js/lightweight-charts.standalone.production.js"></script>
   <script src="./js/backtest.js?v=av1"></script>
