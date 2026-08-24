@@ -186,7 +186,8 @@
       bd.hidden = true;
       bd.setAttribute("aria-label", "Close menu");
       bd.addEventListener("click", () => closeNavDrawer());
-      document.body.appendChild(bd);
+      /* Keep behind .wrap siblings in DOM; z-index still places it under topbar */
+      document.body.insertBefore(bd, document.body.firstChild);
     }
     return bd;
   }
