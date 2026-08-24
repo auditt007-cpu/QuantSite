@@ -2300,6 +2300,11 @@ body.desk-open #btLoading.show ~ .lab-flow .lab-chart-block .lab-chart-frame {
  * ======================================================================= */
 .mobile-view-tabs { display: none; }
 .mv-panel-strategies { display: contents; }
+body.live-page .mv-panel-strategies {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
 
 @media (max-width: 768px) {
   .mv-panel-leaderboard,

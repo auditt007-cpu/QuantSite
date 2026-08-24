@@ -1205,9 +1205,20 @@
       if (!warChart || !el) return;
       const mobile = window.matchMedia("(max-width: 768px)").matches;
       const fallbackH = mobile ? 340 : 420;
+      const rect = el.getBoundingClientRect();
+      let w = Math.floor(rect.width || el.clientWidth || 0);
+      if (w < 80) {
+        const frame = el.parentElement;
+        const fw = frame ? Math.floor(frame.getBoundingClientRect().width) : 0;
+        w = fw || Math.floor(window.innerWidth - 24) || 320;
+      }
+      const h = Math.max(
+        Math.floor(el.clientHeight || rect.height || fallbackH),
+        mobile ? 320 : 280
+      );
       warChart.applyOptions({
-        width: Math.max(el.clientWidth || 280, 200),
-        height: Math.max(el.clientHeight || fallbackH, mobile ? 320 : 280),
+        width: Math.max(w, 200),
+        height: h,
       });
     };
     if (warChart) {
@@ -1242,6 +1253,12 @@
     });
     warChart = Charts.createChart(el, baseOpts);
     applySize();
+    requestAnimationFrame(() => {
+      applySize();
+      requestAnimationFrame(applySize);
+    });
+    setTimeout(applySize, 80);
+    setTimeout(applySize, 320);
     if (typeof ResizeObserver !== "undefined") {
       new ResizeObserver(() => {
         applySize();
