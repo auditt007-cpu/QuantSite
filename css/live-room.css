@@ -550,7 +550,7 @@
     border-right: 0;
     border-radius: 0;
   }
-  .war-chart { height: 300px; }
+  .war-chart { height: 340px; max-width: 100%; }
   .war-chart-legend { padding: 8px 12px 0; }
 
   .coin-pill { padding: 6px 10px; font-size: 11px; }
@@ -1054,4 +1054,90 @@ body.live-page .sidebar-header-aligned .status-dot.green {
   }
 
   .watch-tape-block { padding-bottom: 84px; }
+}
+
+/* P0–P2 live.html phone layout (375–414px): single column, no x-scroll, denser type */
+@media (max-width: 768px) {
+  html:has(body.live-page),
+  body.live-page {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+  body.live-page .wrap.wide {
+    padding-left: 12px;
+    padding-right: 12px;
+    box-sizing: border-box;
+    max-width: 100vw;
+    width: 100%;
+    overflow-x: hidden;
+  }
+  body.live-page .editorial-grid,
+  body.live-page .war-room-page-grid {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 100%;
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+    margin-top: 8px;
+  }
+  body.live-page .editorial-main,
+  body.live-page .editorial-rail {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    padding-left: 0;
+    padding-right: 0;
+    border-right: 0;
+  }
+  body.live-page .war-room,
+  body.live-page .chart-container,
+  body.live-page .war-chart {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+  body.live-page .war-chart,
+  body.live-page .chart-container {
+    height: 340px !important;
+  }
+  body.live-page .war-chart-frame {
+    width: auto;
+    max-width: 100%;
+    overflow: hidden;
+  }
+  body.live-page .exec-tape-table {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  body.live-page .exec-tape-head,
+  body.live-page .exec-tape-row {
+    min-width: 300px;
+    grid-template-columns: 62px 48px minmax(58px, 1fr) minmax(72px, 0.9fr);
+    column-gap: 6px;
+  }
+  body.live-page .exec-tape-row .tape-time,
+  body.live-page .exec-tape-row .tape-price,
+  body.live-page .exec-tape-row .tape-pair {
+    white-space: nowrap;
+  }
+  body.live-page .h2 {
+    font-size: 16px;
+    line-height: 1.3;
+    margin: 0 0 4px;
+  }
+  body.live-page .war-room {
+    padding: 10px 12px;
+    margin: 8px 0 12px;
+  }
+  body.live-page .live-mute-btn {
+    min-height: 40px;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  body.live-page .live-room-head {
+    padding-right: 0;
+    margin: 4px 0 2px;
+  }
 }

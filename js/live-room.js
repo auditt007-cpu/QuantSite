@@ -1203,16 +1203,20 @@
     if (!el || !Charts) return;
     const applySize = () => {
       if (!warChart || !el) return;
+      const mobile = window.matchMedia("(max-width: 768px)").matches;
+      const fallbackH = mobile ? 340 : 420;
       warChart.applyOptions({
-        width: Math.max(el.clientWidth || 280, 280),
-        height: Math.max(el.clientHeight || 420, 280),
+        width: Math.max(el.clientWidth || 280, 200),
+        height: Math.max(el.clientHeight || fallbackH, mobile ? 320 : 280),
       });
     };
     if (warChart) {
       applySize();
       return;
     }
-    const baseOpts = feed.chartOptions(el, Math.max(el.clientHeight || 420, 280), CHART_INTERVAL);
+    const mobile = window.matchMedia("(max-width: 768px)").matches;
+    const fallbackH = mobile ? 340 : 420;
+    const baseOpts = feed.chartOptions(el, Math.max(el.clientHeight || fallbackH, mobile ? 320 : 280), CHART_INTERVAL);
     baseOpts.localization = Object.assign({}, baseOpts.localization, {
       priceFormatter: fmtPctAxis,
     });
