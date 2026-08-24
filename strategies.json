@@ -1,0 +1,36 @@
+{
+  "updated_at": "2026-08-24T09:12:39.041733+00:00",
+  "strategies": [
+    {
+      "id": "ai_1787562744",
+      "title": "AI 布林帶突破增強版",
+      "name": "AI 布林帶突破增強版",
+      "sharpe": 1.839,
+      "max_drawdown": 0.0966,
+      "profit_factor": 1.312,
+      "return_pct": 0.1483,
+      "trades": 100,
+      "params": {
+        "window": 15,
+        "mult": 2.75,
+        "hold": 8
+      },
+      "copy": "我们基于BTCUSDT、ETHUSDT和SOLUSDT的历史数据，开发了一套量化策略。策略逻辑是通过15天的窗口期观察市场波动，结合2.75倍的标准差作为交易信号阈值，持仓时间设定为8天。在过去的历史回测中，该策略实现了14.8%的回报率，夏普比率为1.84，最大回撤为9.66%，盈亏比为1.31，共执行了100次交易。策略通过捕捉市场波动中的机会，力求在控制风险的前提下实现稳定收益。需要注意的是，历史表现不代表未来结果，市场风险始终存在。",
+      "chart": "/static/charts/ai_1787562744.svg",
+      "chart_url": "/static/charts/ai_1787562744.svg",
+      "metrics": {
+        "sharpe": 1.839,
+        "max_drawdown": 0.0966,
+        "profit_factor": 1.312,
+        "return_pct": 0.1483
+      },
+      "symbols": [
+        "BTCUSDT",
+        "ETHUSDT",
+        "SOLUSDT"
+      ],
+      "interval": "1h",
+      "code": "PARAMS = {\n    \"window\": {\"low\": 10, \"high\": 50, \"step\": 5, \"kind\": \"period\"},\n    \"mult\": {\"low\": 1, \"high\": 3, \"step\": 0.25, \"kind\": \"threshold\"},\n    \"hold\": {\"low\": 1, \"high\": 12, \"step\": 1, \"kind\": \"period\"}\n}\n\ndef generate_signals(df, window=20, mult=2, hold=6):\n    close = df['close']\n    mean = close.rolling(window).mean()\n    std = close.rolling(window).std()\n    upper = mean + mult * std\n    lower = mean - mult * std\n    \n    long = (close > upper).astype(int)\n    short = (close < lower).astype(int)\n    \n    signal = long - short\n    \n    # Hold period\n    signal = signal.rolling(hold).max().fillna(0)\n    \n    return signal.clip(-1, 1).astype(int)"
+    }
+  ]
+}

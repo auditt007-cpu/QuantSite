@@ -159,7 +159,7 @@
     link.href = "./live.html";
     link.setAttribute("data-i18n", "navLive");
     link.textContent = "🔴 直播作戰室";
-    const term = nav.querySelector('a[href="./terminal.html"]');
+    const term = nav.querySelector('a[href="./terminal.html"], a[href="./strategies.html"]');
     if (term && term.parentNode) term.insertAdjacentElement("afterend", link);
     else nav.insertBefore(link, nav.firstChild);
   }

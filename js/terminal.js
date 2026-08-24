@@ -36,7 +36,7 @@
     if (list) list.hidden = false;
     if (bt) bt.hidden = true;
     document.body.classList.remove("desk-open");
-    history.replaceState({}, "", "./terminal.html");
+    history.replaceState({}, "", /strategies\.html/i.test(location.pathname) ? "./strategies.html" : "./terminal.html");
   }
 
   function scrollPageTop() {
@@ -160,15 +160,22 @@
     const spec = catalog.get(s.engine || s.id) || catalog.get(s.id);
     const m = (spec && spec.metrics) || s.metrics || {};
     const wr = parsePct(m.win_rate);
-    const sh = Number(m.sharpe_ratio);
-    const ret = parsePct(m.week_return || m.optimal_return);
+    const sh = Number(s.sharpe != null ? s.sharpe : m.sharpe_ratio);
+    const ret =
+      s.return_pct != null && Number.isFinite(Number(s.return_pct))
+        ? Number(s.return_pct)
+        : parsePct(m.week_return || m.optimal_return);
+    const mdd =
+      s.max_drawdown != null && Number.isFinite(Number(s.max_drawdown))
+        ? -Math.abs(Number(s.max_drawdown))
+        : parsePct(m.max_drawdown);
     return {
       wr: wr != null ? wr : null,
-      sh: Number.isFinite(sh) && sh > 0 ? sh : null,
+      sh: Number.isFinite(sh) ? sh : null,
       ret: ret != null ? ret : null,
-      pf: null,
-      mdd: parsePct(m.max_drawdown),
-      source: "pack",
+      pf: Number.isFinite(Number(s.profit_factor)) ? Number(s.profit_factor) : null,
+      mdd: mdd,
+      source: s.ai ? "pipeline" : "pack",
     };
   }
 
@@ -197,6 +204,7 @@
   }
 
   function kindOf(s) {
+    if (s.ai) return "hot";
     const blob = ((s.tags || []).join(" ") + " " + (s.name || "")).toLowerCase();
     if (/網格|grid|atr|超弦/.test(blob)) return "grid";
     if (/震盪|rsi|回歸|布林|squeeze|背離/.test(blob)) return "range";
@@ -338,12 +346,25 @@
 
   let freeList = merge("free", LOCAL_FREE);
   let masterList = merge("master", LOCAL_MASTER);
-  let allList = freeList.concat(masterList);
+  const pipelineRows = await (window.QAPipelineReady || Promise.resolve([]));
+  const aiList = (pipelineRows || []).map((row) =>
+    window.QAPipeline && typeof window.QAPipeline.toCard === "function"
+      ? window.QAPipeline.toCard(row)
+      : { id: row.id, name: row.name, ai: true, chart: row.chart, copy: row.copy, sharpe: row.sharpe, return_pct: row.return_pct, max_drawdown: row.max_drawdown, profit_factor: row.profit_factor, symbols: row.symbols, interval: row.interval || "1h", tags: ["AI"], tier: "free", engine: row.id },
+  );
+  let allList = aiList.concat(freeList.concat(masterList));
   if (!allList.length) allList = buildFallbackList();
   if (!allList.length) {
     const gridFail = document.getElementById("gridAll");
     if (gridFail) gridFail.innerHTML = `<p class="muted">${t("mktEmpty")}</p>`;
     return;
+  }
+
+  function paintPlazaCount() {
+    const el = document.getElementById("plazaCount");
+    if (!el) return;
+    const aiN = allList.filter((s) => s.ai).length;
+    el.textContent = `目前展示 ${allList.length} 套（基礎目錄 + AI 新挖 ${aiN} 套，新策略置頂）`;
   }
 
   const gridEl = document.getElementById("gridAll");
@@ -367,11 +388,14 @@
     const tags = (s.tags || []).map((t0) => `<span class="tag">${t0}</span>`).join("");
     const unlockHref = paid() ? support : payHref;
     const unlockLabel = paid() ? t("mktAskLink") : t("mktUnlockLive");
-    const actions = master
+    const actions = s.ai
+      ? `<button type="button" class="btn-cta compact" data-ai-detail="${s.id}">查看解说与曲线</button>
+         <a class="btn-cta compact" href="#" data-get-strategy>获取策略</a>`
+      : master
       ? `<button type="button" class="btn-cta compact" data-open="${s.engine || s.id}" data-iv="${s.interval || "1h"}">${t("mktSeeBt")}</button>
          <a class="ghost-link" href="${unlockHref}" ${paid() ? 'target="_blank" rel="noopener"' : ""}>${unlockLabel}</a>`
       : `<button type="button" class="btn-cta compact" data-open="${s.engine || s.id}" data-iv="${s.interval || "1h"}">⚡ ${t("mktOpenBt")}</button>`;
-    const badge = master ? `<span class="vip-badge">🔒 機構實盤</span>` : "";
+    const badge = s.ai ? `<span class="ai-badge">AI 挖矿</span>` : master ? `<span class="vip-badge">🔒 機構實盤</span>` : "";
     const principle = s.principle || "";
     const seed = seedMetrics(s);
     const wrPct = seed.wr != null ? (seed.wr * 100).toFixed(1) + "%" : "計算中";
@@ -385,10 +409,14 @@
     const dataWr = seed.wr != null ? ` data-wr="${seed.wr}"` : "";
     const dataRet = seed.ret != null ? ` data-ret="${seed.ret}"` : "";
     const dataMdd = seed.mdd != null ? ` data-mdd="${seed.mdd}"` : "";
-    return `<article class="m-card strategy-card${master ? " master" : ""}" data-id="${s.id}" data-tier="${master ? "master" : "free"}" data-kind="${kindOf(s)}"${dataWr}${dataRet}${dataMdd} data-engine="${s.engine || s.id}">
+    const chartBlock = s.chart
+      ? `<img class="ai-eq-thumb" src="${s.chart}" alt="${s.name} equity" />`
+      : "";
+    return `<article class="m-card strategy-card${master ? " master" : ""}${s.ai ? " ai-card" : ""}" data-id="${s.id}" data-tier="${master ? "master" : "free"}" data-kind="${kindOf(s)}"${dataWr}${dataRet}${dataMdd} data-engine="${s.engine || s.id}">
         ${badge}
         <h3>${s.name}</h3>
         ${hitLine}
+        ${chartBlock}
         ${principle ? `<p class="card-principle">${principle}</p>` : ""}
         <p class="muted">${(s.symbols || ["BTCUSDT"]).join(" / ")} · ${String(s.interval || "1h").toUpperCase()}</p>
         <div class="tags">${tags}</div>
@@ -470,6 +498,7 @@
     });
   }
   paintGrid();
+  paintPlazaCount();
   window.addEventListener("quant-lang", () => {
     if (window.QALeaderboard) paintLeaderboardMeta(window.QALeaderboard);
   });
@@ -490,11 +519,22 @@
     });
   }, 1200);
 
-  fetchRemoteStrategies(4500).then((rows) => {
-    if (!rows.length) return;
-    remote = rows;
-    ({ free: LOCAL_FREE, master: LOCAL_MASTER } = localLists());
-    allList = merge("free", LOCAL_FREE).concat(merge("master", LOCAL_MASTER));
+  fetchRemoteStrategies(4500).then(async (rows) => {
+    let pipe = window.QAPipelineStrategies;
+    if ((!pipe || !pipe.length) && window.QAPipeline && typeof window.QAPipeline.fetchRows === "function") {
+      pipe = await window.QAPipeline.fetchRows();
+      window.QAPipelineStrategies = pipe;
+    }
+    const aiNext = (pipe || []).map((row) =>
+      window.QAPipeline && typeof window.QAPipeline.toCard === "function"
+        ? window.QAPipeline.toCard(row)
+        : { id: row.id, name: row.name || row.title, ai: true, chart: row.chart || row.chart_url, copy: row.copy, sharpe: row.sharpe, return_pct: row.return_pct, max_drawdown: row.max_drawdown, profit_factor: row.profit_factor, symbols: row.symbols, interval: row.interval || "1h", tags: ["AI"], tier: "free", engine: row.id },
+    );
+    if (rows.length) {
+      remote = rows;
+      ({ free: LOCAL_FREE, master: LOCAL_MASTER } = localLists());
+    }
+    allList = aiNext.concat(merge("free", LOCAL_FREE).concat(merge("master", LOCAL_MASTER)));
     tabDefs[0].label = `${t("tabAll")} (${allList.length})`;
     tabDefs[5].label = `${t("tabFree")} (${merge("free", LOCAL_FREE).length})`;
     tabDefs[6].label = `${t("tabMaster")} (${merge("master", LOCAL_MASTER).length})`;
@@ -504,6 +544,7 @@
         .join("");
     }
     paintGrid();
+    paintPlazaCount();
     setTimeout(() => {
       if (document.body.classList.contains("desk-open")) return;
       void fillStats(allList, gridEl, 168, 4).then(() => {
@@ -514,6 +555,7 @@
   });
 
   async function statOne(s, rootEl, barLimit) {
+    if (s.ai) return;
     const card = rootEl.querySelector(`[data-id="${s.id}"]`);
     if (!card) return;
     const wrEl = card.querySelector("[data-wr]");

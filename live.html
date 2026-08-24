@@ -43,7 +43,7 @@
         <button type="button" class="nav-toggle" id="navToggle" aria-label="選單" data-i18n-aria="ariaMenu">☰</button>
       </div>
       <div class="nav-actions" id="navActions">
-        <a class="nav-link" href="./terminal.html" data-i18n="navTerminal">策略廣場</a>
+        <a class="nav-link" href="./strategies.html" data-i18n="navTerminal">策略廣場</a>
         <a class="nav-link nav-link-live active" href="./live.html" data-i18n="navLive">🔴 直播作戰室</a>
         <a class="nav-link" href="./member.html" data-i18n="navMember">會員中心</a>
         <a class="nav-link" href="./affiliate.html" data-i18n="navAff">推薦計畫</a>
@@ -92,6 +92,9 @@
           <h2 class="h2" data-i18n="liveTitle">實時量化作戰室</h2>
           <p class="live-slogan-line" id="liveSloganLine" data-i18n="vpsExecMeta">🟢 45套機構策略正24小時自動盯盤 · 發現開平倉信號實時同步</p>
           <p class="muted desk-only" data-i18n="liveSub">單一大屏監控 · 3 小時內有效買賣點 · 60 秒開倉窗口語音倒計時</p>
+          <p>
+            <a id="btnGetStrategy" class="btn-cta" href="https://t.me/grid_quant_bot" target="_blank" rel="noopener" data-get-strategy>获取策略</a>
+          </p>
           <div class="war-top-status" id="warTopStatus">
             <span class="live-status-item">
               <span class="live-dot" aria-hidden="true"></span>
@@ -217,7 +220,7 @@
         <span class="foot-sep">·</span>
         <a href="./terminal.html" data-i18n="navTerminal">策略廣場</a>
         <span class="foot-sep">·</span>
-        <a href="https://t.me/quant_alpha_signals" target="_blank" rel="noopener" data-i18n="footTg">[ Telegram 官方頻道 ]</a>
+        <a href="https://t.me/grid_quant_bot" target="_blank" rel="noopener" data-get-strategy data-i18n="footTg">[ Telegram 獲取策略 ]</a>
       </nav>
       <div class="foot-brand">QUANT ALPHA TECHNOLOGIES LTD. © 2026. All Rights Reserved.</div>
     </footer>
@@ -243,6 +246,7 @@
   <script src="./js/i18n-boot.js"></script>
   <script src="./js/news.js?v=av2"></script>
   <script src="./js/identity.js"></script>
+  <script src="./js/lead-bind.js"></script>
   <script src="./js/offline-klines.js"></script>
   <script src="./js/indicators.js"></script>
   <script src="./js/strategy-catalog.js"></script>

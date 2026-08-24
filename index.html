@@ -36,7 +36,7 @@
         <button type="button" class="nav-toggle" id="navToggle" aria-label="選單" data-i18n-aria="ariaMenu">☰</button>
       </div>
       <div class="nav-actions" id="navActions">
-        <a class="nav-link" href="./terminal.html" data-i18n="navTerminal">策略廣場</a>
+        <a class="nav-link" href="./strategies.html" data-i18n="navTerminal">策略廣場</a>
         <a class="nav-link" href="./member.html" data-i18n="navMember">會員中心</a>
         <a class="nav-link" href="./affiliate.html" data-i18n="navAff">推薦計畫</a>
         <a class="nav-link" href="./about.html" data-i18n="navAbout">[ 關於我們 ]</a>
@@ -83,7 +83,8 @@
           <p class="hero-h2" data-i18n="heroH2">真實行情驅動 · 事件型訊號推播 · 一鍵進入策略廣場驗算</p>
         </div>
         <div class="hero-cta">
-          <a id="btnChannel2" class="btn-cta pulse lg" href="https://t.me/quant_alpha_signals" target="_blank" rel="noopener" data-i18n="heroCta">加入 TG 信號頻道</a>
+          <a id="btnGetStrategy" class="btn-cta pulse lg" href="https://t.me/grid_quant_bot" target="_blank" rel="noopener" data-get-strategy>获取策略</a>
+          <a id="btnChannel2" class="btn-cta pulse lg" href="https://t.me/grid_quant_bot" target="_blank" rel="noopener" data-get-strategy data-i18n="heroCta">加入 TG 獲取策略</a>
         </div>
       </div>
       <div class="kpi-row home-kpi" id="homeKpiRow">
@@ -157,7 +158,7 @@
         <span class="foot-sep">·</span>
         <a href="./about.html#whitepaper" data-i18n="footPaper">[ 策略演算法白皮書 ]</a>
         <span class="foot-sep">·</span>
-        <a href="https://t.me/quant_alpha_signals" target="_blank" rel="noopener" data-i18n="footTg">[ Telegram 官方頻道 ]</a>
+        <a href="https://t.me/grid_quant_bot" target="_blank" rel="noopener" data-get-strategy data-i18n="footTg">[ Telegram 獲取策略 ]</a>
         <span class="foot-sep">·</span>
         <a href="./terminal.html#statusPill" data-i18n="footNode">[ 節點狀態 ]</a>
       </nav>
@@ -169,14 +170,13 @@
         <button type="button" class="foot-link" data-legal="disclaimer" data-i18n="legalDisc">免責聲明 (Disclaimer)</button>
       </nav>
       <div class="foot-official">
-        <span>Channel: <a href="https://t.me/quant_alpha_signals" target="_blank" rel="noopener">@quant_alpha_signals</a></span>
-        <span>Bot: <a href="https://t.me/grid_quant_bot" target="_blank" rel="noopener">@grid_quant_bot</a></span>
+        <span>Bot: <a href="https://t.me/grid_quant_bot" target="_blank" rel="noopener" data-get-strategy>@grid_quant_bot</a></span>
         <span>Charts by <a href="https://www.tradingview.com/" target="_blank" rel="noopener">TradingView</a></span>
       </div>
     </footer>
   </div>
 
-  <a class="tg-fab" id="tgFab" href="https://t.me/quant_alpha_signals" target="_blank" rel="noopener">
+  <a class="tg-fab" id="tgFab" href="https://t.me/grid_quant_bot" target="_blank" rel="noopener" data-get-strategy>
     <span class="fab-dot"></span>
     💬 <span data-i18n="fabTg">免費加入 TG 即時信號頻道</span>
   </a>
@@ -228,6 +228,7 @@
   <script src="./js/money.js"></script>
   <script src="./js/clipboard.js"></script>
   <script src="./js/identity.js"></script>
+  <script src="./js/lead-bind.js"></script>
   <script src="./js/binance-feed.js"></script>
   <script src="./js/news.js?v=av2"></script>
   <script src="./js/home-boards.js"></script>
