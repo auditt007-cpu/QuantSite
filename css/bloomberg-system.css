@@ -162,6 +162,9 @@ body.has-bb-util .topbar {
   max-height: none !important;
   line-height: normal !important;
   overflow: visible !important;
+  position: relative;
+  z-index: 2;
+  min-width: 0;
 }
 
 .topbar .nav-link,
@@ -180,13 +183,26 @@ body.has-bb-util .topbar {
   text-decoration: none;
   opacity: 1 !important;
   visibility: visible !important;
+  position: relative;
+  z-index: 2;
+  flex: 0 0 auto;
 }
 
-.topbar .brand,
+.topbar .brand {
+  position: relative;
+  z-index: 1;
+  max-width: min(280px, 28vw);
+  min-width: 0;
+  overflow: hidden !important;
+}
+
 .topbar .brand-text,
 .topbar .brand h1,
 .topbar .site-slogan {
-  overflow: visible !important;
+  overflow: hidden !important;
+  max-width: 100%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   max-height: none !important;
   line-height: 1.25 !important;
   opacity: 1 !important;
@@ -199,6 +215,12 @@ body.has-bb-util .topbar {
   letter-spacing: -0.8px;
   text-transform: uppercase;
   color: #000000;
+}
+
+.topbar .nav-link-live {
+  color: #dc2626 !important;
+  gap: 6px !important;
+  line-height: 1.35 !important;
 }
 
 .site-slogan {

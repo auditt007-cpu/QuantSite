@@ -110,6 +110,9 @@ body.nav-drawer-open::before {
   max-height: none !important;
   line-height: normal !important;
   overflow: visible !important;
+  position: relative;
+  z-index: 2;
+  min-width: 0;
 }
 .nav-end {
   display: flex;
@@ -119,15 +122,16 @@ body.nav-drawer-open::before {
   grid-column: 3;
   grid-row: 1;
 }
-.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; min-width: 0; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; min-width: 0; max-width: min(280px, 32vw); overflow: hidden; }
 .logo {
   width: 12px; height: 12px; border-radius: 0; background: var(--bg-pill);
   box-shadow: none; flex-shrink: 0;
 }
-.brand-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.brand-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; overflow: hidden; max-width: 100%; }
 .brand h1 {
   font-size: 14px; letter-spacing: 0.18em; color: var(--text-main);
   font-weight: 800; line-height: 1.2; text-transform: uppercase;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .brand span { display: block; font-size: 10px; color: var(--text-muted); letter-spacing: 0.08em; margin-top: 3px; }
 .site-slogan {
@@ -138,6 +142,9 @@ body.nav-drawer-open::before {
   letter-spacing: 0.04em;
   line-height: 1.3;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
   font-weight: 400;
 }
 .auth-dock { display: flex; align-items: center; min-width: 0; }
