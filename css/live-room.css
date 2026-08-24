@@ -146,8 +146,29 @@ body.live-page.war-cmd .wrap {
 
 .coin-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  transition: gap 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.coin-grid[data-n="8"],
+.coin-grid[data-n="7"] {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.coin-grid[data-n="6"],
+.coin-grid[data-n="5"] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.coin-grid[data-n="4"],
+.coin-grid[data-n="3"],
+.coin-grid[data-n="2"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.coin-grid[data-n="1"] {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .coin-card {
@@ -161,7 +182,30 @@ body.live-page.war-cmd .wrap {
   flex-direction: column;
   gap: 6px;
   cursor: pointer;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    grid-column 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity;
+}
+
+.coin-card.is-hero {
+  grid-column: span 2;
+}
+
+.coin-card.is-hero .coin-spark-wrap,
+.coin-card.is-hero .coin-spark {
+  height: 200px;
+  min-height: 200px;
+}
+
+.coin-card.is-leaving {
+  opacity: 0;
+  transform: scale(0.9);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .coin-card:hover {
@@ -454,6 +498,18 @@ body.live-page.war-cmd .wrap {
   cursor: pointer;
 }
 
+.coin-modal-px-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0 0 8px;
+}
+
+.coin-modal-px {
+  font-size: clamp(32px, 5vw, 42px);
+  margin: 0;
+}
+
 .coin-modal-meta {
   display: flex;
   flex-wrap: wrap;
@@ -466,8 +522,8 @@ body.live-page.war-cmd .wrap {
 
 .coin-modal-spark-wrap {
   width: 100%;
-  height: 280px;
-  min-height: 280px;
+  height: 300px;
+  min-height: 300px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
@@ -477,8 +533,8 @@ body.live-page.war-cmd .wrap {
 .coin-modal-spark {
   display: block;
   width: 100%;
-  height: 280px;
-  min-height: 280px;
+  height: 300px;
+  min-height: 300px;
 }
 
 .coin-modal-marks {
@@ -499,15 +555,35 @@ body.live-page.war-cmd .wrap {
 }
 
 @media (max-width: 1100px) {
-  .coin-grid {
+  .coin-grid[data-n="8"],
+  .coin-grid[data-n="7"],
+  .coin-grid[data-n="6"],
+  .coin-grid[data-n="5"] {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .coin-grid[data-n="7"] .coin-card.is-hero,
+  .coin-grid[data-n="5"] .coin-card.is-hero,
+  .coin-grid[data-n="3"] .coin-card.is-hero {
+    grid-column: span 2;
   }
 }
 
 @media (max-width: 767px) {
-  .coin-grid {
+  .coin-grid,
+  .coin-grid[data-n] {
     grid-template-columns: 1fr;
     gap: 12px;
+  }
+
+  .coin-card.is-hero {
+    grid-column: span 1;
+  }
+
+  .coin-card.is-hero .coin-spark-wrap,
+  .coin-card.is-hero .coin-spark {
+    height: 180px;
+    min-height: 180px;
   }
 
   .coin-spark-wrap,
@@ -518,8 +594,8 @@ body.live-page.war-cmd .wrap {
 
   .coin-modal-spark-wrap,
   .coin-modal-spark {
-    height: 220px;
-    min-height: 220px;
+    height: 240px;
+    min-height: 240px;
   }
 
   .voice-hint {

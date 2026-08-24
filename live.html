@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="./styles.css" />
   <link rel="stylesheet" href="./css/mobile-global.css?v=nav4" />
   <link rel="stylesheet" href="./css/bloomberg-system.css" />
-  <link rel="stylesheet" href="./css/live-room.css?v=cmd4" />
+  <link rel="stylesheet" href="./css/live-room.css?v=cmd5" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Roboto+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
@@ -114,6 +114,10 @@
         <h3 id="coinModalTitle">BTC/USDT</h3>
         <button type="button" class="coin-modal-x" id="coinModalClose" aria-label="關閉">×</button>
       </div>
+      <div class="coin-modal-px-row">
+        <div class="coin-modal-px coin-px" id="coinModalPx" data-last="">—</div>
+        <span class="coin-chg" id="coinModalChg" data-chg>—</span>
+      </div>
       <div class="coin-modal-meta" id="coinModalMeta"></div>
       <div class="coin-modal-spark-wrap">
         <canvas class="coin-modal-spark" id="coinModalSpark" width="640" height="280"></canvas>
@@ -136,6 +140,6 @@
   <script src="./js/identity.js"></script>
   <script src="./js/compliance.js"></script>
   <script src="./js/lead-bind.js"></script>
-  <script src="./js/live-room.js?v=cmd4"></script>
+  <script src="./js/live-room.js?v=cmd5"></script>
 </body>
 </html>

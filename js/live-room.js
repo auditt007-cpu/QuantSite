@@ -282,6 +282,28 @@
   }
 
   /* ---- canvas sparklines (fixed height for mobile) ---- */
+  function fmtAxisPx(n) {
+    const x = Number(n);
+    if (!Number.isFinite(x)) return "—";
+    if (x >= 1000) return x.toLocaleString("en-US", { maximumFractionDigits: 1 });
+    if (x >= 1) return x.toFixed(2);
+    if (x >= 0.01) return x.toFixed(4);
+    return x.toPrecision(3);
+  }
+
+  function uniqueYTicks(min, max, last) {
+    const span = max - min || 1;
+    const raw = [max, max - span / 3, last, min + span / 3, min];
+    const out = [];
+    raw.forEach((v) => {
+      if (!Number.isFinite(v)) return;
+      if (out.some((x) => Math.abs(x - v) / span < 0.08)) return;
+      out.push(v);
+    });
+    out.sort((a, b) => b - a);
+    return out.slice(0, 4);
+  }
+
   function drawSparkOn(canvas, sym, tall) {
     if (!canvas) return;
     const rows = state.klines[sym] || [];
@@ -293,7 +315,9 @@
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const parentW = canvas.parentElement ? canvas.parentElement.clientWidth : 0;
     const cssW = Math.max(160, canvas.clientWidth || parentW || 280);
-    const cssH = tall ? Math.max(220, canvas.clientHeight || 280) : 160;
+    const cssH = tall
+      ? Math.max(240, canvas.clientHeight || (canvas.parentElement && canvas.parentElement.clientHeight) || 300)
+      : Math.max(160, canvas.clientHeight || 160);
     canvas.style.width = "100%";
     canvas.style.height = cssH + "px";
     canvas.width = Math.floor(cssW * dpr);
@@ -313,43 +337,91 @@
     const min = Math.min.apply(null, closes);
     const max = Math.max.apply(null, closes);
     const span = max - min || 1;
-    const pad = 10;
-    const w = cssW - pad * 2;
-    const h = cssH - pad * 2;
     const last = closes[closes.length - 1];
     const first = closes[0];
+    const padL = tall ? 10 : 8;
+    const padR = tall ? 56 : 48;
+    const padT = tall ? 14 : 10;
+    const padB = tall ? 24 : 20;
+    const w = cssW - padL - padR;
+    const h = cssH - padT - padB;
     const up = last >= first;
     const stroke = up ? "#10b981" : "#ef4444";
     const fill = up ? "rgba(16,185,129,0.14)" : "rgba(239,68,68,0.12)";
+
+    const yTicks = uniqueYTicks(min, max, last);
+    ctx.strokeStyle = "#f1f5f9";
+    ctx.lineWidth = 1;
+    yTicks.forEach((v) => {
+      const y = padT + h - ((v - min) / span) * h;
+      ctx.beginPath();
+      ctx.moveTo(padL, y);
+      ctx.lineTo(padL + w, y);
+      ctx.stroke();
+    });
+    [0, 0.5, 1].forEach((p) => {
+      const x = padL + p * w;
+      ctx.beginPath();
+      ctx.moveTo(x, padT);
+      ctx.lineTo(x, padT + h);
+      ctx.stroke();
+    });
+
     ctx.beginPath();
     closes.forEach((c, i) => {
-      const x = pad + (i / (closes.length - 1)) * w;
-      const y = pad + h - ((c - min) / span) * h;
+      const x = padL + (i / (closes.length - 1)) * w;
+      const y = padT + h - ((c - min) / span) * h;
       if (i === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     });
-    ctx.lineTo(pad + w, pad + h);
-    ctx.lineTo(pad, pad + h);
+    ctx.lineTo(padL + w, padT + h);
+    ctx.lineTo(padL, padT + h);
     ctx.closePath();
     ctx.fillStyle = fill;
     ctx.fill();
     ctx.beginPath();
     closes.forEach((c, i) => {
-      const x = pad + (i / (closes.length - 1)) * w;
-      const y = pad + h - ((c - min) / span) * h;
+      const x = padL + (i / (closes.length - 1)) * w;
+      const y = padT + h - ((c - min) / span) * h;
       if (i === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     });
     ctx.strokeStyle = stroke;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = tall ? 2.25 : 2;
     ctx.stroke();
+
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = (tall ? "11px" : "10px") + " Roboto Mono, monospace";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    yTicks.forEach((v) => {
+      const y = padT + h - ((v - min) / span) * h;
+      const label = fmtAxisPx(v);
+      const isLast = Math.abs(v - last) / span < 0.08;
+      ctx.fillStyle = isLast ? (up ? "#059669" : "#dc2626") : "#94a3b8";
+      ctx.fillText(label, padL + w + 6, y);
+    });
+
+    const xLabels = [
+      { p: 0, text: "-60m" },
+      { p: 0.5, text: "-30m" },
+      { p: 1, text: "Now" },
+    ];
+    ctx.fillStyle = "#94a3b8";
+    ctx.textBaseline = "top";
+    xLabels.forEach((lb) => {
+      const x = padL + lb.p * w;
+      ctx.textAlign = lb.p === 0 ? "left" : lb.p === 1 ? "right" : "center";
+      ctx.fillText(lb.text, x, padT + h + 6);
+    });
+
     const marks = state.events.filter((e) => e.symbol === sym && Date.now() / 1000 - e.ts < HOUR_S);
     marks.forEach((ev) => {
       const px = Number(ev.price);
       if (!Number.isFinite(px)) return;
       let idx = closes.length - 1;
       if (rows.length) {
-        const tms = ev.ts * 1000;
+        const tms = Number(ev.ts) > 1e12 ? Number(ev.ts) : Number(ev.ts) * 1000;
         let best = 0;
         let dist = Infinity;
         rows.forEach((r, i) => {
@@ -361,21 +433,44 @@
         });
         idx = best;
       }
-      const x = pad + (idx / (closes.length - 1)) * w;
-      const y = pad + h - ((px - min) / span) * h;
-      const buy = isBuy(ev);
+      const x = padL + (idx / (closes.length - 1)) * w;
+      const y = padT + h - ((px - min) / span) * h;
+      const buy = isBuy(ev) && !isClose(ev);
+      const close = isClose(ev);
       ctx.beginPath();
-      ctx.arc(x, Math.max(pad, Math.min(pad + h, y)), 4.5, 0, Math.PI * 2);
-      ctx.fillStyle = buy ? "#10b981" : "#ef4444";
+      ctx.arc(x, Math.max(padT, Math.min(padT + h, y)), tall ? 5 : 4.5, 0, Math.PI * 2);
+      ctx.fillStyle = close ? (Number(ev.pnl_pct) > 0 ? "#10b981" : "#ef4444") : buy ? "#10b981" : "#ef4444";
       ctx.fill();
-      ctx.font = "11px Roboto Mono, monospace";
-      ctx.fillStyle = buy ? "#059669" : "#dc2626";
-      ctx.fillText((buy ? "BUY @" : "SELL @") + " " + fmtPx(px), x + 6, Math.max(14, y - 6));
+      const tag = close
+        ? Number(ev.pnl_pct) > 0
+          ? "平倉 +" + Number(ev.pnl_pct).toFixed(1) + "%"
+          : "平倉"
+        : (buy ? "BUY @" : "SELL @") + " " + fmtAxisPx(px);
+      ctx.font = "10px Roboto Mono, monospace";
+      const tw = ctx.measureText(tag).width;
+      let lx = x + 6;
+      let ly = Math.max(padT + 10, Math.min(padT + h - 4, y - 8));
+      if (lx + tw > padL + w - 4) lx = Math.max(padL, x - tw - 6);
+      if (lx + tw > padL + w) lx = padL + w - tw;
+      ctx.textAlign = "left";
+      ctx.textBaseline = "alphabetic";
+      ctx.fillStyle = "rgba(248,250,252,0.88)";
+      ctx.fillRect(lx - 2, ly - 10, tw + 4, 13);
+      ctx.fillStyle = close
+        ? Number(ev.pnl_pct) > 0
+          ? "#059669"
+          : "#dc2626"
+        : buy
+          ? "#059669"
+          : "#dc2626";
+      ctx.fillText(tag, lx, ly);
     });
   }
 
   function drawSpark(sym) {
-    drawSparkOn(document.querySelector('canvas[data-spark="' + sym + '"]'), sym, false);
+    const card = document.querySelector('.coin-card[data-sym="' + sym + '"]');
+    const canvas = card ? card.querySelector("canvas[data-spark]") : document.querySelector('canvas[data-spark="' + sym + '"]');
+    drawSparkOn(canvas, sym, !!(card && card.classList.contains("is-hero")));
   }
 
   function cardHtml(sym) {
@@ -407,6 +502,31 @@
     el.classList.remove("flash-up", "flash-down");
     void el.offsetWidth;
     el.classList.add(next > prev ? "flash-up" : "flash-down");
+  }
+
+  function paintModalLive(sym) {
+    if (!sym || state.modalSym !== sym) return;
+    const tk = state.tickers[sym] || {};
+    const px = tk.last != null ? tk.last : state.lastPx[sym];
+    const pxEl = document.getElementById("coinModalPx");
+    const chgEl = document.getElementById("coinModalChg");
+    const prev = Number(pxEl && pxEl.getAttribute("data-last"));
+    if (pxEl && Number.isFinite(Number(px))) {
+      flashPx(pxEl, Number(px), prev);
+      pxEl.setAttribute("data-last", String(px));
+    }
+    const chg = Number(tk.chg);
+    if (chgEl) {
+      if (Number.isFinite(chg)) {
+        const up = chg >= 0;
+        chgEl.textContent = (up ? "▲ " : "▼ ") + Math.abs(chg).toFixed(2) + "%";
+        chgEl.classList.toggle("is-up", up);
+        chgEl.classList.toggle("is-down", !up);
+      } else {
+        chgEl.textContent = "—";
+      }
+    }
+    drawSparkOn(document.getElementById("coinModalSpark"), sym, true);
   }
 
   function miniLine(ev) {
@@ -474,19 +594,63 @@
       drawSpark(sym);
     });
     paintMiniTapes();
+    if (state.modalSym) paintModalLive(state.modalSym);
+  }
+
+  function applyGridLayout(grid) {
+    if (!grid) return;
+    const n = state.watch.length;
+    grid.setAttribute("data-n", String(n));
+    const needHero = n === 3 || n === 5 || n === 7;
+    const cards = Array.prototype.slice.call(grid.querySelectorAll(".coin-card:not(.is-leaving)"));
+    cards.forEach((c, i) => {
+      c.classList.toggle("is-hero", needHero && i === 0);
+    });
+  }
+
+  function flipAnimate(firstRects) {
+    firstRects.forEach(({ el, rect }) => {
+      if (!el.isConnected) return;
+      const last = el.getBoundingClientRect();
+      const dx = rect.left - last.left;
+      const dy = rect.top - last.top;
+      const sx = rect.width && last.width ? rect.width / last.width : 1;
+      const sy = rect.height && last.height ? rect.height / last.height : 1;
+      if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5 && Math.abs(sx - 1) < 0.01 && Math.abs(sy - 1) < 0.01) {
+        return;
+      }
+      el.style.transition = "none";
+      el.style.transformOrigin = "top left";
+      el.style.transform = "translate(" + dx + "px," + dy + "px) scale(" + sx + "," + sy + ")";
+      requestAnimationFrame(() => {
+        el.style.transition = "transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)";
+        el.style.transform = "";
+        const done = () => {
+          el.style.transition = "";
+          el.style.transform = "";
+          el.style.transformOrigin = "";
+          el.removeEventListener("transitionend", done);
+        };
+        el.addEventListener("transitionend", done);
+        setTimeout(done, 400);
+      });
+    });
   }
 
   function renderGrid() {
     const grid = document.getElementById("coinGrid");
     if (!grid) return;
     if (!state.watch.length) {
+      grid.removeAttribute("data-n");
       grid.innerHTML =
         '<p class="radar-idle">' +
         escapeHtml(t("watchEmpty", "自選組合為空，請點「添加幣種」恢復監控")) +
         "</p>";
+      paintAddPanel();
       return;
     }
     grid.innerHTML = state.watch.map(cardHtml).join("");
+    applyGridLayout(grid);
     paintCardsMeta();
     paintAddPanel();
   }
@@ -512,11 +676,36 @@
   }
 
   function removeCoin(sym) {
-    state.watch = state.watch.filter((s) => s !== sym);
-    saveWatch();
+    const grid = document.getElementById("coinGrid");
+    const card = grid && grid.querySelector('.coin-card[data-sym="' + sym + '"]');
     if (state.modalSym === sym) closeModal();
-    renderGrid();
-    paintRadar();
+
+    if (!card || !grid) {
+      state.watch = state.watch.filter((s) => s !== sym);
+      saveWatch();
+      renderGrid();
+      paintRadar();
+      return;
+    }
+
+    const others = Array.prototype.slice
+      .call(grid.querySelectorAll(".coin-card"))
+      .filter((c) => c !== card);
+    const firstRects = others.map((el) => ({ el: el, rect: el.getBoundingClientRect() }));
+
+    card.classList.add("is-leaving");
+    setTimeout(() => {
+      state.watch = state.watch.filter((s) => s !== sym);
+      saveWatch();
+      if (card.parentNode) card.parentNode.removeChild(card);
+      applyGridLayout(grid);
+      paintAddPanel();
+      paintRadar();
+      flipAnimate(firstRects);
+      requestAnimationFrame(() => {
+        paintCardsMeta();
+      });
+    }, 300);
   }
 
   function addCoin(sym) {
@@ -541,7 +730,7 @@
         return;
       }
       const card = ev.target.closest(".coin-card");
-      if (card) openModal(card.getAttribute("data-sym"));
+      if (card && !card.classList.contains("is-leaving")) openModal(card.getAttribute("data-sym"));
     });
   }
 
@@ -570,21 +759,17 @@
     const title = document.getElementById("coinModalTitle");
     const meta = document.getElementById("coinModalMeta");
     const marks = document.getElementById("coinModalMarks");
-    const canvas = document.getElementById("coinModalSpark");
     if (!bg) return;
     const tk = state.tickers[sym] || {};
-    const px = tk.last != null ? tk.last : state.lastPx[sym];
     const chg = Number(tk.chg);
     if (title) title.textContent = pairLabel(sym);
+    paintModalLive(sym);
     if (meta) {
       meta.innerHTML =
-        "<span>現價 <b>" +
-        escapeHtml(fmtPx(px)) +
-        "</b></span>" +
         "<span>24H " +
         (Number.isFinite(chg) ? (chg >= 0 ? "+" : "") + chg.toFixed(2) + "%" : "—") +
         "</span>" +
-        "<span>監控中 · 1m 折線</span>";
+        "<span>監控中 · 1m 折線 · 即時跳動</span>";
     }
     const hourMarks = state.events.filter((e) => e.symbol === sym && Date.now() / 1000 - e.ts <= HOUR_S);
     if (marks) {
@@ -593,13 +778,16 @@
             .slice(0, 8)
             .map((e) => {
               const buy = isBuy(e);
+              const close = isClose(e);
               return (
                 "<div>" +
                 fmtTime(e.ts) +
                 " · " +
-                (buy ? "🟢 BUY" : "🔴 SELL") +
-                " @ " +
-                fmtPx(e.price) +
+                (close
+                  ? Number(e.pnl_pct) > 0
+                    ? "🟢 平倉獲利 " + fmtPnl(e.pnl_pct)
+                    : "🔴 平倉 " + (Number.isFinite(Number(e.pnl_pct)) ? fmtPnl(e.pnl_pct) : "")
+                  : (buy ? "🟢 BUY" : "🔴 SELL") + " @ " + fmtPx(e.price)) +
                 " · " +
                 escapeHtml(e.name || "") +
                 "</div>"
@@ -609,7 +797,6 @@
         : "<div>近 1 小時尚無開倉標記</div>";
     }
     bg.classList.add("is-open");
-    requestAnimationFrame(() => drawSparkOn(canvas, sym, true));
   }
 
   function closeModal() {
@@ -670,7 +857,6 @@
 
   function applyTick(sym, last, chg) {
     if (!sym || !Number.isFinite(last)) return;
-    const prev = Number(state.lastPx[sym]);
     state.lastPx[sym] = last;
     const cur = state.tickers[sym] || {};
     cur.last = last;
@@ -691,9 +877,8 @@
       drawSpark(sym);
     }
     if (state.modalSym === sym) {
-      drawSparkOn(document.getElementById("coinModalSpark"), sym, true);
+      paintModalLive(sym);
     }
-    void prev;
   }
 
   async function pollFastTickers() {
@@ -799,9 +984,7 @@
       }
     });
     paintCardsMeta();
-    if (state.modalSym) {
-      drawSparkOn(document.getElementById("coinModalSpark"), state.modalSym, true);
-    }
+    if (state.modalSym) paintModalLive(state.modalSym);
   }
 
   function liveFeedUrl() {
@@ -956,7 +1139,7 @@
     setInterval(pollFastTickers, TICK_MS);
     window.addEventListener("resize", () => {
       paintCardsMeta();
-      if (state.modalSym) drawSparkOn(document.getElementById("coinModalSpark"), state.modalSym, true);
+      if (state.modalSym) paintModalLive(state.modalSym);
     });
     const style = document.createElement("style");
     style.textContent =
