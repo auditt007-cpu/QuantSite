@@ -470,7 +470,7 @@ footer.site-foot {
   letter-spacing: 0.04em;
   padding: 10px 18px;
   border: 1px solid #000000;
-  border-radius: 999px;
+  border-radius: 4px;
   background: #000000;
   color: #ffffff;
   cursor: pointer;
@@ -501,8 +501,15 @@ footer.site-foot {
   color: var(--text-muted);
 }
 .foot-link {
-  font-family: inherit; font-size: 11px; color: var(--text-main);
-  background: 0; border: 0; padding: 0; cursor: pointer; text-decoration: underline;
+  font-family: inherit;
+  font-size: 11px;
+  color: var(--text-main);
+  background: 0;
+  border: 0;
+  padding: 8px 4px;
+  min-height: 36px;
+  cursor: pointer;
+  text-decoration: underline;
   text-underline-offset: 3px;
 }
 .foot-official {

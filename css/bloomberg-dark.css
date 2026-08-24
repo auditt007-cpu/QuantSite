@@ -129,6 +129,11 @@ body.nav-drawer-open .topbar {
 .site-foot { background: #000000; border-top: 1px solid #333333; color: #b3b3b3; font-size: 12px; }
 .site-foot a { color: #b3b3b3; }
 .site-foot a:hover { color: #ffffff; }
+.site-foot .foot-link,
+.foot-legal .foot-link {
+  color: #b3b3b3;
+  min-height: 36px;
+}
 .foot-brand { color: #b3b3b3; font-size: 11px; }
 .foot-official { color: #b3b3b3; }
 
@@ -247,9 +252,13 @@ input:focus, textarea:focus, select:focus { border-color: var(--color-accent); o
     border-color: #555555 !important;
   }
   .topbar .nav-toggle:hover,
+  .topbar .nav-toggle:active,
   .topbar .auth-btn:hover,
   .topbar .term-home-link:hover {
-    background: #333333 !important;
+    background: #000000 !important;
     border-color: #555555 !important;
+  }
+  .topbar .site-slogan {
+    display: none !important;
   }
 }
