@@ -416,6 +416,7 @@
     paintWeek();
   });
   root.addEventListener("qa-leaderboard-ready", () => paintWeek());
+  root.__qaRefreshNews = refreshNews;
 
   function boot() {
     bootNews();

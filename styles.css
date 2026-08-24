@@ -2293,5 +2293,144 @@ body.desk-open #btLoading.show ~ .lab-flow .lab-chart-block .lab-chart-frame {
   .status-pill span[data-i18n] { max-width: 42vw; overflow: hidden; text-overflow: ellipsis; }
 }
 
+/* =========================================================================
+ * Mobile UX recovery: segmented Strategies / Leaderboard / News switcher,
+ * AI Lab single-line collapse, and chart touch-shield toggle. Shared by
+ * terminal.html and live.html so both pages get the same mobile controls.
+ * ======================================================================= */
+.mobile-view-tabs { display: none; }
+.mv-panel-strategies { display: contents; }
+
+@media (max-width: 768px) {
+  .mv-panel-leaderboard,
+  .mv-panel-news { display: none; }
+
+  .mobile-view-tabs {
+    display: flex;
+    gap: 6px;
+    margin: 10px 0 12px;
+    overflow-x: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .mobile-view-tabs::-webkit-scrollbar { display: none; }
+  body.desk-open .mobile-view-tabs { display: none; }
+  .mv-tab {
+    flex: 0 0 auto;
+    padding: 8px 12px;
+    border: 1px solid #000;
+    background: #fff;
+    color: #000;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .mv-tab.is-active { background: #000; color: #fff; }
+
+  body[data-mv-view="leaderboard"] .mv-panel-strategies,
+  body[data-mv-view="news"] .mv-panel-strategies,
+  body[data-mv-view="leaderboard"] #viewList,
+  body[data-mv-view="news"] #viewList {
+    display: none !important;
+  }
+  body:not([data-mv-view="leaderboard"]) .mv-panel-leaderboard,
+  body:not([data-mv-view="news"]) .mv-panel-news {
+    display: none !important;
+  }
+  body[data-mv-view="leaderboard"] .mv-panel-leaderboard,
+  body[data-mv-view="news"] .mv-panel-news {
+    display: block !important;
+    margin: 4px 0 20px;
+    padding-top: 10px;
+    border-top: 1px solid #000;
+  }
+  /* terminal.html reuses the desktop rail markup for these panels — it's
+     normally suppressed entirely on mobile, so re-enable just the active one.
+     (Scoped away from live.html's .vps-exec-rail bottom-sheet, which has its
+     own show/hide driven by the tape-sheet-open class, not display.) */
+  body[data-mv-view="leaderboard"] .editorial-rail:not(.vps-exec-rail),
+  body[data-mv-view="news"] .editorial-rail:not(.vps-exec-rail) {
+    display: block !important;
+  }
+  body[data-mv-view="leaderboard"] .flash-desk { display: none !important; }
+  body[data-mv-view="news"] .week-board-desk,
+  body[data-mv-view="news"] .rail-mkt { display: none !important; }
+}
+
+/* ---- AI Strategy Lab: collapse to a single-line trigger on mobile ---- */
+.ai-lab-collapsed-trigger { display: none; }
+@media (max-width: 768px) {
+  .ai-lab-collapsed-trigger {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 12px 14px;
+    border: 1px solid #000;
+    background: #fff;
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .ai-lab.is-collapsed .kicker.desk-only,
+  .ai-lab.is-collapsed .ai-lab-h1,
+  .ai-lab.is-collapsed .ai-lab-sub,
+  .ai-lab.is-collapsed textarea,
+  .ai-lab.is-collapsed .ai-chips,
+  .ai-lab.is-collapsed .ai-go {
+    display: none !important;
+  }
+  .ai-lab.is-collapsed { padding-bottom: 12px; }
+}
+
+/* ---- Chart touch-shield: pan-y by default so vertical swipes scroll the
+   page through the chart; toggle (or long-press) opens full interaction. ---- */
+.chart-frame-rel { position: relative; }
+.chart-touch-toggle { display: none; }
+@media (max-width: 768px) {
+  .chart-container { touch-action: pan-y; }
+  .chart-container.touch-interactive { touch-action: none; }
+  .chart-touch-toggle {
+    display: inline-flex;
+    align-items: center;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 6;
+    padding: 5px 9px;
+    border: 1px solid rgba(0, 0, 0, 0.65);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.92);
+    color: #000;
+    font-size: 10.5px;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .chart-touch-toggle.is-active {
+    background: #16a34a;
+    border-color: #16a34a;
+    color: #fff;
+  }
+  .chart-touch-toggle-left { right: auto; left: 8px; }
+}
+
+/* ---- Generic text-overflow safety net for metric/leaderboard labels ---- */
+.hb-model, .hb-num, .bbg-metric-title, .bbg-badge-label, .selected-matrix-label,
+.stat b, .stat span, .kpi p, .exec-label {
+  min-width: 0;
+}
+@media (max-width: 768px) {
+  .hb-model, .hb-num, .bbg-metric-title, .bbg-badge-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .hb-model-en { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .home-kpi, .nav-kpis { flex-wrap: wrap; }
+  .kpi, .stat { flex-wrap: wrap; min-width: 0; }
+}
+
 
 

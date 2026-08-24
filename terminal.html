@@ -30,7 +30,7 @@
         <div class="auth-dock" id="authDock">
           <button type="button" class="auth-btn" id="btnAuth">[ 🔐 請先登入 ]</button>
         </div>
-        <button type="button" class="nav-toggle" id="navToggle" aria-label="選單">☰</button>
+        <button type="button" class="nav-toggle" id="navToggle" aria-label="選單" data-i18n-aria="ariaMenu">☰</button>
       </div>
       <div class="nav-actions" id="navActions">
         <a class="nav-link" href="./terminal.html" data-i18n="navTerminal">策略廣場</a>
@@ -61,14 +61,20 @@
       </div>
     </div>
 
+    <div class="mobile-view-tabs" id="mobileViewTabs" role="tablist">
+      <button type="button" class="mv-tab is-active" data-view="strategies" data-i18n="mvTabStrategies">🎯 核心監控 / 策略</button>
+      <button type="button" class="mv-tab" data-view="leaderboard" data-i18n="mvTabLeaderboard">🏆 收益 TOP 5</button>
+      <button type="button" class="mv-tab" data-view="news" data-i18n="mvTabNews">⚡ 7x24 快訊</button>
+    </div>
     <div class="editorial-grid">
       <div class="editorial-main">
-    <div id="viewList">
+    <div id="viewList" data-mv-panel="strategies">
       <section class="ai-lab">
         <details class="ai-disc desk-only">
           <summary data-i18n="aiDiscSum">聲明</summary>
           <p data-i18n="aiDiscBody">歷史回測不代表未來收益，未計入滑點與手續費。信號僅供技術研究，不構成投資建議。</p>
         </details>
+        <button type="button" class="ai-lab-collapsed-trigger" id="aiLabCollapsedTrigger" data-i18n="aiLabCollapsedPh">✨ 一句話 AI 生成策略...</button>
         <div class="kicker desk-only" data-i18n="aiLabKicker">AI STRATEGY LAB</div>
         <h2 class="ai-lab-h1" data-i18n="aiLabH1">輸入一句話，測測歷史能賺多少錢</h2>
         <p class="ai-lab-sub" data-i18n="aiLabSub">3秒生成策略 · 幣安實盤行情驗算</p>
@@ -149,6 +155,7 @@
           <div id="wsStatus" class="feed-status wait">● 數據重連中</div>
           <div class="lab-chart-frame">
             <div id="candleChart" class="lab-canvas chart-container"></div>
+            <button type="button" class="chart-touch-toggle" data-target="candleChart" data-i18n="chartTouchOn">🔍 開啟互動</button>
             <a class="tv-chart-badge" href="https://www.tradingview.com/" target="_blank" rel="noopener">Charts by TradingView</a>
           </div>
         </div>
@@ -214,7 +221,10 @@
           <p class="muted sample-hint desk-only" id="sampleHint" data-i18n="btAwaitRun">設定幣種、周期與回測區間後，點擊「執行回測」</p>
           <div class="perf-block">
             <h3 class="zone-title" data-i18n="gmEquity">淨值曲線</h3>
-            <div id="equityChart" class="lc-chart chart-container"></div>
+            <div class="chart-frame-rel">
+              <div id="equityChart" class="lc-chart chart-container"></div>
+              <button type="button" class="chart-touch-toggle" data-target="equityChart" data-i18n="chartTouchOn">🔍 開啟互動</button>
+            </div>
           </div>
 
           <div class="strategy-cta-banner" id="strategyCtaBanner">
@@ -259,18 +269,18 @@
     </div>
       </div>
       <aside class="editorial-rail" aria-label="Flash news">
-        <section class="rail-block week-board-desk">
+        <section class="rail-block week-board-desk mv-panel-leaderboard">
           <div class="kicker kicker-plain">ALPHA</div>
           <h3 class="rail-h" data-week-title>📊 近 7 天收益榜 TOP 5</h3>
           <p class="muted lb-period-note" data-lb-period></p>
           <ol class="week-list" data-week-board></ol>
         </section>
-        <section class="rail-block flash-desk">
+        <section class="rail-block flash-desk mv-panel-news">
           <div class="kicker" data-i18n="flashKicker">FLASH NEWS</div>
           <h3 class="rail-h" data-i18n="flashTitle">⚡ 7x24 即時快訊</h3>
           <ul class="flash-list" id="flashNews" aria-live="polite"></ul>
         </section>
-        <section class="rail-block rail-mkt">
+        <section class="rail-block rail-mkt mv-panel-leaderboard">
           <div class="kicker">MARKET</div>
           <h3 class="rail-h" data-i18n="mktOverview">市場概覽</h3>
           <div class="rail-quotes" id="railQuotes">
@@ -307,7 +317,7 @@
       <button type="button" class="btn ghost" id="aiLimitClose" data-i18n="close">關閉</button>
     </div>
   </div>
-  <nav class="thumb-dock" id="thumbDock" aria-label="回測操作">
+  <nav class="thumb-dock" id="thumbDock" aria-label="回測操作" data-i18n-aria="ariaBacktestOps">
     <label class="dock-field">
       <span data-i18n="dockCoin">幣種</span>
       <select id="dockSymbol">
@@ -361,5 +371,6 @@
   <script src="./js/lightweight-charts.standalone.production.js"></script>
   <script src="./js/backtest.js"></script>
   <script src="./js/terminal.js"></script>
+  <script src="./js/mobile-ux.js"></script>
 </body>
 </html>

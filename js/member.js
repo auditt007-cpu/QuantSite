@@ -52,7 +52,7 @@ function applyAuthUi() {
   const vip = localStorage.getItem("quant_paid") === "1";
   if ($("dashUser")) $("dashUser").textContent = tg ? "Telegram ID  " + tg : "";
   if ($("nodeName")) $("nodeName").textContent = vip ? t("nodePro") : t("nodeBasic");
-  if ($("dashLevel")) $("dashLevel").textContent = vip ? t("seatVip") : t("seatFree");
+  if ($("dashLevel")) $("dashLevel").textContent = vip ? t("dashLevelVip") : t("dashLevelFree");
   if (loggedIn() && !localStorage.getItem("quant_join_at")) {
     localStorage.setItem("quant_join_at", String(Date.now()));
   }

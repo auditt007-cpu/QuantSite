@@ -103,6 +103,10 @@
     document.querySelectorAll("[data-ph]").forEach((el) => {
       el.placeholder = t(el.getAttribute("data-ph"));
     });
+    document.querySelectorAll("[data-i18n-aria]").forEach((el) => {
+      const val = t(el.getAttribute("data-i18n-aria"));
+      if (val) el.setAttribute("aria-label", val);
+    });
     document.querySelectorAll("[data-fill-key]").forEach((el) => {
       el.setAttribute("data-fill", t(el.getAttribute("data-fill-key")));
     });
