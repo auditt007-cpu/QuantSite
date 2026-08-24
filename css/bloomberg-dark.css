@@ -8,19 +8,27 @@ html, body { background-color: var(--bg-main); color: var(--text-main); font-fam
 body.has-bb-util .topbar { background: #000000; border-bottom: 1px solid #333333; padding: 10px 0; }
 .brand { gap: 12px; max-width: min(320px, 36vw); }
 .logo { width: 14px; height: 14px; background: var(--color-accent); }
-.brand h1 { font-size: 15px; letter-spacing: 0.16em; color: #ffffff; font-weight: 700; }
-.site-slogan { color: #b3b3b3; font-size: 10px; letter-spacing: 0.06em; }
+.brand h1,
+.topbar .brand h1 { font-size: 15px; letter-spacing: 0.16em; color: #ffffff; font-weight: 700; }
+.site-slogan,
+.topbar .site-slogan { color: #b3b3b3; font-size: 10px; letter-spacing: 0.06em; }
 
 /* Navigation in black header */
-.nav-link { color: #b3b3b3; font-weight: 600; font-size: 12px; padding: 8px 10px; }
-.nav-link:hover { color: #ffffff; text-decoration: none; background: rgba(255,255,255,0.08); }
+.nav-link,
+.topbar .nav-link { color: #b3b3b3; font-weight: 600; font-size: 12px; padding: 8px 10px; }
+.nav-link:hover,
+.topbar .nav-link:hover { color: #ffffff; text-decoration: none; background: rgba(255,255,255,0.08); }
 .lang-pills { border: 1px solid #555555; }
 .lang-pills button { color: #b3b3b3; background: #000000; }
 .lang-pills button.active { color: #000000; background: #ffffff; }
 
 /* Auth / login */
-.auth-btn { color: #ffffff; border: 1px solid #555555; background: #000000; }
+.auth-btn,
+.topbar .auth-btn { color: #ffffff; border: 1px solid #555555; background: #000000; }
 .auth-btn::after { background: var(--color-accent); }
+
+.term-home-link,
+.topbar .term-home-link { color: #ffffff; border: 1px solid #555555; background: #000000; }
 
 /* Black utility bar */
 .bb-util-bar { background: #000000; color: #ffffff; border-bottom: 1px solid #333333; }
@@ -137,4 +145,19 @@ input:focus, textarea:focus, select:focus { border-color: var(--color-accent); o
   .brand { max-width: 60vw; }
   .home-hero .hero-top { flex-direction: column; align-items: stretch; gap: 16px; }
   .home-hero .hero-cta { justify-content: flex-start; }
+
+  /* Ensure header buttons stay consistent in black header */
+  .topbar .nav-toggle,
+  .topbar .auth-btn,
+  .topbar .term-home-link {
+    background: #000000 !important;
+    color: #ffffff !important;
+    border-color: #555555 !important;
+  }
+  .topbar .nav-toggle:hover,
+  .topbar .auth-btn:hover,
+  .topbar .term-home-link:hover {
+    background: #333333 !important;
+    border-color: #555555 !important;
+  }
 }

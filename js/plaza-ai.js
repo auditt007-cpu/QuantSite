@@ -354,7 +354,7 @@
         '<div class="stat-cap"><span>月均套利次數</span><b>' +
         monthN.toLocaleString("en-US") +
         " 次/月</b></div>" +
-        '<div class="stat-cap"><span>年化預期收益</span><b class="is-up">' +
+        '<div class="stat-cap"><span>年化預期收益</span><b class="' + (ann >= 0 ? 'is-up' : 'is-down') + '">' +
         (ann > 0 ? "+" : "") +
         ann.toFixed(1) +
         "%</b></div></div>"

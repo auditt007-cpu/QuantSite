@@ -41,9 +41,9 @@ body.plaza-page .market-grid {
   min-height: 0;
   height: auto;
   padding: 16px 14px 14px;
-  border: 1px solid rgba(212, 160, 23, 0.38);
+  border: 1px solid var(--border-line);
   background: #fff;
-  border-radius: 8px;
+  border-radius: 0;
   box-shadow: none;
   overflow: hidden;
 }
@@ -54,7 +54,7 @@ body.plaza-page .market-grid {
   font-weight: 800;
   line-height: 1.35;
   min-height: 0;
-  color: #0f172a;
+  color: #000000;
   padding-right: 0;
 }
 
@@ -71,15 +71,15 @@ body.plaza-page .market-grid {
 }
 
 .ai-badge {
-  color: #d4a017;
-  border: 1px solid #d4a017;
-  background: #fffdf5;
+  color: #000000;
+  border: 1px solid #000000;
+  background: #ffffff;
 }
 
 .classic-badge {
-  color: #64748b;
-  border: 1px solid #94a3b8;
-  background: #f8fafc;
+  color: #6b6b6b;
+  border: 1px solid var(--border-line);
+  background: #f7f7f7;
 }
 
 .plaza-card .ai-eq-thumb,
@@ -89,8 +89,8 @@ body.plaza-page .market-grid {
   height: auto;
   max-height: 180px;
   object-fit: contain;
-  background: #0b0b0c;
-  border: 1px solid rgba(212, 160, 23, 0.25);
+  background: #f7f7f7;
+  border: 1px solid var(--border-line);
   margin: 2px 0 0;
 }
 
@@ -103,7 +103,7 @@ body.plaza-page .market-grid {
   margin: 0;
   font-size: 12px;
   line-height: 1.55;
-  color: #475569;
+  color: #333333;
   font-weight: 400;
   max-height: none;
   overflow: visible;
@@ -116,7 +116,7 @@ body.plaza-page .market-grid {
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: #64748b;
+  color: #6b6b6b;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -168,11 +168,11 @@ body.plaza-page .market-grid {
 }
 
 .plaza-card .stat-cap b.is-up {
-  color: #059669;
+  color: var(--color-up);
 }
 
 .plaza-card .stat-cap b.is-down {
-  color: #e11d48;
+  color: var(--color-down);
 }
 
 .plaza-card .stat-tip {
