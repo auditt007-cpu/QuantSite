@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-24T09:12:39.041733+00:00",
+  "updated_at": "2026-08-24T10:23:32.206955+00:00",
   "strategies": [
     {
       "id": "ai_1787562744",
@@ -32,5 +32,6 @@
       "interval": "1h",
       "code": "PARAMS = {\n    \"window\": {\"low\": 10, \"high\": 50, \"step\": 5, \"kind\": \"period\"},\n    \"mult\": {\"low\": 1, \"high\": 3, \"step\": 0.25, \"kind\": \"threshold\"},\n    \"hold\": {\"low\": 1, \"high\": 12, \"step\": 1, \"kind\": \"period\"}\n}\n\ndef generate_signals(df, window=20, mult=2, hold=6):\n    close = df['close']\n    mean = close.rolling(window).mean()\n    std = close.rolling(window).std()\n    upper = mean + mult * std\n    lower = mean - mult * std\n    \n    long = (close > upper).astype(int)\n    short = (close < lower).astype(int)\n    \n    signal = long - short\n    \n    # Hold period\n    signal = signal.rolling(hold).max().fillna(0)\n    \n    return signal.clip(-1, 1).astype(int)"
     }
-  ]
+  ],
+  "sync_probe": "vps-pages-hardened"
 }
