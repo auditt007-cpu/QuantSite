@@ -1,6 +1,37 @@
 {
-  "updated_at": "2026-08-24T10:23:32.206955+00:00",
+  "updated_at": "2026-08-24T12:01:50.774397+00:00",
   "strategies": [
+    {
+      "id": "ai_1787572904",
+      "title": "AI ai_1787572904",
+      "name": "AI ai_1787572904",
+      "sharpe": 1.657,
+      "max_drawdown": 0.0942,
+      "profit_factor": 4.468,
+      "return_pct": 0.0656,
+      "trades": 39,
+      "params": {
+        "rsi_period": 12,
+        "sma_period": 30,
+        "roc_period": 5
+      },
+      "copy": "本量化策略基于RSI、均线与动量指标的组合信号进行加密货币交易。策略在BTC、ETH、SOL三个主流币种上测试显示，过去周期内实现6.6%收益率，最大回撤控制在9.42%以内。通过12日RSI结合30日均线过滤，配合5日价格变化率确认趋势，39次交易中盈利因子达4.47，夏普比率1.66表征风险调整后收益良好。历史数据表明该模型能有效捕捉趋势行情并规避震荡损耗，但数字货币波动剧烈，实际表现可能存在差异。建议使用者充分理解参数逻辑后谨慎配置仓位。",
+      "chart": "/static/charts/ai_1787572904.svg",
+      "chart_url": "/static/charts/ai_1787572904.svg",
+      "metrics": {
+        "sharpe": 1.657,
+        "max_drawdown": 0.0942,
+        "profit_factor": 4.468,
+        "return_pct": 0.0656
+      },
+      "symbols": [
+        "BTCUSDT",
+        "ETHUSDT",
+        "SOLUSDT"
+      ],
+      "interval": "1h",
+      "code": "PARAMS = {\n    \"rsi_period\": {\"low\": 10, \"high\": 30, \"step\": 2, \"kind\": \"period\"},\n    \"sma_period\": {\"low\": 20, \"high\": 100, \"step\": 10, \"kind\": \"period\"},\n    \"roc_period\": {\"low\": 5, \"high\": 20, \"step\": 5, \"kind\": \"period\"}\n}\n\ndef generate_signals(df, rsi_period=14, sma_period=50, roc_period=10):\n    close = df['close']\n    \n    # RSI calculation\n    delta = close.diff()\n    gain = delta.clip(lower=0)\n    loss = -delta.clip(upper=0)\n    avg_gain = gain.ewm(alpha=1/rsi_period, adjust=False).mean()\n    avg_loss = loss.ewm(alpha=1/rsi_period, adjust=False).mean()\n    rs = avg_gain / avg_loss\n    rsi = 100 - (100 / (1 + rs))\n    \n    # ROC calculation\n    roc = close.pct_change(roc_period) * 100\n    \n    # SMA calculation\n    sma = close.rolling(sma_period).mean()\n    \n    # Signal logic\n    buy_cond = (rsi < 30) & (roc < -5) & (close < sma)\n    sell_cond = (rsi > 70) & (roc > 5) & (close > sma)\n    \n    signals = np.where(buy_cond, 1, np.where(sell_cond, -1, 0))\n    return pd.Series(signals, index=df.index)"
+    },
     {
       "id": "ai_1787562744",
       "title": "AI 布林帶突破增強版",
