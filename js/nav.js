@@ -178,6 +178,11 @@
 
   function ensureNavBackdrop() {
     let bd = document.getElementById("navDrawerBackdrop");
+    /* Migrate legacy body-level mask into .topbar so it cannot cover links */
+    if (bd && bar && bd.parentElement !== bar) {
+      bd.remove();
+      bd = null;
+    }
     if (!bd) {
       bd = document.createElement("button");
       bd.type = "button";
@@ -185,9 +190,13 @@
       bd.className = "nav-drawer-backdrop";
       bd.hidden = true;
       bd.setAttribute("aria-label", "Close menu");
-      bd.addEventListener("click", () => closeNavDrawer());
-      /* Keep behind .wrap siblings in DOM; z-index still places it under topbar */
-      document.body.insertBefore(bd, document.body.firstChild);
+      bd.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        closeNavDrawer();
+      });
+      if (bar) bar.insertBefore(bd, bar.firstChild);
+      else document.body.insertBefore(bd, document.body.firstChild);
     }
     return bd;
   }
@@ -214,6 +223,7 @@
   window.addEventListener("pageshow", () => closeNavDrawer());
 
   if (toggle && bar) {
+    ensureNavBackdrop();
     toggle.addEventListener("click", (ev) => {
       ev.stopPropagation();
       bar.classList.toggle("nav-open");

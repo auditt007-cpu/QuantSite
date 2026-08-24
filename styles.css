@@ -48,12 +48,14 @@ body {
   display: flex;
   flex-direction: column;
 }
-/* Legacy drawer mask — disabled; mobile menu uses #navDrawerBackdrop */
+/* Legacy drawer mask — disabled; mobile menu uses .topbar > #navDrawerBackdrop */
 body::before,
 body.nav-drawer-open::before {
   content: none !important;
   display: none !important;
+  visibility: hidden !important;
   pointer-events: none !important;
+  background: none !important;
 }
 .wrap {
   position: relative;
