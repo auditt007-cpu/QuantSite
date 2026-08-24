@@ -8,6 +8,7 @@ dist/
 !.env.example
 deploy/quantsite/.env
 *.log
+**/*.log
 .DS_Store
 Thumbs.db
 worker/node_modules/
@@ -19,6 +20,20 @@ TradingView-media-kit/
 .dev.vars*
 !.dev.vars.example
 
+# secrets / local runtime data — never track
+data/
+**/data/
+*.db
+*.sqlite
+*.sqlite3
+**/leads.db
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
 deploy/quantsite/__pycache__/
 deploy/quantsite/live_exec_log.json
 deploy/quantsite/live_position_state.json
@@ -27,3 +42,6 @@ deploy/quantsite/live_position_state.json
 scripts/_*.py
 scripts/_*.pub
 scripts/_deploy_key*
+**/github_deploy_key
+**/github_deploy_key.pub
+**/.ssh/

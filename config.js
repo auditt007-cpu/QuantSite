@@ -1,6 +1,6 @@
 window.QUANT_CONFIG = {
   apiBase: "https://quant-saas-api.quant-alpha-desk.workers.dev",
-  hubApiBase: "",
+  hubApiBase: "https://api.quantalpha.space",
   leaderboardUrl: "./leaderboard.json",
   usdtWallet: "TDo1RvTCh8jHawjW4rMkri4MpZwc4Wxn2P",
   tgChannelUrl: "https://t.me/quant_alpha_signals",
