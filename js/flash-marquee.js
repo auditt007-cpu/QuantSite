@@ -217,6 +217,7 @@
       .join("");
     /* Duplicate for seamless -50% scroll loop */
     track.innerHTML = bits + bits;
+    if (typeof root.QALockFlashMarquee === "function") root.QALockFlashMarquee();
   }
 
   let newsTimer = 0;

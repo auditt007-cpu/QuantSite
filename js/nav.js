@@ -139,6 +139,104 @@
     );
   }
 
+  function setImp(el, prop, val) {
+    if (el) el.style.setProperty(prop, val, "important");
+  }
+
+  function lockFlashMarquee() {
+    const bar = document.getElementById("qaFlashMarquee");
+    if (!bar) return;
+    const badge = bar.querySelector(".qa-flash-badge");
+    let vp = bar.querySelector(".qa-flash-viewport");
+    let track = document.getElementById("qaFlashTrack") || bar.querySelector(".qa-flash-track");
+    if (!vp) {
+      vp = document.createElement("div");
+      vp.className = "qa-flash-viewport";
+      bar.appendChild(vp);
+    }
+    if (!track) {
+      track = document.createElement("div");
+      track.className = "qa-flash-track";
+      track.id = "qaFlashTrack";
+    }
+    if (badge && badge.parentNode !== bar) bar.insertBefore(badge, bar.firstChild);
+    if (vp.parentNode !== bar) bar.appendChild(vp);
+    if (badge && vp.previousElementSibling !== badge) bar.insertBefore(vp, badge.nextSibling);
+    if (track.parentNode !== vp) vp.appendChild(track);
+    Array.prototype.slice.call(bar.childNodes).forEach((node) => {
+      if (node !== badge && node !== vp) bar.removeChild(node);
+    });
+
+    setImp(bar, "display", "grid");
+    setImp(bar, "grid-template-columns", "max-content minmax(0, 1fr)");
+    setImp(bar, "grid-template-rows", "40px");
+    setImp(bar, "align-items", "center");
+    setImp(bar, "column-gap", "12px");
+    setImp(bar, "width", "100%");
+    setImp(bar, "height", "40px");
+    setImp(bar, "min-height", "40px");
+    setImp(bar, "max-height", "40px");
+    setImp(bar, "overflow", "hidden");
+    setImp(bar, "background", "#000000");
+    setImp(bar, "box-sizing", "border-box");
+    setImp(bar, "padding", "0 16px");
+    setImp(bar, "margin", "0 0 16px");
+    setImp(bar, "position", "relative");
+    setImp(bar, "border", "0");
+    setImp(bar, "float", "none");
+    setImp(bar, "transform", "none");
+
+    if (badge) {
+      setImp(badge, "position", "relative");
+      setImp(badge, "left", "auto");
+      setImp(badge, "top", "auto");
+      setImp(badge, "float", "none");
+      setImp(badge, "transform", "none");
+      setImp(badge, "z-index", "2");
+      setImp(badge, "display", "inline-flex");
+      setImp(badge, "align-items", "center");
+      setImp(badge, "height", "24px");
+      setImp(badge, "padding", "0 10px");
+      setImp(badge, "margin", "0");
+      setImp(badge, "background", "#ff5500");
+      setImp(badge, "color", "#ffffff");
+      setImp(badge, "font-size", "12px");
+      setImp(badge, "font-weight", "700");
+      setImp(badge, "white-space", "nowrap");
+      setImp(badge, "border", "0");
+    }
+
+    setImp(vp, "min-width", "0");
+    setImp(vp, "width", "auto");
+    setImp(vp, "max-width", "100%");
+    setImp(vp, "height", "40px");
+    setImp(vp, "overflow", "hidden");
+    setImp(vp, "position", "relative");
+    setImp(vp, "z-index", "1");
+    setImp(vp, "display", "block");
+    setImp(vp, "margin", "0");
+    setImp(vp, "padding", "0");
+    setImp(vp, "float", "none");
+
+    setImp(track, "display", "inline-flex");
+    setImp(track, "white-space", "nowrap");
+    setImp(track, "height", "40px");
+    setImp(track, "position", "relative");
+    setImp(track, "float", "none");
+    setImp(track, "margin", "0");
+    setImp(track, "padding", "0");
+    setImp(track, "animation", "qa-flash-scroll 25s linear infinite");
+
+    bar.querySelectorAll("a").forEach((a) => {
+      setImp(a, "color", "#e5e7eb");
+      setImp(a, "text-decoration", "none");
+      setImp(a, "border", "0");
+      setImp(a, "background", "transparent");
+    });
+  }
+
+  window.QALockFlashMarquee = lockFlashMarquee;
+
   function mountFlashMarquee() {
     installFlashMarqueeCss();
     const bar = document.createElement("div");
@@ -163,6 +261,7 @@
     document.querySelectorAll("#bloomberg-marquee-bar, .bb-marquee, .news-ticker-container").forEach((el) => {
       if (el !== bar) el.remove();
     });
+    lockFlashMarquee();
   }
 
   function loadFlashMarquee() {

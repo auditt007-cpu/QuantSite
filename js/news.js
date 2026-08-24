@@ -276,6 +276,7 @@
       })
       .join("");
     track.innerHTML = bits + bits;
+    if (typeof root.QALockFlashMarquee === "function") root.QALockFlashMarquee();
   }
 
   function paintNews(items, key) {
