@@ -32,6 +32,7 @@ HTML_NAMES = [
     "ai-backtest.html",
     "backtest.html",
     "marketplace.html",
+    "bots.html",
 ]
 
 PUTS = [
@@ -42,6 +43,7 @@ PUTS = [
     "css/plaza-cards.css",
     "css/home-boards.css",
     "css/mobile-subpages.css",
+    "css/bots.css",
     "css/bbg-terminal.css",
     "css/mark-q.svg",
     "styles.css",
@@ -54,6 +56,8 @@ PUTS = [
     "js/nav.js",
     "js/binance-feed.js",
     "js/plaza-ai.js",
+    "js/grid-backtest.js",
+    "js/offline-klines.js",
     "js/live-room.js",
     "js/terminal.js",
     "js/i18n-boot.js",

@@ -116,6 +116,20 @@
     document.body.classList.add("has-bb-util");
   }
 
+  function ensureBotsNavLink() {
+    const nav = document.querySelector(".nav-actions");
+    if (!nav || nav.querySelector(".nav-link-bots")) return;
+    const onBots = /(^|\/)bots\.html$/.test(location.pathname);
+    const link = document.createElement("a");
+    link.className = "nav-link nav-link-bots" + (onBots ? " active" : "");
+    link.href = "./bots.html";
+    link.setAttribute("data-i18n", "navBots");
+    link.textContent = "網格機器人";
+    const term = nav.querySelector('a[href="./strategies.html"]');
+    if (term && term.parentNode) term.insertAdjacentElement("afterend", link);
+    else nav.insertBefore(link, nav.firstChild);
+  }
+
   function ensureLiveNavLink() {
     const nav = document.querySelector(".nav-actions");
     if (!nav || nav.querySelector(".nav-link-live")) return;
@@ -125,8 +139,10 @@
     link.href = "./live.html";
     link.setAttribute("data-i18n", "navLive");
     link.textContent = "直播作戰室";
+    const bots = nav.querySelector('a[href="./bots.html"]');
     const term = nav.querySelector('a[href="./terminal.html"], a[href="./strategies.html"]');
-    if (term && term.parentNode) term.insertAdjacentElement("afterend", link);
+    if (bots && bots.parentNode) bots.insertAdjacentElement("afterend", link);
+    else if (term && term.parentNode) term.insertAdjacentElement("afterend", link);
     else nav.insertBefore(link, nav.firstChild);
   }
 
@@ -134,6 +150,7 @@
   ensureUtilBar();
   ensureCryptoTicker();
   ensureTickerMarquee();
+  ensureBotsNavLink();
   ensureLiveNavLink();
 
   const toggle = document.getElementById("navToggle");

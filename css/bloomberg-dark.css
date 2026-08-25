@@ -448,3 +448,17 @@ input:focus, textarea:focus, select:focus { border-color: var(--color-accent); o
     display: none !important;
   }
 }
+
+/* Grid bots chips / KPIs — keep white text on black active */
+.bot-lev.is-on,
+.bot-days.is-on,
+.bot-mode.is-on {
+  background: #000000;
+  color: #ffffff;
+  border-color: #000000;
+}
+.bot-kpi-val.is-up { color: #0f7b3a; }
+.bot-kpi-val.is-down { color: #c2410c; }
+.bot-deploy-bg { background: rgba(0, 0, 0, 0.55); }
+.bot-deploy { background: #ffffff; color: #000000; border: 1px solid #000000; }
+

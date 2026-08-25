@@ -1,0 +1,347 @@
+/* Grid bots sandbox — Bloomberg 4px, B/W/gray, green up / red down */
+body.bots-page .wrap {
+  max-width: 1280px;
+}
+
+.bots-hero {
+  padding: 28px 0 20px;
+  border-bottom: 1px solid #000;
+}
+
+.bots-kicker {
+  font-family: ui-monospace, "JetBrains Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  font-weight: 800;
+  color: #000;
+  margin: 0 0 10px;
+}
+
+.bots-hero h1 {
+  margin: 0 0 10px;
+  font-size: clamp(24px, 3.4vw, 36px);
+  letter-spacing: -0.03em;
+  font-weight: 800;
+  color: #000;
+}
+
+.bots-lead {
+  margin: 0;
+  max-width: 48rem;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #111;
+}
+
+.bot-console {
+  display: grid;
+  grid-template-columns: minmax(280px, 380px) 1fr;
+  gap: 16px;
+  padding: 20px 0 8px;
+}
+
+.bot-panel,
+.bot-stats {
+  border: 1px solid #000;
+  background: #fff;
+  border-radius: 4px;
+  padding: 14px;
+}
+
+.bot-panel h2,
+.bot-stats h2,
+.bot-presets h2 {
+  margin: 0 0 12px;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+
+.bot-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.bot-field label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #111;
+}
+
+.bot-field input,
+.bot-field select {
+  height: 36px;
+  border: 1px solid #000;
+  border-radius: 4px;
+  padding: 0 10px;
+  font-family: inherit;
+  font-size: 13px;
+  background: #fff;
+  color: #000;
+}
+
+.bot-range-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.bot-range-row input[type="range"] {
+  width: 100%;
+  accent-color: #000;
+}
+
+.bot-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.bot-lev,
+.bot-days,
+.bot-mode {
+  border: 1px solid #000;
+  background: #fff;
+  color: #000;
+  border-radius: 4px;
+  min-height: 32px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bot-lev.is-on,
+.bot-days.is-on,
+.bot-mode.is-on {
+  background: #000;
+  color: #fff;
+}
+
+.bot-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.bot-btn {
+  border: 1px solid #000;
+  border-radius: 4px;
+  min-height: 40px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  background: #000;
+  color: #fff;
+}
+
+.bot-btn.ghost {
+  background: #fff;
+  color: #000;
+}
+
+.bot-status {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: #555;
+}
+
+.bot-kpis {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.bot-kpi {
+  border: 1px solid #e2e2e2;
+  border-radius: 4px;
+  padding: 10px;
+  min-width: 0;
+}
+
+.bot-kpi-lab {
+  font-size: 11px;
+  color: #666;
+  font-weight: 700;
+}
+
+.bot-kpi-val {
+  font-family: ui-monospace, "JetBrains Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 22px;
+  font-weight: 800;
+  color: #000;
+  margin-top: 4px;
+}
+
+.bot-kpi-val.is-up { color: #0f7b3a; }
+.bot-kpi-val.is-down { color: #c2410c; }
+
+.bot-chart-wrap {
+  border: 1px solid #e2e2e2;
+  border-radius: 4px;
+  height: 220px;
+  background: #fafafa;
+}
+
+.bot-chart-wrap canvas {
+  display: block;
+  width: 100%;
+  height: 220px;
+}
+
+.bot-presets {
+  padding: 8px 0 28px;
+}
+
+.bot-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.bot-card {
+  border: 1px solid #000;
+  border-radius: 4px;
+  background: #fff;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.bot-card h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.bot-card p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #333;
+}
+
+.bot-card-meta {
+  font-family: ui-monospace, "JetBrains Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  color: #111;
+}
+
+.bot-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.bot-card-actions button {
+  flex: 1;
+  border: 1px solid #000;
+  border-radius: 4px;
+  min-height: 36px;
+  background: #fff;
+  color: #000;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bot-card-actions button.solid {
+  background: #000;
+  color: #fff;
+}
+
+.bot-note {
+  font-size: 12px;
+  color: #666;
+  margin: 12px 0 0;
+}
+
+.bot-deploy-bg {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(0, 0, 0, 0.55);
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.bot-deploy-bg.show {
+  display: flex;
+}
+
+.bot-deploy {
+  width: min(520px, 100%);
+  background: #fff;
+  border: 1px solid #000;
+  border-radius: 4px;
+  padding: 18px;
+  color: #000;
+}
+
+.bot-deploy h3 {
+  margin: 0 0 10px;
+  font-size: 16px;
+}
+
+.bot-deploy p,
+.bot-deploy ol {
+  font-size: 13px;
+  line-height: 1.55;
+  margin: 0 0 12px;
+}
+
+.bot-deploy ol {
+  padding-left: 18px;
+}
+
+.bot-deploy label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  margin: 8px 0 4px;
+}
+
+.bot-deploy input {
+  width: 100%;
+  height: 36px;
+  border: 1px solid #000;
+  border-radius: 4px;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+.bot-deploy .bot-btn {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.bot-deploy-x {
+  float: right;
+  border: 0;
+  background: transparent;
+  font-size: 22px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.bot-warn {
+  color: #c2410c;
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .bot-console,
+  .bot-preset-grid {
+    grid-template-columns: 1fr;
+  }
+}
