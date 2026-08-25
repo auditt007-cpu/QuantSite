@@ -125,10 +125,7 @@
     }
     /* Slim Bloomberg-style strip: brand cue left, language right — no utility links */
     bar.innerHTML =
-      '<div class="bb-util-left">' +
-      '<span class="bb-util-mark" aria-hidden="true">QUANT.ALPHA</span>' +
-      "</div>" +
-      '<div class="bb-util-right" id="bbUtilRight">' +
+      '<div class="bb-util-right bb-util-right-only" id="bbUtilRight">' +
       langPillsHtml() +
       "</div>";
     document.body.classList.add("has-bb-util");

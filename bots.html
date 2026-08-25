@@ -162,7 +162,13 @@
             <div class="bot-kpi-val" id="botDd">—</div>
           </div>
         </div>
-        <div class="bot-chart-wrap">
+        <div class="bot-chart-toolbar" id="botChartToolbar">
+          <button type="button" class="bot-chart-zoom-btn" id="botChartZoomIn" aria-label="Zoom in">＋</button>
+          <button type="button" class="bot-chart-zoom-btn" id="botChartZoomOut" aria-label="Zoom out">－</button>
+          <button type="button" class="bot-chart-zoom-btn ghost" id="botChartZoomReset" data-i18n="botChartReset">重置</button>
+          <span class="bot-chart-zoom-hint muted" data-i18n="botChartZoomHint">滚轮/双指缩放 · 拖拽平移 · 点击三角看详情</span>
+        </div>
+        <div class="bot-chart-wrap" id="botChartWrap">
           <canvas id="botChart" width="640" height="260" aria-label="Equity curve"></canvas>
           <div class="bot-trade-tip" id="botTradeTip" hidden role="status"></div>
         </div>

@@ -63,17 +63,6 @@
     document.getElementById("legalModal").classList.add("show");
   }
 
-  function legalRowHtml() {
-    return (
-      '<nav class="bb-foot-legal" aria-label="Legal">' +
-      '<button type="button" class="bb-foot-link" data-legal="tos" data-i18n="legalTos">Terms of Service</button>' +
-      '<button type="button" class="bb-foot-link" data-legal="privacy" data-i18n="legalPrivacy">Privacy Policy</button>' +
-      '<button type="button" class="bb-foot-link" data-legal="risk" data-i18n="legalRisk">Risk Disclosure</button>' +
-      '<button type="button" class="bb-foot-link" data-legal="disclaimer" data-i18n="legalDisc">Disclaimer</button>' +
-      "</nav>"
-    );
-  }
-
   function ensureFooter() {
     let foot = document.querySelector("footer.site-foot");
     if (!foot) {
@@ -83,6 +72,10 @@
       wrap.appendChild(foot);
     }
     foot.classList.add("bb-site-foot");
+
+    foot.querySelectorAll(".bb-foot-legal").forEach(function (el) {
+      el.remove();
+    });
 
     if (foot.getAttribute("data-bb-foot") !== "1") {
       foot.setAttribute("data-bb-foot", "1");
@@ -123,7 +116,6 @@
         '<span class="bb-foot-mark">QUANT.ALPHA</span>' +
         '<span class="bb-foot-copy" data-i18n="footCopyright">© 2026 QUANT.ALPHA. All Rights Reserved.</span>' +
         "</div>" +
-        legalRowHtml() +
         "</div>" +
         "</div>";
     }

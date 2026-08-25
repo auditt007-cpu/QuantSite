@@ -262,6 +262,49 @@ body.bots-page .wrap {
 .bot-kpi-val.is-up { color: #0f7b3a; }
 .bot-kpi-val.is-down { color: #c2410c; }
 
+.bot-chart-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 6px;
+}
+
+.bot-chart-zoom-btn {
+  border: 1px solid #000;
+  background: #fff;
+  color: #000;
+  border-radius: 4px;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0 10px;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.bot-chart-zoom-btn.ghost {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.bot-chart-zoom-hint {
+  flex: 1 1 160px;
+  font-size: 10px;
+  line-height: 1.35;
+  min-width: 0;
+}
+
+.bot-chart-wrap.is-panning {
+  cursor: grabbing;
+}
+
+.bot-chart-wrap.can-pan {
+  cursor: grab;
+}
+
 .bot-chart-wrap {
   position: relative;
   width: 100%;

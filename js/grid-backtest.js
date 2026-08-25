@@ -204,8 +204,67 @@
     return m + "/" + day;
   }
 
-  function drawEquity(canvas, eq, marks, bandActive) {
+  let chartData = null;
+  let chartView = { lo: 0, hi: 1 };
+  const MIN_VIEW_W = 0.035;
+
+  function resetChartView() {
+    chartView = { lo: 0, hi: 1 };
+  }
+
+  function isChartZoomed() {
+    return chartView.lo > 0.0001 || chartView.hi < 0.9999;
+  }
+
+  function redrawChart() {
+    if (!chartData) return;
+    const wrap = $("botChartWrap");
+    if (wrap) wrap.classList.toggle("can-pan", isChartZoomed());
+    drawEquity($("botChart"), chartData.eq, chartData.marks, chartData.bandActive, chartView);
+  }
+
+  function zoomChartView(factor, centerFrac) {
+    if (!chartData) return;
+    const w = chartView.hi - chartView.lo;
+    const nw = Math.max(MIN_VIEW_W, w / factor);
+    const c =
+      centerFrac != null
+        ? chartView.lo + w * clamp(centerFrac, 0, 1)
+        : chartView.lo + w * 0.5;
+    let lo = c - nw * 0.5;
+    let hi = c + nw * 0.5;
+    if (lo < 0) {
+      hi -= lo;
+      lo = 0;
+    }
+    if (hi > 1) {
+      lo -= hi - 1;
+      hi = 1;
+    }
+    if (hi - lo < MIN_VIEW_W) return;
+    chartView = { lo: lo, hi: hi };
+    redrawChart();
+  }
+
+  function panChartView(delta) {
+    if (!chartData || !isChartZoomed()) return;
+    let lo = chartView.lo + delta;
+    let hi = chartView.hi + delta;
+    if (lo < 0) {
+      hi -= lo;
+      lo = 0;
+    }
+    if (hi > 1) {
+      lo -= hi - 1;
+      hi = 1;
+    }
+    chartView = { lo: lo, hi: hi };
+    redrawChart();
+  }
+
+  function drawEquity(canvas, eq, marks, bandActive, view) {
     if (!canvas || !eq || eq.length < 2) return;
+    view = view || { lo: 0, hi: 1 };
     const dpr = Math.min(2, root.devicePixelRatio || 1);
     const w = Math.max(280, canvas.clientWidth || 640);
     const h = Math.max(180, canvas.clientHeight || 260);
@@ -216,26 +275,30 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
     const pad = { l: 44, r: 10, t: 12, b: 28 };
+    const tFull0 = eq[0].t;
+    const tFull1 = eq[eq.length - 1].t;
+    const fullSpan = Math.max(1, tFull1 - tFull0);
+    const vT0 = tFull0 + fullSpan * clamp(view.lo, 0, 1);
+    const vT1 = tFull0 + fullSpan * clamp(view.hi, 0, 1);
+    const vSpan = Math.max(1, vT1 - vT0);
+    const visibleEq = eq.filter(function (p) {
+      return p.t >= vT0 - 1 && p.t <= vT1 + 1;
+    });
+    const plotEq = visibleEq.length >= 2 ? visibleEq : eq;
     let mn = Infinity;
     let mx = -Infinity;
-    eq.forEach(function (p) {
+    plotEq.forEach(function (p) {
       if (p.v < mn) mn = p.v;
       if (p.v > mx) mx = p.v;
     });
     if (!(mx > mn)) mx = mn + 0.01;
     const plotW = w - pad.l - pad.r;
     const plotH = h - pad.t - pad.b;
-    const xAt = function (i) {
-      return pad.l + (i / (eq.length - 1)) * plotW;
+    const xAtTime = function (sec) {
+      return pad.l + ((sec - vT0) / vSpan) * plotW;
     };
     const yAt = function (v) {
       return pad.t + (1 - (v - mn) / (mx - mn)) * plotH;
-    };
-    const t0 = eq[0].t;
-    const t1 = eq[eq.length - 1].t;
-    const span = Math.max(1, t1 - t0);
-    const xAtTime = function (sec) {
-      return pad.l + ((sec - t0) / span) * plotW;
     };
 
     const idleLabel = t("botIdleBand", "此時間段未觸發策略");
@@ -286,21 +349,21 @@
 
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
-    const ticks = [0, Math.floor((eq.length - 1) / 2), eq.length - 1];
-    ticks.forEach(function (i) {
-      const x = xAt(i);
+    const tickTimes = [vT0, vT0 + vSpan * 0.5, vT1];
+    tickTimes.forEach(function (sec) {
+      const x = xAtTime(sec);
       ctx.beginPath();
       ctx.moveTo(x, pad.t + plotH);
       ctx.lineTo(x, pad.t + plotH + 4);
       ctx.stroke();
-      ctx.fillText(fmtAxisDate(eq[i].t), x, pad.t + plotH + 6);
+      ctx.fillText(fmtAxisDate(sec), x, pad.t + plotH + 6);
     });
 
     const up = eq[eq.length - 1].v >= eq[0].v;
     const col = up ? "#0f7b3a" : "#c2410c";
     ctx.beginPath();
-    eq.forEach(function (p, i) {
-      const x = xAt(i);
+    plotEq.forEach(function (p, i) {
+      const x = xAtTime(p.t);
       const y = yAt(p.v);
       if (i === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
@@ -314,6 +377,7 @@
     const markList = Array.isArray(marks) ? marks : [];
     const hitMarks = [];
     markList.forEach(function (m, idx) {
+      if (m.t < vT0 || m.t > vT1) return;
       const x = xAtTime(m.t);
       const y = yAt(m.v);
       ctx.beginPath();
@@ -333,14 +397,15 @@
       hitMarks.push({ x: x, y: y, r: 10, mark: m, idx: idx });
     });
 
-    const last = eq[eq.length - 1];
+    const last = plotEq[plotEq.length - 1];
     ctx.beginPath();
-    ctx.arc(xAt(eq.length - 1), yAt(last.v), 3, 0, Math.PI * 2);
+    ctx.arc(xAtTime(last.t), yAt(last.v), 3, 0, Math.PI * 2);
     ctx.fillStyle = col;
     ctx.fill();
 
     canvas._qaMarkHits = hitMarks;
     canvas._qaPlot = { pad: pad, w: w, h: h };
+    canvas._qaView = { lo: view.lo, hi: view.hi };
   }
 
   function showTradeDetail(mark) {
@@ -425,6 +490,136 @@
     );
   }
 
+  function bindChartZoom() {
+    const wrap = $("botChartWrap");
+    const canvas = $("botChart");
+    if (!wrap || !canvas || wrap.getAttribute("data-zoom-bound") === "1") return;
+    wrap.setAttribute("data-zoom-bound", "1");
+    const zIn = $("botChartZoomIn");
+    const zOut = $("botChartZoomOut");
+    const zReset = $("botChartZoomReset");
+    if (zIn) zIn.addEventListener("click", function () { zoomChartView(1.35, 0.5); });
+    if (zOut) zOut.addEventListener("click", function () { zoomChartView(0.74, 0.5); });
+    if (zReset) {
+      zReset.addEventListener("click", function () {
+        resetChartView();
+        redrawChart();
+      });
+    }
+    wrap.addEventListener(
+      "wheel",
+      function (ev) {
+        if (!chartData) return;
+        ev.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        const frac = rect.width > 0 ? (ev.clientX - rect.left) / rect.width : 0.5;
+        zoomChartView(ev.deltaY < 0 ? 1.18 : 0.84, frac);
+      },
+      { passive: false }
+    );
+    let pan = null;
+    let touchDist = null;
+    wrap.addEventListener("pointerdown", function (ev) {
+      if (!isChartZoomed() || ev.pointerType === "touch") return;
+      pan = { x: ev.clientX, lo: chartView.lo, hi: chartView.hi };
+      wrap.classList.add("is-panning");
+      try {
+        wrap.setPointerCapture(ev.pointerId);
+      } catch {
+        /* ignore */
+      }
+    });
+    wrap.addEventListener("pointermove", function (ev) {
+      if (!pan) return;
+      const rect = canvas.getBoundingClientRect();
+      const w = pan.hi - pan.lo;
+      const delta = rect.width > 0 ? (-(ev.clientX - pan.x) / rect.width) * w : 0;
+      chartView = { lo: pan.lo + delta, hi: pan.hi + delta };
+      if (chartView.lo < 0) {
+        chartView.hi -= chartView.lo;
+        chartView.lo = 0;
+      }
+      if (chartView.hi > 1) {
+        chartView.lo -= chartView.hi - 1;
+        chartView.hi = 1;
+      }
+      redrawChart();
+    });
+    function endPan(ev) {
+      if (!pan) return;
+      pan = null;
+      wrap.classList.remove("is-panning");
+      try {
+        wrap.releasePointerCapture(ev.pointerId);
+      } catch {
+        /* ignore */
+      }
+    }
+    wrap.addEventListener("pointerup", endPan);
+    wrap.addEventListener("pointercancel", endPan);
+    wrap.addEventListener(
+      "touchstart",
+      function (ev) {
+        if (ev.touches.length === 2) {
+          const dx = ev.touches[0].clientX - ev.touches[1].clientX;
+          const dy = ev.touches[0].clientY - ev.touches[1].clientY;
+          touchDist = Math.hypot(dx, dy);
+        } else if (ev.touches.length === 1 && isChartZoomed()) {
+          pan = { x: ev.touches[0].clientX, lo: chartView.lo, hi: chartView.hi };
+          wrap.classList.add("is-panning");
+        }
+      },
+      { passive: true }
+    );
+    wrap.addEventListener(
+      "touchmove",
+      function (ev) {
+        if (ev.touches.length === 2 && touchDist != null) {
+          ev.preventDefault();
+          const dx = ev.touches[0].clientX - ev.touches[1].clientX;
+          const dy = ev.touches[0].clientY - ev.touches[1].clientY;
+          const dist = Math.hypot(dx, dy);
+          const factor = dist / touchDist;
+          if (Math.abs(factor - 1) > 0.02) {
+            const rect = canvas.getBoundingClientRect();
+            const midX = (ev.touches[0].clientX + ev.touches[1].clientX) * 0.5;
+            const frac = rect.width > 0 ? (midX - rect.left) / rect.width : 0.5;
+            zoomChartView(factor, frac);
+            touchDist = dist;
+          }
+        } else if (pan && ev.touches.length === 1) {
+          ev.preventDefault();
+          const rect = canvas.getBoundingClientRect();
+          const w = pan.hi - pan.lo;
+          const delta = rect.width > 0 ? (-(ev.touches[0].clientX - pan.x) / rect.width) * w : 0;
+          chartView = { lo: pan.lo + delta, hi: pan.hi + delta };
+          if (chartView.lo < 0) {
+            chartView.hi -= chartView.lo;
+            chartView.lo = 0;
+          }
+          if (chartView.hi > 1) {
+            chartView.lo -= chartView.hi - 1;
+            chartView.hi = 1;
+          }
+          redrawChart();
+        }
+      },
+      { passive: false }
+    );
+    wrap.addEventListener(
+      "touchend",
+      function () {
+        touchDist = null;
+        pan = null;
+        wrap.classList.remove("is-panning");
+      },
+      { passive: true }
+    );
+    root.addEventListener("resize", function () {
+      if (chartData) redrawChart();
+    });
+  }
+
   function readForm() {
     return {
       symbol: ($("botSymbol") && $("botSymbol").value) || "BTCUSDT",
@@ -487,7 +682,13 @@
       dd.textContent = (res.mdd * 100).toFixed(1) + "%";
       dd.className = "bot-kpi-val is-down";
     }
-    drawEquity($("botChart"), res.equity, res.marks, res.bandActive);
+    chartData = {
+      eq: res.equity,
+      marks: res.marks,
+      bandActive: res.bandActive,
+    };
+    resetChartView();
+    redrawChart();
   }
 
   function vibrateLite() {
@@ -876,6 +1077,7 @@
     paintAiQuota();
     root.addEventListener("quant-lang", paintAiQuota);
     bindChartMarks();
+    bindChartZoom();
     bindPresetSelect();
     seedBandFromSpot().then(runBacktest);
   }
