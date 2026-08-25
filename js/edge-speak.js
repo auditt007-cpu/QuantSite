@@ -1,10 +1,16 @@
 /**
- * Live-room speech via hub Edge-TTS (MP3 → HTML5 Audio).
- * Passes explicit Edge voice IDs so zh-CN / en stay male.
+ * Live-room speech via hub Edge-TTS (MP3 → shared HTML5 Audio).
+ * Same playback path as promo ads so zh-CN / en stay male (Yunyang / Christopher).
  */
 (function (root) {
   const CACHE_MAX = 48;
   const cache = new Map();
+  const SILENT_WAV =
+    "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAA=";
+
+  let sharedAudio = null;
+  let playbackUnlocked = false;
+  let playToken = 0;
 
   function hubBase() {
     const cfg = root.QUANT_CONFIG || {};
@@ -42,16 +48,19 @@
   function trimCache() {
     while (cache.size > CACHE_MAX) {
       const first = cache.keys().next().value;
-      const hit = cache.get(first);
-      if (hit && hit.url) {
-        try {
-          URL.revokeObjectURL(hit.url);
-        } catch {
-          /* */
-        }
-      }
       cache.delete(first);
     }
+  }
+
+  function ensureSharedAudio() {
+    if (sharedAudio) return sharedAudio;
+    const a = new Audio();
+    a.preload = "auto";
+    a.setAttribute("playsinline", "");
+    a.setAttribute("webkit-playsinline", "");
+    sharedAudio = a;
+    root.currentPromoAudio = a;
+    return a;
   }
 
   async function fetchMp3(text, lang) {
@@ -78,9 +87,10 @@
       mode: "cors",
     });
     if (!res.ok) throw new Error("tts_http_" + res.status);
-    const blob = await res.blob();
-    if (!blob || blob.size < 128) throw new Error("tts_empty");
-    cache.set(key, { blob: blob, url: "" });
+    const raw = await res.arrayBuffer();
+    if (!raw || raw.byteLength < 128) throw new Error("tts_empty");
+    const blob = new Blob([raw], { type: "audio/mpeg" });
+    cache.set(key, { blob: blob });
     trimCache();
     return blob;
   }
@@ -99,8 +109,6 @@
     }
   }
 
-  let playbackUnlocked = false;
-
   async function unlockPlayback(force) {
     if (playbackUnlocked && !force) return true;
     try {
@@ -114,16 +122,34 @@
       /* optional */
     }
     try {
-      const a = new Audio(
-        "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAA="
-      );
+      const a = ensureSharedAudio();
+      a.src = SILENT_WAV;
       a.volume = 0.01;
-      a.setAttribute("playsinline", "");
       await a.play();
+      try {
+        a.pause();
+        a.currentTime = 0;
+      } catch {
+        /* */
+      }
+      a.volume = 1;
       playbackUnlocked = true;
       return true;
     } catch {
       return false;
+    }
+  }
+
+  function stopShared() {
+    playToken += 1;
+    try {
+      const a = sharedAudio;
+      if (!a) return;
+      a.pause();
+      a.removeAttribute("src");
+      a.load();
+    } catch {
+      /* */
     }
   }
 
@@ -132,56 +158,42 @@
       if (!blob) return resolve(false);
       if (typeof isAlive === "function" && !isAlive(gen)) return resolve(false);
 
+      const token = ++playToken;
       let done = false;
       let safetyTimer = null;
+      let url = "";
+      const a = ensureSharedAudio();
+      root.currentPromoAudio = a;
+
       const finish = (ok) => {
         if (done) return;
         done = true;
         if (poll) clearInterval(poll);
         if (safetyTimer) clearTimeout(safetyTimer);
+        if (url) {
+          try {
+            URL.revokeObjectURL(url);
+          } catch {
+            /* */
+          }
+        }
         resolve(!!ok);
       };
 
-      let url;
       try {
         url = URL.createObjectURL(blob);
       } catch {
         return finish(false);
       }
 
-      let a;
-      try {
-        a = new Audio();
-        a.src = url;
-        a.preload = "auto";
-        a.setAttribute("playsinline", "");
-        a.setAttribute("webkit-playsinline", "");
-        root.currentPromoAudio = a;
-      } catch {
-        try {
-          URL.revokeObjectURL(url);
-        } catch {
-          /* */
-        }
-        return finish(false);
-      }
-
       touchMediaSession("QUANT ALPHA · Live Voice");
 
       a.onended = () => {
-        try {
-          URL.revokeObjectURL(url);
-        } catch {
-          /* */
-        }
+        if (token !== playToken) return finish(false);
         finish(true);
       };
       a.onerror = () => {
-        try {
-          URL.revokeObjectURL(url);
-        } catch {
-          /* */
-        }
+        if (token !== playToken) return finish(false);
         finish(false);
       };
 
@@ -189,12 +201,6 @@
         if (typeof isAlive === "function" && !isAlive(gen)) {
           try {
             a.pause();
-            a.currentTime = 0;
-          } catch {
-            /* */
-          }
-          try {
-            URL.revokeObjectURL(url);
           } catch {
             /* */
           }
@@ -202,32 +208,41 @@
         }
       }, 40);
 
-      let started = false;
-      const tryPlay = (retried) => {
-        if (done) return;
+      const tryPlay = (attempt) => {
+        if (done || token !== playToken) return finish(false);
         if (typeof isAlive === "function" && !isAlive(gen)) return finish(false);
+        a.volume = 1;
         const p = a.play();
         if (p && typeof p.then === "function") {
-          p.catch(() => {
-            if (retried || done) return finish(false);
-            unlockPlayback(true).then(() => tryPlay(true)).catch(() => finish(false));
+          p.then(() => {
+            /* playing */
+          }).catch(() => {
+            if (done || token !== playToken) return;
+            if (attempt >= 3) return finish(false);
+            unlockPlayback(true).then(() => {
+              setTimeout(() => tryPlay(attempt + 1), 80);
+            });
           });
         }
       };
 
-      const start = () => {
-        if (started || done) return;
-        started = true;
-        tryPlay(false);
-      };
-      if (a.readyState >= 2) {
-        start();
-      } else {
-        a.addEventListener("canplay", start, { once: true });
+      try {
+        a.src = url;
         a.load();
-        setTimeout(start, 600);
+      } catch {
+        return finish(false);
       }
-      safetyTimer = setTimeout(() => finish(true), 48000);
+
+      const start = () => tryPlay(0);
+      if (a.readyState >= 2) start();
+      else {
+        a.addEventListener("canplay", start, { once: true });
+        setTimeout(start, 400);
+      }
+      safetyTimer = setTimeout(() => {
+        if (!done && a && !a.paused && a.currentTime > 0) finish(true);
+        else finish(!a.paused && a.currentTime > 0);
+      }, 48000);
     });
   }
 
@@ -252,16 +267,36 @@
       } catch {
         /* retry */
       }
-      await new Promise((r) => setTimeout(r, 220 + i * 180));
+      await new Promise((r) => setTimeout(r, 180 + i * 160));
     }
     return false;
   }
 
+  /** Prefetch TTS during chime so play starts immediately after ding. */
+  async function prefetch(text, lang) {
+    const line = String(text || "").trim();
+    if (!line) return null;
+    try {
+      return await fetchMp3(line, normalizeLang(lang));
+    } catch {
+      return null;
+    }
+  }
+
+  async function speakBlob(blob, gen, isAlive) {
+    if (!blob) return false;
+    await unlockPlayback();
+    return playBlob(blob, gen, isAlive);
+  }
+
   root.QAEdgeSpeak = {
     speak: speak,
+    speakBlob: speakBlob,
+    prefetch: prefetch,
     fetchMp3: fetchMp3,
     playBlob: playBlob,
     unlockPlayback: unlockPlayback,
+    stopShared: stopShared,
     touchMediaSession: touchMediaSession,
     edgeVoiceFor: edgeVoiceFor,
     normalizeLang: normalizeLang,

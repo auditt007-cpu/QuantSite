@@ -449,17 +449,22 @@
 
   function killPromoAudio() {
     try {
+      if (window.QAEdgeSpeak && window.QAEdgeSpeak.stopShared) {
+        window.QAEdgeSpeak.stopShared();
+      }
+    } catch {
+      /* */
+    }
+    try {
       const a = state.promoAudio || window.currentPromoAudio;
       if (a) {
         a.pause();
         a.currentTime = 0;
-        a.src = "";
       }
     } catch {
       /* */
     }
     state.promoAudio = null;
-    window.currentPromoAudio = null;
   }
 
   function killSpeech() {
@@ -510,29 +515,26 @@
     return gen === state.speakGen;
   }
 
-  function edgePersonaLang() {
-    const L = voiceLang();
-    return L === "zh-CN" || L === "en";
-  }
-
-  function speakLine(text, gen) {
+  function speakLine(text, gen, prefetchedBlob) {
     return new Promise(async (resolve) => {
       if (!text) return resolve();
       if (gen != null && gen !== state.speakGen) return resolve();
 
-      /* zh-CN / en: same Edge male voices as promo ads (Yunyang / Christopher) — never Web Speech */
       const edge = window.QAEdgeSpeak;
-      if (edge && edge.speak) {
+      if (edge) {
         try {
           if (edge.unlockPlayback) await edge.unlockPlayback();
-          const ok = await edge.speak(text, voiceLang(), gen, speakAlive);
+          let ok = false;
+          if (prefetchedBlob && edge.speakBlob) {
+            ok = await edge.speakBlob(prefetchedBlob, gen, speakAlive);
+          }
+          if (!ok && edge.speak) {
+            ok = await edge.speak(text, voiceLang(), gen, speakAlive);
+          }
           if (ok) return resolve();
         } catch {
-          /* Edge failed */
+          /* fall through to Web Speech — never leave chime-only silence */
         }
-        if (edgePersonaLang()) return resolve();
-      } else if (edgePersonaLang()) {
-        return resolve();
       }
 
       if (!window.speechSynthesis) return resolve();
@@ -541,7 +543,7 @@
       const cfg = api ? api.speechConfig(voiceLang()) : { lang: "zh-TW", rate: 1.08, pitch: 1 };
       const u = new SpeechSynthesisUtterance(text);
       u.lang = cfg.lang;
-      u.rate = typeof cfg.rate === "number" ? cfg.rate : 1.08;
+      u.rate = typeof cfg.rate === "number" ? cfg.rate : 1.05;
       u.pitch = typeof cfg.pitch === "number" ? cfg.pitch : 1;
       u.volume = 1;
       const voice = pickPersonaVoice();
@@ -659,14 +661,35 @@
         const priority = job.priority === PRIORITY_LOW ? PRIORITY_LOW : PRIORITY_HIGH;
         state.audioPriority = priority;
         const gen = state.speakGen;
-        if (job.chime) {
+        let prefBlob = null;
+        const edge = window.QAEdgeSpeak;
+        if (job.text && !job.promoSrc && edge && edge.prefetch) {
+          /* Prefetch TTS while chime plays — closes autoplay gap that killed signal voice */
+          const prefP = edge.prefetch(job.text, voiceLang());
+          if (job.chime) {
+            await playMrtChime();
+            if (!state.voiceOn || gen !== state.speakGen) {
+              try {
+                await prefP;
+              } catch {
+                /* */
+              }
+              continue;
+            }
+          }
+          try {
+            prefBlob = await prefP;
+          } catch {
+            prefBlob = null;
+          }
+        } else if (job.chime) {
           await playMrtChime();
           if (!state.voiceOn || gen !== state.speakGen) continue;
         }
         if (job.promoSrc) {
           await playPromoFile(job.promoSrc, gen);
         } else if (job.text) {
-          await speakLine(job.text, gen);
+          await speakLine(job.text, gen, prefBlob);
         } else {
           continue;
         }
