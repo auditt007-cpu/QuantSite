@@ -399,9 +399,9 @@
 
   function loadVoicePref() {
     try {
-      return localStorage.getItem(MUTE_KEY) !== "0";
+      return localStorage.getItem(MUTE_KEY) === "1";
     } catch {
-      return true;
+      return false;
     }
   }
 
@@ -1041,6 +1041,22 @@
     if (state.voiceOn) {
       startIdleAdWatch();
       icebreakerVoice();
+      const unlockOnce = function () {
+        document.removeEventListener("pointerdown", unlockOnce, true);
+        if (!state.voiceOn) return;
+        resumeAudioContext();
+        const edge = window.QAEdgeSpeak;
+        const p =
+          edge && typeof edge.unlockPlayback === "function"
+            ? edge.unlockPlayback(true)
+            : Promise.resolve(true);
+        p.then(function () {
+          icebreakerVoice();
+        }).catch(function () {
+          icebreakerVoice();
+        });
+      };
+      document.addEventListener("pointerdown", unlockOnce, true);
     }
   }
 

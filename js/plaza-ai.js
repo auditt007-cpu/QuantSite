@@ -504,8 +504,8 @@
     const rows = [];
     let booked = 0;
     let feeSum = 0;
-    const buy = t("mktTapeBuy", "GRID BUY");
-    const sell = t("mktTapeSell", "GRID SELL");
+    const buy = t("mktTapeBuy", "BUY");
+    const sell = t("mktTapeSell", "SELL");
     slots.forEach(function (s, i) {
       const pnl = s.win ? winMag * (s.w / (sumWinW || 1)) : -lossMag * (s.w / (sumLossW || 1));
       let fee = feeSide * (0.88 + rng() * 0.24);

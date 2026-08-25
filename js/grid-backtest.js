@@ -176,12 +176,21 @@
   async function loadBars(symbol, days) {
     const spec = periodSpec(days);
     const key = symbol + "|" + spec.interval + "|" + spec.limit;
-    if (CACHE[key] && Date.now() - CACHE[key].at < 180000) return CACHE[key].bars;
+    if (CACHE[key] && Date.now() - CACHE[key].at < 180000) {
+      return sliceBarsToDays(CACHE[key].bars, days);
+    }
     const feed = root.QAFeed;
     let bars = [];
     if (feed && typeof feed.fetchKlines === "function") {
       try {
-        bars = await feed.fetchKlines(symbol, spec.interval, spec.limit);
+        bars = await Promise.race([
+          feed.fetchKlines(symbol, spec.interval, spec.limit),
+          new Promise(function (resolve) {
+            setTimeout(function () {
+              resolve([]);
+            }, 14000);
+          }),
+        ]);
       } catch {
         bars = [];
       }
@@ -190,7 +199,19 @@
       bars = root.QAOffline.forInterval(spec.interval);
     }
     if (bars && bars.length) CACHE[key] = { at: Date.now(), bars: bars };
-    return bars || [];
+    return sliceBarsToDays(bars || [], days);
+  }
+
+  function sliceBarsToDays(bars, days) {
+    if (!bars || !bars.length) return bars || [];
+    const d = Math.max(1, Number(days) || 30);
+    const last = Number(bars[bars.length - 1].time);
+    if (!Number.isFinite(last)) return bars;
+    const cut = last - d * 86400;
+    const out = bars.filter(function (b) {
+      return Number(b.time) >= cut;
+    });
+    return out.length >= 8 ? out : bars;
   }
 
   function fmtPct(n, digits) {
@@ -386,7 +407,10 @@
     const plotW = w - pad.l - pad.r;
     const plotH = h - pad.t - pad.b;
     const bands = Array.isArray(bandActive) ? bandActive : [];
-    const xFrac = buildTimeMap(bands, vT0, vT1);
+    const daySpan = (tFull1 - tFull0) / 86400;
+    const xFrac = daySpan <= 8 ? function (sec) {
+      return (sec - vT0) / vSpan;
+    } : buildTimeMap(bands, vT0, vT1);
     const xAtTime = function (sec) {
       return pad.l + xFrac(sec) * plotW;
     };
@@ -830,6 +854,7 @@
     document.querySelectorAll(".bot-days").forEach(function (b) {
       b.classList.toggle("is-on", Number(b.getAttribute("data-days")) === Number(n));
     });
+    resetChartView();
   }
 
   function setMode(geo) {
@@ -837,6 +862,42 @@
       const isGeo = b.getAttribute("data-mode") === "geo";
       b.classList.toggle("is-on", !!geo === isGeo);
     });
+  }
+
+  function fmtGridStep(v) {
+    const x = Math.abs(Number(v));
+    if (!Number.isFinite(x) || x === 0) return "";
+    if (x >= 100) return Number(v).toFixed(1);
+    if (x >= 1) return Number(v).toFixed(2);
+    if (x >= 0.01) return Number(v).toFixed(4);
+    return Number(v).toFixed(6);
+  }
+
+  function paintGridStep() {
+    const el = $("botGridStep");
+    if (!el) return;
+    const lo = Number($("botLower") && $("botLower").value);
+    const hi = Number($("botUpper") && $("botUpper").value);
+    const n = Math.max(2, Math.round(Number($("botGrids") && $("botGrids").value) || 2));
+    if (!(hi > lo)) {
+      el.textContent = "";
+      return;
+    }
+    el.textContent = fmtGridStep((hi - lo) / (n - 1));
+  }
+
+  let modeHintT = 0;
+  function flashModeHint(geo) {
+    const el = $("botModeHint");
+    if (!el) return;
+    el.hidden = false;
+    el.textContent = geo
+      ? t("botGeoHint", "越往上，每一格隔得越寬")
+      : t("botArithHint", "每一格隔開的價錢一樣多");
+    clearTimeout(modeHintT);
+    modeHintT = setTimeout(function () {
+      el.hidden = true;
+    }, 3200);
   }
 
   const kpiPrev = { apy: null, trades: null, sharpe: null, mdd: null };
@@ -970,17 +1031,19 @@
     }
   }
 
-  let running = false;
+  let runSeq = 0;
   async function runBacktest() {
-    if (running) return;
-    running = true;
+    const seq = ++runSeq;
     const status = $("botStatus");
     if (status) status.textContent = t("botRunning", "回測運算中…");
     try {
       const cfg = readForm();
       const bars = await loadBars(cfg.symbol, cfg.days);
+      if (seq !== runSeq) return;
       const res = simulate(bars, cfg);
+      if (seq !== runSeq) return;
       paintStats(res);
+      paintGridStep();
       if (status) {
         status.textContent = res.ok
           ? t("botDone", "已用真實 K 線完成本機回測（含 4bps 來回成本）")
@@ -988,9 +1051,9 @@
       }
       if (res.ok) scrollToResults();
     } catch (err) {
+      if (seq !== runSeq) return;
       if (status) status.textContent = t("botFail", "K 線不足，請稍後再試");
     }
-    running = false;
   }
 
   function debounce(fn, ms) {
@@ -1016,6 +1079,7 @@
       $("botUpper").value = (px * 1.12).toFixed(px >= 100 ? 1 : 4);
     }
     syncBandTrack();
+    paintGridStep();
   }
 
   function loadPreset(id) {
@@ -1486,6 +1550,7 @@
       hiEl.setAttribute("data-lock", "1");
     }
     syncBandTrack();
+    paintGridStep();
     runDebounced();
   }
 
@@ -1573,8 +1638,10 @@
     const go = $("botGridsOut");
     if (g && go) {
       go.textContent = g.value;
+      paintGridStep();
       g.addEventListener("input", function () {
         go.textContent = g.value;
+        paintGridStep();
         runDebounced();
       });
     }
@@ -1584,14 +1651,17 @@
       el.addEventListener("change", function () {
         if (id === "botLower" || id === "botUpper") el.setAttribute("data-lock", "1");
         syncBandTrack();
+        paintGridStep();
         runDebounced();
       });
       el.addEventListener("input", function () {
         syncBandTrack();
+        paintGridStep();
         runDebounced();
       });
     });
     bindBandDrag();
+    paintGridStep();
     document.querySelectorAll(".bot-lev").forEach(function (b) {
       b.addEventListener("click", function () {
         setLev(b.getAttribute("data-lev"));
@@ -1606,7 +1676,10 @@
     });
     document.querySelectorAll(".bot-mode").forEach(function (b) {
       b.addEventListener("click", function () {
-        setMode(b.getAttribute("data-mode") === "geo");
+        const geo = b.getAttribute("data-mode") === "geo";
+        setMode(geo);
+        flashModeHint(geo);
+        paintGridStep();
         runDebounced();
       });
     });
