@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-25T05:42:08Z",
+  "updated_at": "2026-08-25T05:44:25Z",
   "period_hours": 3,
   "poll_sec": 5,
   "scan_tf": "15m+1h",
@@ -790,15 +790,45 @@
   "exec_log": [
     {
       "kind": "batch",
+      "name_zh": "布林微破",
+      "interval": "5m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787636666,
+      "bar_ts": 1787636100,
+      "event": "open",
+      "strategy_id": "hb-bb5",
+      "symbols": [
+        {
+          "symbol": "ONDOUSDT",
+          "price": 0.39564,
+          "sl_pct": -0.38747346072187006,
+          "tp_pct": 0.7749469214437401,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
       "name_zh": "5m動能微破",
       "interval": "5m",
       "side": "SHORT",
       "action": "空頭開倉 (SELL)",
-      "logged_at": 1787636467,
+      "logged_at": 1787636665,
       "bar_ts": 1787636100,
       "event": "open",
       "strategy_id": "hb-roc5",
       "symbols": [
+        {
+          "symbol": "SOLUSDT",
+          "price": 102.15,
+          "sl_pct": -0.4382829172785086,
+          "tp_pct": 0.8765658345570313,
+          "event": "open",
+          "pnl_pct": null
+        },
         {
           "symbol": "NEARUSDT",
           "price": 2.0003,
@@ -824,7 +854,7 @@
           "pnl_pct": null
         }
       ],
-      "strategy_count": 3
+      "strategy_count": 4
     },
     {
       "kind": "batch",
@@ -1405,29 +1435,7 @@
         }
       ],
       "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "Dual Thrust",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787635287,
-      "bar_ts": 1787634900,
-      "event": "open",
-      "strategy_id": "dual_15m_37",
-      "symbols": [
-        {
-          "symbol": "APTUSDT",
-          "price": 0.619,
-          "sl_pct": -0.7273021001615518,
-          "tp_pct": 1.4546042003231037,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
     }
   ],
-  "exec_log_raw_count": 59
+  "exec_log_raw_count": 61
 }
