@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-25T05:57:29Z",
+  "updated_at": "2026-08-25T05:59:38Z",
   "period_hours": 3,
   "poll_sec": 5,
   "scan_tf": "15m+1h",
@@ -792,6 +792,50 @@
       "kind": "batch",
       "name_zh": "複合動能確認",
       "interval": "15m",
+      "side": "LONG",
+      "action": "空頭平倉翻多 (BUY)",
+      "logged_at": 1787637518,
+      "bar_ts": 1787636700,
+      "event": "open",
+      "strategy_id": "combo_15m_41",
+      "symbols": [
+        {
+          "symbol": "RENDERUSDT",
+          "price": 1.5502,
+          "sl_pct": -0.7237130692813888,
+          "tp_pct": 1.4474261385627634,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "複合動能確認",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787637517,
+      "bar_ts": 1787636700,
+      "event": "close",
+      "strategy_id": "combo_15m_41",
+      "symbols": [
+        {
+          "symbol": "RENDERUSDT",
+          "price": 1.5502,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.9902280130293227
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "複合動能確認",
+      "interval": "15m",
       "side": "SHORT",
       "action": "多頭平倉翻空 (SELL)",
       "logged_at": 1787637389,
@@ -839,50 +883,6 @@
         }
       ],
       "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "複合動能確認",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787637325,
-      "bar_ts": 1787636700,
-      "event": "open",
-      "strategy_id": "combo_15m_41",
-      "symbols": [
-        {
-          "symbol": "RENDERUSDT",
-          "price": 1.5502,
-          "sl_pct": -0.7237130692813888,
-          "tp_pct": 1.4474261385627634,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "複合動能確認",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787637324,
-      "bar_ts": 1787636700,
-      "event": "close",
-      "strategy_id": "combo_15m_41",
-      "symbols": [
-        {
-          "symbol": "RENDERUSDT",
-          "price": 1.5502,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.9902280130293227
-        }
-      ],
-      "strategy_count": 1
     },
     {
       "kind": "batch",
@@ -1413,5 +1413,5 @@
       "strategy_count": 4
     }
   ],
-  "exec_log_raw_count": 103
+  "exec_log_raw_count": 105
 }
