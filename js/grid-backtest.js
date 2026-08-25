@@ -8,6 +8,7 @@
     btc: { symbol: "BTCUSDT", lowerMult: 0.72, upperMult: 1.28, grids: 40, leverage: 3, geo: false, days: 90 },
     sol: { symbol: "SOLUSDT", lowerMult: 0.78, upperMult: 1.22, grids: 110, leverage: 7, geo: true, days: 30 },
   };
+  const DYNAMIC_PRESETS = {};
 
   function t(key, fb) {
     if (root.QALang && typeof root.QALang.t === "function") {
@@ -126,7 +127,8 @@
 
     const last = eq[eq.length - 1].v;
     const days = Math.max(1 / 24, (bars[bars.length - 1].time - bars[0].time) / 86400);
-    const apy = (last - 1) * (365 / days);
+    const periodRet = last - 1;
+    const apy = periodRet * (365 / days);
     const rets = [];
     for (let i = 1; i < eq.length; i += 1) {
       const a = eq[i - 1].v;
@@ -148,6 +150,7 @@
 
     return {
       ok: true,
+      periodRet: periodRet,
       apy: apy,
       trades: sells,
       buys: buys,
@@ -788,6 +791,7 @@
     const n = $("botTrades");
     const sh = $("botSharpe");
     const dd = $("botDd");
+    const lab = apy && apy.parentElement && apy.parentElement.querySelector(".bot-kpi-lab");
     if (!res || !res.ok) {
       kpiPrev.apy = null;
       kpiPrev.trades = null;
@@ -797,20 +801,27 @@
       if (n) n.textContent = "—";
       if (sh) sh.textContent = "—";
       if (dd) dd.textContent = "—";
+      if (lab) lab.textContent = t("botApy", "區間報酬率");
       return;
     }
+    const periodVal = Number.isFinite(res.periodRet) ? res.periodRet : res.last - 1;
+    const daysLab = Number.isFinite(res.days) ? Math.max(1, Math.round(res.days)) : null;
+    if (lab) {
+      lab.textContent =
+        t("botApy", "區間報酬率") + (daysLab ? " · " + daysLab + "d" : "");
+    }
     let changed = false;
-    if (apy && res.apy !== kpiPrev.apy) {
+    if (apy && periodVal !== kpiPrev.apy) {
       changed = true;
       const prev = kpiPrev.apy;
-      animateKpi(apy, prev, res.apy, {
+      animateKpi(apy, prev, periodVal, {
         fmt: function (v) {
           return fmtPct(v, 1);
         },
-        down: Number.isFinite(prev) && res.apy < prev,
+        down: Number.isFinite(prev) && periodVal < prev,
       });
-      apy.className = "bot-kpi-val " + (res.apy >= 0 ? "is-up" : "is-down");
-      kpiPrev.apy = res.apy;
+      apy.className = "bot-kpi-val " + (periodVal >= 0 ? "is-up" : "is-down");
+      kpiPrev.apy = periodVal;
     }
     if (n && res.trades !== kpiPrev.trades) {
       changed = true;
@@ -920,7 +931,7 @@
   }
 
   function loadPreset(id) {
-    const p = PRESETS[id];
+    const p = DYNAMIC_PRESETS[id] || PRESETS[id];
     if (!p) return;
     if ($("botSymbol")) $("botSymbol").value = p.symbol;
     setLev(p.leverage);
@@ -933,17 +944,173 @@
     loadBars(p.symbol, p.days).then(function (bars) {
       const px = bars.length ? Number(bars[bars.length - 1].close) : 0;
       if (px > 0) {
+        const lo = Number.isFinite(p.lower) ? p.lower : px * p.lowerMult;
+        const hi = Number.isFinite(p.upper) ? p.upper : px * p.upperMult;
         if ($("botLower")) {
-          $("botLower").value = (px * p.lowerMult).toFixed(px >= 100 ? 1 : 4);
+          $("botLower").value = Number(lo).toFixed(px >= 100 ? 1 : 4);
           $("botLower").setAttribute("data-lock", "1");
         }
         if ($("botUpper")) {
-          $("botUpper").value = (px * p.upperMult).toFixed(px >= 100 ? 1 : 4);
+          $("botUpper").value = Number(hi).toFixed(px >= 100 ? 1 : 4);
           $("botUpper").setAttribute("data-lock", "1");
         }
       }
       runBacktest();
     });
+  }
+
+  function gridRetOf(row) {
+    const m = row.metrics || {};
+    let r = Number(row.return_pct);
+    if (!Number.isFinite(r)) r = Number(m.return_pct);
+    if (!Number.isFinite(r) && Number.isFinite(Number(m.backtest_apy_pct))) {
+      // Prefer period return; APY is not used for ranking when period ret missing
+      r = null;
+    }
+    return Number.isFinite(r) ? r : -Infinity;
+  }
+
+  function isGridStrategy(row) {
+    if (!row || typeof row !== "object") return false;
+    if (String(row.strategy_type || "").toUpperCase() === "GRID") return true;
+    if (row.subtype && /GRID/i.test(String(row.subtype))) return true;
+    const blob = [row.title, row.name, row.id, row.copy].join(" ").toLowerCase();
+    return /grid|網格|网格/.test(blob);
+  }
+
+  function fmtRetPct(frac) {
+    if (!Number.isFinite(frac)) return "—";
+    const pct = Math.abs(frac) <= 5 ? frac * 100 : frac;
+    const sign = pct > 0 ? "+" : "";
+    return sign + pct.toFixed(1) + "%";
+  }
+
+  function renderTopGridCards(rows) {
+    const grid = $("botPresetGrid");
+    const sel = $("botPresetSelect");
+    if (!grid) return;
+    Object.keys(DYNAMIC_PRESETS).forEach(function (k) {
+      delete DYNAMIC_PRESETS[k];
+    });
+    const top = (rows || []).slice(0, 3);
+    if (!top.length) {
+      // Fallback: classic eth/btc/sol presets
+      ["eth", "btc", "sol"].forEach(function (id) {
+        const p = PRESETS[id];
+        DYNAMIC_PRESETS[id] = Object.assign({ title: id.toUpperCase() + " grid" }, p);
+      });
+      top.push(
+        { id: "eth", title: "ETH 智能震盪網格", return_pct: null, _fallback: "eth" },
+        { id: "btc", title: "BTC 寬幅防破網格", return_pct: null, _fallback: "btc" },
+        { id: "sol", title: "SOL 突破動量網格", return_pct: null, _fallback: "sol" }
+      );
+    }
+    const cards = [];
+    const opts = ['<option value="" data-i18n="botPresetNone">' + t("botPresetNone", "— 手動調參 —") + "</option>"];
+    top.forEach(function (row, i) {
+      const pid = row._fallback || "g" + i;
+      const gp = row.grid_params || {};
+      const symRaw = String(row.symbol || gp.symbol || "ETH/USDT");
+      const symbol = symRaw.replace("/", "").replace("-", "");
+      const lev = clamp(Number(gp.leverage) || 5, 1, 10);
+      const grids = clamp(Number(gp.grids_count) || 60, 20, 150);
+      const geo = String(gp.grid_mode || "").toLowerCase() === "geometric";
+      const days = clamp(Number(row.period_days) || Number(row.backtest_days) || 30, 7, 90);
+      const preset = {
+        symbol: /USDT$/i.test(symbol) ? symbol : symbol + "USDT",
+        leverage: lev,
+        grids: grids,
+        geo: geo,
+        days: days,
+        lowerMult: 0.85,
+        upperMult: 1.15,
+        title: row.title || row.name || row.subtype || pid,
+      };
+      if (Number.isFinite(Number(gp.lower_price)) && Number(gp.lower_price) > 0) {
+        preset.lower = Number(gp.lower_price);
+      }
+      if (Number.isFinite(Number(gp.upper_price)) && Number(gp.upper_price) > 0) {
+        preset.upper = Number(gp.upper_price);
+      }
+      if (row._fallback && PRESETS[row._fallback]) {
+        Object.assign(preset, PRESETS[row._fallback]);
+      }
+      DYNAMIC_PRESETS[pid] = preset;
+      const retTxt = fmtRetPct(gridRetOf(row));
+      const sub = row.subtype || "GRID";
+      const title = preset.title;
+      cards.push(
+        '<article class="bot-card">' +
+          "<h3>" +
+          title +
+          "</h3>" +
+          "<p>" +
+          sub +
+          " · " +
+          t("botApy", "區間報酬率") +
+          " " +
+          retTxt +
+          "</p>" +
+          '<div class="bot-card-meta">' +
+          preset.symbol.replace("USDT", "/USDT") +
+          " · " +
+          lev +
+          "x · " +
+          (geo ? t("botGeo", "等比") : t("botArith", "等差")) +
+          " · " +
+          days +
+          "d</div>" +
+          '<div class="bot-card-actions">' +
+          '<button type="button" data-bot-preset="' +
+          pid +
+          '">' +
+          t("botLoad", "一鍵載入參數") +
+          "</button>" +
+          '<button type="button" class="solid" data-bot-deploy="' +
+          pid +
+          '">' +
+          t("botDeployCard", "一鍵部署") +
+          "</button>" +
+          "</div></article>"
+      );
+      opts.push('<option value="' + pid + '">' + title + " (" + retTxt + ")</option>");
+    });
+    grid.innerHTML = cards.join("");
+    if (sel) sel.innerHTML = opts.join("");
+    grid.querySelectorAll("[data-bot-preset]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        const id = b.getAttribute("data-bot-preset");
+        loadPreset(id);
+        if (sel && id) sel.value = id;
+      });
+    });
+    grid.querySelectorAll("[data-bot-deploy]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        const id = b.getAttribute("data-bot-deploy");
+        if (id) loadPreset(id);
+        openDeployModal();
+      });
+    });
+  }
+
+  async function loadTopGridStrategies() {
+    const urls = ["./strategies.json?_=" + Date.now(), "/strategies.json?_=" + Date.now()];
+    let rows = [];
+    for (let i = 0; i < urls.length; i += 1) {
+      try {
+        const res = await fetch(urls[i], { cache: "no-store" });
+        if (!res.ok) continue;
+        const data = await res.json();
+        rows = Array.isArray(data.strategies) ? data.strategies : [];
+        break;
+      } catch {
+        /* next */
+      }
+    }
+    const grids = rows.filter(isGridStrategy).sort(function (a, b) {
+      return gridRetOf(b) - gridRetOf(a);
+    });
+    renderTopGridCards(grids);
   }
 
   /* ---- AI tune (quota: guest 3 / logged-in 10 / paid unlimited) ---- */
@@ -1243,7 +1410,9 @@
     root.addEventListener("quant-lang", paintAiQuota);
     bindChartInteraction();
     bindPresetSelect();
-    seedBandFromSpot().then(runBacktest);
+    loadTopGridStrategies().finally(function () {
+      seedBandFromSpot().then(runBacktest);
+    });
   }
 
   function bindPresetSelect() {

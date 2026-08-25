@@ -311,6 +311,7 @@
         pf: Number.isFinite(lb.profit_factor) ? lb.profit_factor : null,
         mdd: Number.isFinite(lb.max_drawdown) ? lb.max_drawdown : null,
         trades: Number.isFinite(lb.trades) ? lb.trades : null,
+        periodDays: Number(lb.period_days) || Number((window.__QA_LB && window.__QA_LB.period_days) || 60),
         source: "leaderboard",
       };
     }
@@ -332,12 +333,17 @@
       wrN = Number(s.win_rate);
       if (wrN > 1) wrN = wrN / 100;
     }
+    let periodDays = Number(s.period_days || s.backtest_days || m.period_days);
+    if (!Number.isFinite(periodDays) || periodDays < 1) {
+      periodDays = s.ai || String(s.strategy_type || "").toUpperCase() === "GRID" ? 120 : 60;
+    }
     return {
       wr: wrN,
       sh: Number.isFinite(sh) ? sh : null,
       ret: ret != null ? ret : null,
       pf: Number.isFinite(Number(s.profit_factor)) ? Number(s.profit_factor) : null,
       mdd: mdd,
+      periodDays: periodDays,
       source: s.ai ? "pipeline" : "pack",
     };
   }
@@ -581,6 +587,7 @@
       win_rate: seed.wr != null ? seed.wr : s.win_rate,
       max_drawdown: seed.mdd != null ? seed.mdd : s.max_drawdown,
       return_pct: seed.ret != null ? seed.ret : s.return_pct,
+      period_days: seed.periodDays != null ? seed.periodDays : s.period_days,
       principle: briefCopy(s.principle || s.description || s.copy || ""),
       description: s.description || s.copy || s.principle || "",
       copy: s.copy || s.description || s.principle || "",

@@ -209,6 +209,12 @@
     return Math.round(x).toLocaleString("en-US");
   }
 
+  function retLabel(days) {
+    const d = Number.isFinite(Number(days)) && Number(days) > 0 ? Math.round(Number(days)) : 60;
+    const tpl = t("mktRet", "回測{d}日區間報酬");
+    return String(tpl).replace(/\{d\}/g, String(d));
+  }
+
   function metricsBoardHtml(seed) {
     const sh = fmtSharpe(seed.sh);
     const wr = fmtWr(seed.wr);
@@ -219,6 +225,8 @@
     const mddCls = mdd !== "—" ? " is-down" : "";
     const wrCls = wr !== "—" ? " is-up" : "";
     const retCls = seed.ret == null ? "" : Number(seed.ret) >= 0 ? " is-up" : " is-down";
+    const retLab = retLabel(seed.periodDays);
+    const retTip = t("mktRetTip", "指定回測窗口內的累積報酬（非整年年化）");
     return (
       '<div class="stat-caps plaza-metrics">' +
       '<div class="stat-cap"><span>' +
@@ -226,13 +234,17 @@
       "</span><b>" +
       sh +
       "</b></div>" +
-      '<div class="stat-cap"><span>' +
-      t("mktRet", "樣本收益") +
+      '<div class="stat-cap" title="' +
+      retTip +
+      '"><span>' +
+      retLab +
       "</span><b class=\"" +
       retCls.trim() +
       '">' +
       ret +
-      "</b></div>" +
+      "</b><em class=\"stat-tip\">" +
+      retTip +
+      "</em></div>" +
       '<div class="stat-cap"><span>' +
       t("mktWr", "命中率") +
       '</span><b class="' +
@@ -377,6 +389,10 @@
     const sh = s.sharpe != null ? Number(s.sharpe) : null;
     const pf = Number(s.profit_factor);
     const trades = Number(s.trades);
+    let periodDays = Number(s.period_days || s.backtest_days || s.periodDays);
+    if (!Number.isFinite(periodDays) || periodDays < 1) {
+      periodDays = s.ai || String(s.strategy_type || "").toUpperCase() === "GRID" ? 120 : 60;
+    }
     return {
       wr: Number.isFinite(wr) ? wr : null,
       sh: Number.isFinite(sh) ? sh : null,
@@ -384,6 +400,7 @@
       ret: Number.isFinite(Number(s.return_pct)) ? Number(s.return_pct) : null,
       pf: Number.isFinite(pf) && pf > 0 ? pf : null,
       trades: Number.isFinite(trades) && trades > 0 ? trades : null,
+      periodDays: periodDays,
     };
   }
 

@@ -122,6 +122,8 @@ async def publish_grid(row: dict) -> None:
         "name": title,
         "symbol": row["symbol"],
         "timeframe": row.get("timeframe") or "15m",
+        "period_days": 120,
+        "backtest_days": 120,
         "grid_params": row.get("grid_params") or {},
         "metrics": {
             "backtest_apy_pct": round(apy, 1),
