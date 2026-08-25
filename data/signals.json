@@ -1,8 +1,192 @@
 {
-  "updated_at": "2026-08-25T09:25:45Z",
+  "updated_at": "2026-08-25T09:27:51Z",
   "venue": "coinbase",
   "poll_sec": 5,
   "exec_log": [
+    {
+      "kind": "batch",
+      "name_zh": "複合動能確認",
+      "interval": "1h",
+      "side": "LONG",
+      "action": "空頭平倉翻多 (BUY)",
+      "logged_at": 1787650011,
+      "bar_ts": 1787648400,
+      "event": "open",
+      "strategy_id": "combo_1h_42",
+      "symbols": [
+        {
+          "symbol": "SHIBUSDT",
+          "price": 5.51e-06,
+          "sl_pct": -9.255898366606159,
+          "tp_pct": 8.892921960072602,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "ROC10動能",
+      "interval": "1h",
+      "side": "LONG",
+      "action": "空頭平倉翻多 (BUY)",
+      "logged_at": 1787650012,
+      "bar_ts": 1787648400,
+      "event": "open",
+      "strategy_id": "roc10_1h_30",
+      "symbols": [
+        {
+          "symbol": "SHIBUSDT",
+          "price": 5.51e-06,
+          "sl_pct": -9.255898366606159,
+          "tp_pct": 8.892921960072602,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "XRPUSDT",
+          "price": 1.49,
+          "sl_pct": -1.627516778523482,
+          "tp_pct": 3.255033557046979,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
+      "name_zh": "複合動能確認",
+      "interval": "1h",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787650011,
+      "bar_ts": 1787648400,
+      "event": "close",
+      "strategy_id": "combo_1h_42",
+      "symbols": [
+        {
+          "symbol": "SHIBUSDT",
+          "price": 5.51e-06,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -1.6605166051660514
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "ROC10動能",
+      "interval": "1h",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787650010,
+      "bar_ts": 1787648400,
+      "event": "close",
+      "strategy_id": "roc10_1h_30",
+      "symbols": [
+        {
+          "symbol": "SHIBUSDT",
+          "price": 5.51e-06,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -1.6605166051660514
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "ROC20動能",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "空頭平倉翻多 (BUY)",
+      "logged_at": 1787649948,
+      "bar_ts": 1787649300,
+      "event": "open",
+      "strategy_id": "roc20_15m_31",
+      "symbols": [
+        {
+          "symbol": "INJUSDT",
+          "price": 6.006,
+          "sl_pct": -0.5577422577422545,
+          "tp_pct": 1.1154678654678567,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "ROC20動能",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787649949,
+      "bar_ts": 1787649300,
+      "event": "close",
+      "strategy_id": "roc20_15m_31",
+      "symbols": [
+        {
+          "symbol": "INJUSDT",
+          "price": 6.006,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -1.4869888475836444
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "5m動能微破",
+      "interval": "5m",
+      "side": "LONG",
+      "action": "空頭平倉翻多 (BUY)",
+      "logged_at": 1787649948,
+      "bar_ts": 1787649600,
+      "event": "open",
+      "strategy_id": "hb-roc5",
+      "symbols": [
+        {
+          "symbol": "SOLUSDT",
+          "price": 100.47,
+          "sl_pct": -0.3319657609236508,
+          "tp_pct": 0.6639325171693,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "5m動能微破",
+      "interval": "5m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787649947,
+      "bar_ts": 1787649600,
+      "event": "close",
+      "strategy_id": "hb-roc5",
+      "symbols": [
+        {
+          "symbol": "SOLUSDT",
+          "price": 100.47,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
     {
       "kind": "batch",
       "name_zh": "ROC20動能",
@@ -71,28 +255,6 @@
     },
     {
       "kind": "batch",
-      "name_zh": "ROC20動能",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787649760,
-      "bar_ts": 1787649300,
-      "event": "open",
-      "strategy_id": "roc20_15m_31",
-      "symbols": [
-        {
-          "symbol": "INJUSDT",
-          "price": 6.006,
-          "sl_pct": -0.5577422577422545,
-          "tp_pct": 1.1154678654678567,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
       "name_zh": "樞軸點突破",
       "interval": "15m",
       "side": "LONG",
@@ -120,28 +282,6 @@
         }
       ],
       "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "ROC20動能",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787649758,
-      "bar_ts": 1787649300,
-      "event": "close",
-      "strategy_id": "roc20_15m_31",
-      "symbols": [
-        {
-          "symbol": "INJUSDT",
-          "price": 6.006,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -1.4869888475836444
-        }
-      ],
-      "strategy_count": 1
     },
     {
       "kind": "batch",
@@ -410,7 +550,7 @@
         },
         {
           "symbol": "SOLUSDT",
-          "price": 100.49,
+          "price": 100.37,
           "sl_pct": null,
           "tp_pct": null,
           "event": "open",
@@ -434,102 +574,6 @@
         }
       ],
       "strategy_count": 7
-    },
-    {
-      "kind": "batch",
-      "name_zh": "複合動能確認",
-      "interval": "1h",
-      "side": "LONG",
-      "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787649381,
-      "bar_ts": 1787648400,
-      "event": "open",
-      "strategy_id": "combo_1h_42",
-      "symbols": [
-        {
-          "symbol": "SHIBUSDT",
-          "price": 5.51e-06,
-          "sl_pct": -9.255898366606159,
-          "tp_pct": 8.892921960072602,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "ROC10動能",
-      "interval": "1h",
-      "side": "LONG",
-      "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787649380,
-      "bar_ts": 1787648400,
-      "event": "open",
-      "strategy_id": "roc10_1h_30",
-      "symbols": [
-        {
-          "symbol": "SHIBUSDT",
-          "price": 5.51e-06,
-          "sl_pct": -9.255898366606159,
-          "tp_pct": 8.892921960072602,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "XRPUSDT",
-          "price": 1.49,
-          "sl_pct": -1.627516778523482,
-          "tp_pct": 3.255033557046979,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "複合動能確認",
-      "interval": "1h",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787649379,
-      "bar_ts": 1787648400,
-      "event": "close",
-      "strategy_id": "combo_1h_42",
-      "symbols": [
-        {
-          "symbol": "SHIBUSDT",
-          "price": 5.51e-06,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -1.6605166051660514
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "ROC10動能",
-      "interval": "1h",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787649380,
-      "bar_ts": 1787648400,
-      "event": "close",
-      "strategy_id": "roc10_1h_30",
-      "symbols": [
-        {
-          "symbol": "SHIBUSDT",
-          "price": 5.51e-06,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -1.6605166051660514
-        }
-      ],
-      "strategy_count": 1
     },
     {
       "kind": "batch",
@@ -571,50 +615,6 @@
           "tp_pct": 0.7235780765253393,
           "event": "open",
           "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "Dual Thrust",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787649320,
-      "bar_ts": 1787649300,
-      "event": "close",
-      "strategy_id": "dual_15m_37",
-      "symbols": [
-        {
-          "symbol": "NEARUSDT",
-          "price": 1.934,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 2.160165933120856
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "成交量價差VSA",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787649318,
-      "bar_ts": 1787649300,
-      "event": "close",
-      "strategy_id": "vsa_15m_27",
-      "symbols": [
-        {
-          "symbol": "AAVEUSDT",
-          "price": 129.66,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -1.2340036563071333
         }
       ],
       "strategy_count": 1
