@@ -4,7 +4,7 @@ body.bots-page .wrap {
 }
 
 .bots-hero {
-  padding: 28px 0 20px;
+  padding: 20px 0 14px;
   border-bottom: 1px solid #000;
 }
 
@@ -14,12 +14,12 @@ body.bots-page .wrap {
   letter-spacing: 0.22em;
   font-weight: 800;
   color: #000;
-  margin: 0 0 10px;
+  margin: 0 0 8px;
 }
 
 .bots-hero h1 {
-  margin: 0 0 10px;
-  font-size: clamp(24px, 3.4vw, 36px);
+  margin: 0 0 8px;
+  font-size: clamp(22px, 3.2vw, 34px);
   letter-spacing: -0.03em;
   font-weight: 800;
   color: #000;
@@ -28,16 +28,17 @@ body.bots-page .wrap {
 .bots-lead {
   margin: 0;
   max-width: 48rem;
-  font-size: 15px;
-  line-height: 1.6;
+  font-size: 14px;
+  line-height: 1.55;
   color: #111;
 }
 
 .bot-console {
   display: grid;
-  grid-template-columns: minmax(280px, 380px) 1fr;
+  grid-template-columns: minmax(280px, 400px) 1fr;
   gap: 16px;
-  padding: 20px 0 8px;
+  padding: 16px 0 8px;
+  align-items: start;
 }
 
 .bot-panel,
@@ -45,13 +46,13 @@ body.bots-page .wrap {
   border: 1px solid #000;
   background: #fff;
   border-radius: 4px;
-  padding: 14px;
+  padding: 12px;
 }
 
 .bot-panel h2,
 .bot-stats h2,
 .bot-presets h2 {
-  margin: 0 0 12px;
+  margin: 0 0 10px;
   font-size: 13px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -61,19 +62,21 @@ body.bots-page .wrap {
 .bot-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 12px;
+  gap: 4px;
+  margin-bottom: 10px;
 }
 
-.bot-field label {
+.bot-field label,
+.bot-field > span {
   font-size: 12px;
   font-weight: 700;
   color: #111;
 }
 
 .bot-field input,
-.bot-field select {
-  height: 36px;
+.bot-field select,
+.bot-ai-lab textarea {
+  height: 34px;
   border: 1px solid #000;
   border-radius: 4px;
   padding: 0 10px;
@@ -81,6 +84,20 @@ body.bots-page .wrap {
   font-size: 13px;
   background: #fff;
   color: #000;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.bot-band-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.bot-compact-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
 }
 
 .bot-range-row {
@@ -99,17 +116,19 @@ body.bots-page .wrap {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  margin-top: 4px;
 }
 
 .bot-lev,
 .bot-days,
-.bot-mode {
+.bot-mode,
+.bot-ai-chip {
   border: 1px solid #000;
   background: #fff;
   color: #000;
   border-radius: 4px;
-  min-height: 32px;
-  padding: 4px 10px;
+  min-height: 30px;
+  padding: 4px 8px;
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
@@ -120,6 +139,66 @@ body.bots-page .wrap {
 .bot-mode.is-on {
   background: #000;
   color: #fff;
+}
+
+.bot-ai-lab {
+  border: 1px solid #e2e2e2;
+  border-radius: 4px;
+  padding: 10px;
+  margin: 4px 0 10px;
+  background: #fafafa;
+}
+
+.bot-ai-lab-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.bot-ai-lab textarea {
+  height: auto;
+  min-height: 56px;
+  padding: 8px 10px;
+  resize: vertical;
+  color: #111;
+}
+
+.bot-ai-lab textarea::placeholder {
+  color: #9a9a9a;
+}
+
+.bot-ai-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.bot-ai-chip {
+  background: #fff;
+  color: #555;
+  border-color: #ccc;
+  font-weight: 600;
+}
+
+.bot-ai-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.bot-ai-go {
+  flex: 1 1 auto;
+  min-width: 140px;
+  background: #fff !important;
+  color: #000 !important;
+}
+
+.bot-ai-quota {
+  font-size: 11px;
+  color: #666;
 }
 
 .bot-actions {
@@ -147,7 +226,7 @@ body.bots-page .wrap {
 }
 
 .bot-status {
-  margin: 10px 0 0;
+  margin: 8px 0 0;
   font-size: 12px;
   color: #555;
 }
@@ -156,13 +235,13 @@ body.bots-page .wrap {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .bot-kpi {
   border: 1px solid #e2e2e2;
   border-radius: 4px;
-  padding: 10px;
+  padding: 8px 10px;
   min-width: 0;
 }
 
@@ -174,10 +253,10 @@ body.bots-page .wrap {
 
 .bot-kpi-val {
   font-family: ui-monospace, "JetBrains Mono", SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 800;
   color: #000;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .bot-kpi-val.is-up { color: #0f7b3a; }
@@ -186,59 +265,61 @@ body.bots-page .wrap {
 .bot-chart-wrap {
   border: 1px solid #e2e2e2;
   border-radius: 4px;
-  height: 220px;
+  height: 260px;
   background: #fafafa;
 }
 
 .bot-chart-wrap canvas {
   display: block;
   width: 100%;
-  height: 220px;
+  height: 260px;
 }
 
-.bot-presets {
-  padding: 8px 0 28px;
+.bot-presets-inline {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e2e2;
 }
 
 .bot-preset-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  gap: 10px;
 }
 
 .bot-card {
   border: 1px solid #000;
   border-radius: 4px;
   background: #fff;
-  padding: 14px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
 }
 
 .bot-card h3 {
   margin: 0;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 800;
 }
 
 .bot-card p {
   margin: 0;
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1.45;
   color: #333;
 }
 
 .bot-card-meta {
   font-family: ui-monospace, "JetBrains Mono", SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 12px;
+  font-size: 11px;
   color: #111;
 }
 
 .bot-card-actions {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   margin-top: auto;
 }
 
@@ -246,11 +327,12 @@ body.bots-page .wrap {
   flex: 1;
   border: 1px solid #000;
   border-radius: 4px;
-  min-height: 36px;
+  min-height: 34px;
   background: #fff;
   color: #000;
   font-weight: 700;
   cursor: pointer;
+  font-size: 12px;
 }
 
 .bot-card-actions button.solid {
@@ -261,7 +343,7 @@ body.bots-page .wrap {
 .bot-note {
   font-size: 12px;
   color: #666;
-  margin: 12px 0 0;
+  margin: 10px 0 0;
 }
 
 .bot-deploy-bg {
@@ -275,9 +357,7 @@ body.bots-page .wrap {
   padding: 16px;
 }
 
-.bot-deploy-bg.show {
-  display: flex;
-}
+.bot-deploy-bg.show { display: flex; }
 
 .bot-deploy {
   width: min(520px, 100%);
@@ -288,29 +368,11 @@ body.bots-page .wrap {
   color: #000;
 }
 
-.bot-deploy h3 {
-  margin: 0 0 10px;
-  font-size: 16px;
-}
-
+.bot-deploy h3 { margin: 0 0 10px; font-size: 16px; }
 .bot-deploy p,
-.bot-deploy ol {
-  font-size: 13px;
-  line-height: 1.55;
-  margin: 0 0 12px;
-}
-
-.bot-deploy ol {
-  padding-left: 18px;
-}
-
-.bot-deploy label {
-  display: block;
-  font-size: 12px;
-  font-weight: 700;
-  margin: 8px 0 4px;
-}
-
+.bot-deploy ol { font-size: 13px; line-height: 1.55; margin: 0 0 12px; }
+.bot-deploy ol { padding-left: 18px; }
+.bot-deploy label { display: block; font-size: 12px; font-weight: 700; margin: 8px 0 4px; }
 .bot-deploy input {
   width: 100%;
   height: 36px;
@@ -319,12 +381,7 @@ body.bots-page .wrap {
   padding: 0 10px;
   box-sizing: border-box;
 }
-
-.bot-deploy .bot-btn {
-  width: 100%;
-  margin-top: 12px;
-}
-
+.bot-deploy .bot-btn { width: 100%; margin-top: 12px; }
 .bot-deploy-x {
   float: right;
   border: 0;
@@ -333,15 +390,91 @@ body.bots-page .wrap {
   cursor: pointer;
   line-height: 1;
 }
+.bot-warn { color: #c2410c; font-weight: 700; }
 
-.bot-warn {
-  color: #c2410c;
-  font-weight: 700;
+@media (max-width: 1100px) {
+  .bot-preset-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 900px) {
-  .bot-console,
+  .bots-hero {
+    padding: 12px 0 10px;
+  }
+  .bots-lead {
+    display: none;
+  }
+  .bots-hero h1 {
+    font-size: 22px;
+    margin-bottom: 0;
+  }
+  .bot-console {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 10px;
+    padding-bottom: 72px;
+  }
+  .bot-stats {
+    order: -1;
+  }
+  .bot-kpis {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .bot-kpi {
+    padding: 6px;
+  }
+  .bot-kpi-val {
+    font-size: 15px;
+  }
+  .bot-kpi-lab {
+    font-size: 10px;
+  }
+  .bot-chart-wrap,
+  .bot-chart-wrap canvas {
+    height: 200px;
+  }
+  .bot-compact-row,
+  .bot-band-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .bot-field {
+    margin-bottom: 8px;
+  }
+  .bot-presets-inline {
+    margin-top: 10px;
+  }
   .bot-preset-grid {
+    display: flex;
+    overflow-x: auto;
+    gap: 8px;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+  }
+  .bot-card {
+    min-width: 240px;
+    flex: 0 0 240px;
+  }
+  .bot-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    background: #fff;
+    padding: 8px 0 4px;
+    border-top: 1px solid #e2e2e2;
+    margin: 0 -4px;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+}
+
+@media (max-width: 520px) {
+  .bot-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .bot-compact-row {
     grid-template-columns: 1fr;
   }
 }

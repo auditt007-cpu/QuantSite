@@ -202,7 +202,11 @@
     if (bar) bar.classList.remove("nav-open");
     document.body.classList.remove("nav-drawer-open");
     const bd = document.getElementById("navDrawerBackdrop");
-    if (bd) bd.hidden = true;
+    if (bd) {
+      bd.hidden = true;
+      bd.style.pointerEvents = "none";
+    }
+    if (toggle) toggle.setAttribute("aria-expanded", "false");
   }
 
   function syncNavDrawer(forceOpen) {
@@ -215,28 +219,54 @@
     document.body.classList.add("nav-drawer-open");
     const bd = ensureNavBackdrop();
     bd.hidden = false;
+    bd.style.pointerEvents = "auto";
+    if (toggle) toggle.setAttribute("aria-expanded", "true");
   }
 
   window.addEventListener("pageshow", () => closeNavDrawer());
 
   if (toggle && bar) {
     ensureNavBackdrop();
-    toggle.addEventListener("click", (ev) => {
-      ev.stopPropagation();
-      bar.classList.toggle("nav-open");
-      syncNavDrawer(bar.classList.contains("nav-open"));
-    });
+    function toggleNav(ev) {
+      if (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+      }
+      const willOpen = !bar.classList.contains("nav-open");
+      if (willOpen) {
+        bar.classList.add("nav-open");
+        document.body.classList.add("nav-drawer-open");
+        const bd = ensureNavBackdrop();
+        bd.hidden = false;
+        bd.style.pointerEvents = "auto";
+        toggle.setAttribute("aria-expanded", "true");
+      } else {
+        closeNavDrawer();
+        toggle.setAttribute("aria-expanded", "false");
+      }
+    }
+    toggle.addEventListener("click", toggleNav, true);
+    toggle.addEventListener(
+      "pointerup",
+      function (ev) {
+        if (ev.pointerType === "touch") toggleNav(ev);
+      },
+      true
+    );
     document.querySelectorAll(".nav-actions a, .nav-actions button").forEach((el) => {
       el.addEventListener(
         "click",
         () => {
           if (el.closest(".lang-pills") || el.id === "idPill") return;
           closeNavDrawer();
+          if (toggle) toggle.setAttribute("aria-expanded", "false");
         },
         true
       );
     });
-    window.addEventListener("resize", () => syncNavDrawer());
+    window.addEventListener("resize", () => {
+      if (!window.matchMedia("(max-width: 768px)").matches) closeNavDrawer();
+    });
   } else {
     closeNavDrawer();
   }

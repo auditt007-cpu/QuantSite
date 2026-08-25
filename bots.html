@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=202608250800-bots">
-  <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=202608250800-bots">
-  <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png?v=202608250800-bots">
-  <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png?v=202608250800-bots">
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=202608250650-23df46f">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=202608250650-23df46f">
+  <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png?v=202608250650-23df46f">
+  <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png?v=202608250650-23df46f">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#09090b">
@@ -35,7 +35,7 @@
         <div class="auth-dock" id="authDock">
           <button type="button" class="auth-btn" id="btnAuth">[ 請先登入 ]</button>
         </div>
-        <button type="button" class="nav-toggle" id="navToggle" aria-label="選單" data-i18n-aria="ariaMenu">☰</button>
+        <button type="button" class="nav-toggle" id="navToggle" aria-label="選單" data-i18n-aria="ariaMenu" aria-expanded="false">☰</button>
       </div>
       <div class="nav-actions" id="navActions">
         <a class="nav-link" href="./strategies.html" data-i18n="navTerminal">策略廣場</a>
@@ -43,11 +43,6 @@
         <a class="nav-link" href="./member.html" data-i18n="navMember">會員中心</a>
         <a class="nav-link" href="./affiliate.html" data-i18n="navAff">推薦計畫</a>
         <a class="nav-link" href="./about.html" data-i18n="navAbout">[ 關於我們 ]</a>
-        <div class="lang-pills" role="group" aria-label="Language">
-          <button type="button" data-lang="zh-CN">简体中文</button>
-          <button type="button" data-lang="zh-Hant">繁體中文（台灣）</button>
-          <button type="button" data-lang="en">EN-US</button>
-        </div>
       </div>
     </header>
     <div class="ticker-bar" id="tickerBar" aria-label="Market ticker">
@@ -65,13 +60,13 @@
     <header class="bots-hero">
       <p class="bots-kicker" data-i18n="botKicker">GRID TRADING BOTS</p>
       <h1 data-i18n="botTitle">網格機器人</h1>
-      <p class="bots-lead" data-i18n="botLead">免登入調參，瀏覽器本地秒級回測；滿意後再託管至雲端節點 24H 掛單。</p>
+      <p class="bots-lead" data-i18n="botLead">免登入即可調參，於瀏覽器本機秒級回測；滿意後再託管至雲端節點，全日自動掛單。</p>
     </header>
 
     <section class="bot-console" aria-label="Grid sandbox">
       <div class="bot-panel">
         <h2 data-i18n="botPanel">互動調參</h2>
-        <div class="bot-field">
+        <div class="bot-field bot-field-row">
           <label for="botSymbol" data-i18n="botSymbol">標的</label>
           <select id="botSymbol">
             <option value="BTCUSDT">BTC/USDT</option>
@@ -81,13 +76,15 @@
             <option value="XRPUSDT">XRP/USDT</option>
           </select>
         </div>
-        <div class="bot-field">
-          <label for="botLower" data-i18n="botLower">區間下限</label>
-          <input id="botLower" type="number" step="any" inputmode="decimal" />
-        </div>
-        <div class="bot-field">
-          <label for="botUpper" data-i18n="botUpper">區間上限</label>
-          <input id="botUpper" type="number" step="any" inputmode="decimal" />
+        <div class="bot-band-row">
+          <div class="bot-field">
+            <label for="botLower" data-i18n="botLower">區間下限</label>
+            <input id="botLower" type="number" step="any" inputmode="decimal" />
+          </div>
+          <div class="bot-field">
+            <label for="botUpper" data-i18n="botUpper">區間上限</label>
+            <input id="botUpper" type="number" step="any" inputmode="decimal" />
+          </div>
         </div>
         <div class="bot-field">
           <label for="botGrids" data-i18n="botGrids">網格數量</label>
@@ -106,28 +103,46 @@
             <button type="button" class="bot-lev" data-lev="10" data-i18n="botFut10">合約 10x</button>
           </div>
         </div>
-        <div class="bot-field">
-          <span data-i18n="botPeriod">回測週期</span>
-          <div class="bot-chips" role="group">
-            <button type="button" class="bot-days" data-days="7" data-i18n="botD7">近 7 天</button>
-            <button type="button" class="bot-days is-on" data-days="30" data-i18n="botD30">近 30 天</button>
-            <button type="button" class="bot-days" data-days="90" data-i18n="botD90">近 90 天</button>
+        <div class="bot-field bot-compact-row">
+          <div>
+            <span data-i18n="botPeriod">回測週期</span>
+            <div class="bot-chips" role="group">
+              <button type="button" class="bot-days" data-days="7" data-i18n="botD7">近 7 天</button>
+              <button type="button" class="bot-days is-on" data-days="30" data-i18n="botD30">近 30 天</button>
+              <button type="button" class="bot-days" data-days="90" data-i18n="botD90">近 90 天</button>
+            </div>
+          </div>
+          <div>
+            <span data-i18n="botGridType">網格類型</span>
+            <div class="bot-chips" role="group">
+              <button type="button" class="bot-mode is-on" data-mode="arith" data-i18n="botArith">等差網格</button>
+              <button type="button" class="bot-mode" data-mode="geo" data-i18n="botGeo">等比網格</button>
+            </div>
           </div>
         </div>
-        <div class="bot-field">
-          <span data-i18n="botGridType">網格類型</span>
-          <div class="bot-chips" role="group">
-            <button type="button" class="bot-mode is-on" data-mode="arith" data-i18n="botArith">等差網格</button>
-            <button type="button" class="bot-mode" data-mode="geo" data-i18n="botGeo">等比網格</button>
+
+        <div class="bot-ai-lab" id="botAiLab">
+          <label class="bot-ai-lab-label" for="botAiPrompt" data-i18n="botAiLabel">AI 調參（可選）</label>
+          <textarea id="botAiPrompt" rows="2" data-ph="botAiPh" placeholder="例如：幫我把 ETH 做成 5 倍、80 格的震盪網格…"></textarea>
+          <div class="bot-ai-chips" id="botAiChips">
+            <button type="button" class="bot-ai-chip" data-fill-key="botAiChip1Fill" data-i18n="botAiChip1">震盪市密網</button>
+            <button type="button" class="bot-ai-chip" data-fill-key="botAiChip2Fill" data-i18n="botAiChip2">寬幅防破</button>
+            <button type="button" class="bot-ai-chip" data-fill-key="botAiChip3Fill" data-i18n="botAiChip3">高槓桿波動</button>
+          </div>
+          <div class="bot-ai-row">
+            <button type="button" class="bot-btn bot-ai-go" id="botAiGo" data-i18n="botAiGo">[ AI 幫我調參 ]</button>
+            <span class="bot-ai-quota" id="botAiQuota" aria-live="polite"></span>
           </div>
         </div>
+
         <div class="bot-actions">
           <button type="button" class="bot-btn" id="botRun" data-i18n="botRun">[ 立即執行回測 (Run Backtest) ]</button>
           <button type="button" class="bot-btn ghost" id="botDeploy" data-i18n="botDeployBtn">[ 一鍵將此參數部署至實盤 ]</button>
         </div>
         <p class="bot-status" id="botStatus"></p>
       </div>
-      <div class="bot-stats">
+
+      <div class="bot-stats" id="botStats">
         <h2 data-i18n="botCurve">累積回測收益曲線</h2>
         <div class="bot-kpis">
           <div class="bot-kpi">
@@ -148,59 +163,46 @@
           </div>
         </div>
         <div class="bot-chart-wrap">
-          <canvas id="botChart" width="640" height="220" aria-label="Equity curve"></canvas>
+          <canvas id="botChart" width="640" height="260" aria-label="Equity curve"></canvas>
         </div>
         <p class="bot-note" data-i18n="botDisc">回測於瀏覽器本地完成，含約 4bps 單邊成本假設。歷史結果不代表未來實盤收益。</p>
+
+        <section class="bot-presets bot-presets-inline" aria-label="Recommended grids">
+          <h2 data-i18n="botPresets">經典推薦模型</h2>
+          <div class="bot-preset-grid">
+            <article class="bot-card">
+              <h3>ETH 智能震盪網格 (5x 槓桿)</h3>
+              <p>高頻套利，標籤年化約 65.4%，適合震盪市。載入後以真實 K 線重算指標。</p>
+              <div class="bot-card-meta">ETH/USDT · 合約 5x · 等差 · 近 30 天</div>
+              <div class="bot-card-actions">
+                <button type="button" data-bot-preset="eth" data-i18n="botLoad">一鍵載入參數</button>
+                <button type="button" class="solid" data-bot-deploy="eth" data-i18n="botDeployCard">一鍵部署</button>
+              </div>
+            </article>
+            <article class="bot-card">
+              <h3>BTC 寬幅防破網格 (3x 槓桿)</h3>
+              <p>超寬區間，標籤最大回撤 &lt; 3%，穿越牛熊。載入後以真實 K 線重算指標。</p>
+              <div class="bot-card-meta">BTC/USDT · 合約 3x · 等差 · 近 90 天</div>
+              <div class="bot-card-actions">
+                <button type="button" data-bot-preset="btc" data-i18n="botLoad">一鍵載入參數</button>
+                <button type="button" class="solid" data-bot-deploy="btc" data-i18n="botDeployCard">一鍵部署</button>
+              </div>
+            </article>
+            <article class="bot-card">
+              <h3>SOL 突破動量合約網格 (7x 槓桿)</h3>
+              <p>捕捉大波動，24H 高換手。載入後以真實 K 線重算指標。</p>
+              <div class="bot-card-meta">SOL/USDT · 合約 7x · 等比 · 近 30 天</div>
+              <div class="bot-card-actions">
+                <button type="button" data-bot-preset="sol" data-i18n="botLoad">一鍵載入參數</button>
+                <button type="button" class="solid" data-bot-deploy="sol" data-i18n="botDeployCard">一鍵部署</button>
+              </div>
+            </article>
+          </div>
+        </section>
       </div>
     </section>
 
-    <section class="bot-presets" aria-label="Recommended grids">
-      <h2 data-i18n="botPresets">經典推薦模型</h2>
-      <div class="bot-preset-grid">
-        <article class="bot-card">
-          <h3>ETH 智能震盪網格 (5x 槓桿)</h3>
-          <p>高頻套利，標籤年化約 65.4%，適合震盪市。載入後以真實 K 線重算指標。</p>
-          <div class="bot-card-meta">ETH/USDT · 合約 5x · 等差 · 近 30 天</div>
-          <div class="bot-card-actions">
-            <button type="button" data-bot-preset="eth" data-i18n="botLoad">一鍵載入參數</button>
-            <button type="button" class="solid" data-bot-deploy="eth" data-i18n="botDeployCard">一鍵部署</button>
-          </div>
-        </article>
-        <article class="bot-card">
-          <h3>BTC 寬幅防破網格 (3x 槓桿)</h3>
-          <p>超寬區間，標籤最大回撤 &lt; 3%，穿越牛熊。載入後以真實 K 線重算指標。</p>
-          <div class="bot-card-meta">BTC/USDT · 合約 3x · 等差 · 近 90 天</div>
-          <div class="bot-card-actions">
-            <button type="button" data-bot-preset="btc" data-i18n="botLoad">一鍵載入參數</button>
-            <button type="button" class="solid" data-bot-deploy="btc" data-i18n="botDeployCard">一鍵部署</button>
-          </div>
-        </article>
-        <article class="bot-card">
-          <h3>SOL 突破動量合約網格 (7x 槓桿)</h3>
-          <p>捕捉大波動，24H 高換手。載入後以真實 K 線重算指標。</p>
-          <div class="bot-card-meta">SOL/USDT · 合約 7x · 等比 · 近 30 天</div>
-          <div class="bot-card-actions">
-            <button type="button" data-bot-preset="sol" data-i18n="botLoad">一鍵載入參數</button>
-            <button type="button" class="solid" data-bot-deploy="sol" data-i18n="botDeployCard">一鍵部署</button>
-          </div>
-        </article>
-      </div>
-    </section>
-
-    <footer class="site-foot">
-      <div class="foot-inner">
-        <p class="risk" data-i18n="riskBanner">免責聲明：歷史回測數據不代表未來實盤收益，未計入滑點與手續費。本站信號僅供技術研究與量化程式撰寫參考，不構成任何投資建議。</p>
-        <nav class="foot-links">
-          <a href="./about.html" data-i18n="navAbout">[ 關於我們 ]</a>
-          <span class="foot-sep">·</span>
-          <a href="./about.html#whitepaper" data-i18n="footPaper">[ 策略演算法白皮書 ]</a>
-          <span class="foot-sep">·</span>
-          <a href="#" data-community-open="1" target="_blank" rel="noopener" data-get-strategy data-i18n="footTg">[ Telegram 獲取策略 ]</a>
-          <span class="foot-sep">·</span>
-          <a href="./strategies.html" data-i18n="footNode">[ 節點狀態 ]</a>
-        </nav>
-      </div>
-    </footer>
+    <footer class="site-foot"></footer>
   </div>
 
   <div class="bot-deploy-bg" id="botDeployBg" role="dialog" aria-modal="true">
@@ -213,14 +215,23 @@
           <span data-i18n="botStep1">使用專屬邀請碼註冊交易所（享永久 40% 手續費折抵）</span>
           · <a href="./affiliate.html" data-i18n="botInvite">前往邀請與開戶</a>
         </li>
-        <li data-i18n="botStep2">填寫交易所 UID 與只讀/交易 API Key（嚴禁勾選提現權限）</li>
+        <li data-i18n="botStep2">填寫交易所 UID 與唯讀／交易 API Key（嚴禁勾選提領權限）</li>
       </ol>
       <label for="botUid" data-i18n="botUid">交易所 UID</label>
       <input id="botUid" type="text" autocomplete="off" />
-      <label for="botKey" data-i18n="botKey">API Key（交易權限，勿開提現）</label>
+      <label for="botKey" data-i18n="botKey">API Key（交易權限，勿開提領）</label>
       <input id="botKey" type="password" autocomplete="off" />
-      <p class="bot-warn" data-i18n="botNoWithdraw">嚴禁勾選提現權限。密鑰不會上傳至本站靜態頁面。</p>
+      <p class="bot-warn" data-i18n="botNoWithdraw">嚴禁勾選提領權限。金鑰不會上傳至本站靜態頁面。</p>
       <button type="button" class="bot-btn" id="botGoLive" data-i18n="botGoLive">[ 立即開啟 24H 雲端自動運行 ]</button>
+    </div>
+  </div>
+
+  <div class="modal-bg" id="aiLimitModal">
+    <div class="modal">
+      <h3 id="aiLimitTitle">額度已用盡</h3>
+      <p class="muted" id="aiLimitMsg"></p>
+      <a class="btn-cta compact" id="aiLimitCta" href="./member.html" data-i18n="goMember">前往會員中心</a>
+      <button type="button" class="btn ghost" id="aiLimitClose" data-i18n="close">關閉</button>
     </div>
   </div>
 

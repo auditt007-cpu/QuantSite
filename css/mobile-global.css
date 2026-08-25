@@ -28,27 +28,37 @@
     overflow: hidden;
   }
 
-  /* Lift header stack above page content while open */
+  /* Lift header stack above page content while open — wrap must stay BELOW chrome */
   body.nav-drawer-open .wrap,
   body.nav-drawer-open .wrap.wide {
-    z-index: 10000 !important;
+    z-index: 1 !important;
     position: relative;
   }
 
 body.nav-drawer-open .live-sticky-chrome,
 body.nav-drawer-open .site-sticky-chrome {
-  z-index: 10000 !important;
+  z-index: 10050 !important;
   position: relative !important;
 }
 
   body.nav-drawer-open .bb-util-bar {
-    z-index: 10020 !important;
+    z-index: 10060 !important;
   }
 
   .topbar {
     z-index: 100;
     position: relative;
     background: var(--bg-main);
+  }
+
+  .nav-toggle,
+  .topbar .nav-toggle,
+  #navToggle {
+    position: relative !important;
+    z-index: 10070 !important;
+    pointer-events: auto !important;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
 
   .nav-actions {
@@ -107,7 +117,7 @@ body.has-bb-util .site-sticky-chrome {
     background: rgba(0, 0, 0, 0.45) !important;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    pointer-events: auto !important;
+    pointer-events: none !important;
     transform: none !important;
     flex: none !important;
   }
@@ -115,13 +125,17 @@ body.has-bb-util .site-sticky-chrome {
   .topbar.nav-open > .nav-drawer-backdrop,
   .topbar > .nav-drawer-backdrop:not([hidden]) {
     display: block !important;
+    pointer-events: auto !important;
   }
 
   /* Keep all topbar chrome above the in-topbar backdrop */
-  .topbar.nav-open > *:not(.nav-drawer-backdrop) {
+  .topbar.nav-open > *:not(.nav-drawer-backdrop),
+  .topbar .nav-end,
+  .topbar .nav-toggle,
+  .topbar #navToggle {
     position: relative;
-    z-index: 1;
-    pointer-events: auto;
+    z-index: 2;
+    pointer-events: auto !important;
   }
 
   .topbar.nav-open .nav-actions {
