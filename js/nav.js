@@ -91,29 +91,46 @@
     }
   }
 
+  function langPillsHtml() {
+    return (
+      '<div class="lang-pills bb-lang-pills" role="group" aria-label="Language">' +
+      '<button type="button" data-lang="zh-CN">简体中文</button>' +
+      '<button type="button" data-lang="zh-Hant">繁體中文（台灣）</button>' +
+      '<button type="button" data-lang="en">EN-US</button>' +
+      "</div>"
+    );
+  }
+
   function ensureUtilBar() {
-    if (document.getElementById("bbUtilBar")) return;
-    const bar = document.createElement("div");
-    bar.id = "bbUtilBar";
-    bar.className = "bb-util-bar";
+    let bar = document.getElementById("bbUtilBar");
+    if (!bar) {
+      bar = document.createElement("div");
+      bar.id = "bbUtilBar";
+      bar.className = "bb-util-bar";
+      const chrome = document.querySelector(".site-sticky-chrome");
+      const wrap = document.querySelector(".wrap");
+      if (chrome && chrome.parentNode) {
+        chrome.parentNode.insertBefore(bar, chrome);
+      } else if (wrap && wrap.parentNode) {
+        wrap.parentNode.insertBefore(bar, wrap);
+      } else {
+        document.body.insertBefore(bar, document.body.firstChild);
+      }
+    }
+    /* Slim Bloomberg-style strip: brand cue left, language right — no utility links */
     bar.innerHTML =
       '<div class="bb-util-left">' +
-      '<a class="bb-util-link" href="./strategies.html" data-i18n="bbUtilStatus">节点状态</a>' +
-      '<a class="bb-util-link bb-util-link-accent" href="./strategies.html" data-i18n="bbUtilApi">API 文档</a>' +
-      '<a class="bb-util-link" href="./affiliate.html" data-i18n="bbUtilVip">VIP 专线</a>' +
-      '<a class="bb-util-link" href="./about.html" data-i18n="bbUtilContact">联系我们</a>' +
+      '<span class="bb-util-mark" aria-hidden="true">QUANT.ALPHA</span>' +
       "</div>" +
-      '<div class="bb-util-right" id="bbUtilRight"></div>';
-    const chrome = document.querySelector(".site-sticky-chrome");
-    const wrap = document.querySelector(".wrap");
-    if (chrome && chrome.parentNode) {
-      chrome.parentNode.insertBefore(bar, chrome);
-    } else if (wrap && wrap.parentNode) {
-      wrap.parentNode.insertBefore(bar, wrap);
-    } else {
-      document.body.insertBefore(bar, document.body.firstChild);
-    }
+      '<div class="bb-util-right" id="bbUtilRight">' +
+      langPillsHtml() +
+      "</div>";
     document.body.classList.add("has-bb-util");
+    /* Remove duplicate lang controls from the main nav drawer host */
+    document.querySelectorAll(".nav-actions > .lang-pills").forEach(function (el) {
+      el.remove();
+    });
+    if (typeof window.QAApplyI18n === "function") window.QAApplyI18n();
   }
 
   function ensureBotsNavLink() {

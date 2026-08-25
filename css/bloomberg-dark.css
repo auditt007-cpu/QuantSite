@@ -24,6 +24,7 @@ body.nav-drawer-open .wrap.wide {
   padding-left: var(--header-pad, 16px);
   padding-right: var(--header-pad, 16px);
   box-sizing: border-box;
+  height: 32px;
 }
 .site-sticky-chrome {
   width: 100%;
@@ -50,10 +51,11 @@ body.has-bb-util .site-sticky-chrome .topbar {
   box-sizing: border-box;
   background: #000000;
   border-bottom: 1px solid #333333;
-  padding-top: 6px;
-  padding-bottom: 6px;
+  padding-top: 10px;
+  padding-bottom: 10px;
   border-radius: 0;
-  gap: 12px;
+  gap: 16px;
+  min-height: 60px;
 }
 .site-sticky-chrome .brand {
   order: 1;
@@ -92,28 +94,57 @@ body.nav-drawer-open .wrap.wide {
   padding-top: 16px !important;
 }
 .brand,
-.topbar .brand { gap: 10px; max-width: min(320px, 44vw); }
+.topbar .brand { gap: 10px; max-width: min(380px, 46vw); }
 .logo,
 .topbar .logo {
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   background: #000000 url("./mark-q.svg") center / 100% 100% no-repeat;
   box-shadow: 0 0 0 1px #ffffff;
 }
 .brand h1,
-.topbar .brand h1 { font-size: 24px; letter-spacing: 0.08em; color: #ffffff; font-weight: 900; }
+.topbar .brand h1 {
+  font-size: 22px;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+  font-weight: 800;
+  text-transform: none;
+  line-height: 1.15;
+}
 .site-slogan,
-.topbar .site-slogan { color: #b3b3b3; font-size: 10px; letter-spacing: 0.05em; line-height: 1.2; }
+.topbar .site-slogan {
+  color: #a3a3a3;
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  line-height: 1.25;
+  text-transform: none;
+  font-weight: 500;
+}
 
 /* Navigation in black header */
 .nav-link,
-.topbar .nav-link { color: #ffffff; font-weight: 700; font-size: 13px; padding: 6px 10px; }
+.topbar .nav-link {
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 6px 10px;
+  letter-spacing: 0.01em;
+  text-transform: none;
+}
 .nav-link:hover,
 .topbar .nav-link:hover { color: #ffffff; text-decoration: none; background: rgba(255,255,255,0.08); }
 .lang-pills { border: 1px solid #555555; }
-.lang-pills button { color: #b3b3b3; background: #000000; }
+.lang-pills button { color: #b3b3b3; background: #000000; text-transform: none; letter-spacing: 0; }
 .lang-pills button.active { color: #000000; background: #ffffff; }
+.bb-util-bar { background: #000000; color: #ffffff; border-bottom: 1px solid #333333; }
+.bb-util-mark { color: #8a8a8a; }
+.bb-util-bar .lang-pills,
+.bb-lang-pills { border-color: #555555; }
+.bb-util-bar .lang-pills button,
+.bb-lang-pills button { color: #b3b3b3; }
+.bb-util-bar .lang-pills button.active,
+.bb-lang-pills button.active { color: #000000; background: #ffffff; }
 
 /* Auth / login — Bloomberg Subscribe: lock + label + circular Q */
 .auth-btn,
@@ -286,15 +317,31 @@ body.nav-drawer-open .wrap.wide {
 /* Risk banner */
 .risk-banner { background: #f7f7f7; border: 1px solid var(--border-line); color: #6b6b6b; font-size: 11px; }
 
-/* Footer — black Bloomberg band */
-.site-foot {
-  display: flex;
-  flex-direction: column;
-  background: var(--bg-main, #ffffff);
-  border-top: 1px solid var(--border-line);
+/* Footer — Bloomberg black band + gray risk strip */
+.site-foot.bb-site-foot,
+.bb-site-foot {
+  background: transparent;
+  border: 0;
   color: #6b6b6b;
   font-size: 12px;
 }
+.bb-site-foot .foot-risk-banner {
+  background: #f7f7f7;
+  color: #6b6b6b;
+  border-color: #e0e0e0;
+}
+.bb-foot-main { background: #000000; color: #b3b3b3; }
+.bb-foot-h { color: #ffffff; }
+.bb-foot-col a,
+.bb-foot-col .bb-foot-link,
+.bb-foot-legal .bb-foot-link { color: #b3b3b3; }
+.bb-foot-col a:hover,
+.bb-foot-col .bb-foot-link:hover,
+.bb-foot-legal .bb-foot-link:hover { color: #ffffff; }
+.bb-foot-mark { color: #ffffff; }
+.bb-foot-copy { color: #8a8a8a; }
+.bb-foot-bottom { border-top-color: #333333; }
+
 .site-foot a { color: #6b6b6b; }
 .site-foot a:hover { color: #000000; }
 .site-foot .foot-link,

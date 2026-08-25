@@ -1,6 +1,6 @@
 (function (root) {
   const RISK =
-    "風險提示：歷史回測數據僅供量化研究與策略分析參考，不構成任何投資建議。加密貨幣市場具備高波動風險，請審慎評估。";
+    "風險提示：歷史回測資料僅供量化研究與策略分析參考，不構成任何投資建議。加密貨幣市場具備高波動風險，請審慎評估。";
 
   const LEGAL = {
     risk:
@@ -13,12 +13,20 @@
       "歷史績效不代表未來結果。回測未完整計入滑點、手續費、資金費率與流動性衝擊。任何依本站資訊採取之交易行為，風險與損益由您自行承擔。",
   };
 
+  function t(key, fb) {
+    if (root.QALang && typeof root.QALang.t === "function") {
+      const live = root.QALang.t(key);
+      if (live && live !== key) return live;
+    }
+    return fb || key;
+  }
+
   function ensureToast() {
     if (!document.getElementById("toast")) {
-      const t = document.createElement("div");
-      t.id = "toast";
-      t.className = "toast";
-      document.body.appendChild(t);
+      const el = document.createElement("div");
+      el.id = "toast";
+      el.className = "toast";
+      document.body.appendChild(el);
     }
   }
 
@@ -45,14 +53,25 @@
   function openLegal(kind) {
     ensureModal();
     const titles = {
-      risk: "風險披露聲明 (Risk Disclosure)",
-      tos: "服務條款 (Terms of Service)",
-      privacy: "隱私權政策 (Privacy Policy)",
-      disclaimer: "免責聲明 (Disclaimer)",
+      risk: t("legalRisk", "風險披露聲明 (Risk Disclosure)"),
+      tos: t("legalTos", "服務條款 (Terms of Service)"),
+      privacy: t("legalPrivacy", "隱私權政策 (Privacy Policy)"),
+      disclaimer: t("legalDisc", "免責聲明 (Disclaimer)"),
     };
     document.getElementById("legalTitle").textContent = titles[kind] || titles.disclaimer;
     document.getElementById("legalBody").textContent = LEGAL[kind] || LEGAL.disclaimer;
     document.getElementById("legalModal").classList.add("show");
+  }
+
+  function legalRowHtml() {
+    return (
+      '<nav class="bb-foot-legal" aria-label="Legal">' +
+      '<button type="button" class="bb-foot-link" data-legal="tos" data-i18n="legalTos">Terms of Service</button>' +
+      '<button type="button" class="bb-foot-link" data-legal="privacy" data-i18n="legalPrivacy">Privacy Policy</button>' +
+      '<button type="button" class="bb-foot-link" data-legal="risk" data-i18n="legalRisk">Risk Disclosure</button>' +
+      '<button type="button" class="bb-foot-link" data-legal="disclaimer" data-i18n="legalDisc">Disclaimer</button>' +
+      "</nav>"
+    );
   }
 
   function ensureFooter() {
@@ -63,23 +82,52 @@
       const wrap = document.querySelector(".wrap") || document.body;
       wrap.appendChild(foot);
     }
-    if (!foot.querySelector(".foot-risk-banner")) {
-      const risk = document.createElement("p");
-      risk.className = "foot-risk-banner foot-disc";
-      risk.setAttribute("data-i18n", "footRiskBanner");
-      risk.textContent = RISK;
-      foot.insertBefore(risk, foot.firstChild);
+    foot.classList.add("bb-site-foot");
+
+    if (foot.getAttribute("data-bb-foot") !== "1") {
+      foot.setAttribute("data-bb-foot", "1");
+      foot.innerHTML =
+        '<p class="foot-risk-banner foot-disc" data-i18n="footRiskBanner">' +
+        RISK +
+        "</p>" +
+        '<div class="bb-foot-main">' +
+        '<div class="bb-foot-grid">' +
+        '<div class="bb-foot-col">' +
+        '<div class="bb-foot-h" data-i18n="footColProduct">產品</div>' +
+        '<a href="./strategies.html" data-i18n="navTerminal">策略廣場</a>' +
+        '<a href="./bots.html" data-i18n="navBots">網格機器人</a>' +
+        '<a href="./live.html" data-i18n="navLive">直播作戰室</a>' +
+        '<a href="./member.html" data-i18n="navMember">會員中心</a>' +
+        "</div>" +
+        '<div class="bb-foot-col">' +
+        '<div class="bb-foot-h" data-i18n="footColResearch">研究</div>' +
+        '<a href="./about.html" data-i18n="footAbout">關於我們</a>' +
+        '<a href="./about.html#whitepaper" data-i18n="footPaperClean">策略演算法白皮書</a>' +
+        '<a href="./affiliate.html" data-i18n="navAff">推薦計畫</a>' +
+        "</div>" +
+        '<div class="bb-foot-col">' +
+        '<div class="bb-foot-h" data-i18n="footColCommunity">社群</div>' +
+        '<a href="#" data-community-open="1" data-get-strategy data-i18n="footSubscribe">訂閱節點資料串流</a>' +
+        '<a href="./member.html#login" data-i18n="login">TG 一鍵登入</a>' +
+        "</div>" +
+        '<div class="bb-foot-col">' +
+        '<div class="bb-foot-h" data-i18n="footColLegal">法律</div>' +
+        '<button type="button" class="bb-foot-link" data-legal="tos" data-i18n="legalTos">服務條款</button>' +
+        '<button type="button" class="bb-foot-link" data-legal="privacy" data-i18n="legalPrivacy">隱私權政策</button>' +
+        '<button type="button" class="bb-foot-link" data-legal="risk" data-i18n="legalRisk">風險披露</button>' +
+        '<button type="button" class="bb-foot-link" data-legal="disclaimer" data-i18n="legalDisc">免責聲明</button>' +
+        "</div>" +
+        "</div>" +
+        '<div class="bb-foot-bottom">' +
+        '<div class="bb-foot-brandline">' +
+        '<span class="bb-foot-mark">QUANT.ALPHA</span>' +
+        '<span class="bb-foot-copy" data-i18n="footCopyright">© 2026 QUANT.ALPHA. All Rights Reserved.</span>' +
+        "</div>" +
+        legalRowHtml() +
+        "</div>" +
+        "</div>";
     }
-    if (!foot.querySelector(".foot-legal")) {
-      const nav = document.createElement("nav");
-      nav.className = "foot-legal";
-      nav.innerHTML =
-        '<button type="button" class="foot-link" data-legal="risk">Risk Disclosure</button>' +
-        '<button type="button" class="foot-link" data-legal="tos">Terms of Service</button>' +
-        '<button type="button" class="foot-link" data-legal="privacy">Privacy Policy</button>' +
-        '<button type="button" class="foot-link" data-legal="disclaimer">Disclaimer</button>';
-      foot.appendChild(nav);
-    }
+
     foot.querySelectorAll("[data-legal]").forEach(function (btn) {
       if (btn.dataset.boundLegal === "1") return;
       btn.dataset.boundLegal = "1";
@@ -87,15 +135,27 @@
         openLegal(btn.getAttribute("data-legal"));
       });
     });
+
+    if (typeof root.QAApplyI18n === "function") root.QAApplyI18n();
+  }
+
+  function paintLegalTitles() {
+    document.querySelectorAll(".bb-site-foot [data-i18n]").forEach(function () {});
+    if (typeof root.QAApplyI18n === "function") root.QAApplyI18n();
   }
 
   function boot() {
     ensureToast();
     ensureModal();
     ensureFooter();
+    paintLegalTitles();
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
   else boot();
-  root.QACompliance = { openLegal: openLegal, RISK: RISK };
+  root.addEventListener("quant-lang", function () {
+    ensureFooter();
+    paintLegalTitles();
+  });
+  root.QACompliance = { openLegal: openLegal, RISK: RISK, ensureFooter: ensureFooter };
 })(typeof window !== "undefined" ? window : globalThis);

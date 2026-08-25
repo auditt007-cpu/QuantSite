@@ -43,20 +43,20 @@ html, body {
   font-family: var(--bb-font);
 }
 
-/* ---- Top utility bar (28px black) ---- */
+/* ---- Top utility bar (Bloomberg thin strip) ---- */
 .bb-util-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  height: 28px;
-  padding: 0 16px;
+  gap: 16px;
+  height: 32px;
+  padding: 0 var(--header-pad, 16px);
   background: #000000;
-  color: var(--bb-bg);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
   width: 100%;
   max-width: none;
   box-sizing: border-box;
@@ -69,57 +69,64 @@ html, body {
 .bb-util-right {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   min-width: 0;
 }
 
-.bb-util-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+.bb-util-mark {
+  color: #b3b3b3;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   white-space: nowrap;
-  color: #ffffff;
-  text-decoration: none;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  min-height: 28px;
-  padding: 0 6px;
 }
 
-.bb-util-link:hover { color: #cccccc; text-decoration: underline; }
-
-.bb-util-link-accent { color: var(--color-accent); }
-.bb-util-link-accent:hover { color: var(--color-accent); }
-
-.bb-util-bar .lang-pills {
-  border: 1px solid #334155;
-  background: transparent;
-  height: 28px;
-  display: flex;
+.bb-util-link {
+  display: none;
 }
 
-.bb-util-bar .lang-pills button {
+.bb-util-bar .lang-pills,
+.bb-lang-pills {
+  border: 1px solid #444444;
   background: transparent;
-  color: var(--bb-meta);
+  height: 24px;
+  display: inline-flex;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.bb-util-bar .lang-pills button,
+.bb-lang-pills button {
+  background: transparent;
+  color: #b3b3b3;
   border: 0;
-  min-height: 28px;
-  min-width: 40px;
+  min-height: 24px;
+  min-width: 0;
   padding: 0 10px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+  cursor: pointer;
+  line-height: 1;
 }
 
-.bb-util-bar .lang-pills button.active {
-  background: var(--bb-bg);
-  color: var(--bb-ink);
+.bb-util-bar .lang-pills button + button,
+.bb-lang-pills button + button {
+  border-left: 1px solid #444444;
 }
 
-.bb-util-bar .lang-pills button + button {
-  border-left: 1px solid #334155;
+.bb-util-bar .lang-pills button:hover,
+.bb-lang-pills button:hover {
+  color: #ffffff;
+}
+
+.bb-util-bar .lang-pills button.active,
+.bb-lang-pills button.active {
+  background: #ffffff;
+  color: #000000;
 }
 
 /* Hide duplicate lang pills in main nav when util bar owns them */
@@ -143,9 +150,9 @@ body.has-bb-util .topbar {
   background: var(--bb-bg);
   border-bottom: 1px solid var(--bb-line);
   border-radius: 0;
-  padding: 10px 0 12px;
-  gap: 10px;
-  min-height: 56px;
+  padding: 12px 0 14px;
+  gap: 12px;
+  min-height: 64px;
   height: auto !important;
   max-height: none !important;
   line-height: normal !important;
@@ -157,7 +164,7 @@ body.has-bb-util .topbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 4px 6px;
   min-height: 36px;
   height: auto !important;
   max-height: none !important;
@@ -172,12 +179,15 @@ body.has-bb-util .topbar {
 .topbar .term-home-link {
   display: inline-flex !important;
   align-items: center !important;
-  font-size: 12px !important;
-  line-height: 1.35 !important;
-  min-height: 32px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  line-height: 1.3 !important;
+  min-height: 34px !important;
   height: auto !important;
   max-height: none !important;
-  padding: 6px 8px !important;
+  padding: 6px 10px !important;
+  letter-spacing: 0.01em !important;
+  text-transform: none !important;
   white-space: nowrap;
   overflow: visible !important;
   color: var(--bb-ink);
@@ -192,7 +202,7 @@ body.has-bb-util .topbar {
 .topbar .brand {
   position: relative;
   z-index: 1;
-  max-width: min(280px, 28vw);
+  max-width: min(360px, 42vw);
   min-width: 0;
   overflow: hidden !important;
 }
@@ -205,31 +215,31 @@ body.has-bb-util .topbar {
   text-overflow: ellipsis;
   white-space: nowrap;
   max-height: none !important;
-  line-height: 1.25 !important;
+  line-height: 1.2 !important;
   opacity: 1 !important;
   visibility: visible !important;
 }
 
 .topbar .brand h1 {
-  font-size: 15px;
-  font-weight: 900;
-  letter-spacing: -0.8px;
-  text-transform: uppercase;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-transform: none;
   color: var(--bb-ink);
 }
 
 .topbar .nav-link-live {
   color: var(--bb-down) !important;
   gap: 6px !important;
-  line-height: 1.35 !important;
+  line-height: 1.3 !important;
 }
 
 .site-slogan {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--bb-meta);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  font-weight: 500;
 }
 
 .nav-link {
@@ -830,7 +840,177 @@ textarea {
   filter: none;
 }
 
-/* Risk / footer */
+/* ---- Bloomberg-style site footer ---- */
+.bb-site-foot.site-foot,
+footer.site-foot.bb-site-foot {
+  display: block;
+  margin-top: 32px;
+  border: 0;
+  border-radius: 0;
+  overflow: visible;
+  background: transparent;
+}
+
+.bb-site-foot .foot-risk-banner {
+  width: 100%;
+  margin: 0;
+  padding: 12px var(--header-pad, 16px);
+  box-sizing: border-box;
+  background: #f7f7f7;
+  border: 0;
+  border-top: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+  color: #6b6b6b;
+  font-size: 11px;
+  line-height: 1.55;
+  font-weight: 500;
+}
+
+.bb-foot-main {
+  background: #000000;
+  color: #b3b3b3;
+  padding: 28px var(--header-pad, 16px) 18px;
+  box-sizing: border-box;
+}
+
+.bb-foot-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px 32px;
+  max-width: 1280px;
+  margin: 0 auto 24px;
+}
+
+.bb-foot-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.bb-foot-h {
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.bb-foot-col a,
+.bb-foot-col .bb-foot-link {
+  color: #b3b3b3;
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  min-height: 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  line-height: 1.45;
+}
+
+.bb-foot-col a:hover,
+.bb-foot-col .bb-foot-link:hover {
+  color: #ffffff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.bb-foot-bottom {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding-top: 16px;
+  border-top: 1px solid #333333;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+}
+
+.bb-foot-brandline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px 14px;
+  min-width: 0;
+}
+
+.bb-foot-mark {
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.bb-foot-copy {
+  color: #8a8a8a;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.bb-foot-legal {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0;
+}
+
+.bb-foot-legal .bb-foot-link {
+  color: #b3b3b3;
+  font-size: 11px;
+  font-weight: 500;
+  background: transparent;
+  border: 0;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-family: inherit;
+  position: relative;
+}
+
+.bb-foot-legal .bb-foot-link + .bb-foot-link::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 1px;
+  height: 10px;
+  margin-top: -5px;
+  background: #555555;
+}
+
+.bb-foot-legal .bb-foot-link:hover {
+  color: #ffffff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 900px) {
+  .bb-foot-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 16px;
+  }
+}
+
+@media (max-width: 560px) {
+  .bb-foot-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .bb-foot-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .bb-foot-legal .bb-foot-link {
+    padding: 6px 8px;
+  }
+}
+
+/* Risk / legacy footer tokens kept for non-bb pages */
 .risk-banner {
   border: 1px solid var(--bb-line);
   border-radius: 4px;
@@ -913,7 +1093,7 @@ textarea,
   body .site-sticky-chrome,
   body.has-bb-util .site-sticky-chrome {
     position: sticky !important;
-    top: 28px !important;
+    top: 32px !important;
   }
   body.has-bb-util .topbar,
   .topbar {
@@ -929,13 +1109,21 @@ textarea,
     overflow: hidden;
     box-sizing: border-box;
   }
-  .bb-util-left,
   .bb-util-right {
     min-width: 0;
-    overflow: hidden;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    justify-content: flex-end;
+    max-width: 72vw;
   }
-  .bb-util-tz {
-    display: none;
+  .bb-util-mark {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+  }
+  .bb-util-bar .lang-pills button,
+  .bb-lang-pills button {
+    padding: 0 8px;
+    font-size: 10px;
   }
   body.home-boards .ticker-bar,
   body.home-boards .bb-marquee,

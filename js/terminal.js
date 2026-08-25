@@ -607,6 +607,9 @@
   focusStrategyFromQuery();
   window.addEventListener("quant-lang", () => {
     if (window.QALeaderboard) paintLeaderboardMeta(window.QALeaderboard);
+    renderTabs();
+    paintGrid();
+    paintPlazaCount();
   });
 
   loadLeaderboard().then((lb) => {
