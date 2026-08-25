@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-25T06:52:57Z",
+  "updated_at": "2026-08-25T06:55:06Z",
   "period_hours": 3,
   "poll_sec": 5,
   "scan_tf": "15m+1h",
@@ -950,6 +950,50 @@
       "interval": "5m",
       "side": "SHORT",
       "action": "空頭開倉 (SELL)",
+      "logged_at": 1787640907,
+      "bar_ts": 1787640600,
+      "event": "open",
+      "strategy_id": "hb-bb5",
+      "symbols": [
+        {
+          "symbol": "ONDOUSDT",
+          "price": 0.38723,
+          "sl_pct": -0.4116416599953475,
+          "tp_pct": 0.8232833199907095,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "5m動能微破",
+      "interval": "5m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787640906,
+      "bar_ts": 1787640600,
+      "event": "open",
+      "strategy_id": "hb-roc5",
+      "symbols": [
+        {
+          "symbol": "SOLUSDT",
+          "price": 100.8,
+          "sl_pct": -0.3143422619047608,
+          "tp_pct": 0.6286845238095216,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "布林微破",
+      "interval": "5m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
       "logged_at": 1787640717,
       "bar_ts": 1787640300,
       "event": "open",
@@ -1301,7 +1345,7 @@
         },
         {
           "symbol": "ETHUSDT",
-          "price": 2507.9,
+          "price": 2509.46,
           "sl_pct": null,
           "tp_pct": null,
           "event": "open",
@@ -1309,7 +1353,7 @@
         },
         {
           "symbol": "SOLUSDT",
-          "price": 101.87,
+          "price": 101.1,
           "sl_pct": null,
           "tp_pct": null,
           "event": "open",
@@ -1560,50 +1604,6 @@
           "tp_pct": null,
           "event": "close",
           "pnl_pct": -0.9202655623479926
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "ROC10動能",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787640341,
-      "bar_ts": 1787640300,
-      "event": "open",
-      "strategy_id": "roc10_15m_29",
-      "symbols": [
-        {
-          "symbol": "SOLUSDT",
-          "price": 101.1,
-          "sl_pct": -0.7585212660732047,
-          "tp_pct": 1.5170435212660622,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "MACD柱翻轉",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787640339,
-      "bar_ts": 1787640300,
-      "event": "open",
-      "strategy_id": "macd_h_15m_19",
-      "symbols": [
-        {
-          "symbol": "ETHUSDT",
-          "price": 2503.55,
-          "sl_pct": -0.3521247828084062,
-          "tp_pct": 0.7042495656168305,
-          "event": "open",
-          "pnl_pct": null
         }
       ],
       "strategy_count": 1
