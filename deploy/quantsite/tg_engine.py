@@ -85,9 +85,9 @@ LIVE_ROOM_SYMBOLS = [
 PRIORITY_SYMBOLS = ["BTCUSDT", "ETHUSDT", "SOLUSDT"]
 MAX_TAPE_EVENTS_PER_STRATEGY = 3
 TG_CHANNEL_TF = "1h"
-TG_MAX_MESSAGES = 2
-TG_COOLDOWN_SEC = 30 * 60
-TG_LAST_SENT = {}
+TG_BRIEF_SYMBOLS = frozenset({"BTCUSDT", "ETHUSDT", "SOLUSDT"})
+TG_DIGEST_BUF = []
+TG_DIGEST_HOUR = None
 TIMEFRAMES = ("15m", "1h")
 POLL_SEC = 60
 FEED_PUBLISH_SEC = 5
@@ -1807,25 +1807,99 @@ def format_alert(strat, sym, side, px, sl, tp, bar_ts, src, prev_side=None):
     return send_tg_signal(strat, sym, side, px, sl, tp, bar_ts, src, prev_side=prev_side)
 
 
-def _tg_cooldown_ok(ev):
-    key = (ev.get("sym"), ev.get("side"))
-    now = time.time()
-    last = TG_LAST_SENT.get(key) or 0
-    if now - last < TG_COOLDOWN_SEC:
-        return False
-    TG_LAST_SENT[key] = now
-    return True
+def format_hour_brief(events, hour_label):
+    """One institutional 1h note for BTC/ETH/SOL. Live-room tape stays dense elsewhere."""
+    book = {}
+    names_by_sym = {}
+    for ev in events:
+        sym = ev.get("sym")
+        if sym not in TG_BRIEF_SYMBOLS:
+            continue
+        book[sym] = ev
+        names_by_sym.setdefault(sym, [])
+        n = ev.get("strat_name") or ""
+        if n and n not in names_by_sym[sym]:
+            names_by_sym[sym].append(n)
+    lines = [
+        "<b>QUANT.ALPHA · 1H 機構簡報</b>",
+        "<code>{0}</code>".format(_esc(hour_label)),
+    ]
+    for sym in ("BTCUSDT", "ETHUSDT", "SOLUSDT"):
+        coin = sym.replace("USDT", "")
+        ev = book.get(sym)
+        if not ev:
+            lines.append("· <b>{0}</b> 本小時無 1H 開倉".format(coin))
+            continue
+        models = names_by_sym.get(sym) or []
+        shown = " / ".join(_esc(x) for x in models[:2])
+        extra = len(models) - min(2, len(models))
+        if extra > 0:
+            shown += " +{0}".format(extra)
+        side = ev.get("side") or ""
+        act = action_label(side, ev.get("prev_side"))
+        lines.append(
+            "· {0} <b>{1}</b> {2}  <code>{3}</code>  SL {4:.1f}%  TP {5:+.1f}%".format(
+                action_emoji(side),
+                coin,
+                _esc(act),
+                _esc(fmt_px(ev.get("px") or 0)),
+                float(ev.get("sl_pct") or 0),
+                float(ev.get("tp_pct") or 0),
+            )
+        )
+        if shown:
+            lines.append("  {0}".format(shown))
+    lines.append("<i>頻道僅 BTC/ETH/SOL 整點摘要。全市場明細見直播作戰室。研究樣本，非投資建議。</i>")
+    return "\n".join(lines)
+
+
+def buffer_channel_events(events):
+    for ev in events or []:
+        if str(ev.get("tf") or "") != TG_CHANNEL_TF:
+            continue
+        if ev.get("heartbeat"):
+            continue
+        if ev.get("sym") not in TG_BRIEF_SYMBOLS:
+            continue
+        TG_DIGEST_BUF.append(ev)
+
+
+def maybe_flush_hour_brief():
+    """Fire once when UTC+8 hour rolls. First hour after process start is silent."""
+    global TG_DIGEST_HOUR
+    tw = datetime.now(timezone(timedelta(hours=8)))
+    key = (tw.strftime("%Y-%m-%d"), tw.hour)
+    if TG_DIGEST_HOUR is None:
+        TG_DIGEST_HOUR = key
+        TG_DIGEST_BUF[:] = []
+        return 0
+    if key == TG_DIGEST_HOUR:
+        return 0
+    prev_day, prev_hour = TG_DIGEST_HOUR
+    label = "{0} {1:02d}:00–{2:02d}:00 UTC+8".format(prev_day, prev_hour, (prev_hour + 1) % 24)
+    buf = list(TG_DIGEST_BUF)
+    TG_DIGEST_BUF[:] = []
+    TG_DIGEST_HOUR = key
+    if not buf:
+        log("hour brief empty {0}".format(label))
+        return 0
+    msg = format_hour_brief(buf, label)
+    if not msg.strip():
+        return 0
+    tg_send(msg)
+    log("hour brief pushed {0} events={1}".format(label, len(buf)))
+    return 1
 
 
 def events_for_telegram(events):
-    """1h opens only, cooldown per coin/side, drop 15m noise from the channel."""
+    """Channel queue: 1h BTC/ETH/SOL only. 15m and alts stay on the live tape."""
     out = []
     for ev in events or []:
         if str(ev.get("tf") or "") != TG_CHANNEL_TF:
             continue
         if ev.get("heartbeat"):
             continue
-        if not _tg_cooldown_ok(ev):
+        if ev.get("sym") not in TG_BRIEF_SYMBOLS:
             continue
         out.append(ev)
     return out
@@ -2134,26 +2208,15 @@ def cycle():
             )
         )
 
-    if not events:
-        log("no new tg events this tick")
-        return 0
-
     tg_events = events_for_telegram(events)
-    messages = aggregate_events(tg_events)
-    sent = 0
-    for msg in messages:
-        if not msg or not str(msg).strip():
-            continue
-        tg_send(msg)
-        sent += 1
+    buffer_channel_events(tg_events)
+    sent = maybe_flush_hour_brief()
     if sent:
-        log(
-            "pushed {0} batch message(s) covering {1} signal(s) to {2}".format(
-                sent, len(events), CHANNEL
-            )
-        )
-    else:
-        log("no new events this tick")
+        log("pushed hour brief to {0}".format(CHANNEL))
+    elif tg_events:
+        log("queued {0} 1h majors for hour brief (tape already written)".format(len(tg_events)))
+    elif not events:
+        log("no new scan events this tick")
     return sent
 
 
@@ -2161,10 +2224,9 @@ def demo_batch_message():
     """Simulated multi-symbol batch for channel QA."""
     now_ms = int(time.time() * 1000)
     samples = [
-        ("SUIUSDT", 0.8195, -2.0, 4.0),
-        ("PEPEUSDT", 0.000004, -0.9, 0.9),
-        ("SHIBUSDT", 0.000005, -8.1, 10.3),
-        ("NEARUSDT", 5.85, -1.8, 3.6),
+        ("BTCUSDT", 80000.0, -1.2, 2.4),
+        ("ETHUSDT", 2500.0, -1.5, 3.0),
+        ("SOLUSDT", 100.0, -2.0, 4.0),
     ]
     events = []
     for sym, px, sl_pct, tp_pct in samples:
@@ -2181,7 +2243,7 @@ def demo_batch_message():
                 "close_ms": now_ms,
             }
         )
-    return format_batch_message(events)
+    return format_hour_brief(events, datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:00 UTC+8"))
 
 
 def main():

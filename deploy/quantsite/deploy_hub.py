@@ -207,7 +207,7 @@ def main():
         "(crontab -l 2>/dev/null | grep -v run_pipeline_cron.sh | grep -v calc_rankings.py | grep -v ops_watch.py | grep -v daily_desk.sh; "
         "echo '0 2,8,14,20 * * * {0}/scripts/run_pipeline_cron.sh >> /var/log/quant-pipeline.log 2>&1'; "
         "echo '0 0 * * * {0}/scripts/daily_desk.sh'; "
-        "echo '*/5 * * * * /usr/bin/python3 {0}/scripts/ops_watch.py >> /var/log/quant-ops-watch.log 2>&1') | crontab -".format(REMOTE_APP),
+        "echo '0 * * * * /usr/bin/python3 {0}/scripts/ops_watch.py >> /var/log/quant-ops-watch.log 2>&1') | crontab -".format(REMOTE_APP),
     )
     run(ssh, "crontab -l | grep -E 'pipeline|daily_desk|ops_watch' || true")
     run(ssh, "systemctl daemon-reload && systemctl enable quant-hub && systemctl restart quant-hub")

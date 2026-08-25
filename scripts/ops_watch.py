@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
-"""VPS health alerts + daily ops digest to ADMIN_CHAT_ID."""
+"""VPS health alerts + daily ops digest to ADMIN_CHAT_ID.
+
+Intended cron: `0 * * * *` (once per hour). Thresholds below still apply
+at that cadence (e.g. live_feed older than 3 minutes when the hourly job runs).
+"""
 from __future__ import annotations
 
 import json
