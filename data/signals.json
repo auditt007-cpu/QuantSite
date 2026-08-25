@@ -1,8 +1,52 @@
 {
-  "updated_at": "2026-08-25T09:36:17Z",
+  "updated_at": "2026-08-25T09:38:23Z",
   "venue": "coinbase",
   "poll_sec": 5,
   "exec_log": [
+    {
+      "kind": "batch",
+      "name_zh": "布林微破",
+      "interval": "5m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787650643,
+      "bar_ts": 1787650200,
+      "event": "open",
+      "strategy_id": "hb-bb5",
+      "symbols": [
+        {
+          "symbol": "ETHUSDT",
+          "price": 2489.75,
+          "sl_pct": -0.14661239080229183,
+          "tp_pct": 0.29322478160458365,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "5m動能微破",
+      "interval": "5m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787650642,
+      "bar_ts": 1787650200,
+      "event": "open",
+      "strategy_id": "hb-roc5",
+      "symbols": [
+        {
+          "symbol": "BTCUSDT",
+          "price": 79887.12,
+          "sl_pct": -0.2064785700122737,
+          "tp_pct": 0.41295714002458384,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
     {
       "kind": "batch",
       "name_zh": "複合動能確認",
@@ -571,50 +615,6 @@
           "tp_pct": null,
           "event": "close",
           "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "ROC20動能",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787650074,
-      "bar_ts": 1787649300,
-      "event": "open",
-      "strategy_id": "roc20_15m_31",
-      "symbols": [
-        {
-          "symbol": "INJUSDT",
-          "price": 5.918,
-          "sl_pct": -1.1186718485974956,
-          "tp_pct": 2.2373436971950063,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "ROC20動能",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787650073,
-      "bar_ts": 1787649300,
-      "event": "close",
-      "strategy_id": "roc20_15m_31",
-      "symbols": [
-        {
-          "symbol": "INJUSDT",
-          "price": 5.918,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -1.4652014652014664
         }
       ],
       "strategy_count": 1
