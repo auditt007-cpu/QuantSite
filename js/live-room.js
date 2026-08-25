@@ -367,22 +367,31 @@
     return Math.max(a, b);
   }
 
-  /* ---- voice: HIGH (live signals) preempts LOW (idle ads); HsiaoChen TTS ---- */
+  /* ---- voice: persona TTS + promo MP3; HIGH preempts LOW ---- */
   const AUDIO_GAP_MS = 800;
   const AUDIO_STORM_N = 5;
   const PRIORITY_HIGH = "high";
   const PRIORITY_LOW = "low";
   const IDLE_AD_MS = 30000;
-  const STORM_LINE =
-    "當前發生大面積整點異動，已觸發多套策略，請查閱戰情面板。";
-  const IDLE_AD_LINE =
-    "還在熬夜盯盤、糾結進出場點位嗎？行情八成都在震盪，與其被情緒左右，不如交給程式全天候自動低買高賣。點擊頂部【網格機器人】，免登入即可自由調參，秒級驗證近 30 天回測年化。";
+  const VT = () => window.QAVoiceTemplates || null;
 
   state.lastHighPriorityAudioTime = Date.now();
   state.lastIdleAdTime = Date.now();
   state.audioPriority = null;
   state.speakGen = 0;
   state.idleAdTimer = null;
+  state.promoAudio = null;
+
+  function voiceLang() {
+    const api = VT();
+    return api ? api.currentVoiceLang() : "zh-Hant";
+  }
+
+  function stormLineText() {
+    const api = VT();
+    if (api) return api.line("STORM", voiceLang());
+    return "當前發生大面積整點異動，已觸發多套策略，請查閱戰情面板。";
+  }
 
   function loadVoicePref() {
     try {
@@ -434,22 +443,19 @@
     });
   }
 
-  function getHsiaoChenVoice() {
-    const voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
-    if (!voices || !voices.length) return null;
-    let voice = voices.find(
-      (v) =>
-        /HsiaoChen/i.test(v.name) ||
-        /曉臻/.test(v.name) ||
-        /zh-TW-HsiaoChenNeural/i.test(v.name)
-    );
-    if (!voice) {
-      voice = voices.find((v) => v.lang === "zh-TW" || v.lang === "zh_TW" || /zh[-_]TW/i.test(v.lang));
+  function killPromoAudio() {
+    try {
+      const a = state.promoAudio || window.currentPromoAudio;
+      if (a) {
+        a.pause();
+        a.currentTime = 0;
+        a.src = "";
+      }
+    } catch {
+      /* */
     }
-    if (!voice) {
-      voice = voices.find((v) => /Taiwan|Hant|Hanhan|Hsiao|Yating/i.test(v.lang + " " + v.name));
-    }
-    return voice || voices.find((v) => /zh/i.test(v.lang)) || null;
+    state.promoAudio = null;
+    window.currentPromoAudio = null;
   }
 
   function killSpeech() {
@@ -459,18 +465,28 @@
     } catch {
       /* */
     }
+    killPromoAudio();
+  }
+
+  function pickPersonaVoice() {
+    const api = VT();
+    const voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+    if (api) return api.pickSpeechVoice(voices, voiceLang());
+    return voices.find((v) => /HsiaoChen|zh-TW|zh-CN|en-US/i.test(v.name + v.lang)) || null;
   }
 
   function speakLine(text, gen) {
     return new Promise((resolve) => {
       if (!window.speechSynthesis || !text) return resolve();
       if (gen != null && gen !== state.speakGen) return resolve();
+      const api = VT();
+      const cfg = api ? api.speechConfig(voiceLang()) : { lang: "zh-TW", rate: 1.08, pitch: 1 };
       const u = new SpeechSynthesisUtterance(text);
-      u.lang = "zh-TW";
-      u.rate = 1.08;
-      u.pitch = 1.0;
+      u.lang = cfg.lang;
+      u.rate = cfg.rate;
+      u.pitch = cfg.pitch;
       u.volume = 1;
-      const voice = getHsiaoChenVoice();
+      const voice = pickPersonaVoice();
       if (voice) u.voice = voice;
       let done = false;
       const finish = () => {
@@ -487,6 +503,45 @@
         return;
       }
       setTimeout(finish, Math.min(18000, 2200 + String(text).length * 95));
+    });
+  }
+
+  function playPromoFile(src, gen) {
+    return new Promise((resolve) => {
+      if (!src) return resolve();
+      if (gen != null && gen !== state.speakGen) return resolve();
+      killPromoAudio();
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        if (poll) clearInterval(poll);
+        resolve();
+      };
+      let a;
+      try {
+        a = new Audio(src + (src.indexOf("?") >= 0 ? "&" : "?") + "t=" + Date.now());
+        a.preload = "auto";
+        window.currentPromoAudio = a;
+        state.promoAudio = a;
+      } catch {
+        return finish();
+      }
+      a.onended = finish;
+      a.onerror = finish;
+      const poll = setInterval(() => {
+        if (gen != null && gen !== state.speakGen) {
+          try {
+            a.pause();
+            a.currentTime = 0;
+          } catch {
+            /* */
+          }
+          finish();
+        }
+      }, 40);
+      a.play().catch(finish);
+      setTimeout(finish, 45000);
     });
   }
 
@@ -512,7 +567,7 @@
           const hasHigh = state.queue.some((j) => j && j.priority === PRIORITY_HIGH);
           state.queue = [
             {
-              text: STORM_LINE,
+              text: stormLineText(),
               chime: true,
               pauseAfter: AUDIO_GAP_MS,
               storm: true,
@@ -522,7 +577,6 @@
         }
         const raw = state.queue.shift();
         const job = typeof raw === "string" ? { text: raw, chime: true, priority: PRIORITY_HIGH } : raw || {};
-        if (!job.text) continue;
         const priority = job.priority === PRIORITY_LOW ? PRIORITY_LOW : PRIORITY_HIGH;
         state.audioPriority = priority;
         const gen = state.speakGen;
@@ -530,11 +584,14 @@
           await playMrtChime();
           if (!state.voiceOn || gen !== state.speakGen) continue;
         }
-        await speakLine(job.text, gen);
-        if (gen !== state.speakGen) {
-          /* preempted — continue with remaining HIGH jobs */
+        if (job.promoSrc) {
+          await playPromoFile(job.promoSrc, gen);
+        } else if (job.text) {
+          await speakLine(job.text, gen);
+        } else {
           continue;
         }
+        if (gen !== state.speakGen) continue;
         if (priority === PRIORITY_HIGH) {
           state.lastHighPriorityAudioTime = Date.now();
         } else {
@@ -555,24 +612,27 @@
     if (state.queue.length && state.voiceOn) drainQueue();
   }
 
+  function preemptLowForHigh() {
+    const playingLow = state.audioPriority === PRIORITY_LOW;
+    const queuedLow = state.queue.some((j) => j && j.priority === PRIORITY_LOW);
+    if (playingLow || queuedLow) {
+      killSpeech();
+      stripLowPriorityJobs();
+    }
+  }
+
   function enqueueVoice(text, opts) {
-    if (!state.voiceOn || !text) return;
+    if (!state.voiceOn) return;
     const o = opts || {};
     const priority = o.priority === PRIORITY_LOW ? PRIORITY_LOW : PRIORITY_HIGH;
+    if (!text && !o.promoSrc) return;
 
-    if (priority === PRIORITY_HIGH) {
-      const playingLow = state.audioPriority === PRIORITY_LOW;
-      const queuedLow = state.queue.some((j) => j && j.priority === PRIORITY_LOW);
-      if (playingLow || queuedLow) {
-        killSpeech();
-        stripLowPriorityJobs();
-      }
-    }
+    if (priority === PRIORITY_HIGH) preemptLowForHigh();
 
     if (priority === PRIORITY_HIGH && state.queue.length >= AUDIO_STORM_N && !o.force) {
       state.queue = [
         {
-          text: STORM_LINE,
+          text: stormLineText(),
           chime: true,
           pauseAfter: AUDIO_GAP_MS,
           storm: true,
@@ -589,8 +649,9 @@
     }
 
     state.queue.push({
-      text: text,
-      chime: o.chime !== false && priority === PRIORITY_HIGH,
+      text: text || "",
+      promoSrc: o.promoSrc || "",
+      chime: o.chime !== false && priority === PRIORITY_HIGH && !o.promoSrc,
       pauseAfter: o.pauseAfter != null ? o.pauseAfter : AUDIO_GAP_MS,
       priority: priority,
     });
@@ -604,7 +665,7 @@
       stripLowPriorityJobs();
       state.queue = [
         {
-          text: STORM_LINE,
+          text: stormLineText(),
           chime: true,
           pauseAfter: AUDIO_GAP_MS,
           storm: true,
@@ -614,12 +675,7 @@
       drainQueue();
       return;
     }
-    const playingLow = state.audioPriority === PRIORITY_LOW;
-    const queuedLow = state.queue.some((j) => j && j.priority === PRIORITY_LOW);
-    if (playingLow || queuedLow) {
-      killSpeech();
-      stripLowPriorityJobs();
-    }
+    preemptLowForHigh();
     lines.forEach((text, i) => {
       if (!text) return;
       state.queue.push({
@@ -638,7 +694,9 @@
     const now = Date.now();
     if (now - state.lastHighPriorityAudioTime < IDLE_AD_MS) return;
     if (now - state.lastIdleAdTime < IDLE_AD_MS) return;
-    enqueueVoice(IDLE_AD_LINE, { priority: PRIORITY_LOW, chime: false, pauseAfter: 0 });
+    const api = VT();
+    const src = api ? api.promoSrc(voiceLang()) : "./audio/promo_zh_tw.mp3";
+    enqueueVoice("", { priority: PRIORITY_LOW, chime: false, pauseAfter: 0, promoSrc: src });
   }
 
   function startIdleAdWatch() {
@@ -654,44 +712,42 @@
   }
 
   function voiceCloseLine(ev) {
-    const when = fmt12hSpeech(ev.ts || Date.now());
+    const api = VT();
+    const lang = voiceLang();
     const coin = coinSpeech(ev.symbol);
     const pnl = Number(ev.pnl_pct);
-    if (Number.isFinite(pnl) && pnl > 0) {
-      return when + "，" + coin + "平倉，獲利 " + pnl.toFixed(1) + "%。";
+    if (!api) {
+      const when = fmt12hSpeech(ev.ts || Date.now());
+      if (Number.isFinite(pnl) && pnl > 0) return when + "，" + coin + "平倉，獲利 " + pnl.toFixed(1) + "%。";
+      return when + "，" + coin + "平倉離場。";
     }
+    if (Number.isFinite(pnl) && pnl > 0) return api.line("TAKE_PROFIT", lang, coin, pnl.toFixed(1));
+    if (Number.isFinite(pnl) && pnl < 0) return api.line("STOP_LOSS", lang, coin);
     const cum = cumFor(ev);
-    if (cum > 0) {
-      return when + "，" + coin + "平倉離場，本策略累計獲利 " + cum.toFixed(1) + "%。";
-    }
-    return when + "，" + coin + "平倉離場。";
+    if (cum > 0) return api.line("TAKE_PROFIT", lang, coin, cum.toFixed(1));
+    if (cum < 0) return api.line("STOP_LOSS", lang, coin);
+    return api.line("CLOSE", lang, coin);
   }
 
   function voiceOpenGroup(events) {
     if (!events || !events.length) return "";
+    const api = VT();
+    const lang = voiceLang();
     const head = events[0];
-    const when = fmt12hSpeech(head.ts || Date.now());
-    const alias = stratAlias(head.name);
     const buy = isBuy(head);
-    const act = buy ? "買入" : "賣出";
+    const kind = buy ? "LONG" : "SHORT";
+    if (!api) {
+      const when = fmt12hSpeech(head.ts || Date.now());
+      const act = buy ? "買入" : "賣出";
+      return when + "，" + stratAlias(head.name) + "，" + coinSpeech(head.symbol) + "，" + act + "，現價 " + fmtSpeechPx(eventPx(head)) + "。";
+    }
     if (events.length === 1) {
-      return (
-        when +
-        "，" +
-        alias +
-        "，" +
-        coinSpeech(head.symbol) +
-        "，" +
-        act +
-        "，現價 " +
-        fmtSpeechPx(eventPx(head)) +
-        "。"
-      );
+      return api.line(kind, lang, coinSpeech(head.symbol), fmtSpeechPx(eventPx(head)));
     }
     const pairs = events
-      .map((e) => coinSpeech(e.symbol) + " 現價 " + fmtSpeechPx(eventPx(e)))
-      .join("，");
-    return when + "，" + alias + "，" + act + "：" + pairs + "。";
+      .map((e) => coinSpeech(e.symbol) + " " + fmtSpeechPx(eventPx(e)))
+      .join(lang === "en" ? ", " : "，");
+    return api.line(kind, lang, pairs, "");
   }
 
   function announceEvents(events) {
@@ -706,7 +762,7 @@
       actionable.filter((e) => isClose(e) && !isZeroValueClose(e)).forEach((ev) => bumpCum(ev));
       killSpeech();
       stripLowPriorityJobs();
-      enqueueVoice(STORM_LINE, { chime: true, force: true, priority: PRIORITY_HIGH });
+      enqueueVoice(stormLineText(), { chime: true, force: true, priority: PRIORITY_HIGH });
       return;
     }
     const buckets = {};
@@ -739,7 +795,7 @@
     if (lines.length > AUDIO_STORM_N) {
       killSpeech();
       stripLowPriorityJobs();
-      enqueueVoice(STORM_LINE, { chime: true, force: true, priority: PRIORITY_HIGH });
+      enqueueVoice(stormLineText(), { chime: true, force: true, priority: PRIORITY_HIGH });
       return;
     }
     enqueueBurst(lines);
@@ -835,14 +891,18 @@
     if (hint) hint.addEventListener("click", () => btn.click());
     if (window.speechSynthesis) {
       window.speechSynthesis.onvoiceschanged = function () {
-        getHsiaoChenVoice();
+        pickPersonaVoice();
       };
       try {
-        getHsiaoChenVoice();
+        pickPersonaVoice();
       } catch {
         /* */
       }
     }
+    window.addEventListener("quant-lang", function () {
+      /* language switch: sync TTS persona; do not interrupt active HIGH mid-sentence unless idle */
+      pickPersonaVoice();
+    });
     if (state.voiceOn) {
       startIdleAdWatch();
       icebreakerVoice();
