@@ -111,6 +111,7 @@ VPS：`tg_engine.py` 写直播带；`pipeline.py` / `llm_pipeline/` 现为 **HF 
   - 日志：`/var/log/quant-daily-desk.log`
 - **坑（2026-08-25 已踩）**：只写到 `/root/quantsite`、没进 www/Pages → ops 告警、公网仍旧。处理：拷贝最新 → www + `sync_to_github(['leaderboard.json'])`，crontab 必须走 `daily_desk.sh`。
 - AI 挖矿：`0 2,8,14,20 * * * run_pipeline_cron.sh`。
+- **闲时槽位赛马**：`scripts/idle_grid_miner.py`（1C1G 友好）。`psutil` 熔断（CPU&lt;30% 且可用内存&gt;150MB）；只挖 5 类网格；**不改** `tg_engine.py` / `engine-list.js`；在 `strategies.json` 的 45 个固定 plaza `strategy_id` 上末位淘汰（跳过 `strategy_bindings` / `protected`）；覆写 name/grid_params/metrics + `static/charts/{id}.svg`；TG 上架播报；`git_sync` 推 Pages。日志：`/var/log/quant-idle-miner.log`。一次性：`--once`；守护：无参循环。
 
 ---
 

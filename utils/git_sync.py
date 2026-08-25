@@ -35,6 +35,9 @@ ALLOWED_EXACT = frozenset(
 )
 ALLOWED_GLOB = (
     re.compile(r"^static/charts/ai_[A-Za-z0-9_.-]+\.svg$"),
+    re.compile(
+        r"^static/charts/(dual|ribbon|rsi|squeeze|atr|qe|dm|sn|eh|gw|ns|sf|qk|hs|hg|strat-\d{3})\.svg$"
+    ),
 )
 
 
