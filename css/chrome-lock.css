@@ -1,0 +1,126 @@
+/* QUANT.ALPHA chrome lock — black header + black ticker on every device.
+   Load LAST. Stops mobile sheets, Safari auto-dark, and fill-color inversion. */
+
+html {
+  color-scheme: only light;
+}
+
+.site-sticky-chrome,
+.live-sticky-chrome {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+
+.site-sticky-chrome .topbar,
+.live-sticky-chrome .topbar,
+body.has-bb-util .site-sticky-chrome .topbar,
+body.bots-page .site-sticky-chrome .topbar,
+body.live-page .site-sticky-chrome .topbar,
+body.home-boards .site-sticky-chrome .topbar {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border-bottom: 1px solid #333333 !important;
+}
+
+.site-sticky-chrome .brand,
+.site-sticky-chrome .brand-text,
+.site-sticky-chrome .topbar .brand {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.site-sticky-chrome .brand h1,
+.site-sticky-chrome .topbar .brand h1,
+.site-sticky-chrome .topbar .brand-text h1 {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  background: transparent !important;
+}
+
+.site-sticky-chrome .site-slogan,
+.site-sticky-chrome .topbar .site-slogan,
+.site-sticky-chrome .brand-text p {
+  color: #a3a3a3 !important;
+  -webkit-text-fill-color: #a3a3a3 !important;
+}
+
+.site-sticky-chrome .nav-toggle,
+.site-sticky-chrome #navToggle,
+.site-sticky-chrome .term-home-link,
+.site-sticky-chrome .nav-link {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.site-sticky-chrome .nav-toggle,
+.site-sticky-chrome #navToggle {
+  background: #000000 !important;
+  border-color: #555555 !important;
+}
+
+.site-sticky-chrome .auth-btn {
+  background: #ffffff !important;
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+  border-color: #ffffff !important;
+}
+
+.ticker-bar,
+.ticker,
+#tickerBar,
+.site-sticky-chrome .ticker-bar,
+.site-sticky-chrome .ticker-track,
+body.bots-page .ticker-bar,
+body.bots-page .ticker-track,
+body.live-page.war-cmd .ticker-bar,
+body.live-page.war-cmd #tickerBar {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border-top-color: #333333 !important;
+  border-bottom-color: #333333 !important;
+}
+
+.ticker-pill,
+.ticker-bar .ticker-pill,
+body.bots-page .ticker-pill {
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  border: 1px solid #333333 !important;
+}
+
+.ticker-pill .tp-sym,
+.ticker-pill .tp-px,
+body.bots-page .ticker-pill .tp-sym,
+body.bots-page .ticker-pill .tp-px {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.ticker-pill .tp-chg.up,
+.ticker-pill .tp-chg.data-updated-up {
+  color: #4caf50 !important;
+  -webkit-text-fill-color: #4caf50 !important;
+}
+
+.ticker-pill .tp-chg.down,
+.ticker-pill .tp-chg.data-updated-down {
+  color: #ff3b30 !important;
+  -webkit-text-fill-color: #ff3b30 !important;
+}
+
+#qaFlashMarquee,
+.qa-flash-marquee,
+.qa-flash-badge,
+.qa-flash-viewport {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+
+@media (forced-colors: active) {
+  .site-sticky-chrome,
+  .site-sticky-chrome .topbar,
+  .ticker-bar {
+    forced-color-adjust: none;
+  }
+}

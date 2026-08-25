@@ -755,27 +755,39 @@ body.bots-page .wrap {
     padding: 0 12px 28px;
   }
   body.bots-page .site-sticky-chrome {
-    background: #fff;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    background: #000000 !important;
+    border-bottom: 1px solid #333333 !important;
+  }
+  body.bots-page .ticker-bar,
+  body.bots-page .ticker-track {
+    background: #000000 !important;
+    border-color: #333333 !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+    padding: 0 !important;
+    min-height: 40px !important;
+  }
+  body.bots-page .ticker-pill,
+  body.bots-page .ticker-bar .ticker-pill {
+    background: #1a1a1a !important;
+    border: 1px solid #333333 !important;
+    border-radius: 0 !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    box-shadow: none !important;
+    font-size: 11px;
+    padding: 0 12px;
+  }
+  body.bots-page .ticker-pill .tp-px {
+    display: none;
+  }
+  body.bots-page .ticker-pill .tp-sym,
+  body.bots-page .ticker-pill .tp-px {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
   }
   body.bots-page .topbar .brand-text p,
   body.bots-page .site-slogan {
-    display: none;
-  }
-  body.bots-page .ticker-bar {
-    background: #fff;
-    border: 0;
-    padding: 6px 0 8px;
-  }
-  body.bots-page .ticker-pill {
-    background: #f5f7fa;
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    border-radius: 4px;
-    color: rgba(26, 29, 38, 0.55);
-    font-size: 11px;
-    padding: 4px 10px;
-  }
-  body.bots-page .ticker-pill .tp-px {
     display: none;
   }
   body.bots-page .site-foot,
@@ -784,39 +796,37 @@ body.bots-page .wrap {
   body.bots-page .legal-strip {
     display: none !important;
   }
-  body.bots-page .ticker-bar,
-  body.bots-page .ticker-track {
-    background: #fff !important;
-    border: 0 !important;
-    min-height: 0 !important;
-  }
-  body.bots-page .ticker-pill,
-  body.bots-page .ticker-bar .ticker-pill {
-    background: #f5f7fa !important;
-    border: 1px solid rgba(0, 0, 0, 0.06) !important;
-    border-radius: 4px !important;
-    color: rgba(26, 29, 38, 0.55) !important;
-    box-shadow: none !important;
-  }
-  body.bots-page .ticker-pill .tp-chg.is-up,
-  body.bots-page .ticker-pill .tp-chg {
-    color: #00a86b !important;
-  }
-  body.bots-page .topbar {
-    background: #fff !important;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
-    color: #1a1d26 !important;
+  body.bots-page .topbar,
+  body.bots-page .site-sticky-chrome .topbar {
+    background: #000000 !important;
+    border-bottom: 1px solid #333333 !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
   }
   body.bots-page .topbar .brand h1,
   body.bots-page .topbar .brand-text h1 {
-    color: #1a1d26 !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
   }
-  body.bots-page .auth-btn,
   body.bots-page .nav-toggle {
-    color: #1a1d26 !important;
-    border-color: rgba(0, 0, 0, 0.12) !important;
-    background: #fff !important;
-    border-radius: 4px !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    border-color: #333333 !important;
+    background: #000000 !important;
+  }
+  body.bots-page .auth-btn {
+    color: #000000 !important;
+    -webkit-text-fill-color: #000000 !important;
+    background: #ffffff !important;
+    border-color: #ffffff !important;
+  }
+  body.bots-page .ticker-pill .tp-chg.up {
+    color: #4caf50 !important;
+    -webkit-text-fill-color: #4caf50 !important;
+  }
+  body.bots-page .ticker-pill .tp-chg.down {
+    color: #ff3b30 !important;
+    -webkit-text-fill-color: #ff3b30 !important;
   }
 
   .bots-hero {

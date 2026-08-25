@@ -1,4 +1,5 @@
 /* ========== bloomberg.com light editorial override layer ========== */
+html { color-scheme: only light; }
 html, body { background-color: var(--bg-main); color: var(--text-main); font-family: var(--font); }
 html, body {
   -webkit-tap-highlight-color: transparent;
@@ -254,7 +255,7 @@ body.nav-drawer-open .wrap.wide {
 .bb-util-node { color: #ffffff; }
 .bb-util-dot { background: var(--color-up); }
 
-/* Price ticker — gray bar, dark square quote boxes */
+/* Price ticker — black bar, dark square quote boxes */
 .ticker, .ticker-bar {
   background: #000000 !important;
   border-bottom: 1px solid #333333 !important;
@@ -527,4 +528,33 @@ input:focus, textarea:focus, select:focus { border-color: var(--color-accent); o
 .bot-kpi-val.is-down { color: #c2410c; }
 .bot-deploy-bg { background: rgba(0, 0, 0, 0.55); }
 .bot-deploy { background: #ffffff; color: #000000; border: 1px solid #000000; }
+
+/* Chrome lock (also in css/chrome-lock.css). Keep here if that sheet is skipped. */
+.site-sticky-chrome,
+.site-sticky-chrome .topbar,
+body.has-bb-util .site-sticky-chrome .topbar {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+.site-sticky-chrome .brand h1,
+.site-sticky-chrome .topbar .brand h1 {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  background: transparent !important;
+}
+.ticker-bar,
+.site-sticky-chrome .ticker-bar,
+.ticker-track {
+  background: #000000 !important;
+}
+.ticker-pill {
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+.ticker-pill .tp-sym,
+.ticker-pill .tp-px {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
 
