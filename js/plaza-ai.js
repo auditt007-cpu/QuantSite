@@ -1,10 +1,13 @@
 (function (root) {
   const STYLE = `
-.ai-badge{display:inline-block;font-size:11px;letter-spacing:.08em;color:#d4a017;border:1px solid #d4a017;padding:1px 6px;margin-bottom:6px}
-.classic-badge{display:inline-block;font-size:11px;letter-spacing:.08em;color:#64748b;border:1px solid #94a3b8;padding:1px 6px;margin-bottom:6px;background:#f8fafc}
-#aiStratModal .ai-eq-full{width:100%;max-height:280px;object-fit:contain;background:#0b0b0c}
-#aiStratCopy{white-space:pre-wrap;line-height:1.55;color:#c8c8c8}
 #plazaCount{margin:8px 0 14px;color:#64748b;font-size:13px}
+#aiStratModal.modal-bg{background:rgba(0,0,0,.45)}
+#aiStratModal .modal.wide{background:#fff;color:#1a1d26;border:1px solid #e2e8f0;border-radius:4px;box-shadow:0 12px 40px rgba(0,0,0,.12)}
+#aiStratModal .modal-x{color:#1a1d26}
+#aiStratModal .ai-eq-full,#aiStratModal .plaza-eq-svg{width:100%;max-height:280px;object-fit:contain;background:#f8fafc;border:1px solid #e2e8f0;border-radius:4px}
+#aiStratModal #aiStratCopy{white-space:pre-wrap;line-height:1.55;color:#334155}
+#aiStratModal #aiStratTitle{color:#0f172a}
+#aiStratModal #aiStratMeta{color:#64748b}
 `;
 
   function ensureStyle() {
@@ -252,51 +255,49 @@
     return Math.round(x).toLocaleString("en-US");
   }
 
-  function retLabel(days) {
-    const d = Number.isFinite(Number(days)) && Number(days) > 0 ? Math.round(Number(days)) : 60;
-    const tpl = t("mktRet", "回測{d}日區間報酬");
-    return String(tpl).replace(/\{d\}/g, String(d));
+  function fmtTurnover(n) {
+    if (!Number.isFinite(n) || n < 0) return "—";
+    return Number(n).toFixed(1);
   }
 
   function metricsBoardHtml(seed) {
     const sh = fmtSharpe(seed.sh);
     const wr = seed.wrLabel || fmtWr(seed.wr);
     const mdd = fmtMdd(seed.mdd);
-    const ret = fmtRet(seed.ret);
+    const apy = fmtRet(seed.ret);
+    const winRet = fmtRet(seed.windowRet != null ? seed.windowRet : seed.ret);
     const pf = fmtPf(seed.pf);
     const trades = fmtTrades(seed.trades);
+    const turn = fmtTurnover(seed.turnover);
     const mddCls = mdd !== "—" ? " is-down" : "";
     const wrCls = wr !== "—" ? " is-up" : "";
-    const retCls = seed.ret == null ? "" : Number(seed.ret) >= 0 ? " is-up" : " is-down";
-    const retLab =
-      seed.source === "backtest" || (Number.isFinite(seed.ret) && Math.abs(seed.ret) > 0.2)
-        ? t("mktApy", "回測年化 APY")
-        : retLabel(seed.periodDays);
-    const retTip = t("mktRetTip", "指定回測窗口內的累積報酬（非整年年化）");
+    const apyCls = seed.ret == null ? "" : Number(seed.ret) >= 0 ? " is-up" : " is-down";
+    const winCls =
+      seed.windowRet == null && seed.ret == null
+        ? ""
+        : Number(seed.windowRet != null ? seed.windowRet : seed.ret) >= 0
+          ? " is-up"
+          : " is-down";
     const disc = seed.disclaimer || (seed.source === "backtest" ? "基於 60 日回測數據" : "");
     const discHtml = disc
-      ? '<div class="stat-cap plaza-disclaimer" style="flex-basis:100%;opacity:.72;font-size:11px;letter-spacing:.02em"><span></span><b style="font-weight:500;color:#8b9bb4">' +
-        disc +
-        "</b></div>"
+      ? '<div class="plaza-disclaimer muted">' + disc + "</div>"
       : "";
     return (
-      '<div class="stat-caps plaza-metrics">' +
-      '<div class="stat-cap"><span>' +
-      t("mktSh", "抗震穩健度") +
-      "</span><b>" +
-      sh +
-      "</b></div>" +
-      '<div class="stat-cap" title="' +
-      retTip +
-      '"><span>' +
-      retLab +
-      "</span><b class=\"" +
-      retCls.trim() +
+      '<div class="plaza-core">' +
+      '<div class="plaza-apy"><b class="' +
+      apyCls.trim() +
       '">' +
-      ret +
-      "</b><em class=\"stat-tip\">" +
-      retTip +
-      "</em></div>" +
+      apy +
+      "</b><span>" +
+      t("mktApy", "年化 APY") +
+      "</span></div>" +
+      '<div class="plaza-stab"><b>' +
+      sh +
+      "</b><span>" +
+      t("mktShShort", "穩健") +
+      "</span></div>" +
+      "</div>" +
+      '<div class="stat-caps plaza-metrics plaza-metrics-6">' +
       '<div class="stat-cap"><span>' +
       t("mktWr", "命中率") +
       '</span><b class="' +
@@ -305,7 +306,7 @@
       wr +
       "</b></div>" +
       '<div class="stat-cap"><span>' +
-      t("mktMdd", "歷史最大回跌") +
+      t("mktMdd", "最大回撤") +
       '</span><b class="' +
       mddCls.trim() +
       '">' +
@@ -317,12 +318,26 @@
       pf +
       "</b></div>" +
       '<div class="stat-cap"><span>' +
-      t("hbColTrades", "樣本筆數") +
+      t("hbColTrades", "總筆數") +
       "</span><b>" +
       trades +
       "</b></div>" +
-      discHtml +
-      "</div>"
+      '<div class="stat-cap"><span>' +
+      t("mktTurnover", "日換手") +
+      "</span><b>" +
+      turn +
+      "</b></div>" +
+      '<div class="stat-cap" title="' +
+      t("mktRetTip", "指定回測窗口內的累積報酬（非整年年化）") +
+      '"><span>' +
+      t("mktWinRet", "指定窗口累積") +
+      '</span><b class="' +
+      winCls.trim() +
+      '">' +
+      winRet +
+      "</b></div>" +
+      "</div>" +
+      discHtml
     );
   }
 
@@ -431,6 +446,9 @@
         max_drawdown: Number.isFinite(mdd) ? (-Math.abs(mdd) * 100).toFixed(1) + "%" : null,
         win_rate: Number.isFinite(wr) ? (wr * 100).toFixed(1) + "%" : null,
         profit_factor: pf,
+        return_pct: Number.isFinite(ret) ? ret : m.return_pct,
+        daily_turnover_rate: m.daily_turnover_rate != null ? m.daily_turnover_rate : m.daily_turnover,
+        daily_turnover: m.daily_turnover != null ? m.daily_turnover : m.daily_turnover_rate,
         disclaimer: r.disclaimer || m.disclaimer || "基於 60 日回測數據",
       },
       sharpe: sh,
@@ -484,9 +502,13 @@
       const x = Number(m.sharpe_ratio);
       if (Number.isFinite(x)) sh = x;
     }
-    let ret = Number(s.return_pct);
+    // Window cumulative return (not annualized) — keep separate from hero APY.
+    let windowRet = Number(s.return_pct);
+    if (!Number.isFinite(windowRet) || windowRet === 0) {
+      if (Number.isFinite(Number(m.return_pct))) windowRet = Number(m.return_pct);
+    }
+    let ret = windowRet;
     const apy = Number(m.backtest_apy_pct);
-    // FOMO: surface annualized backtest APY as the hero return when present.
     if (Number.isFinite(apy) && apy >= 8) {
       ret = apy / 100;
     } else if (!Number.isFinite(ret) || ret === 0) {
@@ -495,6 +517,18 @@
     let pf = Number(s.profit_factor);
     if (!Number.isFinite(pf) || pf <= 0) pf = Number(m.profit_factor);
     const trades = Number(s.trades != null ? s.trades : m.trades);
+    let turnover = Number(
+      m.daily_turnover_rate != null
+        ? m.daily_turnover_rate
+        : m.daily_turnover != null
+          ? m.daily_turnover
+          : s.daily_turnover
+    );
+    if (!Number.isFinite(turnover) || turnover < 0) {
+      // Rough fallback from trades / period days
+      const pd = Number(s.period_days || m.period_days || 60) || 60;
+      if (Number.isFinite(trades) && trades > 0) turnover = trades / pd;
+    }
     let periodDays = Number(s.period_days || s.backtest_days || s.periodDays || m.period_days);
     if (!Number.isFinite(periodDays) || periodDays < 1) periodDays = 60;
     const fromBacktest =
@@ -505,8 +539,10 @@
       sh: Number.isFinite(sh) ? sh : null,
       mdd: Number.isFinite(mdd) ? mdd : null,
       ret: Number.isFinite(ret) ? ret : null,
+      windowRet: Number.isFinite(windowRet) ? windowRet : null,
       pf: Number.isFinite(pf) && pf > 0 ? pf : null,
       trades: Number.isFinite(trades) && trades > 0 ? trades : null,
+      turnover: Number.isFinite(turnover) && turnover >= 0 ? turnover : null,
       periodDays: periodDays,
       source: fromBacktest ? "backtest" : "live",
       disclaimer: s.disclaimer || m.disclaimer || (fromBacktest ? "基於 60 日回測數據" : ""),
@@ -528,6 +564,11 @@
     return /網格|馬丁|martin|grid|atr_grid|adaptive_grid/.test(blob);
   }
 
+  function miniSparkHtml(s, seed) {
+    const svg = equitySparkSvg(s.id || s.name, seed.ret, seed.mdd);
+    return svg.replace('class="ai-eq-thumb plaza-eq-svg"', 'class="plaza-mini-spark"');
+  }
+
   function cardHtml(s) {
     const seed = seedFromCard(s);
     const title = displayName(s);
@@ -537,14 +578,14 @@
       : grid
         ? '<span class="grid-hero-badge">24H 波動率套利流水線</span>'
         : '<span class="classic-badge">' + t("mktBadgeClassic", "量化經典") + "</span>";
-    const principle = briefCopy(s.principle || s.description || s.copy || "", 200);
     const rawSym =
       symbolFromName(displayName(s), s) || (s.symbols && s.symbols[0]) || s.symbol || "BTCUSDT";
     const sym = String(rawSym).replace(/\//g, "").replace(/USDT$/i, "") + "USDT";
     const iv = String(s.interval || "1h").toUpperCase();
+    const days = seed.periodDays || 60;
     const kind = grid ? "grid" : s.ai ? "ai" : s.tier === "master" ? "master" : "classic";
     return (
-      '<article class="m-card strategy-card plaza-card' +
+      '<article class="m-card strategy-card plaza-card plaza-card-v2' +
       (s.ai ? " ai-card" : "") +
       (grid ? " is-grid-hero" : "") +
       (s.tier === "master" ? " master" : "") +
@@ -565,23 +606,29 @@
       (seed.sh != null ? ' data-sh="' + seed.sh + '"' : "") +
       (seed.mdd != null ? ' data-mdd="' + seed.mdd + '"' : "") +
       ">" +
-      badge +
-      "<h3>" +
+      '<div class="plaza-card-head"><h3>' +
       title +
       "</h3>" +
-      chartBlockHtml(s) +
-      (principle ? '<p class="card-principle">' + principle + "</p>" : "") +
-      '<p class="card-meta muted">' +
+      badge +
+      "</div>" +
+      '<div class="plaza-card-sub">' +
+      "<span>" +
       sym +
       " · " +
       iv +
-      "</p>" +
+      "</span>" +
+      '<span class="plaza-dot"></span>' +
+      "<span>" +
+      t("mktBackDays", "回測 {d} 日").replace("{d}", String(days)) +
+      "</span>" +
+      miniSparkHtml(s, seed) +
+      "</div>" +
       metricsBoardHtml(seed) +
-      '<div class="card-actions">' +
-      '<button type="button" class="btn-cta compact" data-plaza-detail="' +
+      '<div class="card-actions plaza-card-foot">' +
+      '<button type="button" class="btn-link" data-plaza-detail="' +
       s.id +
       '">' +
-      t("mktDetail", "查看解說與曲線") +
+      t("mktDetail", "查看回測曲線") +
       "</button>" +
       '<a class="btn-cta compact" href="#" data-get-strategy>' +
       t("mktGet", "獲取策略") +

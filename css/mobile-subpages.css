@@ -76,13 +76,19 @@
     background: #fff;
   }
 
-  /* Plaza unified cards: keep principle + metrics visible on mobile */
+  /* Plaza unified cards: keep core + metrics visible on mobile */
   body.plaza-page .m-card.strategy-card.plaza-card .card-principle,
-  body.plaza-page .m-card.strategy-card.plaza-card .card-meta,
-  body.plaza-page .m-card.strategy-card.plaza-card .stat-caps {
-    display: block !important;
+  body.plaza-page .m-card.strategy-card.plaza-card .card-meta {
+    display: none !important;
   }
-  body.plaza-page .m-card.strategy-card.plaza-card .stat-caps.plaza-metrics {
+  body.plaza-page .m-card.strategy-card.plaza-card .plaza-core {
+    display: flex !important;
+  }
+  body.plaza-page .m-card.strategy-card.plaza-card .stat-caps {
+    display: grid !important;
+  }
+  body.plaza-page .m-card.strategy-card.plaza-card .stat-caps.plaza-metrics,
+  body.plaza-page .m-card.strategy-card.plaza-card .stat-caps.plaza-metrics-6 {
     display: grid !important;
   }
   body.plaza-page .m-card.strategy-card.plaza-card .tags {
@@ -317,10 +323,16 @@
     max-width: 380px !important;
     max-height: 85vh;
     margin: auto;
-    border-radius: 12px;
+    border-radius: 4px;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     box-sizing: border-box;
+  }
+
+  body.plaza-page #aiStratModal .modal.wide {
+    background: #fff !important;
+    color: #1a1d26 !important;
+    border: 1px solid #e2e8f0 !important;
   }
 
   body:not(.home-boards):not(.live-page) #loginPanel.desk,

@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="./styles.css?v=202608252250-botpeer" />
   <link rel="stylesheet" href="./css/mobile-global.css?v=202608252250-botpeer" />
   <link rel="stylesheet" href="./css/mobile-subpages.css?v=202608252250-botpeer" />
-  <link rel="stylesheet" href="./css/bots.css?v=202608252250-botpeer" />
+  <link rel="stylesheet" href="./css/bots.css?v=202608252310-align4" />
   <link rel="stylesheet" href="./css/bloomberg-system.css?v=202608252250-botpeer" />
   <link rel="stylesheet" href="./css/bloomberg-dark.css?v=202608252250-botpeer" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -67,6 +67,7 @@
 
     <section class="bot-console" aria-label="Grid sandbox">
       <div class="bot-stats" id="botStats">
+        <div class="bot-stats-card">
         <div class="bot-kpis" id="botKpis">
           <div class="bot-kpi">
             <div class="bot-kpi-lab" data-i18n="botApy">區間報酬率</div>
@@ -107,6 +108,7 @@
           <p class="bot-chart-hint muted" data-i18n="botChartHint">灰色區間為價格超出網格帶；點擊買賣三角查看成交詳情</p>
         </div>
         <p class="bot-note" data-i18n="botDisc">回測於瀏覽器本地完成，含約 4bps 單邊成本假設。歷史結果不代表未來實盤收益。</p>
+        </div>
       </div>
 
       <div class="bot-panel">
@@ -151,7 +153,7 @@
         <div class="bot-m-row bot-m-grids-period">
           <span class="bot-m-lab" data-i18n="botGrids">網格數量</span>
           <span class="bot-m-grids-val"><span id="botGridsOut">50</span> <small data-i18n="botGridsUnit">格</small></span>
-          <input id="botGrids" class="bot-grids-range" type="range" min="20" max="150" value="50" />
+          <input id="botGrids" class="bot-grids-range" type="range" min="20" max="150" value="50" aria-label="grids" />
           <span class="bot-m-grow"></span>
           <span class="bot-m-lab" data-i18n="botPeriod">回測</span>
           <div class="bot-chips" role="group">
