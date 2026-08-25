@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-25T06:21:03Z",
+  "updated_at": "2026-08-25T06:23:12Z",
   "period_hours": 3,
   "poll_sec": 5,
   "scan_tf": "15m+1h",
@@ -946,6 +946,126 @@
   "exec_log": [
     {
       "kind": "batch",
+      "name_zh": "量均突破",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "多頭平倉翻空 (SELL)",
+      "logged_at": 1787638867,
+      "bar_ts": 1787638500,
+      "event": "open",
+      "strategy_id": "vol_ma_15m_39",
+      "symbols": [
+        {
+          "symbol": "INJUSDT",
+          "price": 5.885,
+          "sl_pct": -0.4401869158878478,
+          "tp_pct": 0.8803738317756956,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "成交量價差VSA",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "多頭平倉翻空 (SELL)",
+      "logged_at": 1787638868,
+      "bar_ts": 1787638500,
+      "event": "open",
+      "strategy_id": "vsa_15m_27",
+      "symbols": [
+        {
+          "symbol": "INJUSDT",
+          "price": 5.885,
+          "sl_pct": -0.4401869158878478,
+          "tp_pct": 0.8803738317756956,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "量均突破",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787638867,
+      "bar_ts": 1787638500,
+      "event": "close",
+      "strategy_id": "vol_ma_15m_39",
+      "symbols": [
+        {
+          "symbol": "INJUSDT",
+          "price": 5.885,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.9259259259259361
+        },
+        {
+          "symbol": "RENDERUSDT",
+          "price": 1.5633,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": 1.2041173043309348
+        },
+        {
+          "symbol": "NEARUSDT",
+          "price": 1.9767,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -1.2588041360707383
+        },
+        {
+          "symbol": "OPUSDT",
+          "price": 0.108,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.9174311926605512
+        }
+      ],
+      "strategy_count": 4
+    },
+    {
+      "kind": "batch",
+      "name_zh": "成交量價差VSA",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787638866,
+      "bar_ts": 1787638500,
+      "event": "close",
+      "strategy_id": "vsa_15m_27",
+      "symbols": [
+        {
+          "symbol": "INJUSDT",
+          "price": 5.885,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.9259259259259361
+        },
+        {
+          "symbol": "OPUSDT",
+          "price": 0.108,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.9174311926605512
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
       "name_zh": "樞軸點突破",
       "interval": "15m",
       "side": "SHORT",
@@ -1498,44 +1618,6 @@
     },
     {
       "kind": "batch",
-      "name_zh": "量均突破",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787638612,
-      "bar_ts": 1787638500,
-      "event": "close",
-      "strategy_id": "vol_ma_15m_39",
-      "symbols": [
-        {
-          "symbol": "RENDERUSDT",
-          "price": 1.5633,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 1.2041173043309348
-        },
-        {
-          "symbol": "NEARUSDT",
-          "price": 1.9767,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -1.2588041360707383
-        },
-        {
-          "symbol": "OPUSDT",
-          "price": 0.108,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.9174311926605512
-        }
-      ],
-      "strategy_count": 3
-    },
-    {
-      "kind": "batch",
       "name_zh": "ROC10動能",
       "interval": "15m",
       "side": "LONG",
@@ -1573,28 +1655,6 @@
           "sl_pct": null,
           "tp_pct": null,
           "event": "close",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "成交量價差VSA",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787638551,
-      "bar_ts": 1787638500,
-      "event": "open",
-      "strategy_id": "vsa_15m_27",
-      "symbols": [
-        {
-          "symbol": "INJUSDT",
-          "price": 5.885,
-          "sl_pct": -0.4401869158878478,
-          "tp_pct": 0.8803738317756956,
-          "event": "open",
           "pnl_pct": null
         }
       ],
@@ -1640,50 +1700,6 @@
           "tp_pct": null,
           "event": "close",
           "pnl_pct": -0.03390117806594912
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "成交量價差VSA",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787638547,
-      "bar_ts": 1787638500,
-      "event": "close",
-      "strategy_id": "vsa_15m_27",
-      "symbols": [
-        {
-          "symbol": "OPUSDT",
-          "price": 0.108,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.9174311926605512
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "ROC10動能",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787638546,
-      "bar_ts": 1787638500,
-      "event": "open",
-      "strategy_id": "roc10_15m_29",
-      "symbols": [
-        {
-          "symbol": "ETHUSDT",
-          "price": 2509.42,
-          "sl_pct": -0.3454897944544923,
-          "tp_pct": 0.6909795490591435,
-          "event": "open",
-          "pnl_pct": null
         }
       ],
       "strategy_count": 1
