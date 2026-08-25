@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-25T22:25:33.838476+00:00",
+  "updated_at": "2026-08-25T22:51:24.474632+00:00",
   "status": "BACKTEST_PRERENDER",
   "strategies": [
     {
@@ -940,48 +940,55 @@
       "status": "BACKTEST_READY",
       "strategy_type": "GRID",
       "subtype": "BOLLINGER_SQUEEZE_GRID",
-      "title": "SOL·非對稱防守擠壓套利網格 V3.7",
-      "name": "SOL·非對稱防守擠壓套利網格 V3.7",
-      "symbol": "SOL/USDT",
+      "title": "ETH·統計套利擠壓套利網格 V2.4",
+      "name": "ETH·統計套利擠壓套利網格 V2.4",
+      "symbol": "ETH/USDT",
       "symbols": [
-        "SOLUSDT"
+        "ETHUSDT"
       ],
       "timeframe": "15m",
       "interval": "15m",
-      "period_days": 30,
-      "backtest_days": 30,
+      "period_days": 60,
+      "backtest_days": 60,
       "grid_params": {
-        "leverage": 5,
-        "grids_count": 60,
-        "grid_mode": "geometric",
-        "profit_per_grid_pct": 0.55
+        "lower_price": 2428.979079,
+        "upper_price": 2521.278921,
+        "grids_count": 48,
+        "grid_mode": "arithmetic",
+        "leverage": 3.0,
+        "profit_per_grid_pct": 0.45,
+        "atr_multiplier": null,
+        "bb_period": 20,
+        "bb_k": 2.5
+      },
+      "params": {
+        "leverage": 3,
+        "profit_per_grid_pct": 0.45
       },
       "metrics": {
-        "backtest_apy_pct": 58.4,
-        "max_drawdown_pct": -3.3,
-        "win_rate_pct": 83.8,
-        "daily_turnover_rate": 55.7,
-        "daily_turnover": 55.7,
-        "sharpe_ratio": 4.56,
-        "profit_factor": 3.57,
-        "return_pct": 0.096,
-        "period_days": 30,
+        "backtest_apy_pct": 567.4,
+        "max_drawdown_pct": -1.78,
+        "daily_turnover_rate": 13.3,
+        "daily_turnover": 13.3,
+        "sharpe_ratio": 22.445,
+        "win_rate_pct": 93.0,
+        "profit_factor": 2.563,
+        "return_pct": 0.2634,
+        "period_days": 60,
         "metrics_source": "backtest_60d",
-        "disclaimer": "基於 30 日回測數據"
+        "disclaimer": "基於 60 日回測數據"
       },
-      "sharpe": 4.56,
-      "max_drawdown": -0.033,
-      "return_pct": 0.096,
-      "profit_factor": 3.57,
-      "win_rate": 0.838,
-      "trades": 848,
+      "sharpe": 22.445,
+      "max_drawdown": -0.0178,
+      "return_pct": 0.2634,
+      "profit_factor": 2.563,
+      "win_rate": 0.93,
+      "trades": 598,
       "chart": "/static/charts/strat-003.svg",
       "chart_url": "/static/charts/strat-003.svg",
-      "copy": "SOL·非對稱防守擠壓套利網格 V3.7 · SOLUSDT 高頻網格 · 回測 APY 58.4% · 日換手 55.7 · 手續費返傭導向",
-      "principle": "賽馬篩選網格 · 基於 60 日回測預渲染 · Live 掃描同步中",
       "monetization": "trading_volume_rebate",
-      "cleaned_at": "2026-08-25T14:13:11Z",
-      "disclaimer": "基於 30 日回測數據"
+      "replaced_at": "2026-08-25T22:51:24Z",
+      "copy": "ETH·統計套利擠壓套利網格 V2.4 · ETHUSDT 高換手網格 · 手續費返傭導向"
     },
     {
       "id": "strat-004",
