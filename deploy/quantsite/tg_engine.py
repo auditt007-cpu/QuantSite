@@ -541,78 +541,11 @@ def eval_composite_mom(d):
     return event_long_short(hist[-1] > 0 and roc > 0.003, hist[-1] < 0 and roc < -0.003)
 
 
-def build_strategy_matrix():
-    specs = []
-    families = [
-        ("ema_12_26", "EMA雙均交叉", "EMA Double Cross", "15m", lambda d: eval_ema_cross(d, 12, 26)),
-        ("ema_12_26", "EMA雙均交叉", "EMA Double Cross", "1h", lambda d: eval_ema_cross(d, 12, 26)),
-        ("ema_5_13", "EMA快線交叉", "EMA Fast Cross", "15m", lambda d: eval_ema_cross(d, 5, 13)),
-        ("ema_5_13", "EMA快線交叉", "EMA Fast Cross", "1h", lambda d: eval_ema_cross(d, 5, 13)),
-        ("ema_triple", "EMA三均共振", "EMA Triple Stack", "15m", eval_ema_triple),
-        ("ema_triple", "EMA三均共振", "EMA Triple Stack", "1h", eval_ema_triple),
-        ("don_20", "唐奇安突破20", "Donchian 20 Break", "15m", lambda d: eval_donchian(d, 20)),
-        ("don_20", "唐奇安突破20", "Donchian 20 Break", "1h", lambda d: eval_donchian(d, 20)),
-        ("don_10", "唐奇安突破10", "Donchian 10 Break", "15m", lambda d: eval_donchian(d, 10)),
-        ("don_10", "唐奇安突破10", "Donchian 10 Break", "1h", lambda d: eval_donchian(d, 10)),
-        ("bb_reb", "布林均值回歸", "Bollinger Rebound", "15m", lambda d: eval_bb_rebound(d, 20, 2.0)),
-        ("bb_reb", "布林均值回歸", "Bollinger Rebound", "1h", lambda d: eval_bb_rebound(d, 20, 2.0)),
-        ("bb_sqz", "布林擠壓突破", "BB Squeeze Break", "15m", lambda d: eval_bb_squeeze_break(d, 20)),
-        ("bb_sqz", "布林擠壓突破", "BB Squeeze Break", "1h", lambda d: eval_bb_squeeze_break(d, 20)),
-        ("rsi_x", "RSI超賣超買交叉", "RSI Threshold Cross", "15m", lambda d: eval_rsi_cross(d, 30, 70)),
-        ("rsi_x", "RSI超賣超買交叉", "RSI Threshold Cross", "1h", lambda d: eval_rsi_cross(d, 30, 70)),
-        ("rsi_div", "RSI背離代理", "RSI Divergence Proxy", "15m", eval_rsi_div_proxy),
-        ("rsi_div", "RSI背離代理", "RSI Divergence Proxy", "1h", eval_rsi_div_proxy),
-        ("macd_h", "MACD柱翻轉", "MACD Histogram Flip", "15m", eval_macd_hist_cross),
-        ("macd_h", "MACD柱翻轉", "MACD Histogram Flip", "1h", eval_macd_hist_cross),
-        ("macd_s", "MACD信號交叉", "MACD Signal Cross", "15m", eval_macd_signal_cross),
-        ("macd_s", "MACD信號交叉", "MACD Signal Cross", "1h", eval_macd_signal_cross),
-        ("st_atr", "ATR超級趨勢", "ATR SuperTrend Break", "15m", lambda d: eval_supertrend_break(d, 10, 3.0)),
-        ("st_atr", "ATR超級趨勢", "ATR SuperTrend Break", "1h", lambda d: eval_supertrend_break(d, 10, 3.0)),
-        ("atr_grid", "ATR波動網格", "ATR Volatility Grid", "15m", lambda d: eval_atr_grid(d, 1.5)),
-        ("atr_grid", "ATR波動網格", "ATR Volatility Grid", "1h", lambda d: eval_atr_grid(d, 1.5)),
-        ("vsa", "成交量價差VSA", "Volume Spread Analysis", "15m", lambda d: eval_vsa_spike(d, 1.5)),
-        ("vsa", "成交量價差VSA", "Volume Spread Analysis", "1h", lambda d: eval_vsa_spike(d, 1.5)),
-        ("roc10", "ROC10動能", "ROC-10 Momentum", "15m", lambda d: eval_roc(d, 10, 0.35)),
-        ("roc10", "ROC10動能", "ROC-10 Momentum", "1h", lambda d: eval_roc(d, 10, 0.35)),
-        ("roc20", "ROC20動能", "ROC-20 Momentum", "15m", lambda d: eval_roc(d, 20, 0.55)),
-        ("roc20", "ROC20動能", "ROC-20 Momentum", "1h", lambda d: eval_roc(d, 20, 0.55)),
-        ("kelt", "肯特納突破", "Keltner Breakout", "15m", eval_keltner_break),
-        ("kelt", "肯特納突破", "Keltner Breakout", "1h", eval_keltner_break),
-        ("pivot", "樞軸點突破", "Pivot Point Break", "15m", eval_pivot_break),
-        ("pivot", "樞軸點突破", "Pivot Point Break", "1h", eval_pivot_break),
-        ("dual", "Dual Thrust", "Dual Thrust Break", "15m", lambda d: eval_dual_thrust(d, 4)),
-        ("dual", "Dual Thrust", "Dual Thrust Break", "1h", lambda d: eval_dual_thrust(d, 4)),
-        ("vol_ma", "量均突破", "Volume MA Break", "15m", eval_vol_ma_break),
-        ("vol_ma", "量均突破", "Volume MA Break", "1h", eval_vol_ma_break),
-        ("combo", "複合動能確認", "Composite Momentum", "15m", eval_composite_mom),
-        ("combo", "複合動能確認", "Composite Momentum", "1h", eval_composite_mom),
-        ("trend50", "EMA50趨勢突破", "EMA50 Trend Break", "15m", lambda d: eval_ema_cross(d, 20, 50)),
-        ("trend50", "EMA50趨勢突破", "EMA50 Trend Break", "1h", lambda d: eval_ema_cross(d, 20, 50)),
-        ("bb_wide", "布林寬帶回歸", "BB Wide Rebound", "15m", lambda d: eval_bb_rebound(d, 20, 2.5)),
-        ("bb_wide", "布林寬帶回歸", "BB Wide Rebound", "1h", lambda d: eval_bb_rebound(d, 20, 2.5)),
-    ]
-    for idx, (fid, zht, en, tf, fn) in enumerate(families[:45], start=1):
-        sid = "{0}_{1}_{2}".format(fid, tf, idx)
-        specs.append(
-            {
-                "id": sid,
-                "zht": zht,
-                "en": en,
-                "tf": tf,
-                "eval": fn,
-            }
-        )
-    return specs
-
-
-STRATEGY_MATRIX = build_strategy_matrix()
-
-
 # ---------------------------------------------------------------------------
-# Canonical 45 frontend strategy IDs (must stay byte-identical to
-# js/engine-list.js / terminal.js FALLBACK_ENGINES and calc_rankings.py's
-# by_engine keys). This is the single source of truth — calc_rankings.py
-# calls te.frontend_strategy_specs() instead of keeping its own copy.
+# Canonical plaza strategy IDs (must stay byte-identical to
+# js/engine-list.js / terminal.js FALLBACK_ENGINES and calc_rankings.py).
+# Live scan is 1:1 with this list — add one here (+ engine-list.js) and it
+# enters live on the next tg-bot cycle after deploy/restart.
 # ---------------------------------------------------------------------------
 def frontend_strategy_specs():
     return [
@@ -662,6 +595,70 @@ def frontend_strategy_specs():
         ("strat-029", "布林回歸1.6", "BB Rebound Soft", lambda d: eval_bb_rebound(d, 20, 1.6)),
         ("strat-030", "樞軸快線", "Pivot Fast", eval_pivot_break),
     ]
+
+
+def plaza_strategy_ids():
+    return [sid for sid, _z, _e, _fn in frontend_strategy_specs()]
+
+
+def build_strategy_matrix(plaza_specs=None):
+    """Plaza → Live 1:1. Same strategy_id as the plaza, scanned on each live TF."""
+    plaza = plaza_specs if plaza_specs is not None else frontend_strategy_specs()
+    out = []
+    for sid, zht, en, fn in plaza:
+        for tf in TIMEFRAMES:
+            out.append(
+                {
+                    "id": sid,
+                    "zht": zht,
+                    "en": en,
+                    "tf": tf,
+                    "eval": fn,
+                    "plaza_id": sid,
+                }
+            )
+    return out
+
+
+STRATEGY_MATRIX = build_strategy_matrix()
+
+
+def refresh_strategy_matrix():
+    """Rebuild live matrix from plaza specs each cycle (add one → enters live)."""
+    global STRATEGY_MATRIX
+    STRATEGY_MATRIX = build_strategy_matrix()
+    return STRATEGY_MATRIX
+
+
+def write_plaza_live_registry():
+    """Publish plaza↔live registry so ops/UI can verify 1:1 sync."""
+    ids = plaza_strategy_ids()
+    payload = {
+        "updated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "plaza_count": len(ids),
+        "live_scan_slots": len(ids) * len(TIMEFRAMES),
+        "timeframes": list(TIMEFRAMES),
+        "strategy_ids": ids,
+        "sync": "1:1",
+        "how_to_add": (
+            "Append to frontend_strategy_specs() and js/engine-list.js, "
+            "redeploy tg-bot — next cycle picks it up."
+        ),
+    }
+    raw = json.dumps(payload, ensure_ascii=False, indent=2)
+    try:
+        atomic_write_json(
+            os.path.join(os.path.dirname(LIVE_FEED_PATH), "plaza_live_registry.json"),
+            raw,
+        )
+    except Exception as exc:
+        log("plaza_live_registry write skip: {0}".format(exc))
+    try:
+        web = os.path.join(os.path.dirname(WEB_FEED_PATH), "plaza_live_registry.json")
+        atomic_write_json(web, raw)
+    except Exception as exc:
+        log("plaza_live_registry web skip: {0}".format(exc))
+    return payload
 
 
 def _slice_tail(data, i):
@@ -2187,6 +2184,12 @@ def scan_events():
 def cycle():
     # Plaza 3h book first (fast dedicated 1h fetch). Exec tape is NOT this
     # hourly dump — it is written later from the same scan_events() as TG.
+    # Refresh matrix each tick so a newly appended plaza strategy enters live.
+    refresh_strategy_matrix()
+    try:
+        write_plaza_live_registry()
+    except Exception as exc:
+        log("plaza_live_registry error: {0}".format(exc))
     t0 = time.time()
     feed = None
     try:
@@ -2298,9 +2301,20 @@ def demo_batch_message():
 
 
 def main():
+    refresh_strategy_matrix()
+    try:
+        write_plaza_live_registry()
+    except Exception as exc:
+        log("plaza_live_registry boot error: {0}".format(exc))
     log(
-        "event_engine start channel={0} poll={1}s publish={2}s web={3} strategies={4} symbols={5}".format(
-            CHANNEL, POLL_SEC, FEED_PUBLISH_SEC, WEB_FEED_PATH, len(STRATEGY_MATRIX), len(SYMBOLS)
+        "event_engine start channel={0} poll={1}s publish={2}s web={3} strategies={4} plaza={5} symbols={6}".format(
+            CHANNEL,
+            POLL_SEC,
+            FEED_PUBLISH_SEC,
+            WEB_FEED_PATH,
+            len(STRATEGY_MATRIX),
+            len(plaza_strategy_ids()),
+            len(SYMBOLS),
         )
     )
     if not BOT_TOKEN:
