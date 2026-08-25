@@ -1,6 +1,844 @@
 {
-  "updated_at": "2026-08-25T12:57:35.406581+00:00",
+  "updated_at": "2026-08-25T13:27:07.968754+00:00",
   "strategies": [
+    {
+      "id": "dual",
+      "engine": "dual",
+      "plaza_slot": true,
+      "slot": true,
+      "strategy_type": "GRID",
+      "subtype": "BASIS_FUNDING_GRID",
+      "title": "DOGE·自適應基差對沖網格 V4.1",
+      "name": "DOGE·自適應基差對沖網格 V4.1",
+      "symbol": "DOGE/USDT",
+      "timeframe": "15m",
+      "period_days": 45,
+      "backtest_days": 45,
+      "grid_params": {
+        "lower_price": 0.08199,
+        "upper_price": 0.09625,
+        "grids_count": 40,
+        "grid_mode": "arithmetic",
+        "leverage": 3.0,
+        "profit_per_grid_pct": 0.45,
+        "atr_multiplier": null,
+        "mode": "spot_long_perp_short_1x"
+      },
+      "params": {
+        "leverage": 3,
+        "profit_per_grid_pct": 0.45
+      },
+      "metrics": {
+        "backtest_apy_pct": 980.0,
+        "max_drawdown_pct": 0.2,
+        "daily_turnover_rate": 36.3,
+        "sharpe_ratio": 83.658,
+        "win_rate_pct": 88.3,
+        "profit_factor": 45.76,
+        "return_pct": 1.8843
+      },
+      "sharpe": 83.658,
+      "max_drawdown": 0.002,
+      "return_pct": 1.8843,
+      "trades": 1634,
+      "chart": "/static/charts/dual.svg",
+      "chart_url": "/static/charts/dual.svg",
+      "monetization": "trading_volume_rebate",
+      "replaced_at": "2026-08-25T13:27:07Z",
+      "copy": "DOGE·自適應基差對沖網格 V4.1 · 高換手網格 · 手續費返傭導向"
+    },
+    {
+      "id": "ribbon",
+      "engine": "ribbon",
+      "strategy_type": "GRID",
+      "title": "ribbon",
+      "name": "ribbon",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "rsi",
+      "engine": "rsi",
+      "strategy_type": "GRID",
+      "title": "rsi",
+      "name": "rsi",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "squeeze",
+      "engine": "squeeze",
+      "strategy_type": "GRID",
+      "title": "squeeze",
+      "name": "squeeze",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "atr",
+      "engine": "atr",
+      "strategy_type": "GRID",
+      "title": "atr",
+      "name": "atr",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "qe",
+      "engine": "qe",
+      "strategy_type": "GRID",
+      "title": "qe",
+      "name": "qe",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "dm",
+      "engine": "dm",
+      "strategy_type": "GRID",
+      "title": "dm",
+      "name": "dm",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "sn",
+      "engine": "sn",
+      "strategy_type": "GRID",
+      "title": "sn",
+      "name": "sn",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "eh",
+      "engine": "eh",
+      "strategy_type": "GRID",
+      "title": "eh",
+      "name": "eh",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "gw",
+      "engine": "gw",
+      "strategy_type": "GRID",
+      "title": "gw",
+      "name": "gw",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "ns",
+      "engine": "ns",
+      "strategy_type": "GRID",
+      "title": "ns",
+      "name": "ns",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "sf",
+      "engine": "sf",
+      "strategy_type": "GRID",
+      "title": "sf",
+      "name": "sf",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "qk",
+      "engine": "qk",
+      "strategy_type": "GRID",
+      "title": "qk",
+      "name": "qk",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "hs",
+      "engine": "hs",
+      "strategy_type": "GRID",
+      "title": "hs",
+      "name": "hs",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "hg",
+      "engine": "hg",
+      "strategy_type": "GRID",
+      "title": "hg",
+      "name": "hg",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "strat-001",
+      "engine": "strat-001",
+      "strategy_type": "GRID",
+      "title": "strat-001",
+      "name": "strat-001",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "strat-002",
+      "engine": "strat-002",
+      "strategy_type": "GRID",
+      "title": "strat-002",
+      "name": "strat-002",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "strat-003",
+      "engine": "strat-003",
+      "strategy_type": "GRID",
+      "title": "strat-003",
+      "name": "strat-003",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "strat-004",
+      "engine": "strat-004",
+      "strategy_type": "GRID",
+      "title": "strat-004",
+      "name": "strat-004",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "strat-005",
+      "engine": "strat-005",
+      "strategy_type": "GRID",
+      "title": "strat-005",
+      "name": "strat-005",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "strat-006",
+      "engine": "strat-006",
+      "strategy_type": "GRID",
+      "title": "strat-006",
+      "name": "strat-006",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "strat-007",
+      "engine": "strat-007",
+      "strategy_type": "GRID",
+      "title": "strat-007",
+      "name": "strat-007",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "strat-008",
+      "engine": "strat-008",
+      "strategy_type": "GRID",
+      "title": "strat-008",
+      "name": "strat-008",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "strat-009",
+      "engine": "strat-009",
+      "strategy_type": "GRID",
+      "title": "strat-009",
+      "name": "strat-009",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "strat-010",
+      "engine": "strat-010",
+      "strategy_type": "GRID",
+      "title": "strat-010",
+      "name": "strat-010",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "strat-011",
+      "engine": "strat-011",
+      "strategy_type": "GRID",
+      "title": "strat-011",
+      "name": "strat-011",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "strat-012",
+      "engine": "strat-012",
+      "strategy_type": "GRID",
+      "title": "strat-012",
+      "name": "strat-012",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "strat-013",
+      "engine": "strat-013",
+      "strategy_type": "GRID",
+      "title": "strat-013",
+      "name": "strat-013",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "strat-014",
+      "engine": "strat-014",
+      "strategy_type": "GRID",
+      "title": "strat-014",
+      "name": "strat-014",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "strat-015",
+      "engine": "strat-015",
+      "strategy_type": "GRID",
+      "title": "strat-015",
+      "name": "strat-015",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "strat-016",
+      "engine": "strat-016",
+      "strategy_type": "GRID",
+      "title": "strat-016",
+      "name": "strat-016",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "strat-017",
+      "engine": "strat-017",
+      "strategy_type": "GRID",
+      "title": "strat-017",
+      "name": "strat-017",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "strat-018",
+      "engine": "strat-018",
+      "strategy_type": "GRID",
+      "title": "strat-018",
+      "name": "strat-018",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "strat-019",
+      "engine": "strat-019",
+      "strategy_type": "GRID",
+      "title": "strat-019",
+      "name": "strat-019",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "strat-020",
+      "engine": "strat-020",
+      "strategy_type": "GRID",
+      "title": "strat-020",
+      "name": "strat-020",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "strat-021",
+      "engine": "strat-021",
+      "strategy_type": "GRID",
+      "title": "strat-021",
+      "name": "strat-021",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "strat-022",
+      "engine": "strat-022",
+      "strategy_type": "GRID",
+      "title": "strat-022",
+      "name": "strat-022",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "strat-023",
+      "engine": "strat-023",
+      "strategy_type": "GRID",
+      "title": "strat-023",
+      "name": "strat-023",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "strat-024",
+      "engine": "strat-024",
+      "strategy_type": "GRID",
+      "title": "strat-024",
+      "name": "strat-024",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "strat-025",
+      "engine": "strat-025",
+      "strategy_type": "GRID",
+      "title": "strat-025",
+      "name": "strat-025",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "strat-026",
+      "engine": "strat-026",
+      "strategy_type": "GRID",
+      "title": "strat-026",
+      "name": "strat-026",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "strat-027",
+      "engine": "strat-027",
+      "strategy_type": "GRID",
+      "title": "strat-027",
+      "name": "strat-027",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "strat-028",
+      "engine": "strat-028",
+      "strategy_type": "GRID",
+      "title": "strat-028",
+      "name": "strat-028",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "strat-029",
+      "engine": "strat-029",
+      "strategy_type": "GRID",
+      "title": "strat-029",
+      "name": "strat-029",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
+    {
+      "id": "strat-030",
+      "engine": "strat-030",
+      "strategy_type": "GRID",
+      "title": "strat-030",
+      "name": "strat-030",
+      "metrics": {
+        "sharpe_ratio": 0.0,
+        "backtest_apy_pct": 0.0,
+        "max_drawdown_pct": 99.0,
+        "win_rate_pct": 0.0,
+        "daily_turnover_rate": 0.0
+      },
+      "return_pct": 0.0,
+      "sharpe": 0.0,
+      "slot": true,
+      "plaza_slot": true
+    },
     {
       "id": "ai_grid_dynamic_662647",
       "strategy_type": "GRID",
