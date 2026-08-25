@@ -510,19 +510,29 @@
     return gen === state.speakGen;
   }
 
+  function edgePersonaLang() {
+    const L = voiceLang();
+    return L === "zh-CN" || L === "en";
+  }
+
   function speakLine(text, gen) {
     return new Promise(async (resolve) => {
       if (!text) return resolve();
       if (gen != null && gen !== state.speakGen) return resolve();
 
+      /* zh-CN / en: same Edge male voices as promo ads (Yunyang / Christopher) — never Web Speech */
       const edge = window.QAEdgeSpeak;
       if (edge && edge.speak) {
         try {
+          if (edge.unlockPlayback) await edge.unlockPlayback();
           const ok = await edge.speak(text, voiceLang(), gen, speakAlive);
           if (ok) return resolve();
         } catch {
-          /* Edge failed — fall back to male-only Web Speech below */
+          /* Edge failed */
         }
+        if (edgePersonaLang()) return resolve();
+      } else if (edgePersonaLang()) {
+        return resolve();
       }
 
       if (!window.speechSynthesis) return resolve();

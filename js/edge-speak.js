@@ -101,8 +101,8 @@
 
   let playbackUnlocked = false;
 
-  async function unlockPlayback() {
-    if (playbackUnlocked) return true;
+  async function unlockPlayback(force) {
+    if (playbackUnlocked && !force) return true;
     try {
       const Ctx = root.AudioContext || root.webkitAudioContext;
       if (Ctx) {
@@ -202,9 +202,30 @@
         }
       }, 40);
 
-      const p = a.play();
-      if (p && typeof p.then === "function") {
-        p.catch(() => finish(false));
+      let started = false;
+      const tryPlay = (retried) => {
+        if (done) return;
+        if (typeof isAlive === "function" && !isAlive(gen)) return finish(false);
+        const p = a.play();
+        if (p && typeof p.then === "function") {
+          p.catch(() => {
+            if (retried || done) return finish(false);
+            unlockPlayback(true).then(() => tryPlay(true)).catch(() => finish(false));
+          });
+        }
+      };
+
+      const start = () => {
+        if (started || done) return;
+        started = true;
+        tryPlay(false);
+      };
+      if (a.readyState >= 2) {
+        start();
+      } else {
+        a.addEventListener("canplay", start, { once: true });
+        a.load();
+        setTimeout(start, 600);
       }
       safetyTimer = setTimeout(() => finish(true), 48000);
     });
@@ -214,6 +235,7 @@
     await unlockPlayback();
     const blob = await fetchMp3(text, lang);
     if (typeof isAlive === "function" && !isAlive(gen)) return false;
+    await unlockPlayback();
     return playBlob(blob, gen, isAlive);
   }
 
@@ -222,19 +244,17 @@
     if (!line) return false;
     if (typeof isAlive === "function" && !isAlive(gen)) return false;
     const keyLang = normalizeLang(lang);
-    try {
-      const ok = await speakOnce(line, keyLang, gen, isAlive);
-      if (ok) return true;
-    } catch {
-      /* retry below */
+    for (let i = 0; i < 3; i += 1) {
+      if (typeof isAlive === "function" && !isAlive(gen)) return false;
+      try {
+        const ok = await speakOnce(line, keyLang, gen, isAlive);
+        if (ok) return true;
+      } catch {
+        /* retry */
+      }
+      await new Promise((r) => setTimeout(r, 220 + i * 180));
     }
-    if (typeof isAlive === "function" && !isAlive(gen)) return false;
-    await new Promise((r) => setTimeout(r, 280));
-    try {
-      return await speakOnce(line, keyLang, gen, isAlive);
-    } catch {
-      return false;
-    }
+    return false;
   }
 
   root.QAEdgeSpeak = {
