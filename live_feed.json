@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-25T05:26:43Z",
+  "updated_at": "2026-08-25T05:28:56Z",
   "period_hours": 3,
   "poll_sec": 5,
   "scan_tf": "15m+1h",
@@ -794,7 +794,7 @@
       "interval": "15m",
       "side": "LONG",
       "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787635545,
+      "logged_at": 1787635676,
       "bar_ts": 1787634900,
       "event": "open",
       "strategy_id": "combo_15m_41",
@@ -816,19 +816,11 @@
       "interval": "15m",
       "side": "SHORT",
       "action": "空頭開倉 (SELL)",
-      "logged_at": 1787635544,
+      "logged_at": 1787635675,
       "bar_ts": 1787634900,
       "event": "close",
       "strategy_id": "combo_15m_41",
       "symbols": [
-        {
-          "symbol": "APTUSDT",
-          "price": 0.619,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.9787928221859716
-        },
         {
           "symbol": "ARBUSDT",
           "price": 0.0999,
@@ -836,6 +828,66 @@
           "tp_pct": null,
           "event": "close",
           "pnl_pct": -1.1543134872418004
+        },
+        {
+          "symbol": "APTUSDT",
+          "price": 0.619,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.9787928221859716
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
+      "name_zh": "複合動能確認",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "多頭平倉翻空 (SELL)",
+      "logged_at": 1787635611,
+      "bar_ts": 1787634900,
+      "event": "open",
+      "strategy_id": "combo_15m_41",
+      "symbols": [
+        {
+          "symbol": "ARBUSDT",
+          "price": 0.09876,
+          "sl_pct": -0.6672742000809972,
+          "tp_pct": 1.3345484001620085,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "複合動能確認",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787635610,
+      "bar_ts": 1787634900,
+      "event": "close",
+      "strategy_id": "combo_15m_41",
+      "symbols": [
+        {
+          "symbol": "ARBUSDT",
+          "price": 0.09876,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -1.1411411411411432
+        },
+        {
+          "symbol": "APTUSDT",
+          "price": 0.613,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.9693053311793223
         }
       ],
       "strategy_count": 2
@@ -861,58 +913,6 @@
         }
       ],
       "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "複合動能確認",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787635477,
-      "bar_ts": 1787634900,
-      "event": "open",
-      "strategy_id": "combo_15m_41",
-      "symbols": [
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.09876,
-          "sl_pct": -0.6672742000809972,
-          "tp_pct": 1.3345484001620085,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "複合動能確認",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787635476,
-      "bar_ts": 1787634900,
-      "event": "close",
-      "strategy_id": "combo_15m_41",
-      "symbols": [
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.09876,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -1.1411411411411432
-        },
-        {
-          "symbol": "APTUSDT",
-          "price": 0.613,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.9693053311793223
-        }
-      ],
-      "strategy_count": 2
     },
     {
       "kind": "batch",
@@ -1259,5 +1259,5 @@
       "strategy_count": 1
     }
   ],
-  "exec_log_raw_count": 31
+  "exec_log_raw_count": 35
 }
