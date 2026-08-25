@@ -68,8 +68,10 @@
     if (!foot) {
       foot = document.createElement("footer");
       foot.className = "site-foot";
-      const wrap = document.querySelector(".wrap") || document.body;
-      wrap.appendChild(foot);
+      document.body.appendChild(foot);
+    } else if (foot.parentElement && foot.parentElement !== document.body) {
+      /* Leave padded .wrap so risk banner is full-bleed and not clipped */
+      document.body.appendChild(foot);
     }
     foot.classList.add("bb-site-foot");
 

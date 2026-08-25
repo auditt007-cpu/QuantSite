@@ -844,40 +844,54 @@ textarea {
 footer.site-foot.bb-site-foot {
   display: block;
   margin-top: 32px;
-  border: 0;
-  border-radius: 0;
-  overflow: visible;
+  margin-left: 0;
+  margin-right: 0;
+  border: 0 !important;
+  border-radius: 0 !important;
+  overflow: visible !important;
   background: transparent;
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
 }
 
 .bb-site-foot .foot-risk-banner {
   width: 100%;
+  max-width: none;
   margin: 0;
   padding: 12px var(--header-pad, 16px);
   box-sizing: border-box;
   background: #f7f7f7;
   border: 0;
+  border-radius: 0 !important;
   border-top: 1px solid #e0e0e0;
   border-bottom: 1px solid #e0e0e0;
   color: #6b6b6b;
   font-size: 11px;
   line-height: 1.55;
   font-weight: 500;
+  position: static;
+  left: auto;
+  transform: none;
 }
 
 .bb-foot-main {
   background: #000000;
   color: #b3b3b3;
-  padding: 22px var(--header-pad, 16px) 14px;
+  padding: 22px 0 14px;
   box-sizing: border-box;
+  width: 100%;
 }
 
 .bb-foot-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 20px 28px;
-  max-width: 1280px;
-  margin: 0 auto 16px;
+  max-width: none;
+  margin: 0;
+  padding-left: var(--header-pad, 16px);
+  padding-right: var(--header-pad, 16px);
+  box-sizing: border-box;
 }
 
 .bb-foot-col {
@@ -921,25 +935,33 @@ footer.site-foot.bb-site-foot {
 }
 
 .bb-foot-bottom {
-  max-width: 1280px;
-  margin: 0 auto;
+  max-width: none;
+  width: 100%;
+  margin: 0;
   padding-top: 12px;
+  padding-left: 0;
+  padding-right: 0;
   border-top: 1px solid #333333;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 8px;
+  box-sizing: border-box;
 }
 
 .bb-foot-brandline {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 8px 12px;
   min-width: 0;
-  text-align: center;
+  text-align: left;
+  width: 100%;
+  padding-left: var(--header-pad, 16px);
+  padding-right: var(--header-pad, 16px);
+  box-sizing: border-box;
 }
 
 .bb-foot-mark {

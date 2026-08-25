@@ -429,9 +429,10 @@ body.has-bb-util .site-sticky-chrome {
 
 @media (prefers-reduced-motion: reduce) {
   .ticker-bar .ticker-track {
-    animation: none;
+    animation: qaTickerMarquee 90s linear infinite !important;
     transform: none;
     overflow-x: auto;
-    max-width: 100%;
+    max-width: none;
+    -webkit-overflow-scrolling: touch;
   }
 }

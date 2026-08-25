@@ -53,7 +53,17 @@ body.live-page.war-cmd #tickerTrack {
   min-height: 40px !important;
   line-height: 40px !important;
   min-width: max-content !important;
+  width: max-content !important;
+  max-width: none !important;
+  will-change: transform !important;
   animation: qaTickerMarquee 60s linear infinite !important;
+  animation-play-state: running !important;
+  transform: translateX(0);
+}
+
+@keyframes qaTickerMarquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
 
 body.live-page.war-cmd .ticker-bar.is-paused .ticker-track {

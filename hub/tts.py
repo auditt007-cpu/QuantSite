@@ -19,11 +19,11 @@ except ImportError:  # pragma: no cover
 
 log = logging.getLogger("hub.tts")
 
-# voice, rate, pitch — rates are ~1.2× prior (-5%→+14%, -3%→+16%, +8%→+30%)
+# voice, rate, pitch — zh-CN/EN ~1.2× prior; zh-Hant 1.2× then −10% speed (+30%→+17%)
 VOICE_BY_LANG: dict[str, Tuple[str, str, str]] = {
     "zh-CN": ("zh-CN-YunyangNeural", "+14%", "-8Hz"),
     "en": ("en-US-ChristopherNeural", "+16%", "-5Hz"),
-    "zh-Hant": ("zh-TW-HsiaoChenNeural", "+30%", "+0Hz"),
+    "zh-Hant": ("zh-TW-HsiaoChenNeural", "+17%", "+0Hz"),
 }
 
 # Same-lang Edge alternates when primary voice fails (male/female OK)
@@ -39,8 +39,8 @@ EDGE_ALTS: dict[str, List[Tuple[str, str, str]]] = {
         ("en-US-JennyNeural", "+20%", "+0Hz"),
     ],
     "zh-Hant": [
-        ("zh-TW-YunJheNeural", "+20%", "+0Hz"),
-        ("zh-TW-HsiaoYuNeural", "+25%", "+0Hz"),
+        ("zh-TW-YunJheNeural", "+14%", "+0Hz"),
+        ("zh-TW-HsiaoYuNeural", "+17%", "+0Hz"),
     ],
 }
 

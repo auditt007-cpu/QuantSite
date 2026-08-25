@@ -441,10 +441,15 @@ footer.site-foot {
   margin-top: auto;
   flex-shrink: 0;
   border: 1px solid var(--border-line);
-  border-radius: 4px;
-  overflow: hidden;
+  border-radius: 0;
+  overflow: visible;
   font-size: 11px;
   line-height: 1.7;
+}
+footer.site-foot.bb-site-foot {
+  border: 0;
+  border-radius: 0;
+  overflow: visible;
 }
 .foot-cta {
   padding: 18px 16px;
@@ -484,13 +489,17 @@ footer.site-foot {
   margin-bottom: 12px;
 }
 .foot-risk-banner {
-  margin: 0 0 10px;
+  margin: 0;
   padding: 10px 12px;
-  border: 1px solid var(--border-line);
-  background: var(--bg-surface);
+  border: 0;
+  border-radius: 0;
+  border-bottom: 1px solid var(--border-line);
+  background: #f7f7f7;
   font-size: 13px;
   line-height: 1.55;
   color: var(--text-muted);
+  box-sizing: border-box;
+  width: 100%;
 }
 .foot-link {
   font-family: inherit;

@@ -89,7 +89,7 @@ TG_BRIEF_SYMBOLS = frozenset({"BTCUSDT", "ETHUSDT", "SOLUSDT"})
 TG_DIGEST_BUF = []
 TG_DIGEST_HOUR = None
 TIMEFRAMES = ("15m", "1h")
-POLL_SEC = 60
+POLL_SEC = 15
 FEED_PUBLISH_SEC = 5
 HEARTBEAT_SEC = 180
 KLINE_LIMIT = 200
@@ -163,8 +163,27 @@ def okx_bar(tf):
 
 
 def bar_duration_ms(tf):
-    mins = {"1m": 1, "5m": 5, "15m": 15}.get(tf, 60)
+    mins = {"1m": 1, "5m": 5, "15m": 15, "1h": 60, "4h": 240, "1d": 1440}.get(
+        str(tf or "1h").lower(), 60
+    )
     return mins * 60 * 1000
+
+
+def tf_seconds(tf):
+    return int(bar_duration_ms(tf) / 1000)
+
+
+def bar_close_ts(open_ts, tf):
+    """Stamp signals at candle CLOSE time (open + interval), not open."""
+    try:
+        n = int(float(open_ts))
+    except (TypeError, ValueError):
+        return 0
+    if n > 10_000_000_000:
+        n = int(n / 1000)
+    if n <= 0:
+        return 0
+    return int(n + tf_seconds(tf))
 
 
 def fetch_binance_klines(sym, tf, limit):
@@ -655,24 +674,28 @@ def _slice_tail(data, i):
     }
 
 
-def _scan_recent_signal(eval_fn, data, now_sec):
-    """Walk the last few closed bars (newest first) and return the most recent
-    LONG/SHORT hit still inside the live-feed window, or None."""
+def _scan_recent_signal(eval_fn, data, now_sec, tf="1h"):
+    """Walk the last few CLOSED bars (newest first) and return the most recent
+    LONG/SHORT hit still inside the live-feed window, or None.
+    bar_ts is stamped at candle CLOSE (open + interval)."""
     c = data["c"]
     n = len(c)
     if n < 30:
         return None
-    floor_i = max(29, n - 1 - LIVE_FEED_LOOKBACK_BARS)
-    for i in range(n - 1, floor_i - 1, -1):
-        bar_ts_sec = data["t"][i] / 1000.0
-        if bar_ts_sec < now_sec - LIVE_FEED_WINDOW_SEC:
+    # Skip the still-forming last candle so close-time stamps are in the past.
+    end_i = n - 2 if n >= 31 else n - 1
+    floor_i = max(29, end_i - LIVE_FEED_LOOKBACK_BARS)
+    for i in range(end_i, floor_i - 1, -1):
+        open_sec = data["t"][i] / 1000.0
+        close_sec = open_sec + tf_seconds(tf)
+        if close_sec < now_sec - LIVE_FEED_WINDOW_SEC:
             break
         try:
             side = eval_fn(_slice_tail(data, i))
         except Exception:
             continue
         if side in ("LONG", "SHORT"):
-            return {"side": side, "bar_ts": bar_ts_sec, "price": c[i]}
+            return {"side": side, "bar_ts": close_sec, "price": c[i]}
     return None
 
 
@@ -1435,7 +1458,7 @@ def scan_one(spec, pool, now_sec):
         if not data or len(data["c"]) < 30:
             continue
         key = _position_key(sid, sym)
-        hit = _scan_recent_signal(fn, data, now_sec)
+        hit = _scan_recent_signal(fn, data, now_sec, LIVE_FEED_TF)
         if not hit:
             if hydrating:
                 continue
@@ -1444,7 +1467,9 @@ def scan_one(spec, pool, now_sec):
             if not prev:
                 continue
             exit_px = data["c"][-1]
-            bar_ts_i = int(data["t"][-1] / 1000.0)
+            # Prefer last closed bar close-time
+            open_i = -2 if len(data.get("t") or []) >= 2 else -1
+            bar_ts_i = bar_close_ts(data["t"][open_i], LIVE_FEED_TF)
             close_audio_url = None
             pnl_pct = _pnl_pct(prev["side"], prev["price"], exit_px)
             if pnl_pct > 0:
@@ -2038,6 +2063,10 @@ def scan_micro_events():
             prev = HEARTBEAT_STATE.get(key)
             px = float(data["c"][-1])
             bar_ts = data["t"][-1]
+            # Prefer previous fully closed candle when available
+            if len(data.get("t") or []) >= 2:
+                bar_ts = data["t"][-2]
+            bar_ts = bar_close_ts(bar_ts, "5m")
             if prev and prev.get("side") == side:
                 continue
             prev_side = prev.get("side") if prev else None
@@ -2080,7 +2109,8 @@ def stale_pulse_events():
         if len(data["c"]) > 2 and data["c"][-2]:
             roc = (data["c"][-1] / data["c"][-2] - 1.0) * 100.0
         side = "LONG" if roc >= 0 else "SHORT"
-        bar_ts = data["t"][-1] if data.get("t") else now * 1000
+        raw_t = data["t"][-2] if data.get("t") and len(data["t"]) >= 2 else (data["t"][-1] if data.get("t") else now * 1000)
+        bar_ts = bar_close_ts(raw_t, "5m")
         out.append(
             _micro_event(sids[offset], names[offset], "5m", side, sym, px, bar_ts, None, now)
         )
@@ -2104,7 +2134,8 @@ def scan_events():
                 continue
             if side not in ("LONG", "SHORT"):
                 continue
-            bar_ts = data["t"][-1]
+            raw_t = data["t"][-2] if len(data.get("t") or []) >= 2 else data["t"][-1]
+            bar_ts = bar_close_ts(raw_t, tf)
             key = state_key(strat["id"], sym, tf)
             prev = SIGNAL_STATE.get(key)
             c = data["c"]
@@ -2142,7 +2173,7 @@ def scan_events():
                     "sl_pct": sl_pct,
                     "tp_pct": tp_pct,
                     "bar_ts": bar_ts,
-                    "close_ms": data.get("close_ms") or bar_ts,
+                    "close_ms": bar_ts,
                     "src": data.get("src"),
                     "prev_side": prev_side,
                     "close_pnl": close_pnl,

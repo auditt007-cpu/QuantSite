@@ -314,7 +314,7 @@
         if (x1 - x0 > 36) {
           ctx.save();
           ctx.fillStyle = "#999";
-          ctx.font = "9px JetBrains Mono, ui-monospace, monospace";
+          ctx.font = "18px JetBrains Mono, ui-monospace, monospace";
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
           ctx.fillText(idleLabel, (x0 + x1) / 2, pad.t + plotH / 2);
@@ -768,7 +768,7 @@
       return;
     }
     const start = performance.now();
-    const dur = Math.min(780, 360 + Math.abs(to - from) * 12);
+    const dur = Math.min(1170, 540 + Math.abs(to - from) * 18);
     const step = function (now) {
       const t = Math.min(1, (now - start) / dur);
       const v = from + (to - from) * easeOutCubic(t);

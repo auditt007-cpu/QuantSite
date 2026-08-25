@@ -341,7 +341,7 @@
     return false;
   }
 
-  /* 语速 = 原配置 × 1.2：-5%→+14%，-3%→+16%，+8%→+30% */
+    /* 语速：简中/EN 保持 1.2×；繁中在 1.2× 基础上再减慢 10%（+30% → +17%） */
   function speechConfig(lang) {
     const key = normalizeLang(lang || currentVoiceLang());
     if (key === "zh-CN") {
@@ -365,7 +365,7 @@
     return {
       lang: "zh-TW",
       edgeVoice: EDGE_VOICE["zh-Hant"],
-      rate: "+30%",
+      rate: "+17%",
       pitch: "+0Hz",
       prefer: [/HsiaoChen/i, /曉臻/, /zh-TW-HsiaoChenNeural/i, /zh-TW/i, /Taiwan/i],
     };

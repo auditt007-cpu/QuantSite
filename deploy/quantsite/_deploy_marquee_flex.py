@@ -213,15 +213,33 @@ def deploy_hub_tts(ssh) -> None:
                     sftp.mkdir(cur)
         sftp.put(str(local), remote)
         safe_print("hub put " + rel)
+    tg = REPO / "deploy" / "quantsite" / "tg_engine.py"
+    if tg.is_file():
+        for remote in (
+            REMOTE_APP + "/tg_engine.py",
+            REMOTE_APP + "/deploy/quantsite/tg_engine.py",
+        ):
+            try:
+                parent = remote.rsplit("/", 1)[0]
+                try:
+                    sftp.stat(parent)
+                except OSError:
+                    sftp.mkdir(parent)
+                sftp.put(str(tg), remote)
+                safe_print("hub put " + remote)
+            except Exception as exc:
+                safe_print("hub tg put skip " + str(exc))
     sftp.close()
     cmd = (
         "pip3 install --break-system-packages 'edge-tts>=6.1.0' 2>/dev/null || "
         "pip3 install 'edge-tts>=6.1.0' 2>/dev/null || true; "
-        "python3 -m py_compile {0}/bot_server.py {0}/hub/tts.py && "
-        "systemctl restart quant-hub 2>/dev/null || systemctl restart tg-bot 2>/dev/null || true; "
+        "python3 -m py_compile {0}/bot_server.py {0}/hub/tts.py {0}/tg_engine.py && "
+        "systemctl restart quant-hub 2>/dev/null || true; "
+        "systemctl restart tg-bot 2>/dev/null || true; "
         "sleep 2; curl -sS http://127.0.0.1:8088/health; "
         "curl -sS -o /dev/null -w 'tts=%{{http_code}}\\n' -X POST http://127.0.0.1:8088/api/tts/speak "
-        "-H 'Content-Type: application/json' -d '{{\"text\":\"ok\",\"lang\":\"en\"}}'"
+        "-H 'Content-Type: application/json' -d '{{\"text\":\"ok\",\"lang\":\"en\"}}'; "
+        "systemctl is-active tg-bot; grep -n 'POLL_SEC' {0}/tg_engine.py | head -3"
     ).format(REMOTE_APP)
     _, stdout, stderr = ssh.exec_command(cmd, timeout=120)
     safe_print(stdout.read().decode("utf-8", "replace"))
