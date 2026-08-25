@@ -3,8 +3,8 @@
   "strategies": [
     {
       "id": "ai_1787594457",
-      "title": "AI ai_1787594457",
-      "name": "AI ai_1787594457",
+      "title": "AI 時序研究 594457",
+      "name": "AI 時序研究 594457",
       "sharpe": 1.746,
       "max_drawdown": 0.0294,
       "profit_factor": 2.481,
@@ -16,8 +16,8 @@
         "exit_window": 10
       },
       "copy": "这套量化策略基于波动突破逻辑，在BTC、ETH、SOL三大币种上自动交易。核心参数采用20日均线通道配合1倍标准差作为入场信号，10日周期止盈止损。历史回测显示年化收益6.6%，夏普比率1.75表现稳定，最大回撤仅2.94%。策略67次交易中盈利因子达2.48，说明亏损交易金额仅为盈利的一半。请注意市场波动风险，过往表现不预示未来收益。",
-      "chart": "/static/charts/ai_1787594457.svg",
-      "chart_url": "/static/charts/ai_1787594457.svg",
+      "chart": "./static/charts/ai_1787594457.svg",
+      "chart_url": "./static/charts/ai_1787594457.svg",
       "metrics": {
         "sharpe": 1.746,
         "max_drawdown": 0.0294,
@@ -30,12 +30,13 @@
         "SOLUSDT"
       ],
       "interval": "1h",
-      "code": "PARAMS = {\n    \"window\": {\"low\": 10, \"high\": 50, \"step\": 5, \"kind\": \"period\"},\n    \"mult\": {\"low\": 1.0, \"high\": 3.0, \"step\": 0.5, \"kind\": \"threshold\"},\n    \"exit_window\": {\"low\": 5, \"high\": 20, \"step\": 5, \"kind\": \"period\"}\n}\n\ndef generate_signals(df, window=20, mult=2.0, exit_window=10):\n    high = df['high'].rolling(window).max()\n    low = df['low'].rolling(window).min()\n    mid = (high + low) / 2\n    width = (high - low) * mult\n    \n    upper = mid + width\n    lower = mid - width\n    \n    long_cond = (df['close'] > upper.shift(1)) & (df['close'] > df['open'])\n    short_cond = (df['close'] < lower.shift(1)) & (df['close'] < df['open'])\n    \n    exit_high = df['high'].rolling(exit_window).max()\n    exit_low = df['low'].rolling(exit_window).min()\n    \n    exit_long = df['close'] < exit_low.shift(1)\n    exit_short = df['close'] > exit_high.shift(1)\n    \n    signals = pd.Series(0, index=df.index)\n    signals.loc[long_cond] = 1\n    signals.loc[short_cond] = -1\n    signals.loc[exit_long & (signals.shift(1) == 1)] = 0\n    signals.loc[exit_short & (signals.shift(1) == -1)] = 0\n    \n    return signals"
+      "code": "PARAMS = {\n    \"window\": {\"low\": 10, \"high\": 50, \"step\": 5, \"kind\": \"period\"},\n    \"mult\": {\"low\": 1.0, \"high\": 3.0, \"step\": 0.5, \"kind\": \"threshold\"},\n    \"exit_window\": {\"low\": 5, \"high\": 20, \"step\": 5, \"kind\": \"period\"}\n}\n\ndef generate_signals(df, window=20, mult=2.0, exit_window=10):\n    high = df['high'].rolling(window).max()\n    low = df['low'].rolling(window).min()\n    mid = (high + low) / 2\n    width = (high - low) * mult\n    \n    upper = mid + width\n    lower = mid - width\n    \n    long_cond = (df['close'] > upper.shift(1)) & (df['close'] > df['open'])\n    short_cond = (df['close'] < lower.shift(1)) & (df['close'] < df['open'])\n    \n    exit_high = df['high'].rolling(exit_window).max()\n    exit_low = df['low'].rolling(exit_window).min()\n    \n    exit_long = df['close'] < exit_low.shift(1)\n    exit_short = df['close'] > exit_high.shift(1)\n    \n    signals = pd.Series(0, index=df.index)\n    signals.loc[long_cond] = 1\n    signals.loc[short_cond] = -1\n    signals.loc[exit_long & (signals.shift(1) == 1)] = 0\n    signals.loc[exit_short & (signals.shift(1) == -1)] = 0\n    \n    return signals",
+      "listed": true
     },
     {
       "id": "ai_1787572904",
-      "title": "AI ai_1787572904",
-      "name": "AI ai_1787572904",
+      "title": "AI RSI 均值回歸",
+      "name": "AI RSI 均值回歸",
       "sharpe": -0.035,
       "max_drawdown": 0.35,
       "profit_factor": 1.003,
@@ -70,7 +71,8 @@
       "robustness": -0.035,
       "win_rate": 0.49158333333333337,
       "description": "本量化策略基于RSI、均线与动量指标的组合信号进行加密货币交易。策略在BTC、ETH、SOL三个主流币种上测试显示，过去周期内实现6.6%收益率，最大回撤控制在9.42%以内。通过12日RSI结合30日均线过滤，配合5日价格变化率确认趋势，。實盤K線回測更新：勝率約49.2%，抗震穩健度-0.04，最大回跌約35.0%，樣本收益約-7.7%。歷史績效不代表未來。",
-      "chart_svg": "./static/charts/ai_1787572904.svg"
+      "chart_svg": "./static/charts/ai_1787572904.svg",
+      "listed": true
     },
     {
       "id": "ai_1787562744",
@@ -110,7 +112,8 @@
       "robustness": -0.035,
       "win_rate": 0.4964027777777778,
       "description": "我们基于BTCUSDT、ETHUSDT和SOLUSDT的历史数据，开发了一套量化策略。策略逻辑是通过15天的窗口期观察市场波动，结合2.75倍的标准差作为交易信号阈值，持仓时间设定为8天。在过去的历史回测中，该策略实现了14.8%的回报率，。實盤K線回測更新：勝率約49.6%，抗震穩健度-0.04，最大回跌約35.0%，樣本收益約-7.7%。歷史績效不代表未來。",
-      "chart_svg": "./static/charts/ai_1787562744.svg"
+      "chart_svg": "./static/charts/ai_1787562744.svg",
+      "listed": true
     },
     {
       "id": "strat_ema_dual_01",
@@ -148,7 +151,8 @@
         "trades": 469
       },
       "family": "trend",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_ema_fast_01",
@@ -186,7 +190,8 @@
         "trades": 981
       },
       "family": "trend",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_ema_triple_01",
@@ -224,7 +229,8 @@
         "trades": 447
       },
       "family": "trend",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_ema50_trend_01",
@@ -262,7 +268,8 @@
         "trades": 1100
       },
       "family": "trend",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_supertrend_01",
@@ -300,7 +307,8 @@
         "trades": 123
       },
       "family": "trend",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_donchian_20_01",
@@ -338,7 +346,8 @@
         "trades": 286
       },
       "family": "channel",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_donchian_10_01",
@@ -376,7 +385,8 @@
         "trades": 285
       },
       "family": "channel",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_bb_squeeze_01",
@@ -414,7 +424,8 @@
         "trades": 274
       },
       "family": "channel",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_bb_rebound_01",
@@ -452,7 +463,8 @@
         "trades": 272
       },
       "family": "channel",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_bb_wide_01",
@@ -490,7 +502,8 @@
         "trades": 271
       },
       "family": "channel",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_keltner_break_01",
@@ -528,7 +541,8 @@
         "trades": 264
       },
       "family": "channel",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_dual_thrust_01",
@@ -568,7 +582,8 @@
       "family": "channel",
       "tags": [
         "grid"
-      ]
+      ],
+      "listed": true
     },
     {
       "id": "strat_rsi_cross_01",
@@ -606,7 +621,8 @@
         "trades": 125
       },
       "family": "meanrev",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_rsi_div_01",
@@ -644,7 +660,8 @@
         "trades": 122
       },
       "family": "meanrev",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_vsa_01",
@@ -682,7 +699,8 @@
         "trades": 1427
       },
       "family": "vol",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_vol_ma_01",
@@ -720,7 +738,8 @@
         "trades": 1427
       },
       "family": "vol",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_atr_grid_01",
@@ -761,7 +780,8 @@
       "tags": [
         "grid",
         "martin"
-      ]
+      ],
+      "listed": true
     },
     {
       "id": "strat_macd_hist_01",
@@ -799,7 +819,8 @@
         "trades": 983
       },
       "family": "trend",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_macd_signal_01",
@@ -837,7 +858,8 @@
         "trades": 987
       },
       "family": "trend",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_roc10_01",
@@ -875,7 +897,8 @@
         "trades": 257
       },
       "family": "trend",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_roc20_01",
@@ -913,7 +936,8 @@
         "trades": 258
       },
       "family": "trend",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_pivot_break_01",
@@ -951,7 +975,8 @@
         "trades": 283
       },
       "family": "channel",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_combo_mom_01",
@@ -989,7 +1014,8 @@
         "trades": 978
       },
       "family": "trend",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_kama_01",
@@ -1027,7 +1053,8 @@
         "trades": 472
       },
       "family": "trend",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_kama_02",
@@ -1065,7 +1092,8 @@
         "trades": 473
       },
       "family": "trend",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_psar_01",
@@ -1103,7 +1131,8 @@
         "trades": 123
       },
       "family": "trend",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_psar_02",
@@ -1141,7 +1170,8 @@
         "trades": 124
       },
       "family": "trend",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_turtle_01",
@@ -1179,7 +1209,8 @@
         "trades": 283
       },
       "family": "trend",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_turtle_02",
@@ -1217,7 +1248,8 @@
         "trades": 284
       },
       "family": "trend",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_ema_ribbon_01",
@@ -1255,7 +1287,8 @@
         "trades": 444
       },
       "family": "trend",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_ema_ribbon_02",
@@ -1293,7 +1326,8 @@
         "trades": 445
       },
       "family": "trend",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_dual_ma_15",
@@ -1331,7 +1365,8 @@
         "trades": 470
       },
       "family": "trend",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_dual_ma_20",
@@ -1369,7 +1404,8 @@
         "trades": 466
       },
       "family": "trend",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_dual_ma_8",
@@ -1407,7 +1443,8 @@
         "trades": 470
       },
       "family": "trend",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_adx_trend_01",
@@ -1445,7 +1482,8 @@
         "trades": 1089
       },
       "family": "trend",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_ichimoku_01",
@@ -1483,7 +1521,8 @@
         "trades": 440
       },
       "family": "trend",
-      "tags": []
+      "tags": [],
+      "listed": true
     },
     {
       "id": "strat_hull_ma_01",
@@ -1521,9 +1560,11 @@
         "trades": 480
       },
       "family": "trend",
-      "tags": []
+      "tags": [],
+      "listed": true
     }
   ],
   "plaza_expanded": 100,
-  "plaza_source": "live_backtest_refresh"
+  "plaza_source": "live_backtest_refresh",
+  "hygiene_at": "2026-08-25T04:18:08.918504+00:00"
 }
