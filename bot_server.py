@@ -37,7 +37,7 @@ from hub import capi, db
 from hub.handlers import handle_bind, handle_callback, handle_start, handle_text
 from hub.notify import notify_admin
 from hub.settings import HUB_HOST, HUB_PORT, PUBLIC_BASE_URL, TG_BOT_TOKEN, WEBHOOK_SECRET
-from hub.tts import VOICE_BY_LANG, normalize_lang, synthesize_mp3
+from hub.tts import normalize_lang, synthesize_mp3_ex
 
 tg_app: Optional[Application] = None
 
@@ -167,12 +167,12 @@ class TtsBody(BaseModel):
 
 @app.post("/api/tts/speak")
 async def tts_speak(body: TtsBody) -> Response:
-    """Edge-TTS MP3 for live-room persona voices (zh-CN male / en male / zh-TW)."""
+    """TTS MP3: Edge primary → Edge alts → Google TTS backup (avoids ugly Web Speech)."""
     lang = normalize_lang(body.lang)
-    v_default = VOICE_BY_LANG.get(lang, VOICE_BY_LANG["zh-Hant"])[0]
-    voice_used = (body.voice or "").strip() or v_default
     try:
-        mp3 = await synthesize_mp3(body.text, lang, body.voice, body.rate, body.pitch)
+        mp3, voice_used, source = await synthesize_mp3_ex(
+            body.text, lang, body.voice, body.rate, body.pitch
+        )
     except RuntimeError as exc:
         raise HTTPException(503, str(exc)) from exc
     except ValueError as exc:
@@ -186,6 +186,7 @@ async def tts_speak(body: TtsBody) -> Response:
             "Cache-Control": "public, max-age=3600",
             "X-TTS-Voice": voice_used,
             "X-TTS-Lang": lang,
+            "X-TTS-Source": source,
         },
     )
 

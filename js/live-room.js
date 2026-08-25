@@ -531,6 +531,13 @@
           if (!ok && edge.speak) {
             ok = await edge.speak(text, voiceLang(), gen, speakAlive);
           }
+          /* zh-CN: one more hub round-trip (server tries Edge alts + Google TTS) before Web Speech */
+          if (!ok && voiceLang() === "zh-CN" && edge.speak) {
+            await sleep(200);
+            if (gen == null || gen === state.speakGen) {
+              ok = await edge.speak(text, "zh-CN", gen, speakAlive);
+            }
+          }
           if (ok) return resolve();
         } catch {
           /* fall through to Web Speech — never leave chime-only silence */
