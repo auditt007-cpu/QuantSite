@@ -1239,6 +1239,19 @@ def collapse_exec_log_batches(events, limit=24):
         return []
     if events and events[0].get("kind") == "batch":
         return events[:limit]
+    px_by_sym = {}
+    for ev in events:
+        if ev.get("kind") == "batch":
+            continue
+        raw = ev.get("exit_price") if ev.get("event") == "close" else ev.get("price")
+        if raw in (None, "", 0, 0.0):
+            raw = ev.get("price") or ev.get("px") or ev.get("exit_price")
+        try:
+            pxn = float(raw)
+        except (TypeError, ValueError):
+            continue
+        if ev.get("symbol") and pxn > 0:
+            px_by_sym[ev.get("symbol")] = pxn
     buckets = {}
     order = []
     for ev in events:
@@ -1277,6 +1290,13 @@ def collapse_exec_log_batches(events, limit=24):
         if ev.get("strategy_id") and not g.get("strategy_id"):
             g["strategy_id"] = ev.get("strategy_id")
         px = ev.get("exit_price") if ev.get("event") == "close" else ev.get("price")
+        if px in (None, "", 0, 0.0):
+            px = ev.get("price") or ev.get("px") or ev.get("exit_price")
+        try:
+            pxn = float(px)
+            px = pxn if pxn > 0 else None
+        except (TypeError, ValueError):
+            px = None
         g["symbols"].append(
             {
                 "symbol": ev.get("symbol"),
@@ -1302,7 +1322,7 @@ def collapse_exec_log_batches(events, limit=24):
             g["symbols"].append(
                 {
                     "symbol": extra,
-                    "price": None,
+                    "price": px_by_sym.get(extra),
                     "sl_pct": None,
                     "tp_pct": None,
                     "event": "open",

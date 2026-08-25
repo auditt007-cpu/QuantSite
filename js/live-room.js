@@ -79,15 +79,34 @@
     return String(sym || "").replace(/USDT$/i, "") + "/USDT";
   }
 
+  function pickPx() {
+    for (let i = 0; i < arguments.length; i++) {
+      const x = Number(arguments[i]);
+      if (Number.isFinite(x) && x > 0) return x;
+    }
+    return null;
+  }
+
+  function livePx(sym) {
+    const n = normSym(sym);
+    const tk = state.tickers[n] || {};
+    return pickPx(tk.last, state.lastPx[n], typeof basePx === "function" ? basePx(n) : null);
+  }
+
+  function eventPx(ev) {
+    if (!ev) return null;
+    return pickPx(ev.price, ev.exit_price, ev.entry_price, ev.px, livePx(ev.symbol));
+  }
+
   function fmtPx(n) {
-    const x = Number(n);
-    if (!Number.isFinite(x)) return "—";
+    const x = pickPx(n);
+    if (x == null) return "—";
     const ax = Math.abs(x);
     if (ax >= 1000) return x.toLocaleString("en-US", { maximumFractionDigits: 1 });
     if (ax >= 1) return x.toFixed(2);
     if (ax >= 0.01) return x.toFixed(4);
     if (ax >= 0.0001) return x.toFixed(6);
-    return x.toExponential(3);
+    return x.toFixed(8).replace(/0+$/, "").replace(/\.$/, "");
   }
 
   function fmtPnl(n) {
@@ -165,12 +184,12 @@
   }
 
   function fmtSpeechPx(n) {
-    const x = Number(n);
-    if (!Number.isFinite(x)) return "";
+    const x = pickPx(n);
+    if (x == null) return "";
     if (x >= 100) return Math.round(x).toLocaleString("en-US");
     if (x >= 1) return x.toFixed(2).replace(/\.?0+$/, "") || x.toFixed(2);
     if (x >= 0.01) return x.toFixed(4).replace(/0+$/, "").replace(/\.$/, "");
-    return String(x);
+    return x.toFixed(8).replace(/0+$/, "").replace(/\.$/, "");
   }
 
   function isClose(ev) {
@@ -570,12 +589,12 @@
         "，" +
         act +
         "，現價 " +
-        fmtSpeechPx(head.price) +
+        fmtSpeechPx(eventPx(head)) +
         "。"
       );
     }
     const pairs = events
-      .map((e) => coinSpeech(e.symbol) + " 現價 " + fmtSpeechPx(e.price))
+      .map((e) => coinSpeech(e.symbol) + " 現價 " + fmtSpeechPx(eventPx(e)))
       .join("，");
     return when + "，" + alias + "，" + act + "：" + pairs + "。";
   }
@@ -793,15 +812,7 @@
   }
 
   function fmtAxisPx(n) {
-    const x = Number(n);
-    if (!Number.isFinite(x)) return "—";
-    const ax = Math.abs(x);
-    if (ax >= 1000) return x.toLocaleString("en-US", { maximumFractionDigits: 1 });
-    if (ax >= 1) return x.toFixed(2);
-    if (ax >= 0.01) return x.toFixed(4);
-    if (ax >= 0.0001) return x.toFixed(6);
-    /* PEPE-class micros: scientific so the axis stays readable in a narrow pad */
-    return x.toExponential(2);
+    return fmtPx(n);
   }
 
   function uniqueYTicks(min, max, last) {
@@ -939,7 +950,7 @@
       (e) => e && e.symbol === sym && e.kind !== "close_agg" && !isZeroValueClose(e) && Date.now() / 1000 - e.ts < HOUR_S,
     );
     marks.forEach((ev) => {
-      const signalPx = Number(ev.price);
+      const signalPx = eventPx(ev);
       let idx = closes.length - 1;
       if (rows.length) {
         const tms = Number(ev.ts) > 1e12 ? Number(ev.ts) : Number(ev.ts) * 1000;
@@ -968,7 +979,7 @@
       ctx.strokeStyle = "#ffffff";
       ctx.lineWidth = 1.5;
       ctx.stroke();
-      const tagPx = Number.isFinite(signalPx) ? signalPx : linePx;
+      const tagPx = pickPx(signalPx, linePx);
       const tag = close
         ? Number(ev.pnl_pct) > 0
           ? "平倉 +" + Number(ev.pnl_pct).toFixed(1) + "%"
@@ -1182,7 +1193,7 @@
     if (close) {
       act = "平倉 " + (Number.isFinite(pnl) ? fmtPnl(pnl) : "—");
     } else {
-      act = (buy ? "多頭開倉" : "空頭開倉") + " @ " + fmtPx(ev.price);
+      act = (buy ? "多頭開倉" : "空頭開倉") + " @ " + fmtPx(eventPx(ev));
     }
     return escapeHtml(fmt12h(ev.ts)) + " " + escapeHtml(act) + " · " + stratAnchor(ev);
   }
@@ -1436,7 +1447,7 @@
                   ? Number.isFinite(Number(e.pnl_pct))
                     ? "平倉 " + fmtPnl(e.pnl_pct)
                     : "平倉"
-                  : (buy ? "BUY" : "SELL") + " @ " + fmtPx(e.price)) +
+                  : (buy ? "BUY" : "SELL") + " @ " + fmtPx(eventPx(e))) +
                 " · " +
                 stratAnchor(e) +
                 "</div>"
@@ -1828,7 +1839,7 @@
             key: [g.name_zh, g.side, g.interval, g.logged_at || g.bar_ts, s.symbol, s.event || "open"].join("|"),
             ts: toSec(g.logged_at) || toSec(g.bar_ts),
             symbol: normSym(s.symbol),
-            price: s.price,
+            price: pickPx(s.price, s.exit_price, s.px, g.price, g.exit_price, livePx(s.symbol)),
             side: g.side,
             action: g.action,
             event: s.event || g.event || "open",
@@ -1845,7 +1856,7 @@
         key: [g.strategy_id, g.symbol, g.event, g.logged_at || g.bar_ts, g.side].join("|"),
         ts: toSec(g.logged_at) || toSec(g.bar_ts),
         symbol: normSym(g.symbol),
-        price: g.price,
+        price: pickPx(g.price, g.exit_price, g.px, livePx(g.symbol)),
         side: g.side,
         action: g.action,
         event: g.event || "open",
@@ -1860,7 +1871,7 @@
 
   function pnlOf(ev) {
     const last = state.lastPx[ev.symbol];
-    const entry = Number(ev.price);
+    const entry = eventPx(ev);
     if (!Number.isFinite(last) || !Number.isFinite(entry) || !entry) return null;
     const raw = ((last - entry) / entry) * 100;
     return isBuy(ev) ? raw : -raw;
@@ -1927,7 +1938,7 @@
       const pnlCls = pnl == null || !Number.isFinite(pnl) ? "" : pnl >= 0 ? " is-up" : "is-down";
       const act = close
         ? "平倉 " + (Number.isFinite(pnl) ? fmtPnl(pnl) : "—")
-        : (buy ? "多頭開倉" : "空頭開倉") + " @ " + fmtPx(ev.price);
+        : (buy ? "多頭開倉" : "空頭開倉") + " @ " + fmtPx(eventPx(ev));
       const livePnl = !close && pnl != null ? " | 當前浮盈 " + fmtPnl(pnl) : "";
       const row = document.createElement("div");
       row.className =
