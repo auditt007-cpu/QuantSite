@@ -103,8 +103,51 @@ body.bots-page .wrap {
 }
 
 .bot-band-track {
-  display: none;
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 28px;
+  margin-top: 6px;
+  touch-action: none;
+  user-select: none;
 }
+.bot-band-track::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 12px;
+  height: 3px;
+  background: #e8ecf2;
+  border-radius: 4px;
+}
+.bot-band-fill {
+  position: absolute;
+  top: 12px;
+  height: 3px;
+  left: 12%;
+  width: 58%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #1a1d26, #00a86b);
+  pointer-events: none;
+}
+.bot-band-thumb {
+  position: absolute;
+  top: 5px;
+  width: 18px;
+  height: 18px;
+  margin-left: -9px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #1a1d26;
+  padding: 0;
+  cursor: grab;
+  z-index: 2;
+  touch-action: none;
+}
+.bot-band-thumb:active { cursor: grabbing; }
+.bot-band-thumb.l { left: 12%; }
+.bot-band-thumb.r { left: 70%; }
 
 .bot-m-grids-val {
   font-size: 14px;
@@ -1013,26 +1056,50 @@ body.bots-page .wrap {
     display: block;
     position: relative;
     width: 100%;
+    height: 28px;
+    background: transparent;
+    border-radius: 4px;
+    margin-top: 2px;
+    touch-action: none;
+    user-select: none;
+  }
+  .bot-band-track::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 12px;
     height: 3px;
     background: #e8ecf2;
     border-radius: 4px;
-    margin-top: 2px;
   }
   .bot-band-fill {
-    width: 58%;
-    height: 100%;
+    position: absolute;
+    top: 12px;
+    height: 3px;
     border-radius: 4px;
     background: linear-gradient(90deg, #1a1d26, #00a86b);
+    left: 12%;
+    width: 58%;
+    pointer-events: none;
   }
   .bot-band-thumb {
     position: absolute;
-    top: -4px;
-    width: 10px;
-    height: 10px;
+    top: 5px;
+    width: 18px;
+    height: 18px;
+    margin-left: -9px;
     border-radius: 50%;
     background: #fff;
-    border: 1px solid rgba(0, 0, 0, 0.12);
+    border: 2px solid #1a1d26;
     box-shadow: none;
+    padding: 0;
+    cursor: grab;
+    z-index: 2;
+    touch-action: none;
+  }
+  .bot-band-thumb:active {
+    cursor: grabbing;
   }
   .bot-band-thumb.l {
     left: 12%;
@@ -1063,18 +1130,15 @@ body.bots-page .wrap {
     accent-color: #1a1d26;
     cursor: pointer;
   }
-  .bot-m-grids-period .bot-m-grow {
-    display: none;
+  .bot-m-type {
+    margin-bottom: 8px;
+    flex-wrap: nowrap !important;
   }
-  .bot-m-grids-period .bot-chips {
-    margin-left: auto;
+  .bot-m-type .bot-m-local {
+    display: none;
   }
   .bot-days-90 {
     display: none;
-  }
-
-  .bot-m-type {
-    margin-bottom: 8px;
   }
   .bot-m-local {
     font-size: 9px;

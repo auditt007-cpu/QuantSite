@@ -107,7 +107,8 @@ body.nav-drawer-open .wrap.wide {
 .topbar .brand h1 {
   font-size: 22px;
   letter-spacing: -0.02em;
-  color: #ffffff;
+  color: #ffffff !important;
+  background: transparent !important;
   font-weight: 800;
   text-transform: none;
   line-height: 1.15;
@@ -254,7 +255,15 @@ body.nav-drawer-open .wrap.wide {
 .bb-util-dot { background: var(--color-up); }
 
 /* Price ticker — gray bar, dark square quote boxes */
-.ticker, .ticker-bar { background: #f2f2f2; border-bottom: 1px solid #e0e0e0; border-top: 1px solid #e0e0e0; border-radius: 0; }
+.ticker, .ticker-bar {
+  background: #000000 !important;
+  border-bottom: 1px solid #333333 !important;
+  border-top: 1px solid #333333 !important;
+  border-radius: 0;
+}
+.site-sticky-chrome .ticker-bar {
+  background: #000000 !important;
+}
 .ticker-pill { color: #ffffff; border: 1px solid #333333; background: #1a1a1a !important; border-radius: 0 !important; padding: 0 12px; gap: 8px; }
 .ticker-pill .tp-sym { color: #ffffff !important; font-weight: 700; }
 .ticker-pill .tp-px { color: #ffffff; font-weight: 700; }

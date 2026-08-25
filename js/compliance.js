@@ -89,7 +89,7 @@
         '<div class="bb-foot-grid">' +
         '<div class="bb-foot-col">' +
         '<div class="bb-foot-h" data-i18n="footColProduct">產品</div>' +
-        '<a href="./strategies.html" data-i18n="navTerminal">策略廣場</a>' +
+        '<a href="./strategies.html" data-i18n="navTerminal">策略榜</a>' +
         '<a href="./bots.html" data-i18n="navBots">網格機器人</a>' +
         '<a href="./live.html" data-i18n="navLive">直播作戰室</a>' +
         '<a href="./member.html" data-i18n="navMember">會員中心</a>' +

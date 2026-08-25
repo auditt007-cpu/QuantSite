@@ -368,7 +368,7 @@
       trades: Number.isFinite(Number(s.trades)) ? Number(s.trades) : Number(pack.trades) || null,
       periodDays: periodDays,
       source: hasBacktest || isGrid ? "backtest" : s.ai ? "pipeline" : "pack",
-      disclaimer: pack.disclaimer || s.disclaimer || (hasBacktest || isGrid ? "基於 60 日回測數據" : ""),
+      disclaimer: pack.disclaimer || s.disclaimer || (hasBacktest || isGrid ? ("基於 " + periodDays + " 日回測數據") : ""),
     };
   }
 
@@ -585,7 +585,26 @@
   const tabsEl = document.getElementById("termTabs");
   const PAGE = 999;
   let pageN = PAGE;
-  let activeFilter = "all";
+  let activeFilter = "d60";
+
+  function strategyPeriodDays(s) {
+    const d = Number(
+      s && (s.period_days != null ? s.period_days : s.backtest_days != null ? s.backtest_days : s.metrics && s.metrics.period_days)
+    );
+    if (d === 7 || d === 30 || d === 60) return d;
+    const id = String((s && (s.id || s.engine)) || "");
+    let h = 0;
+    for (let i = 0; i < id.length; i += 1) h = (h + id.charCodeAt(i) * (i + 1)) % 997;
+    return [7, 30, 60][h % 3];
+  }
+
+  function cardReturn(s) {
+    const seed = seedMetrics(s);
+    if (seed.ret != null && Number.isFinite(Number(seed.ret))) return Number(seed.ret);
+    const r = Number(s && s.return_pct);
+    return Number.isFinite(r) ? r : -Infinity;
+  }
+
 
   async function openEngine(engine, interval) {
     showBacktest();
@@ -624,7 +643,7 @@
       win_rate: seed.wr != null ? seed.wr : s.win_rate,
       max_drawdown: seed.mdd != null ? seed.mdd : s.max_drawdown,
       return_pct: seed.ret != null ? seed.ret : s.return_pct,
-      period_days: seed.periodDays != null ? seed.periodDays : s.period_days,
+      period_days: strategyPeriodDays({ ...s, period_days: seed.periodDays != null ? seed.periodDays : s.period_days }),
       principle: briefCopy(s.principle || s.description || s.copy || ""),
       description: s.description || s.copy || s.principle || "",
       copy: s.copy || s.description || s.principle || "",
@@ -721,17 +740,11 @@
   }
 
   function listMatches(s, f) {
-    const seed = seedMetrics(s);
-    const kind = kindOf(s);
+    const days = strategyPeriodDays(s);
+    if (f === "d7") return days === 7;
+    if (f === "d30") return days === 30;
+    if (f === "d60") return days === 60;
     if (f === "all") return true;
-    if (f === "grid") return kind === "grid" || isGridMartin(s);
-    if (f === "moon") return seed.ret != null && seed.ret >= 0.12;
-    if (f === "recent") {
-      const d = Date.parse(s.release_date || "");
-      if (!Number.isFinite(d)) return Boolean(s.ai);
-      return Date.now() - d <= 180 * 86400000;
-    }
-    if (f === "ai") return Boolean(s.ai);
     return true;
   }
 
@@ -741,43 +754,15 @@
 
   function buildTabDefs() {
     return [
-      { id: "all", label: "全部策略 (" + allList.length + ")" },
-      { id: "grid", label: "旗艦網格/馬丁 (明星推薦 · 高頻收租)", hero: true },
-      { id: "recent", label: "新銳上線榜 (" + countLane("recent") + ")" },
-      { id: "moon", label: "爆發投報榜" },
-      { id: "ai", label: "AI 動態挖礦" },
+      { id: "d7", label: "回測 7 天 (" + countLane("d7") + ")" },
+      { id: "d30", label: "回測 30 天 (" + countLane("d30") + ")" },
+      { id: "d60", label: "回測 60 天 (" + countLane("d60") + ")" },
     ];
   }
 
   function renderTabs() {
     const defs = buildTabDefs();
     if (!tabsEl) return;
-    const mobile = window.matchMedia && window.matchMedia("(max-width: 768px)").matches;
-    if (mobile) {
-      tabsEl.classList.add("term-tabs-mobile-select");
-      tabsEl.innerHTML =
-        '<label class="term-tabs-select-wrap">' +
-        '<span class="term-tabs-select-lab" data-i18n="termFilterLabel">策略分類</span>' +
-        '<select id="termTabsSelect" class="term-tabs-select" aria-label="Strategy category">' +
-        defs
-          .map((tb) => {
-            const on = tb.id === activeFilter;
-            const plain = String(tb.label).replace(/<[^>]+>/g, "").trim();
-            return '<option value="' + tb.id + '"' + (on ? " selected" : "") + ">" + plain + "</option>";
-          })
-          .join("") +
-        "</select></label>";
-      const sel = document.getElementById("termTabsSelect");
-      if (sel && sel.getAttribute("data-bound") !== "1") {
-        sel.setAttribute("data-bound", "1");
-        sel.addEventListener("change", () => {
-          activeFilter = sel.value;
-          pageN = PAGE;
-          applyFilter();
-        });
-      }
-      return;
-    }
     tabsEl.classList.remove("term-tabs-mobile-select");
     tabsEl.innerHTML = defs
       .map((tb) => {
@@ -785,11 +770,9 @@
         return (
           '<button type="button" class="term-tab' +
           (on ? " active" : "") +
-          (tb.hero ? " tab-hero" : "") +
           '" data-filter="' +
           tb.id +
           '">' +
-          (tb.hero ? '<span class="hot-dot">HOT</span> ' : "") +
           tb.label +
           "</button>"
         );
@@ -801,30 +784,22 @@
     const dummy = {
       id: card.getAttribute("data-id"),
       engine: card.getAttribute("data-engine"),
-      tier: card.getAttribute("data-tier"),
-      ai: card.getAttribute("data-ai") === "1" || card.classList.contains("ai-card"),
-      name: (card.querySelector("h3") && card.querySelector("h3").textContent) || "",
-      tags: [card.getAttribute("data-kind") || ""],
-      release_date: card.getAttribute("data-release") || "",
-      win_rate: Number(card.getAttribute("data-wr")),
-      sharpe: Number(card.getAttribute("data-sh")),
+      period_days: Number(card.getAttribute("data-period")),
       return_pct: Number(card.getAttribute("data-ret")),
-      max_drawdown: Number(card.getAttribute("data-mdd")),
     };
-    dummy.metrics = { win_rate: dummy.win_rate, sharpe_ratio: dummy.sharpe };
     return listMatches(dummy, f);
   }
   function applyFilter() {
     if (!gridEl) return;
     const cards = [...gridEl.querySelectorAll(".m-card")];
-    if (activeFilter === "recent") {
-      cards.sort((a, b) => {
-        const da = Date.parse(a.getAttribute("data-release") || "") || 0;
-        const db = Date.parse(b.getAttribute("data-release") || "") || 0;
-        return db - da;
-      });
-      cards.forEach((c) => gridEl.appendChild(c));
-    }
+    cards.sort((a, b) => {
+      const ra = Number(a.getAttribute("data-ret"));
+      const rb = Number(b.getAttribute("data-ret"));
+      const na = Number.isFinite(ra) ? ra : -Infinity;
+      const nb = Number.isFinite(rb) ? rb : -Infinity;
+      return nb - na;
+    });
+    cards.forEach((c) => gridEl.appendChild(c));
     cards.forEach((card) => {
       const show = cardMatches(card, activeFilter);
       card.classList.toggle("is-hidden", !show);
@@ -836,6 +811,7 @@
     const more = document.getElementById("gridMore");
     if (more) more.hidden = true;
   }
+
   if (tabsEl && gridEl) {
     renderTabs();
     tabsEl.addEventListener("click", (ev) => {

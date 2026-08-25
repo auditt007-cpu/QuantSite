@@ -522,32 +522,25 @@ body.plaza-page .market-grid {
 
 .term-tab.tab-hero,
 .term-tab[data-filter="grid"] {
-  background: linear-gradient(180deg, #fef3c7, #fde68a) !important;
-  color: #b45309 !important;
-  border-color: #d97706 !important;
-  box-shadow: 0 0 10px rgba(217, 119, 6, 0.35) !important;
-  animation: gridTabPulse 2.4s ease-in-out infinite;
+  background: #fff !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: none !important;
+  animation: none !important;
   position: relative;
 }
 
 .term-tab.tab-hero.active,
 .term-tab[data-filter="grid"].active {
-  background: linear-gradient(180deg, #f59e0b, #d97706) !important;
+  background: #0f172a !important;
   color: #ffffff !important;
 }
 
 .term-tab .hot-dot {
-  display: inline-block;
-  font-size: 9px;
-  font-weight: 800;
-  background: #dc2626;
-  color: #fff;
-  padding: 1px 5px;
-  margin-right: 4px;
-  letter-spacing: 0.06em;
+  display: none !important;
 }
 
 @keyframes gridTabPulse {
-  0%, 100% { box-shadow: 0 0 8px rgba(217, 119, 6, 0.28); }
-  50% { box-shadow: 0 0 16px rgba(245, 158, 11, 0.55); }
+  0%, 100% { box-shadow: none; }
+  50% { box-shadow: none; }
 }

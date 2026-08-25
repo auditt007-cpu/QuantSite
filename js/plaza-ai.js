@@ -607,6 +607,8 @@
       (s.engine || s.id) +
       '" data-status="' +
       (s.status || "") +
+      '" data-period="' +
+      days +
       '"' +
       (s.ai ? ' data-ai="1"' : "") +
       (seed.wr != null ? ' data-wr="' + seed.wr + '"' : "") +
@@ -684,7 +686,7 @@
   function paintPlazaMeta(n) {
     const el = document.getElementById("plazaCount");
     if (!el) return;
-    el.textContent = t("plazaLoaded", "策略廣場已載入 {n} 套 AI 新挖策略（置頂展示）").replace(
+    el.textContent = t("plazaLoaded", "策略榜已載入 {n} 套策略（按回測窗口分類）").replace(
       "{n}",
       String(n),
     );

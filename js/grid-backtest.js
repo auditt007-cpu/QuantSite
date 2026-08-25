@@ -929,6 +929,7 @@
     if ($("botUpper") && !$("botUpper").getAttribute("data-lock")) {
       $("botUpper").value = (px * 1.12).toFixed(px >= 100 ? 1 : 4);
     }
+    syncBandTrack();
   }
 
   function loadPreset(id) {
@@ -955,6 +956,7 @@
           $("botUpper").value = Number(hi).toFixed(px >= 100 ? 1 : 4);
           $("botUpper").setAttribute("data-lock", "1");
         }
+        syncBandTrack();
       }
       runBacktest();
     });
@@ -1284,6 +1286,7 @@
         $("botUpper").value = (px * hi).toFixed(px >= 100 ? 1 : 4);
         $("botUpper").setAttribute("data-lock", "1");
       }
+      syncBandTrack();
     }
     if ($("botStatus")) $("botStatus").textContent = t("botAiApplied", "AI 已套用參數，正在回測…");
     await runBacktest();
@@ -1297,6 +1300,152 @@
   function closeDeployModal() {
     const bg = $("botDeployBg");
     if (bg) bg.classList.remove("show");
+  }
+
+  let bandLimits = null;
+
+  function bandSpan() {
+    const lo = Number($("botLower") && $("botLower").value);
+    const hi = Number($("botUpper") && $("botUpper").value);
+    if (bandLimits && bandLimits.max > bandLimits.min) {
+      return { min: bandLimits.min, max: bandLimits.max, lo: lo, hi: hi };
+    }
+    const mid =
+      Number.isFinite(lo) && Number.isFinite(hi) && hi > lo
+        ? (lo + hi) / 2
+        : Number.isFinite(lo)
+          ? lo
+          : 1;
+    const width =
+      Number.isFinite(lo) && Number.isFinite(hi) && hi > lo ? hi - lo : Math.abs(mid) * 0.2;
+    const pad = Math.max(width * 1.5, Math.abs(mid) * 0.12, 1e-6);
+    const min = Math.max(1e-8, mid - pad * 2);
+    const max = mid + pad * 2;
+    return { min: min, max: max, lo: lo, hi: hi };
+  }
+
+  function syncBandTrack() {
+    const fill = $("botBandFill");
+    const thumbL = $("botBandThumbL");
+    const thumbR = $("botBandThumbR");
+    if (!fill || !thumbL || !thumbR) return;
+    const span = bandSpan();
+    if (!(span.max > span.min) || !Number.isFinite(span.lo) || !Number.isFinite(span.hi) || !(span.hi > span.lo)) return;
+    const p1 = ((span.lo - span.min) / (span.max - span.min)) * 100;
+    const p2 = ((span.hi - span.min) / (span.max - span.min)) * 100;
+    const left = Math.max(0, Math.min(100, p1));
+    const right = Math.max(left + 0.5, Math.min(100, p2));
+    fill.style.left = left + "%";
+    fill.style.width = right - left + "%";
+    thumbL.style.left = left + "%";
+    thumbR.style.left = right + "%";
+  }
+
+  function setBandFromRatio(which, ratio) {
+    const span = bandSpan();
+    if (!(span.max > span.min)) return;
+    const v = span.min + Math.max(0, Math.min(1, ratio)) * (span.max - span.min);
+    const loEl = $("botLower");
+    const hiEl = $("botUpper");
+    if (!loEl || !hiEl) return;
+    let lo = Number(loEl.value);
+    let hi = Number(hiEl.value);
+    if (!Number.isFinite(lo) || !Number.isFinite(hi) || !(hi > lo)) {
+      lo = span.min + (span.max - span.min) * 0.25;
+      hi = span.min + (span.max - span.min) * 0.75;
+    }
+    const digits = Math.max(lo, hi) >= 100 ? 1 : 4;
+    const gap = Math.max((hi - lo) * 0.02, (span.max - span.min) * 0.008);
+    if (which === "lo") {
+      lo = Math.min(Math.max(span.min, v), hi - gap);
+      loEl.value = lo.toFixed(digits);
+      loEl.setAttribute("data-lock", "1");
+    } else {
+      hi = Math.max(Math.min(span.max, v), lo + gap);
+      hiEl.value = hi.toFixed(digits);
+      hiEl.setAttribute("data-lock", "1");
+    }
+    syncBandTrack();
+    runDebounced();
+  }
+
+  function bindBandDrag() {
+    const track = $("botBandTrack");
+    if (!track || track.getAttribute("data-bound") === "1") return;
+    track.setAttribute("data-bound", "1");
+    let drag = null;
+
+    function ratioFromEvent(ev) {
+      const rect = track.getBoundingClientRect();
+      if (!(rect.width > 0)) return 0;
+      const x =
+        (ev.clientX != null
+          ? ev.clientX
+          : (ev.touches && ev.touches[0] && ev.touches[0].clientX) || 0) - rect.left;
+      return Math.max(0, Math.min(1, x / rect.width));
+    }
+
+    function onMove(ev) {
+      if (!drag) return;
+      ev.preventDefault();
+      setBandFromRatio(drag.which, ratioFromEvent(ev));
+    }
+
+    function onUp(ev) {
+      if (!drag) return;
+      try {
+        if (drag.el && ev.pointerId != null) drag.el.releasePointerCapture(ev.pointerId);
+      } catch (e) {
+        /* ignore */
+      }
+      drag = null;
+      bandLimits = null;
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+      syncBandTrack();
+    }
+
+    function start(which, el, ev) {
+      const span = bandSpan();
+      bandLimits = { min: span.min, max: span.max };
+      drag = { which: which, el: el };
+      try {
+        if (ev.pointerId != null) el.setPointerCapture(ev.pointerId);
+      } catch (e) {
+        /* ignore */
+      }
+      setBandFromRatio(which, ratioFromEvent(ev));
+      window.addEventListener("pointermove", onMove, { passive: false });
+      window.addEventListener("pointerup", onUp);
+      window.addEventListener("pointercancel", onUp);
+    }
+
+    const thumbL = $("botBandThumbL");
+    const thumbR = $("botBandThumbR");
+    if (thumbL) {
+      thumbL.addEventListener("pointerdown", function (ev) {
+        ev.preventDefault();
+        start("lo", thumbL, ev);
+      });
+    }
+    if (thumbR) {
+      thumbR.addEventListener("pointerdown", function (ev) {
+        ev.preventDefault();
+        start("hi", thumbR, ev);
+      });
+    }
+    track.addEventListener("pointerdown", function (ev) {
+      if (ev.target === thumbL || ev.target === thumbR) return;
+      const ratio = ratioFromEvent(ev);
+      const span = bandSpan();
+      if (!(span.max > span.min)) return;
+      const loR = (span.lo - span.min) / (span.max - span.min);
+      const hiR = (span.hi - span.min) / (span.max - span.min);
+      const which = Math.abs(ratio - loR) <= Math.abs(ratio - hiR) ? "lo" : "hi";
+      start(which, which === "lo" ? thumbL : thumbR, ev);
+    });
+    syncBandTrack();
   }
 
   function bind() {
@@ -1314,10 +1463,15 @@
       if (!el) return;
       el.addEventListener("change", function () {
         if (id === "botLower" || id === "botUpper") el.setAttribute("data-lock", "1");
+        syncBandTrack();
         runDebounced();
       });
-      el.addEventListener("input", runDebounced);
+      el.addEventListener("input", function () {
+        syncBandTrack();
+        runDebounced();
+      });
     });
+    bindBandDrag();
     document.querySelectorAll(".bot-lev").forEach(function (b) {
       b.addEventListener("click", function () {
         setLev(b.getAttribute("data-lev"));

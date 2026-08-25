@@ -3,20 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=202608250650-23df46f">
-  <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=202608250650-23df46f">
-  <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png?v=202608250650-23df46f">
-  <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png?v=202608250650-23df46f">
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=202608252340-board">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=202608252340-board">
+  <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png?v=202608252340-board">
+  <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png?v=202608252340-board">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#09090b">
   <title>QUANT ALPHA · 網格機器人</title>
-  <link rel="stylesheet" href="./styles.css?v=202608252250-botpeer" />
-  <link rel="stylesheet" href="./css/mobile-global.css?v=202608252250-botpeer" />
-  <link rel="stylesheet" href="./css/mobile-subpages.css?v=202608252250-botpeer" />
-  <link rel="stylesheet" href="./css/bots.css?v=202608252310-align4" />
-  <link rel="stylesheet" href="./css/bloomberg-system.css?v=202608252250-botpeer" />
-  <link rel="stylesheet" href="./css/bloomberg-dark.css?v=202608252250-botpeer" />
+  <link rel="stylesheet" href="./styles.css?v=202608252340-board" />
+  <link rel="stylesheet" href="./css/mobile-global.css?v=202608252340-board" />
+  <link rel="stylesheet" href="./css/mobile-subpages.css?v=202608252340-board" />
+  <link rel="stylesheet" href="./css/bots.css?v=202608252340-board" />
+  <link rel="stylesheet" href="./css/bloomberg-system.css?v=202608252340-board" />
+  <link rel="stylesheet" href="./css/bloomberg-dark.css?v=202608252340-board" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
@@ -38,7 +38,7 @@
         <button type="button" class="nav-toggle" id="navToggle" aria-label="選單" data-i18n-aria="ariaMenu" aria-expanded="false">☰</button>
       </div>
       <div class="nav-actions" id="navActions">
-        <a class="nav-link" href="./strategies.html" data-i18n="navTerminal">策略廣場</a>
+        <a class="nav-link" href="./strategies.html" data-i18n="navTerminal">策略榜</a>
         <a class="nav-link nav-link-bots active" href="./bots.html" data-i18n="navBots">網格機器人</a>
         <a class="nav-link" href="./member.html" data-i18n="navMember">會員中心</a>
         <a class="nav-link" href="./affiliate.html" data-i18n="navAff">推薦計畫</a>
@@ -137,16 +137,16 @@
         <div class="bot-m-row bot-m-band">
           <div class="bot-m-band-head">
             <span class="bot-m-lab" data-i18n="botBand">區間</span>
-            <span class="bot-m-hint" data-i18n="botBandHint">下限 / 上限</span>
+            <span class="bot-m-hint" data-i18n="botBandHint">下限 / 上限 · 拖動兩端調節</span>
           </div>
           <div class="bot-band-row">
             <input id="botLower" type="number" step="any" inputmode="decimal" aria-label="lower" />
             <input id="botUpper" type="number" step="any" inputmode="decimal" aria-label="upper" />
           </div>
-          <div class="bot-band-track" aria-hidden="true">
-            <div class="bot-band-fill"></div>
-            <i class="bot-band-thumb l"></i>
-            <i class="bot-band-thumb r"></i>
+          <div class="bot-band-track" id="botBandTrack" role="group" aria-label="price band">
+            <div class="bot-band-fill" id="botBandFill"></div>
+            <button type="button" class="bot-band-thumb l" id="botBandThumbL" aria-label="lower thumb"></button>
+            <button type="button" class="bot-band-thumb r" id="botBandThumbR" aria-label="upper thumb"></button>
           </div>
         </div>
 
@@ -154,13 +154,6 @@
           <span class="bot-m-lab" data-i18n="botGrids">網格數量</span>
           <span class="bot-m-grids-val"><span id="botGridsOut">50</span> <small data-i18n="botGridsUnit">格</small></span>
           <input id="botGrids" class="bot-grids-range" type="range" min="20" max="150" value="50" aria-label="grids" />
-          <span class="bot-m-grow"></span>
-          <span class="bot-m-lab" data-i18n="botPeriod">回測</span>
-          <div class="bot-chips" role="group">
-            <button type="button" class="bot-days" data-days="7" data-i18n="botD7">近7天</button>
-            <button type="button" class="bot-days is-on" data-days="30" data-i18n="botD30">近30天</button>
-            <button type="button" class="bot-days bot-days-90" data-days="90" data-i18n="botD90">近90天</button>
-          </div>
         </div>
 
         <div class="bot-m-row bot-m-type">
@@ -170,7 +163,11 @@
             <button type="button" class="bot-mode" data-mode="geo" data-i18n="botGeo">等比</button>
           </div>
           <span class="bot-m-grow"></span>
-          <span class="bot-m-local" data-i18n="botLocalFast">本機秒級回測</span>
+          <div class="bot-chips bot-days-chips" role="group">
+            <button type="button" class="bot-days" data-days="7" data-i18n="botD7">近7天</button>
+            <button type="button" class="bot-days is-on" data-days="30" data-i18n="botD30">近30天</button>
+            <button type="button" class="bot-days bot-days-90" data-days="90" data-i18n="botD90">近90天</button>
+          </div>
         </div>
 
         <div class="bot-ai-lab" id="botAiLab">
@@ -242,17 +239,17 @@
   </div>
 
   <div class="toast" id="toast"></div>
-  <script src="./js/binance-feed.js?v=202608252250-botpeer"></script>
-  <script src="./js/offline-klines.js?v=202608252250-botpeer"></script>
-  <script src="./js/nav.js?v=202608252250-botpeer"></script>
-  <script src="./config.js?v=202608252250-botpeer"></script>
-  <script src="./js/meta-events.js?v=202608252250-botpeer"></script>
-  <script src="./i18n.js?v=202608252250-botpeer"></script>
-  <script src="./js/i18n-boot.js?v=202608252250-botpeer"></script>
-  <script src="./js/identity.js?v=202608252250-botpeer"></script>
-  <script src="./js/compliance.js?v=202608252250-botpeer"></script>
-  <script src="./js/lead-bind.js?v=202608252250-botpeer"></script>
-  <script src="./js/money.js?v=202608252250-botpeer"></script>
-  <script src="./js/grid-backtest.js?v=202608252250-botpeer"></script>
+  <script src="./js/binance-feed.js?v=202608252340-board"></script>
+  <script src="./js/offline-klines.js?v=202608252340-board"></script>
+  <script src="./js/nav.js?v=202608252340-board"></script>
+  <script src="./config.js?v=202608252340-board"></script>
+  <script src="./js/meta-events.js?v=202608252340-board"></script>
+  <script src="./i18n.js?v=202608252340-board"></script>
+  <script src="./js/i18n-boot.js?v=202608252340-board"></script>
+  <script src="./js/identity.js?v=202608252340-board"></script>
+  <script src="./js/compliance.js?v=202608252340-board"></script>
+  <script src="./js/lead-bind.js?v=202608252340-board"></script>
+  <script src="./js/money.js?v=202608252340-board"></script>
+  <script src="./js/grid-backtest.js?v=202608252340-board"></script>
 </body>
 </html>
