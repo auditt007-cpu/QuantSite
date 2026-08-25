@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-25T15:33:22Z",
+  "updated_at": "2026-08-25T15:34:56Z",
   "period_hours": 3,
   "poll_sec": 5,
   "scan_tf": "15m+1h",
@@ -2242,6 +2242,118 @@
   "exec_log": [
     {
       "kind": "batch",
+      "name_zh": "Dual Thrust快",
+      "interval": "1h",
+      "side": "LONG",
+      "action": "空頭平倉翻多 (BUY)",
+      "logged_at": 1787672097,
+      "bar_ts": 1787666400,
+      "event": "open",
+      "strategy_id": "strat-020",
+      "symbols": [
+        {
+          "symbol": "BNBUSDT",
+          "price": 698.33,
+          "sl_pct": -0.7288611401486481,
+          "tp_pct": 1.4577222802972798,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "NEARUSDT",
+          "price": 1.932,
+          "sl_pct": -1.4249482401656228,
+          "tp_pct": 2.8498964803312687,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
+      "name_zh": "Dual Thrust",
+      "interval": "1h",
+      "side": "LONG",
+      "action": "空頭平倉翻多 (BUY)",
+      "logged_at": 1787672098,
+      "bar_ts": 1787666400,
+      "event": "open",
+      "strategy_id": "hg",
+      "symbols": [
+        {
+          "symbol": "BNBUSDT",
+          "price": 698.33,
+          "sl_pct": -0.7288611401486481,
+          "tp_pct": 1.4577222802972798,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "Dual Thrust快",
+      "interval": "1h",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787672097,
+      "bar_ts": 1787666400,
+      "event": "close",
+      "strategy_id": "strat-020",
+      "symbols": [
+        {
+          "symbol": "BNBUSDT",
+          "price": 698.33,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.5645079995967905
+        },
+        {
+          "symbol": "NEARUSDT",
+          "price": 1.932,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -1.1942174732872373
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
+      "name_zh": "Dual Thrust",
+      "interval": "1h",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787672096,
+      "bar_ts": 1787666400,
+      "event": "close",
+      "strategy_id": "hg",
+      "symbols": [
+        {
+          "symbol": "BNBUSDT",
+          "price": 698.33,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.5645079995967905
+        },
+        {
+          "symbol": "NEARUSDT",
+          "price": 1.932,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -1.1942174732872373
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
       "name_zh": "MACD柱翻轉",
       "interval": "15m",
       "side": "LONG",
@@ -2743,126 +2855,6 @@
         }
       ],
       "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "樞軸快線",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787671825,
-      "bar_ts": 1787670900,
-      "event": "close",
-      "strategy_id": "strat-030",
-      "symbols": [
-        {
-          "symbol": "DOGEUSDT",
-          "price": 0.08891,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.3498871331828496
-        },
-        {
-          "symbol": "AVAXUSDT",
-          "price": 7.489,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.33494105037512684
-        },
-        {
-          "symbol": "BNBUSDT",
-          "price": 698.42,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.26558709103175693
-        }
-      ],
-      "strategy_count": 3
-    },
-    {
-      "kind": "batch",
-      "name_zh": "ATR網格1.0",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787671824,
-      "bar_ts": 1787670900,
-      "event": "close",
-      "strategy_id": "strat-017",
-      "symbols": [
-        {
-          "symbol": "NEARUSDT",
-          "price": 1.906,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -1.3457556935817818
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "EMA快線交叉",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787671823,
-      "bar_ts": 1787670900,
-      "event": "close",
-      "strategy_id": "strat-012",
-      "symbols": [
-        {
-          "symbol": "NEARUSDT",
-          "price": 1.906,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -1.3457556935817818
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "樞軸點",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787671824,
-      "bar_ts": 1787670900,
-      "event": "close",
-      "strategy_id": "strat-009",
-      "symbols": [
-        {
-          "symbol": "DOGEUSDT",
-          "price": 0.08891,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.3498871331828496
-        },
-        {
-          "symbol": "AVAXUSDT",
-          "price": 7.489,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.33494105037512684
-        },
-        {
-          "symbol": "BNBUSDT",
-          "price": 698.42,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.26558709103175693
-        }
-      ],
-      "strategy_count": 3
     }
   ],
   "exec_log_raw_count": 200
