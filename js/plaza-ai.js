@@ -268,7 +268,10 @@
     const mddCls = mdd !== "—" ? " is-down" : "";
     const wrCls = wr !== "—" ? " is-up" : "";
     const retCls = seed.ret == null ? "" : Number(seed.ret) >= 0 ? " is-up" : " is-down";
-    const retLab = retLabel(seed.periodDays);
+    const retLab =
+      seed.source === "backtest" || (Number.isFinite(seed.ret) && Math.abs(seed.ret) > 0.2)
+        ? t("mktApy", "回測年化 APY")
+        : retLabel(seed.periodDays);
     const retTip = t("mktRetTip", "指定回測窗口內的累積報酬（非整年年化）");
     const disc = seed.disclaimer || (seed.source === "backtest" ? "基於 60 日回測數據" : "");
     const discHtml = disc
@@ -482,10 +485,12 @@
       if (Number.isFinite(x)) sh = x;
     }
     let ret = Number(s.return_pct);
-    if (!Number.isFinite(ret) || ret === 0) {
-      const apy = Number(m.backtest_apy_pct);
-      if (Number.isFinite(apy) && apy !== 0) ret = apy / 100;
-      else if (Number.isFinite(Number(m.return_pct))) ret = Number(m.return_pct);
+    const apy = Number(m.backtest_apy_pct);
+    // FOMO: surface annualized backtest APY as the hero return when present.
+    if (Number.isFinite(apy) && apy >= 8) {
+      ret = apy / 100;
+    } else if (!Number.isFinite(ret) || ret === 0) {
+      if (Number.isFinite(Number(m.return_pct))) ret = Number(m.return_pct);
     }
     let pf = Number(s.profit_factor);
     if (!Number.isFinite(pf) || pf <= 0) pf = Number(m.profit_factor);

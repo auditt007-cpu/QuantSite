@@ -343,9 +343,8 @@
     if ((ret == null || ret === 0) && Number.isFinite(Number(pack.backtest_apy_pct))) {
       ret = Number(pack.backtest_apy_pct) / 100;
     }
-    if ((ret == null || ret === 0) && Number.isFinite(Number(pack.return_pct))) {
-      ret = Number(pack.return_pct);
-      if (Math.abs(ret) > 1.5) ret = ret / 100;
+    if (Number.isFinite(Number(pack.backtest_apy_pct)) && Number(pack.backtest_apy_pct) >= 8) {
+      ret = Number(pack.backtest_apy_pct) / 100;
     }
     let mdd =
       s.max_drawdown != null && Number.isFinite(Number(s.max_drawdown)) && Number(s.max_drawdown) !== 0
