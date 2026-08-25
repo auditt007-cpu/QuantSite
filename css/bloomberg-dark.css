@@ -13,21 +13,83 @@ body.has-bb-util .wrap.wide,
 body.home-boards .wrap,
 body.nav-drawer-open .wrap,
 body.nav-drawer-open .wrap.wide {
-  padding-top: 0 !important;
   overflow-x: clip !important;
   overflow-y: visible !important;
 }
 
-/* Black header band (Bloomberg-style) */
-.site-sticky-chrome { background: #000000; }
-.topbar,
-body.has-bb-util .topbar,
-.topbar.nav-open,
-body.nav-drawer-open .topbar {
+/* Black header band (Bloomberg-style) — full-bleed, content column stays on .wrap */
+.bb-util-bar {
+  width: 100%;
+  max-width: none !important;
+  padding-left: var(--header-pad, 16px);
+  padding-right: var(--header-pad, 16px);
+  box-sizing: border-box;
+}
+.site-sticky-chrome {
+  width: 100%;
+  max-width: none !important;
+  margin-left: 0;
+  margin-right: 0;
+  background: #000000;
+  box-sizing: border-box;
+}
+.site-sticky-chrome .ticker-bar {
+  width: 100%;
+  max-width: none !important;
+}
+.site-sticky-chrome .topbar,
+body.has-bb-util .site-sticky-chrome .topbar {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  width: 100%;
+  max-width: none !important;
+  padding-left: var(--header-pad, 16px);
+  padding-right: var(--header-pad, 16px);
+  box-sizing: border-box;
   background: #000000;
   border-bottom: 1px solid #333333;
-  padding: 6px 0;
+  padding-top: 6px;
+  padding-bottom: 6px;
   border-radius: 0;
+  gap: 12px;
+}
+.site-sticky-chrome .brand {
+  order: 1;
+  margin-right: auto;
+  flex: 0 1 auto;
+}
+.site-sticky-chrome .nav-actions {
+  order: 2;
+}
+.site-sticky-chrome .nav-end {
+  order: 3;
+  margin-left: 0;
+  flex-shrink: 0;
+}
+.site-sticky-chrome .nav-toggle {
+  order: 4;
+}
+@media (min-width: 769px) {
+  .site-sticky-chrome .nav-actions {
+    width: auto !important;
+    flex: 1 1 auto;
+    justify-content: flex-end !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    border-top: 0 !important;
+  }
+  .site-sticky-chrome .nav-end {
+    margin-left: 8px;
+  }
+}
+body.has-bb-util .wrap,
+body.has-bb-util .wrap.wide,
+body.home-boards .wrap,
+body.nav-drawer-open .wrap,
+body.nav-drawer-open .wrap.wide {
+  padding-top: 16px !important;
 }
 .brand,
 .topbar .brand { gap: 10px; max-width: min(320px, 44vw); }

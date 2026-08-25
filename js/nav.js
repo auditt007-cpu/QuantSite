@@ -104,8 +104,11 @@
       '<a class="bb-util-link" href="./about.html" data-i18n="bbUtilContact">联系我们</a>' +
       "</div>" +
       '<div class="bb-util-right" id="bbUtilRight"></div>';
+    const chrome = document.querySelector(".site-sticky-chrome");
     const wrap = document.querySelector(".wrap");
-    if (wrap && wrap.parentNode) {
+    if (chrome && chrome.parentNode) {
+      chrome.parentNode.insertBefore(bar, chrome);
+    } else if (wrap && wrap.parentNode) {
       wrap.parentNode.insertBefore(bar, wrap);
     } else {
       document.body.insertBefore(bar, document.body.firstChild);
