@@ -383,18 +383,18 @@
       ctx.beginPath();
       if (m.kind === "buy") {
         ctx.fillStyle = "#0f7b3a";
-        ctx.moveTo(x, y + 5);
-        ctx.lineTo(x - 4, y - 2);
-        ctx.lineTo(x + 4, y - 2);
+        ctx.moveTo(x, y + 7);
+        ctx.lineTo(x - 6, y - 3);
+        ctx.lineTo(x + 6, y - 3);
       } else {
         ctx.fillStyle = "#c2410c";
-        ctx.moveTo(x, y - 5);
-        ctx.lineTo(x - 4, y + 2);
-        ctx.lineTo(x + 4, y + 2);
+        ctx.moveTo(x, y - 7);
+        ctx.lineTo(x - 6, y + 3);
+        ctx.lineTo(x + 6, y + 3);
       }
       ctx.closePath();
       ctx.fill();
-      hitMarks.push({ x: x, y: y, r: 10, mark: m, idx: idx });
+      hitMarks.push({ x: x, y: y, r: 16, mark: m, idx: idx });
     });
 
     const last = plotEq[plotEq.length - 1];
@@ -408,9 +408,19 @@
     canvas._qaView = { lo: view.lo, hi: view.hi };
   }
 
-  function showTradeDetail(mark) {
+  function hideTradeTip() {
+    const box = $("botTradeTip");
+    if (!box) return;
+    box.hidden = true;
+    box.classList.remove("show");
+    box.style.left = "";
+    box.style.top = "";
+  }
+
+  function showTradeDetail(mark, clientX, clientY) {
     if (!mark) return;
     const box = $("botTradeTip");
+    const wrap = $("botChartWrap");
     if (!box) return;
     const side =
       mark.kind === "buy"
@@ -446,55 +456,46 @@
       "</span>";
     box.hidden = false;
     box.classList.add("show");
+    if (wrap && Number.isFinite(clientX) && Number.isFinite(clientY)) {
+      const wr = wrap.getBoundingClientRect();
+      const left = Math.max(8, Math.min(wr.width - 168, clientX - wr.left + 10));
+      const top = Math.max(8, Math.min(wr.height - 72, clientY - wr.top + 10));
+      box.style.left = left + "px";
+      box.style.top = top + "px";
+    }
   }
 
-  function bindChartMarks() {
+  function pickMarkAt(clientX, clientY) {
     const canvas = $("botChart");
-    const tip = $("botTradeTip");
-    if (!canvas || canvas.getAttribute("data-mark-bound") === "1") return;
-    canvas.setAttribute("data-mark-bound", "1");
-    function pickMark(ev) {
-      const hits = canvas._qaMarkHits;
-      if (!hits || !hits.length) return null;
-      const rect = canvas.getBoundingClientRect();
-      const sx = ((ev.clientX - rect.left) / rect.width) * (canvas._qaPlot && canvas._qaPlot.w ? canvas._qaPlot.w : rect.width);
-      const sy = ((ev.clientY - rect.top) / rect.height) * (canvas._qaPlot && canvas._qaPlot.h ? canvas._qaPlot.h : rect.height);
-      let best = null;
-      let bestD = Infinity;
-      hits.forEach(function (h) {
-        const d = Math.hypot(h.x - sx, h.y - sy);
-        if (d < h.r + 6 && d < bestD) {
-          bestD = d;
-          best = h;
-        }
-      });
-      return best;
-    }
-    canvas.addEventListener("click", function (ev) {
-      const hit = pickMark(ev);
-      if (hit) showTradeDetail(hit.mark);
-      else if (tip) {
-        tip.hidden = true;
-        tip.classList.remove("show");
+    if (!canvas) return null;
+    const hits = canvas._qaMarkHits;
+    if (!hits || !hits.length) return null;
+    const rect = canvas.getBoundingClientRect();
+    if (!(rect.width > 0) || !(rect.height > 0)) return null;
+    const plot = canvas._qaPlot || {};
+    const pw = plot.w || rect.width;
+    const ph = plot.h || rect.height;
+    const sx = ((clientX - rect.left) / rect.width) * pw;
+    const sy = ((clientY - rect.top) / rect.height) * ph;
+    let best = null;
+    let bestD = Infinity;
+    const hitR = 18;
+    hits.forEach(function (h) {
+      const d = Math.hypot(h.x - sx, h.y - sy);
+      if (d < hitR && d < bestD) {
+        bestD = d;
+        best = h;
       }
     });
-    document.addEventListener(
-      "click",
-      function (ev) {
-        if (!tip || tip.hidden) return;
-        if (ev.target === canvas || tip.contains(ev.target)) return;
-        tip.hidden = true;
-        tip.classList.remove("show");
-      },
-      true
-    );
+    return best;
   }
 
-  function bindChartZoom() {
+  function bindChartInteraction() {
     const wrap = $("botChartWrap");
     const canvas = $("botChart");
-    if (!wrap || !canvas || wrap.getAttribute("data-zoom-bound") === "1") return;
-    wrap.setAttribute("data-zoom-bound", "1");
+    if (!wrap || !canvas || wrap.getAttribute("data-chart-bound") === "1") return;
+    wrap.setAttribute("data-chart-bound", "1");
+
     const zIn = $("botChartZoomIn");
     const zOut = $("botChartZoomOut");
     const zReset = $("botChartZoomReset");
@@ -506,6 +507,7 @@
         redrawChart();
       });
     }
+
     wrap.addEventListener(
       "wheel",
       function (ev) {
@@ -517,24 +519,16 @@
       },
       { passive: false }
     );
+
     let pan = null;
     let touchDist = null;
-    wrap.addEventListener("pointerdown", function (ev) {
-      if (!isChartZoomed() || ev.pointerType === "touch") return;
-      pan = { x: ev.clientX, lo: chartView.lo, hi: chartView.hi };
-      wrap.classList.add("is-panning");
-      try {
-        wrap.setPointerCapture(ev.pointerId);
-      } catch {
-        /* ignore */
-      }
-    });
-    wrap.addEventListener("pointermove", function (ev) {
-      if (!pan) return;
+    let ptr = null;
+
+    function applyPanDelta(clientX, origin) {
       const rect = canvas.getBoundingClientRect();
-      const w = pan.hi - pan.lo;
-      const delta = rect.width > 0 ? (-(ev.clientX - pan.x) / rect.width) * w : 0;
-      chartView = { lo: pan.lo + delta, hi: pan.hi + delta };
+      const w = origin.hi - origin.lo;
+      const delta = rect.width > 0 ? (-(clientX - origin.x) / rect.width) * w : 0;
+      chartView = { lo: origin.lo + delta, hi: origin.hi + delta };
       if (chartView.lo < 0) {
         chartView.hi -= chartView.lo;
         chartView.lo = 0;
@@ -544,19 +538,86 @@
         chartView.hi = 1;
       }
       redrawChart();
+    }
+
+    canvas.addEventListener("pointerdown", function (ev) {
+      if (ev.pointerType === "touch") return;
+      ptr = {
+        id: ev.pointerId,
+        x: ev.clientX,
+        y: ev.clientY,
+        moved: false,
+        panning: false,
+      };
     });
-    function endPan(ev) {
-      if (!pan) return;
+
+    canvas.addEventListener("pointermove", function (ev) {
+      if (!ptr || ptr.id !== ev.pointerId) return;
+      const dx = ev.clientX - ptr.x;
+      const dy = ev.clientY - ptr.y;
+      if (!ptr.moved && Math.hypot(dx, dy) > 6) ptr.moved = true;
+      if (ptr.moved && isChartZoomed() && !ptr.panning) {
+        ptr.panning = true;
+        pan = { x: ptr.x, lo: chartView.lo, hi: chartView.hi };
+        wrap.classList.add("is-panning");
+        try {
+          canvas.setPointerCapture(ev.pointerId);
+        } catch {
+          /* ignore */
+        }
+      }
+      if (ptr.panning && pan) applyPanDelta(ev.clientX, pan);
+    });
+
+    function endPointer(ev) {
+      if (!ptr || (ev && ptr.id !== ev.pointerId)) return;
+      const wasPan = ptr.panning;
+      const x = ev && ev.clientX != null ? ev.clientX : ptr.x;
+      const y = ev && ev.clientY != null ? ev.clientY : ptr.y;
+      if (ptr.panning) {
+        try {
+          canvas.releasePointerCapture(ptr.id);
+        } catch {
+          /* ignore */
+        }
+      }
+      wrap.classList.remove("is-panning");
+      pan = null;
+      const tap = ptr;
+      ptr = null;
+      if (wasPan || tap.moved) return;
+      const hit = pickMarkAt(x, y);
+      if (hit) {
+        ev && ev.preventDefault && ev.preventDefault();
+        showTradeDetail(hit.mark, x, y);
+      } else {
+        hideTradeTip();
+      }
+    }
+
+    canvas.addEventListener("pointerup", endPointer);
+    canvas.addEventListener("pointercancel", function (ev) {
+      ptr = null;
       pan = null;
       wrap.classList.remove("is-panning");
       try {
-        wrap.releasePointerCapture(ev.pointerId);
+        canvas.releasePointerCapture(ev.pointerId);
       } catch {
         /* ignore */
       }
-    }
-    wrap.addEventListener("pointerup", endPan);
-    wrap.addEventListener("pointercancel", endPan);
+    });
+
+    /* Desktop click fallback (some browsers skip pointerup→click quirks) */
+    canvas.addEventListener("click", function (ev) {
+      if (ev.pointerType === "touch") return;
+      const hit = pickMarkAt(ev.clientX, ev.clientY);
+      if (hit) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        showTradeDetail(hit.mark, ev.clientX, ev.clientY);
+      }
+    });
+
     wrap.addEventListener(
       "touchstart",
       function (ev) {
@@ -564,13 +625,22 @@
           const dx = ev.touches[0].clientX - ev.touches[1].clientX;
           const dy = ev.touches[0].clientY - ev.touches[1].clientY;
           touchDist = Math.hypot(dx, dy);
-        } else if (ev.touches.length === 1 && isChartZoomed()) {
-          pan = { x: ev.touches[0].clientX, lo: chartView.lo, hi: chartView.hi };
-          wrap.classList.add("is-panning");
+          pan = null;
+        } else if (ev.touches.length === 1) {
+          ptr = {
+            x: ev.touches[0].clientX,
+            y: ev.touches[0].clientY,
+            moved: false,
+            panning: false,
+          };
+          if (isChartZoomed()) {
+            pan = { x: ptr.x, lo: chartView.lo, hi: chartView.hi };
+          }
         }
       },
       { passive: true }
     );
+
     wrap.addEventListener(
       "touchmove",
       function (ev) {
@@ -587,34 +657,50 @@
             zoomChartView(factor, frac);
             touchDist = dist;
           }
-        } else if (pan && ev.touches.length === 1) {
+          if (ptr) ptr.moved = true;
+        } else if (pan && ev.touches.length === 1 && isChartZoomed()) {
           ev.preventDefault();
-          const rect = canvas.getBoundingClientRect();
-          const w = pan.hi - pan.lo;
-          const delta = rect.width > 0 ? (-(ev.touches[0].clientX - pan.x) / rect.width) * w : 0;
-          chartView = { lo: pan.lo + delta, hi: pan.hi + delta };
-          if (chartView.lo < 0) {
-            chartView.hi -= chartView.lo;
-            chartView.lo = 0;
+          if (ptr) {
+            const d = Math.hypot(ev.touches[0].clientX - ptr.x, ev.touches[0].clientY - ptr.y);
+            if (d > 6) ptr.moved = true;
           }
-          if (chartView.hi > 1) {
-            chartView.lo -= chartView.hi - 1;
-            chartView.hi = 1;
-          }
-          redrawChart();
+          applyPanDelta(ev.touches[0].clientX, pan);
+          wrap.classList.add("is-panning");
         }
       },
       { passive: false }
     );
+
     wrap.addEventListener(
       "touchend",
-      function () {
+      function (ev) {
+        const wasPinch = touchDist != null;
         touchDist = null;
-        pan = null;
         wrap.classList.remove("is-panning");
+        if (wasPinch || (ptr && ptr.moved) || !ptr) {
+          pan = null;
+          ptr = null;
+          return;
+        }
+        const t = ev.changedTouches && ev.changedTouches[0];
+        const x = t ? t.clientX : ptr.x;
+        const y = t ? t.clientY : ptr.y;
+        pan = null;
+        ptr = null;
+        const hit = pickMarkAt(x, y);
+        if (hit) showTradeDetail(hit.mark, x, y);
+        else hideTradeTip();
       },
       { passive: true }
     );
+
+    document.addEventListener("pointerdown", function (ev) {
+      const tip = $("botTradeTip");
+      if (!tip || tip.hidden) return;
+      if (wrap.contains(ev.target) || tip.contains(ev.target)) return;
+      hideTradeTip();
+    });
+
     root.addEventListener("resize", function () {
       if (chartData) redrawChart();
     });
@@ -1076,8 +1162,7 @@
     }
     paintAiQuota();
     root.addEventListener("quant-lang", paintAiQuota);
-    bindChartMarks();
-    bindChartZoom();
+    bindChartInteraction();
     bindPresetSelect();
     seedBandFromSpot().then(runBacktest);
   }

@@ -367,11 +367,22 @@
     return Math.max(a, b);
   }
 
-  /* ---- voice: single FIFO AudioQueue (never parallel speak) ---- */
+  /* ---- voice: HIGH (live signals) preempts LOW (idle ads); HsiaoChen TTS ---- */
   const AUDIO_GAP_MS = 800;
   const AUDIO_STORM_N = 5;
+  const PRIORITY_HIGH = "high";
+  const PRIORITY_LOW = "low";
+  const IDLE_AD_MS = 30000;
   const STORM_LINE =
     "當前發生大面積整點異動，已觸發多套策略，請查閱戰情面板。";
+  const IDLE_AD_LINE =
+    "還在熬夜盯盤、糾結進出場點位嗎？行情八成都在震盪，與其被情緒左右，不如交給程式全天候自動低買高賣。點擊頂部【網格機器人】，免登入即可自由調參，秒級驗證近 30 天回測年化。";
+
+  state.lastHighPriorityAudioTime = Date.now();
+  state.lastIdleAdTime = Date.now();
+  state.audioPriority = null;
+  state.speakGen = 0;
+  state.idleAdTimer = null;
 
   function loadVoicePref() {
     try {
@@ -423,30 +434,43 @@
     });
   }
 
-  function pickTwVoice() {
-    const list = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
-    const want = [/zh-TW/i, /Hant/i, /Taiwan/i, /Hanhan/i, /Hsiao/i, /Yating/i];
-    for (let i = 0; i < want.length; i += 1) {
-      const hit = list.find((v) => want[i].test(v.lang + " " + v.name));
-      if (hit) return hit;
+  function getHsiaoChenVoice() {
+    const voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+    if (!voices || !voices.length) return null;
+    let voice = voices.find(
+      (v) =>
+        /HsiaoChen/i.test(v.name) ||
+        /曉臻/.test(v.name) ||
+        /zh-TW-HsiaoChenNeural/i.test(v.name)
+    );
+    if (!voice) {
+      voice = voices.find((v) => v.lang === "zh-TW" || v.lang === "zh_TW" || /zh[-_]TW/i.test(v.lang));
     }
-    return list.find((v) => /zh/i.test(v.lang)) || null;
+    if (!voice) {
+      voice = voices.find((v) => /Taiwan|Hant|Hanhan|Hsiao|Yating/i.test(v.lang + " " + v.name));
+    }
+    return voice || voices.find((v) => /zh/i.test(v.lang)) || null;
   }
 
-  function speakLine(text) {
+  function killSpeech() {
+    state.speakGen += 1;
+    try {
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+    } catch {
+      /* */
+    }
+  }
+
+  function speakLine(text, gen) {
     return new Promise((resolve) => {
       if (!window.speechSynthesis || !text) return resolve();
-      try {
-        window.speechSynthesis.cancel();
-      } catch {
-        /* */
-      }
+      if (gen != null && gen !== state.speakGen) return resolve();
       const u = new SpeechSynthesisUtterance(text);
       u.lang = "zh-TW";
-      u.rate = 1.3;
-      u.pitch = 1.06;
+      u.rate = 1.08;
+      u.pitch = 1.0;
       u.volume = 1;
-      const voice = pickTwVoice();
+      const voice = getHsiaoChenVoice();
       if (voice) u.voice = voice;
       let done = false;
       const finish = () => {
@@ -462,8 +486,7 @@
         finish();
         return;
       }
-      /* some browsers stall without onend — hard cap */
-      setTimeout(finish, Math.min(12000, 1800 + String(text).length * 80));
+      setTimeout(finish, Math.min(18000, 2200 + String(text).length * 95));
     });
   }
 
@@ -473,63 +496,103 @@
 
   function clearAudioQueue() {
     state.queue = [];
-    try {
-      if (window.speechSynthesis) window.speechSynthesis.cancel();
-    } catch {
-      /* */
-    }
+    killSpeech();
+  }
+
+  function stripLowPriorityJobs() {
+    state.queue = state.queue.filter((j) => (j && j.priority) === PRIORITY_HIGH);
   }
 
   async function drainQueue() {
     if (state.speaking) return;
     state.speaking = true;
-    while (state.queue.length && state.voiceOn) {
-      /* Storm throttle: backlog > 5 → one summary, drop the rest */
-      if (state.queue.length > AUDIO_STORM_N) {
-        state.queue = [
-          {
-            text: STORM_LINE,
-            chime: true,
-            pauseAfter: AUDIO_GAP_MS,
-            storm: true,
-          },
-        ];
-      }
-      const raw = state.queue.shift();
-      const job = typeof raw === "string" ? { text: raw, chime: true } : raw || {};
-      if (!job.text) continue;
-      if (job.chime) {
-        await playMrtChime();
+    try {
+      while (state.queue.length && state.voiceOn) {
+        if (state.queue.length > AUDIO_STORM_N) {
+          const hasHigh = state.queue.some((j) => j && j.priority === PRIORITY_HIGH);
+          state.queue = [
+            {
+              text: STORM_LINE,
+              chime: true,
+              pauseAfter: AUDIO_GAP_MS,
+              storm: true,
+              priority: hasHigh ? PRIORITY_HIGH : PRIORITY_LOW,
+            },
+          ];
+        }
+        const raw = state.queue.shift();
+        const job = typeof raw === "string" ? { text: raw, chime: true, priority: PRIORITY_HIGH } : raw || {};
+        if (!job.text) continue;
+        const priority = job.priority === PRIORITY_LOW ? PRIORITY_LOW : PRIORITY_HIGH;
+        state.audioPriority = priority;
+        const gen = state.speakGen;
+        if (job.chime) {
+          await playMrtChime();
+          if (!state.voiceOn || gen !== state.speakGen) continue;
+        }
+        await speakLine(job.text, gen);
+        if (gen !== state.speakGen) {
+          /* preempted — continue with remaining HIGH jobs */
+          continue;
+        }
+        if (priority === PRIORITY_HIGH) {
+          state.lastHighPriorityAudioTime = Date.now();
+        } else {
+          state.lastIdleAdTime = Date.now();
+        }
         if (!state.voiceOn) break;
+        const gap = job.pauseAfter != null ? job.pauseAfter : AUDIO_GAP_MS;
+        if (gap > 0 && state.queue.length) {
+          const gapGen = state.speakGen;
+          await sleep(gap);
+          if (gapGen !== state.speakGen) continue;
+        }
       }
-      await speakLine(job.text);
-      if (!state.voiceOn) break;
-      const gap = job.pauseAfter != null ? job.pauseAfter : AUDIO_GAP_MS;
-      if (gap > 0 && state.queue.length) await sleep(gap);
+    } finally {
+      state.speaking = false;
+      state.audioPriority = null;
     }
-    state.speaking = false;
     if (state.queue.length && state.voiceOn) drainQueue();
   }
 
   function enqueueVoice(text, opts) {
     if (!state.voiceOn || !text) return;
     const o = opts || {};
-    if (state.queue.length >= AUDIO_STORM_N && !o.force) {
+    const priority = o.priority === PRIORITY_LOW ? PRIORITY_LOW : PRIORITY_HIGH;
+
+    if (priority === PRIORITY_HIGH) {
+      const playingLow = state.audioPriority === PRIORITY_LOW;
+      const queuedLow = state.queue.some((j) => j && j.priority === PRIORITY_LOW);
+      if (playingLow || queuedLow) {
+        killSpeech();
+        stripLowPriorityJobs();
+      }
+    }
+
+    if (priority === PRIORITY_HIGH && state.queue.length >= AUDIO_STORM_N && !o.force) {
       state.queue = [
         {
           text: STORM_LINE,
           chime: true,
           pauseAfter: AUDIO_GAP_MS,
           storm: true,
+          priority: PRIORITY_HIGH,
         },
       ];
       drainQueue();
       return;
     }
+
+    if (priority === PRIORITY_LOW) {
+      if (state.speaking || state.queue.length) return;
+      if (state.audioPriority === PRIORITY_HIGH) return;
+    }
+
     state.queue.push({
       text: text,
-      chime: o.chime !== false,
+      chime: o.chime !== false && priority === PRIORITY_HIGH,
       pauseAfter: o.pauseAfter != null ? o.pauseAfter : AUDIO_GAP_MS,
+      priority: priority,
     });
     drainQueue();
   }
@@ -537,15 +600,25 @@
   function enqueueBurst(lines) {
     if (!state.voiceOn || !lines || !lines.length) return;
     if (lines.length > AUDIO_STORM_N) {
-      clearAudioQueue();
-      state.queue.push({
-        text: STORM_LINE,
-        chime: true,
-        pauseAfter: AUDIO_GAP_MS,
-        storm: true,
-      });
+      killSpeech();
+      stripLowPriorityJobs();
+      state.queue = [
+        {
+          text: STORM_LINE,
+          chime: true,
+          pauseAfter: AUDIO_GAP_MS,
+          storm: true,
+          priority: PRIORITY_HIGH,
+        },
+      ];
       drainQueue();
       return;
+    }
+    const playingLow = state.audioPriority === PRIORITY_LOW;
+    const queuedLow = state.queue.some((j) => j && j.priority === PRIORITY_LOW);
+    if (playingLow || queuedLow) {
+      killSpeech();
+      stripLowPriorityJobs();
     }
     lines.forEach((text, i) => {
       if (!text) return;
@@ -553,9 +626,31 @@
         text: text,
         chime: i === 0,
         pauseAfter: AUDIO_GAP_MS,
+        priority: PRIORITY_HIGH,
       });
     });
     drainQueue();
+  }
+
+  function tickIdleAd() {
+    if (!state.voiceOn || state.disposed) return;
+    if (state.speaking || state.queue.length) return;
+    const now = Date.now();
+    if (now - state.lastHighPriorityAudioTime < IDLE_AD_MS) return;
+    if (now - state.lastIdleAdTime < IDLE_AD_MS) return;
+    enqueueVoice(IDLE_AD_LINE, { priority: PRIORITY_LOW, chime: false, pauseAfter: 0 });
+  }
+
+  function startIdleAdWatch() {
+    if (state.idleAdTimer) return;
+    state.idleAdTimer = setInterval(tickIdleAd, 1000);
+  }
+
+  function stopIdleAdWatch() {
+    if (state.idleAdTimer) {
+      clearInterval(state.idleAdTimer);
+      state.idleAdTimer = null;
+    }
   }
 
   function voiceCloseLine(ev) {
@@ -607,11 +702,11 @@
       return true;
     });
     if (!actionable.length) return;
-    /* Hourly storm: collapse audio to one line; tape still paints fully */
     if (actionable.length > AUDIO_STORM_N) {
       actionable.filter((e) => isClose(e) && !isZeroValueClose(e)).forEach((ev) => bumpCum(ev));
-      clearAudioQueue();
-      enqueueVoice(STORM_LINE, { chime: true, force: true });
+      killSpeech();
+      stripLowPriorityJobs();
+      enqueueVoice(STORM_LINE, { chime: true, force: true, priority: PRIORITY_HIGH });
       return;
     }
     const buckets = {};
@@ -642,8 +737,9 @@
       if (line) lines.push(line);
     });
     if (lines.length > AUDIO_STORM_N) {
-      clearAudioQueue();
-      enqueueVoice(STORM_LINE, { chime: true, force: true });
+      killSpeech();
+      stripLowPriorityJobs();
+      enqueueVoice(STORM_LINE, { chime: true, force: true, priority: PRIORITY_HIGH });
       return;
     }
     enqueueBurst(lines);
@@ -676,6 +772,8 @@
       .slice(-3);
     const lines = rows.map(voiceForEvent).filter(Boolean);
     if (lines.length) enqueueBurst(lines);
+    state.lastHighPriorityAudioTime = Date.now();
+    state.lastIdleAdTime = Date.now();
   }
 
   function paintVoiceBtn() {
@@ -722,18 +820,33 @@
         /* private */
       }
       if (state.voiceOn) {
+        state.lastHighPriorityAudioTime = Date.now();
+        state.lastIdleAdTime = Date.now();
+        startIdleAdWatch();
         icebreakerVoice();
       } else {
+        stopIdleAdWatch();
         clearAudioQueue();
         state.speaking = false;
+        state.audioPriority = null;
       }
     });
     const hint = document.getElementById("voiceHint");
     if (hint) hint.addEventListener("click", () => btn.click());
     if (window.speechSynthesis) {
-      window.speechSynthesis.onvoiceschanged = function () {};
+      window.speechSynthesis.onvoiceschanged = function () {
+        getHsiaoChenVoice();
+      };
+      try {
+        getHsiaoChenVoice();
+      } catch {
+        /* */
+      }
     }
-    if (state.voiceOn) icebreakerVoice();
+    if (state.voiceOn) {
+      startIdleAdWatch();
+      icebreakerVoice();
+    }
   }
 
   /* ---- canvas sparklines (fixed height for mobile) ---- */
@@ -2069,8 +2182,10 @@
     if (state.radarRaf) cancelAnimationFrame(state.radarRaf);
     state.radarRaf = 0;
     state.pendingTicks = {};
+    stopIdleAdWatch();
     clearAudioQueue();
     state.speaking = false;
+    state.audioPriority = null;
     if (handlers.resize) {
       window.removeEventListener("resize", handlers.resize);
       handlers.resize = null;
