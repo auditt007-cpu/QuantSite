@@ -1,11 +1,50 @@
 /**
  * Persona voice templates + promo asset map for live-room TTS.
- * zh-CN ≈ 相声京味文案；en ≈ Trump 演说风文案；zh-Hant ≈ 曉臻专业播报。
+ * zh-CN ≈ 实战止损轮播 / 京味开仓；en ≈ Trump 演说风；zh-Hant ≈ 台妹急促止损轮播 + 曉臻开仓.
  * Runtime TTS uses hub Edge-TTS (MP3): zh-CN Yunyang / en Christopher / zh-TW HsiaoChen.
- * Fallback Web Speech filters out female voices when Edge API unavailable.
  * Idle ads use pre-rendered /audio/promo_*.mp3.
  */
 (function (root) {
+  const STOP_LOSS_ZH_CN = [
+    "{symbol} 触碰止损红线，全体平仓！风控第一，撤！",
+    "{symbol} 破位下杀，多头防线失守！立刻止损，兄弟们快跑！",
+    "警报！{symbol} 触发紧急止损！空头偷袭，立刻砍仓离场！",
+    "撤退信号！{symbol} 触发被动平仓，保留火种，严禁硬扛！",
+    "娘希匹！{symbol} 战局逆转，触发止损！全员立刻后撤，转进防守！",
+    "前线告急！{symbol} 触及防守底线，断然平仓！留得青山，务求再战！",
+    "{symbol} 走势不对劲，触发止损线了！风紧扯呼，先撤出来观望！",
+    "注意！{symbol} 策略认赔出局！这波庄家太狠，割肉保命，快闪！",
+    "啊！{symbol} 跌破止损了啦！快点跑快点跑，不要再硬撑了吼！",
+    "天哪！{symbol} 触发停损警报！大家先把单子平掉，听话快撤啦！",
+  ];
+
+  const STOP_LOSS_ZH_HANT = [
+    "{symbol} 觸碰止損紅線，全體平倉！風控第一，撤！",
+    "{symbol} 破位下殺，多頭防線失守！立刻止損，兄弟們快跑！",
+    "警報！{symbol} 觸發緊急止損！空頭偷襲，立刻砍倉離場！",
+    "撤退信號！{symbol} 觸發被動平倉，保留火種，嚴禁硬扛！",
+    "娘希匹！{symbol} 戰局逆轉，觸發止損！全員立刻後撤，轉進防守！",
+    "前線告急！{symbol} 觸及防守底線，斷然平倉！留得青山，務求再戰！",
+    "{symbol} 走勢不對勁，觸發止損線了！風緊扯呼，先撤出來觀望！",
+    "注意！{symbol} 策略認賠出局！這波莊家太狠，割肉保命，快閃！",
+    "啊！{symbol} 跌破止損了啦！快點跑快點跑，不要再硬撐了吼！",
+    "天哪！{symbol} 觸發停損警報！大家先把單子平掉，聽話快撤啦！",
+  ];
+
+  const stopLossIdx = { "zh-CN": 0, "zh-Hant": 0 };
+
+  function fillSymbol(tpl, sym) {
+    return String(tpl || "").replace(/\{symbol\}/g, sym || "標的");
+  }
+
+  function nextStopLoss(lang, sym) {
+    const key = lang === "zh-CN" ? "zh-CN" : "zh-Hant";
+    const pool = key === "zh-CN" ? STOP_LOSS_ZH_CN : STOP_LOSS_ZH_HANT;
+    const i = stopLossIdx[key] % pool.length;
+    stopLossIdx[key] = i + 1;
+    return fillSymbol(pool[i], sym || (key === "zh-CN" ? "标的" : "標的"));
+  }
+
   const VOICE_TEMPLATES = {
     "zh-CN": {
       LONG: function (sym, price) {
@@ -18,7 +57,7 @@
         return "哎呦喂！" + sym + " 止盈出场，大赚 " + pnl + "%！落袋为安，今儿个晚饭必须加个硬菜！";
       },
       STOP_LOSS: function (sym) {
-        return "没关系啊，" + sym + " 触发止损！留得青山在，不怕没柴烧，咱下把再战！";
+        return nextStopLoss("zh-CN", sym);
       },
       CLOSE: function (sym) {
         return sym + " 平仓离场，稳字当头，咱们接着听下一出！";
@@ -90,7 +129,7 @@
         return "交易結算：" + sym + " 達成目標止盈，獲利 " + pnl + "%。";
       },
       STOP_LOSS: function (sym) {
-        return "風險控制：" + sym + " 觸發防守止損離場。";
+        return nextStopLoss("zh-Hant", sym);
       },
       CLOSE: function (sym) {
         return "交易結算：" + sym + " 平倉離場。";
