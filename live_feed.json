@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-25T21:46:17Z",
+  "updated_at": "2026-08-25T21:47:47Z",
   "period_hours": 3,
   "poll_sec": 5,
   "scan_tf": "15m+1h",
@@ -1294,6 +1294,166 @@
   "exec_log": [
     {
       "kind": "batch",
+      "name_zh": "Dual Thrust快",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "空頭平倉翻多 (BUY)",
+      "logged_at": 1787694398,
+      "bar_ts": 1787693400,
+      "event": "open",
+      "strategy_id": "strat-020",
+      "symbols": [
+        {
+          "symbol": "DOGEUSDT",
+          "price": 0.08658,
+          "sl_pct": -0.7288057288057364,
+          "tp_pct": 1.4576114576114567,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "LINKUSDT",
+          "price": 11.347,
+          "sl_pct": -0.5276989512646465,
+          "tp_pct": 1.0554067154313906,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
+      "name_zh": "Dual Thrust",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "空頭平倉翻多 (BUY)",
+      "logged_at": 1787694399,
+      "bar_ts": 1787693400,
+      "event": "open",
+      "strategy_id": "hg",
+      "symbols": [
+        {
+          "symbol": "DOGEUSDT",
+          "price": 0.08658,
+          "sl_pct": -0.7288057288057364,
+          "tp_pct": 1.4576114576114567,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "LINKUSDT",
+          "price": 11.347,
+          "sl_pct": -0.5276989512646465,
+          "tp_pct": 1.0554067154313906,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "INJUSDT",
+          "price": 5.528,
+          "sl_pct": -1.345803183791593,
+          "tp_pct": 2.6916063675832174,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 3
+    },
+    {
+      "kind": "batch",
+      "name_zh": "Dual Thrust快",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787694398,
+      "bar_ts": 1787693400,
+      "event": "close",
+      "strategy_id": "strat-020",
+      "symbols": [
+        {
+          "symbol": "DOGEUSDT",
+          "price": 0.08658,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": 2.6753597122302084
+        },
+        {
+          "symbol": "NEARUSDT",
+          "price": 1.863,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": 1.0621348911311745
+        },
+        {
+          "symbol": "LINKUSDT",
+          "price": 11.347,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": 1.2789281364190033
+        },
+        {
+          "symbol": "INJUSDT",
+          "price": 5.528,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": 3.238228601435331
+        }
+      ],
+      "strategy_count": 4
+    },
+    {
+      "kind": "batch",
+      "name_zh": "Dual Thrust",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787694397,
+      "bar_ts": 1787693400,
+      "event": "close",
+      "strategy_id": "hg",
+      "symbols": [
+        {
+          "symbol": "DOGEUSDT",
+          "price": 0.08658,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": 2.6753597122302084
+        },
+        {
+          "symbol": "NEARUSDT",
+          "price": 1.863,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": 1.0621348911311745
+        },
+        {
+          "symbol": "LINKUSDT",
+          "price": 11.347,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": 1.2789281364190033
+        },
+        {
+          "symbol": "INJUSDT",
+          "price": 5.528,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": 3.238228601435331
+        }
+      ],
+      "strategy_count": 4
+    },
+    {
+      "kind": "batch",
       "name_zh": "樞軸點",
       "interval": "15m",
       "side": "SHORT",
@@ -1484,28 +1644,6 @@
     },
     {
       "kind": "batch",
-      "name_zh": "Dual Thrust快",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787694328,
-      "bar_ts": 1787693400,
-      "event": "open",
-      "strategy_id": "strat-020",
-      "symbols": [
-        {
-          "symbol": "LINKUSDT",
-          "price": 11.347,
-          "sl_pct": -0.5276989512646465,
-          "tp_pct": 1.0554067154313906,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
       "name_zh": "成交量價差VSA",
       "interval": "15m",
       "side": "LONG",
@@ -1528,74 +1666,6 @@
     },
     {
       "kind": "batch",
-      "name_zh": "Dual Thrust",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787694328,
-      "bar_ts": 1787693400,
-      "event": "open",
-      "strategy_id": "hg",
-      "symbols": [
-        {
-          "symbol": "LINKUSDT",
-          "price": 11.347,
-          "sl_pct": -0.5276989512646465,
-          "tp_pct": 1.0554067154313906,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "INJUSDT",
-          "price": 5.528,
-          "sl_pct": -1.345803183791593,
-          "tp_pct": 2.6916063675832174,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "Dual Thrust快",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787694327,
-      "bar_ts": 1787693400,
-      "event": "close",
-      "strategy_id": "strat-020",
-      "symbols": [
-        {
-          "symbol": "NEARUSDT",
-          "price": 1.863,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 1.0621348911311745
-        },
-        {
-          "symbol": "LINKUSDT",
-          "price": 11.347,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 1.2789281364190033
-        },
-        {
-          "symbol": "INJUSDT",
-          "price": 5.528,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 3.238228601435331
-        }
-      ],
-      "strategy_count": 3
-    },
-    {
-      "kind": "batch",
       "name_zh": "成交量價差VSA",
       "interval": "15m",
       "side": "SHORT",
@@ -1615,44 +1685,6 @@
         }
       ],
       "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "Dual Thrust",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787694326,
-      "bar_ts": 1787693400,
-      "event": "close",
-      "strategy_id": "hg",
-      "symbols": [
-        {
-          "symbol": "NEARUSDT",
-          "price": 1.863,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 1.0621348911311745
-        },
-        {
-          "symbol": "LINKUSDT",
-          "price": 11.347,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 1.2789281364190033
-        },
-        {
-          "symbol": "INJUSDT",
-          "price": 5.528,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 3.238228601435331
-        }
-      ],
-      "strategy_count": 3
     },
     {
       "kind": "batch",
