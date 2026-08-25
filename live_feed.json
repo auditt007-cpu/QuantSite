@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-25T15:13:19Z",
+  "updated_at": "2026-08-25T15:14:50Z",
   "period_hours": 3,
   "poll_sec": 5,
   "scan_tf": "15m+1h",
@@ -2242,6 +2242,50 @@
   "exec_log": [
     {
       "kind": "batch",
+      "name_zh": "布林微破",
+      "interval": "5m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787670802,
+      "bar_ts": 1787670300,
+      "event": "open",
+      "strategy_id": "hb-bb5",
+      "symbols": [
+        {
+          "symbol": "ETHUSDT",
+          "price": 2473.23,
+          "sl_pct": -0.2826912984235209,
+          "tp_pct": 0.5653825564140904,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "5m動能微破",
+      "interval": "5m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787670801,
+      "bar_ts": 1787670300,
+      "event": "open",
+      "strategy_id": "hb-roc5",
+      "symbols": [
+        {
+          "symbol": "BTCUSDT",
+          "price": 79287.93,
+          "sl_pct": -0.27238186821120064,
+          "tp_pct": 0.544763736422438,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
       "name_zh": "5m動能微破",
       "interval": "5m",
       "side": "SHORT",
@@ -3131,58 +3175,6 @@
         }
       ],
       "strategy_count": 11
-    },
-    {
-      "kind": "batch",
-      "name_zh": "布林擠壓",
-      "interval": "1h",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787670144,
-      "bar_ts": 1787666400,
-      "event": "open",
-      "strategy_id": "strat-019",
-      "symbols": [
-        {
-          "symbol": "SUIUSDT",
-          "price": 0.7873,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "DOGEUSDT",
-          "price": 0.08823,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "布林均值回歸",
-      "interval": "1h",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787670111,
-      "bar_ts": 1787666400,
-      "event": "open",
-      "strategy_id": "sn",
-      "symbols": [
-        {
-          "symbol": "LINKUSDT",
-          "price": 11.59,
-          "sl_pct": -1.3362295081967188,
-          "tp_pct": 2.6724590163934376,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
     }
   ],
   "exec_log_raw_count": 200
