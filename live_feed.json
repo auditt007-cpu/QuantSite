@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-25T16:32:33Z",
+  "updated_at": "2026-08-25T16:34:26Z",
   "period_hours": 3,
   "poll_sec": 5,
   "scan_tf": "15m+1h",
@@ -2350,6 +2350,50 @@
   "exec_log": [
     {
       "kind": "batch",
+      "name_zh": "布林微破",
+      "interval": "5m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787675667,
+      "bar_ts": 1787675100,
+      "event": "open",
+      "strategy_id": "hb-bb5",
+      "symbols": [
+        {
+          "symbol": "DOGEUSDT",
+          "price": 0.08896,
+          "sl_pct": -0.29563848920863234,
+          "tp_pct": 0.5901528776978392,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "5m動能微破",
+      "interval": "5m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787675666,
+      "bar_ts": 1787675100,
+      "event": "open",
+      "strategy_id": "hb-roc5",
+      "symbols": [
+        {
+          "symbol": "ONDOUSDT",
+          "price": 0.37078,
+          "sl_pct": -0.3991585306650794,
+          "tp_pct": 0.7985867630400754,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
       "name_zh": "EMA多周期共振",
       "interval": "15m",
       "side": "LONG",
@@ -2972,58 +3016,6 @@
           "tp_pct": null,
           "event": "close",
           "pnl_pct": -0.3061360308798042
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "ROC動能",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787675412,
-      "bar_ts": 1787674500,
-      "event": "close",
-      "strategy_id": "strat-007",
-      "symbols": [
-        {
-          "symbol": "PEPEUSDT",
-          "price": 3.95e-06,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.22733013387217496
-        },
-        {
-          "symbol": "DOGEUSDT",
-          "price": 0.08885,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.13524174461850008
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "成交量價差VSA",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787675412,
-      "bar_ts": 1787674500,
-      "event": "close",
-      "strategy_id": "strat-005",
-      "symbols": [
-        {
-          "symbol": "APTUSDT",
-          "price": 0.5926,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.16903313049357688
         }
       ],
       "strategy_count": 1
