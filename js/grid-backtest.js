@@ -1158,14 +1158,12 @@
     const tier = aiTier();
     const cap = quotaCap(tier);
     if (!Number.isFinite(cap)) {
-      el.textContent = t("botAiQuotaVip", "AI 調參：會員不限次數");
+      el.textContent = t("botAiRemainVip", "不限");
       return;
     }
     const used = readAiQuota().used;
     const left = Math.max(0, cap - used);
-    el.textContent = t("botAiQuotaLeft", "今日 AI 剩餘 {n} 次")
-      .replace("{n}", String(left))
-      .replace("{cap}", String(cap));
+    el.textContent = t("botAiRemainLeft", "剩{n}次").replace("{n}", String(left));
   }
 
   function showAiLimit(code) {
