@@ -1,8 +1,52 @@
 {
-  "updated_at": "2026-08-25T06:12:30Z",
+  "updated_at": "2026-08-25T06:14:36Z",
   "venue": "coinbase",
   "poll_sec": 5,
   "exec_log": [
+    {
+      "kind": "batch",
+      "name_zh": "布林微破",
+      "interval": "5m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787638416,
+      "bar_ts": 1787637900,
+      "event": "open",
+      "strategy_id": "hb-bb5",
+      "symbols": [
+        {
+          "symbol": "SUIUSDT",
+          "price": 0.8263,
+          "sl_pct": -0.3089676872806385,
+          "tp_pct": 0.6180563959820989,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "5m動能微破",
+      "interval": "5m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787638415,
+      "bar_ts": 1787637900,
+      "event": "open",
+      "strategy_id": "hb-roc5",
+      "symbols": [
+        {
+          "symbol": "DOGEUSDT",
+          "price": 0.09265,
+          "sl_pct": -0.24824608742580462,
+          "tp_pct": 0.49757150566649017,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
     {
       "kind": "batch",
       "name_zh": "5m動能微破",
@@ -654,53 +698,9 @@
         }
       ],
       "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "RSI超賣超買交叉",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787637650,
-      "bar_ts": 1787637600,
-      "event": "open",
-      "strategy_id": "rsi_x_15m_15",
-      "symbols": [
-        {
-          "symbol": "INJUSDT",
-          "price": 5.942,
-          "sl_pct": -0.3554527095254114,
-          "tp_pct": 0.7109222484012122,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "複合動能確認",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787637649,
-      "bar_ts": 1787637600,
-      "event": "close",
-      "strategy_id": "combo_15m_41",
-      "symbols": [
-        {
-          "symbol": "AVAXUSDT",
-          "price": 7.7,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.27347310847766515
-        }
-      ],
-      "strategy_count": 1
     }
   ],
-  "exec_log_raw_count": 196,
+  "exec_log_raw_count": 198,
   "signal_count": 76,
   "symbols": [
     "BTCUSDT",
