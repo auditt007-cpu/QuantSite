@@ -291,7 +291,9 @@
   function seedMetrics(s) {
     const m = (s.metrics && typeof s.metrics === "object" ? s.metrics : {}) || {};
     const hasBacktest =
-      Number.isFinite(Number(m.backtest_apy_pct)) && Number(m.backtest_apy_pct) > 0;
+      Number.isFinite(Number(m.return_pct)) ||
+      Number.isFinite(Number(s.return_pct)) ||
+      String(s.metrics_source || m.metrics_source || "").indexOf("backtest") >= 0;
     const isGrid =
       String(s.strategy_type || "").toUpperCase() === "GRID" ||
       /grid/i.test(String(s.subtype || "")) ||
@@ -340,12 +342,7 @@
       s.return_pct != null && Number.isFinite(Number(s.return_pct)) && Number(s.return_pct) !== 0
         ? Number(s.return_pct)
         : parsePct(pack.week_return || pack.optimal_return);
-    if ((ret == null || ret === 0) && Number.isFinite(Number(pack.backtest_apy_pct))) {
-      ret = Number(pack.backtest_apy_pct) / 100;
-    }
-    if (Number.isFinite(Number(pack.backtest_apy_pct)) && Number(pack.backtest_apy_pct) >= 8) {
-      ret = Number(pack.backtest_apy_pct) / 100;
-    }
+    if (Number.isFinite(ret) && Math.abs(ret) > 2) ret = null;
     let mdd =
       s.max_drawdown != null && Number.isFinite(Number(s.max_drawdown)) && Number(s.max_drawdown) !== 0
         ? Number(s.max_drawdown)
@@ -368,7 +365,7 @@
       trades: Number.isFinite(Number(s.trades)) ? Number(s.trades) : Number(pack.trades) || null,
       periodDays: periodDays,
       source: hasBacktest || isGrid ? "backtest" : s.ai ? "pipeline" : "pack",
-      disclaimer: pack.disclaimer || s.disclaimer || (hasBacktest || isGrid ? ("基於 " + periodDays + " 日回測數據") : ""),
+      disclaimer: "基於 " + periodDays + " 日回測樣本，未年化",
     };
   }
 
@@ -628,17 +625,17 @@
   function cardHtml(s) {
     const seed = seedMetrics(s);
     const pipe = window.QAPipeline || {};
-    const title = String(s.name || s.title || "").trim() || String(s.id || s.engine || "—");
-    const nameSym = (title.match(/^([A-Za-z0-9]+)\s*[·・.]/) || [])[1];
-    const lockedSym = nameSym
-      ? nameSym.toUpperCase().replace(/USDT$/i, "") + "USDT"
-      : String((s.symbols && s.symbols[0]) || s.symbol || "BTCUSDT")
-          .replace(/\//g, "")
-          .replace(/USDT$/i, "") + "USDT";
+    const title =
+      (typeof pipe.publicTitle === "function" && pipe.publicTitle(s)) ||
+      String(s.name || s.title || "").trim() ||
+      String(s.id || s.engine || "—");
     const enriched = {
       ...s,
       name: title,
-      symbols: [lockedSym],
+      title: title,
+      fits: typeof pipe.publicFits === "function" ? pipe.publicFits(s) : s.fits,
+      symbols: [],
+      symbol: "",
       sharpe: seed.sh != null ? seed.sh : s.sharpe,
       win_rate: seed.wr != null ? seed.wr : s.win_rate,
       max_drawdown: seed.mdd != null ? seed.mdd : s.max_drawdown,
@@ -656,7 +653,6 @@
       ? `<span class="ai-badge">${t("mktBadgeAi")}</span>`
       : `<span class="classic-badge">${t("mktBadgeClassic")}</span>`;
     const principle = enriched.principle;
-    const iv = String(s.interval || "1h").toUpperCase();
     const wrPct =
       seed.wrLabel || (seed.wr != null ? (seed.wr * 100).toFixed(1) + "%" : "—");
     const shTxt = seed.sh != null ? Number(seed.sh).toFixed(2) : "—";
@@ -666,7 +662,7 @@
         : "—";
     const disc =
       seed.disclaimer ||
-      (seed.source === "backtest" ? "基於 60 日回測數據" : "");
+      (seed.source === "backtest" ? "基於 " + (seed.periodDays || 60) + " 日回測樣本，未年化" : "");
     const chartBlock = s.chart
       ? `<img class="ai-eq-thumb" src="${s.chart}" alt="${title} equity" loading="lazy" />`
       : "";
@@ -675,7 +671,7 @@
         <h3>${title}</h3>
         ${chartBlock}
         ${principle ? `<p class="card-principle">${principle}</p>` : ""}
-        <p class="card-meta muted">${lockedSym} · ${iv}</p>
+        <p class="card-meta muted">${t("mktBackDays").replace("{d}", String(seed.periodDays || 60))}</p>
         <div class="stat-caps plaza-metrics">
           <div class="stat-cap"><span>${t("mktSh")}</span><b>${shTxt}</b><em class="stat-tip">${t("mktShTip")}</em></div>
           <div class="stat-cap"><span>${t("mktWr")}</span><b class="is-up">${wrPct}</b><em class="stat-tip">${t("mktWrTip")}</em></div>
@@ -905,6 +901,9 @@
         }
       });
     })();
+    if (window.QAPipeline && typeof window.QAPipeline.collapseCohorts === "function") {
+      allList = window.QAPipeline.collapseCohorts(allList);
+    }
     renderTabs();
     paintGrid();
     paintPlazaCount();

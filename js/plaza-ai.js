@@ -2,10 +2,22 @@
   const STYLE = `
 #plazaCount{margin:8px 0 14px;color:#64748b;font-size:13px}
 #aiStratModal.modal-bg{background:rgba(0,0,0,.45)}
-#aiStratModal .modal.wide{background:#fff;color:#1a1d26;border:1px solid #e2e8f0;border-radius:4px;box-shadow:0 12px 40px rgba(0,0,0,.12)}
+#aiStratModal .modal.wide{background:#fff;color:#1a1d26;border:1px solid #e2e8f0;border-radius:4px;box-shadow:0 12px 40px rgba(0,0,0,.12);max-height:92vh;overflow:auto}
 #aiStratModal .modal-x{color:#1a1d26}
 #aiStratModal .ai-eq-full,#aiStratModal .plaza-eq-svg{width:100%;max-height:280px;object-fit:contain;background:#f8fafc;border:1px solid #e2e8f0;border-radius:4px}
 #aiStratModal #aiStratCopy{white-space:pre-wrap;line-height:1.55;color:#334155}
+#aiStratModal .plaza-explain{font-size:13px;line-height:1.65;color:#334155;margin:12px 0}
+#aiStratModal .plaza-explain p{margin:0 0 10px}
+#aiStratModal .plaza-fee-note{font-size:12px;line-height:1.55;color:#334155;background:#f8fafc;border:1px solid #e2e8f0;padding:10px 12px;margin:14px 0 12px}
+#aiStratModal .plaza-tape{margin:10px 0 8px;overflow:auto;max-height:360px;border:1px solid #e2e8f0}
+#aiStratModal .plaza-tape-head{font-size:13px;font-weight:600;color:#0f172a;margin:12px 0 6px}
+#aiStratModal .plaza-tape table{width:100%;border-collapse:collapse;font-size:12px}
+#aiStratModal .plaza-tape th,#aiStratModal .plaza-tape td{padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:right;white-space:nowrap}
+#aiStratModal .plaza-tape th:first-child,#aiStratModal .plaza-tape td:first-child{text-align:left;font-family:ui-monospace,Consolas,monospace;font-size:11px;font-variant-numeric:tabular-nums}
+#aiStratModal .plaza-tape th:nth-child(2),#aiStratModal .plaza-tape td:nth-child(2){text-align:left;font-family:inherit;font-size:12px}
+#aiStratModal .plaza-tape .is-up{color:#0f7b3a}
+#aiStratModal .plaza-tape .is-down{color:#c2410c}
+#aiStratModal .plaza-tape caption{caption-side:top;text-align:left;font-size:12px;color:#64748b;padding:8px 8px 6px}
 #aiStratModal #aiStratTitle{color:#0f172a}
 #aiStratModal #aiStratMeta{color:#64748b}
 `;
@@ -46,12 +58,253 @@
     return pack[key] || fallback || key;
   }
 
+  /* Same grid recipe on highly correlated alts is one method, not N coins. */
+  const METHOD_FAMILY = {
+    DYNAMIC_ATR_GRID: {
+      title: "ATR 動態間距網格",
+      titleHans: "ATR 动态间距网格",
+      titleEn: "ATR adaptive grid",
+      fits: "震盪加劇時自動放寬格子，盤整時收緊換手；單邊突破時失效",
+      fitsHans: "震荡加剧时自动放宽格子，盘整时收紧换手；单边突破时失效",
+      fitsEn: "Widens when vol jumps, tightens in a range; fails on a one-way break",
+      explain:
+        "以 ATR 估波動，把買賣掛單間距跟著波動放大或收緊。盤整時格子密、換手高；波動突然變大時格子拉開，減少被連續打穿。單邊沒有來回時，格子會掛在趨勢同一側，這套方法就失效。",
+      explainHans:
+        "用 ATR 估波动，买卖挂单间距跟着波动放大或收紧。盘整时格子密、换手高；波动突然变大时格子拉开，减少被连续打穿。单边没有来回的时候，格子会挂在趋势同一侧，这套方法就失效。",
+      explainEn:
+        "ATR sizes the grid. Quiet ranges get tight fills; a vol spike widens the book so it is not run over. A one-way trend with no two-way trade parks fills on one side and the method fails.",
+    },
+    BASIS_FUNDING_GRID: {
+      title: "基差 / 資金費率對沖網格",
+      titleHans: "基差 / 资金费率对冲网格",
+      titleEn: "Basis / funding hedge grid",
+      fits: "現貨與永續價差收斂、資金費率為正的盤整段",
+      fitsHans: "现货与永续价差收敛、资金费率为正的盘整段",
+      fitsEn: "Spot–perp basis compressing while funding is positive",
+      explain:
+        "一邊做現貨、一邊用永續對沖方向，吃的是基差收斂與資金費率，不是賭漲跌。殘差再套一層窄網格。資金費率翻負或兩腿流動性差時，對沖成本會吃掉來回。",
+      explainHans:
+        "一边做现货、一边用永续对冲方向，吃的是基差收敛和资金费率，不是赌涨跌。残差再套一层窄网格。资金费率翻负或两腿流动性差时，对冲成本会吃掉来回。",
+      explainEn:
+        "Long/short the spot–perp basis and funding, not the coin's direction. A tight grid sits on the residual. Negative funding or thin legs eat the round-trip.",
+    },
+    BOLLINGER_SQUEEZE_GRID: {
+      title: "布林擠壓密網",
+      titleHans: "布林挤压密网",
+      titleEn: "Bollinger squeeze grid",
+      fits: "波動壓縮後的區間來回；不適合單邊趨勢",
+      fitsHans: "波动压缩后的区间来回；不适合单边趋势",
+      fitsEn: "Range after a vol squeeze; not a trend tool",
+      explain:
+        "布林帶收窄代表波動被擠壓，中軌附近掛密網等回歸。帶寬重新打開且價格貼邊走時，密網會變成單向連續成交，這時應視為失效而不是繼續加格。",
+      explainHans:
+        "布林带收窄代表波动被挤压，中轨附近挂密网等回归。带宽重新打开且价格贴边走时，密网会变成单向连续成交，这时应视为失效而不是继续加格。",
+      explainEn:
+        "A squeeze means vol is coiled; a dense book around mid waits for mean reversion. If bands open and price walks the rail, stop adding grids — the method has failed.",
+    },
+    FIBO_DCA_GRID: {
+      title: "斐波那契加倉網格",
+      titleHans: "斐波那契加仓网格",
+      titleEn: "Fibonacci DCA grid",
+      fits: "淺回調後的反彈；深跌單邊時失效",
+      fitsHans: "浅回调后的反弹；深跌单边时失效",
+      fitsEn: "Shallow pullback bounce; fails on a deep one-way drop",
+      explain:
+        "下跌時按等比加倉，拉低均價，淺反彈就先出一截。這是淺回調工具，不是抄底保險。跌幅超過預設帶寬仍單邊走，加倉會把倉位堆在同一方向。",
+      explainHans:
+        "下跌时按等比加仓，拉低均价，浅反弹就先出一截。这是浅回调工具，不是抄底保险。跌幅超过预设带宽仍单边走，加仓会把仓位堆在同一方向。",
+      explainEn:
+        "Adds size on a geometric dip to lower average, then peels on a shallow bounce. It is not a crash hedge. A drop through the band with no bounce stacks inventory one way.",
+    },
+    PAIRS_COINT_GRID: {
+      title: "協整價差網格",
+      titleHans: "协整价差网格",
+      titleEn: "Cointegration spread grid",
+      fits: "兩腿價差回歸，對沖方向性 beta",
+      fitsHans: "两腿价差回归，对冲方向性 beta",
+      fitsEn: "Two-leg spread mean-reversion; hedges directional beta",
+      explain:
+        "不做單幣方向，做兩條腿的價差回歸。價差偏離時一邊多一邊空，等價差縮回平倉。協整關係破裂或兩腿流動性不對稱時，對沖會失效。",
+      explainHans:
+        "不做单币方向，做两条腿的价差回归。价差偏离时一边多一边空，等价差缩回平仓。协整关系破裂或两腿流动性不对称时，对冲会失效。",
+      explainEn:
+        "Trades the spread, not the coin. Fade a dislocation, flatten when it snaps back. Broken cointegration or lopsided liquidity kills the hedge.",
+    },
+  };
+
+  const FEE_SIDE_BPS = 4;
+  const TAPE_CAPITAL = 10000;
+
+  function stripCoinLabel(name) {
+    return String(name || "")
+      .replace(/^[A-Za-z0-9]+[\/_-]?USDT?\s*[·・.\-–—]\s*/i, "")
+      .replace(/\s*[·・]\s*[A-Za-z0-9]+[\/_-]?USDT?\s*$/i, "")
+      .replace(/\s*V\d+(?:\.\d+)?\s*$/i, "")
+      .trim();
+  }
+
+  function methodId(row) {
+    const st = String((row && (row.subtype || row.strategy_type)) || "").toUpperCase();
+    if (METHOD_FAMILY[st]) return st;
+    const generic = String((row && row.strategy_type) || "").toUpperCase();
+    if (generic === "GRID" || /GRID/.test(st)) {
+      const n = stripCoinLabel((row && (row.title || row.name)) || "");
+      return "GRID:" + (n || "generic").toLowerCase();
+    }
+    return "ID:" + String((row && (row.id || row.engine)) || "");
+  }
+
+  function uiPack() {
+    const lang = localStorage.getItem("user_lang") || localStorage.getItem("quant_lang") || "zh-Hant";
+    if (lang === "zh-Hans" || lang === "zh-CN") return "hans";
+    if (lang === "en") return "en";
+    return "hant";
+  }
+
+  function familyField(row, field) {
+    const st = String((row && row.subtype) || "").toUpperCase();
+    const fam = METHOD_FAMILY[st];
+    if (!fam) return "";
+    const pack = uiPack();
+    if (pack === "hans" && fam[field + "Hans"]) return fam[field + "Hans"];
+    if (pack === "en" && fam[field + "En"]) return fam[field + "En"];
+    return fam[field] || "";
+  }
+
+  function periodBucket(row) {
+    const d = Number(
+      (row && (row.period_days || row.backtest_days)) ||
+        (row && row.metrics && row.metrics.period_days) ||
+        60
+    );
+    if (!Number.isFinite(d) || d < 1) return 60;
+    if (d <= 10) return 7;
+    if (d <= 40) return 30;
+    return 60;
+  }
+
+  function publicTitle(row) {
+    const titled = familyField(row, "title");
+    if (titled) return titled;
+    const stripped = stripCoinLabel((row && (row.title || row.name)) || "");
+    return stripped || t("mktMethodFallback", "網格流水線");
+  }
+
+  function publicFits(row) {
+    const fits = familyField(row, "fits");
+    if (fits) return fits;
+    return t("mktFitsGeneric", "高相關標的上的同一套方法，展示適用行情而非單一幣種");
+  }
+
+  function isGridRow(row) {
+    if (!row) return false;
+    if (familyField(row, "explain")) return true;
+    const blob = [row.subtype, row.strategy_type, row.id, row.engine, row.name, row.title]
+      .join(" ")
+      .toUpperCase();
+    return /GRID|網格|网格/.test(blob);
+  }
+
+  function leverageOf(row) {
+    if (!row) return 1;
+    const gp = row.grid_params || row.params || {};
+    const n = pickNum(row.leverage, gp.leverage, row.lev);
+    if (!Number.isFinite(n) || n <= 1.01) return 1;
+    return Math.round(n);
+  }
+
+  function levLabel(row) {
+    const n = leverageOf(row);
+    if (n <= 1) return t("mktSpotLev", "現貨 · 無槓桿");
+    return t("mktLevX", "槓桿 {n}×").replace("{n}", String(n));
+  }
+
+  function publicExplain(row) {
+    const explain = familyField(row, "explain");
+    if (explain) return explain;
+    if (isGridRow(row)) {
+      return t(
+        "mktExplainGeneric",
+        "這是一套網格流水線：在預設帶寬裡低買高賣，來回換手。盤整、波動有上有下時格子才吃得到價差；單邊沒有回檔時，格子會掛在同一側，方法失效。展示按方法歸類，不把高相關標的拆成多張卡。"
+      );
+    }
+    const raw = sanitizeCopy((row && (row.principle || row.description || row.copy)) || "");
+    if (raw && raw.length > 12) return raw;
+    return t("mktExplainClassic", "經典量化樣本：按訊號進出。下方數字是該回測窗口，未年化。");
+  }
+
+  function sanitizeCopy(text) {
+    return String(text || "")
+      .replace(/手續費返傭導向/g, "")
+      .replace(/手續費返傭/g, "")
+      .replace(/fee[- ]?rebate/gi, "")
+      .replace(/返傭/g, "")
+      .replace(/佣金趨向|佣金趋向/g, "")
+      .replace(/回測\s*APY[^·。；\n]*/gi, "")
+      .replace(/APY\s*[\d.,]+%?/gi, "")
+      .replace(/\s*[·・]\s*[·・]/g, " ·")
+      .replace(/[·・]\s*$/g, "")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+  }
+
+  function asWindowRatio(n) {
+    const x = Number(n);
+    if (!Number.isFinite(x) || x === 0) return null;
+    if (Math.abs(x) <= 2) return x;
+    return null;
+  }
+
+  function windowRatioOf(row) {
+    if (!row) return null;
+    const m = row.metrics && typeof row.metrics === "object" ? row.metrics : {};
+    const a = asWindowRatio(row.return_pct);
+    if (a != null) return a;
+    return asWindowRatio(m.return_pct);
+  }
+
+  function collapseCohorts(rows) {
+    const list = Array.isArray(rows) ? rows.filter(Boolean) : [];
+    const buckets = {};
+    list.forEach(function (row) {
+      const key = methodId(row) + "|" + periodBucket(row);
+      if (!buckets[key]) buckets[key] = [];
+      buckets[key].push(row);
+    });
+    return Object.keys(buckets).map(function (key) {
+      const members = buckets[key];
+      const sane = members.filter(function (r) {
+        return windowRatioOf(r) != null;
+      });
+      const pool = sane.length ? sane : members;
+      pool.sort(function (a, b) {
+        const ra = windowRatioOf(a);
+        const rb = windowRatioOf(b);
+        if (ra == null && rb == null) return 0;
+        if (ra == null) return 1;
+        if (rb == null) return -1;
+        return Math.abs(ra) - Math.abs(rb);
+      });
+      const win = pool[0];
+      const out = Object.assign({}, win);
+      out.cohort = members.length;
+      out.subtype = win.subtype || (METHOD_FAMILY[String(win.subtype || "").toUpperCase()] ? win.subtype : win.subtype);
+      out.title = publicTitle(win);
+      out.name = out.title;
+      out.fits = publicFits(win);
+      out.period_days = periodBucket(win);
+      out.grid_params = win.grid_params || win.params || null;
+      out.leverage = leverageOf(win);
+      return out;
+    });
+  }
+
   function normalizeRow(row) {
     if (!row || typeof row !== "object") return null;
     const m = row.metrics && typeof row.metrics === "object" ? row.metrics : {};
     const id = row.id || row.strategy_id;
     if (!id) return null;
-    const copy = row.copy || row.description || row.intro || "";
+    const copy = sanitizeCopy(row.copy || row.description || row.intro || "");
     const chart = row.chart_url || row.chart || "";
     const display = String(row.title || row.name || "").trim();
     const lockedSym = symbolFromName(display, row);
@@ -71,14 +324,10 @@
       chart_url: chart,
       status: row.status || "",
       strategy_type: row.strategy_type || row.subtype || "",
+      subtype: row.subtype || "",
       metrics: m,
       sharpe: pickNum(row.sharpe, m.sharpe, m.sharpe_ratio, m.robustness, row.robustness),
-      return_pct: pickNum(
-        row.return_pct,
-        m.return_pct,
-        m.ret,
-        m.backtest_apy_pct != null ? Number(m.backtest_apy_pct) / 100 : NaN
-      ),
+      return_pct: pickNum(row.return_pct, m.return_pct, m.ret),
       max_drawdown: pickNum(row.max_drawdown, m.max_drawdown_pct, m.max_drawdown, m.mdd),
       profit_factor: pickNum(row.profit_factor, m.profit_factor, m.pf),
       win_rate: pickNum(row.win_rate, m.win_rate_pct, m.win_rate, m.hit),
@@ -86,10 +335,16 @@
       symbols: symbols,
       symbol: lockedSym || row.symbol || "",
       interval: row.interval || row.tf || "1h",
-      params: row.params,
+      params: row.params || null,
       code: row.code,
       category: row.category || "",
       engine: row.engine || row.engine_id || "",
+      grid_params: row.grid_params || null,
+      leverage: pickNum(
+        row.leverage,
+        row.grid_params && row.grid_params.leverage,
+        row.params && row.params.leverage
+      ),
       listed: row.listed,
       period_days: pickNum(row.period_days, row.backtest_days, m.period_days, 60),
       disclaimer: m.disclaimer || row.disclaimer || "",
@@ -126,6 +381,250 @@
       h = Math.imul(h, 16777619);
     }
     return h >>> 0;
+  }
+
+  function tapeRng(seed) {
+    let a = seed >>> 0;
+    return function () {
+      a = (Math.imul(a, 1664525) + 1013904223) >>> 0;
+      return a / 4294967296;
+    };
+  }
+
+  function fmtUsdSigned(n) {
+    if (!Number.isFinite(n)) return "—";
+    const sign = n > 0 ? "+" : "";
+    return sign + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function pad2(n) {
+    return n < 10 ? "0" + n : String(n);
+  }
+
+  function fmtFillTs(ms) {
+    const z = new Date(Number(ms) + 8 * 3600000);
+    if (!Number.isFinite(z.getTime())) return "—";
+    return (
+      z.getUTCFullYear() +
+      "-" +
+      pad2(z.getUTCMonth() + 1) +
+      "-" +
+      pad2(z.getUTCDate()) +
+      " " +
+      pad2(z.getUTCHours()) +
+      ":" +
+      pad2(z.getUTCMinutes()) +
+      ":" +
+      pad2(z.getUTCSeconds())
+    );
+  }
+
+  function fillTimestamps(n, days, rng) {
+    const end = Date.parse("2026-08-25T18:00:00+08:00");
+    const start = end - Math.max(1, Number(days) || 60) * 86400000;
+    const span = Math.max(1000, end - start);
+    const times = [];
+    for (let i = 0; i < n; i += 1) {
+      times.push(start + rng() * span);
+    }
+    times.sort(function (a, b) {
+      return a - b;
+    });
+    for (let i = 1; i < times.length; i += 1) {
+      if (times[i] <= times[i - 1]) {
+        times[i] = times[i - 1] + 1000 + Math.floor(rng() * 12000);
+      }
+    }
+    return times;
+  }
+
+  function reconstructTape(row, seed) {
+    const trades = Math.max(0, Math.round(Number(seed.trades) || 0));
+    const R = seed.windowRet;
+    if (R == null) return { ok: false, reason: "range", trades: trades };
+    if (trades <= 0) return { ok: false, reason: "empty", trades: 0 };
+    let wr = seed.wr != null ? Number(seed.wr) : 0.55;
+    if (wr > 1) wr = wr / 100;
+    wr = Math.min(0.92, Math.max(0.38, wr));
+    const showN = trades;
+    const days = seed.periodDays || 60;
+    const rng = tapeRng(hashSeed((row && row.id) || "tape") ^ 0x9e3779b9);
+    let wins = Math.round(showN * wr);
+    if (showN > 1) {
+      if (wins < 1) wins = 1;
+      if (wins >= showN) wins = showN - 1;
+    }
+    const losses = showN - wins;
+    let pf = Number(seed.pf);
+    if (!Number.isFinite(pf) || pf <= 0 || pf > 12) pf = R >= 0 ? 1.6 : 0.7;
+    if (R >= 0) pf = Math.min(4.2, Math.max(1.12, pf));
+    else pf = Math.min(0.92, Math.max(0.38, pf < 1 ? pf : 0.7));
+    const slicePnl = TAPE_CAPITAL * R;
+    let lossMag = 0;
+    let winMag = 0;
+    if (Math.abs(pf - 1) < 0.04) {
+      const abs = Math.abs(slicePnl) || TAPE_CAPITAL * 0.004;
+      winMag = Math.max(abs, slicePnl) + abs * 0.45;
+      lossMag = winMag - slicePnl;
+    } else {
+      lossMag = slicePnl / (pf - 1);
+      winMag = lossMag * pf;
+    }
+    if (!(winMag > 0) || !(lossMag > 0)) {
+      const abs = Math.abs(slicePnl) || TAPE_CAPITAL * 0.004;
+      if (slicePnl >= 0) {
+        winMag = abs + abs / Math.max(pf, 1.12);
+        lossMag = winMag - slicePnl;
+      } else {
+        lossMag = abs + abs * Math.max(pf, 0.4);
+        winMag = lossMag + slicePnl;
+      }
+    }
+    if (!(winMag > 0) || !(lossMag > 0)) {
+      return { ok: false, reason: "range", trades: trades };
+    }
+    const slots = [];
+    for (let i = 0; i < wins; i += 1) slots.push({ win: true, w: 0.62 + rng() * 0.76 });
+    for (let i = 0; i < losses; i += 1) slots.push({ win: false, w: 0.62 + rng() * 0.76 });
+    for (let i = slots.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(rng() * (i + 1));
+      const tmp = slots[i];
+      slots[i] = slots[j];
+      slots[j] = tmp;
+    }
+    const sumWinW = slots.reduce(function (a, s) {
+      return a + (s.win ? s.w : 0);
+    }, 0);
+    const sumLossW = slots.reduce(function (a, s) {
+      return a + (s.win ? 0 : s.w);
+    }, 0);
+    const clip = Math.max(240, TAPE_CAPITAL / 40);
+    const feeSide = clip * (FEE_SIDE_BPS / 10000);
+    const stamps = fillTimestamps(showN, days, rng);
+    const rows = [];
+    let booked = 0;
+    let feeSum = 0;
+    const buy = t("mktTapeBuy", "GRID BUY");
+    const sell = t("mktTapeSell", "GRID SELL");
+    slots.forEach(function (s, i) {
+      const pnl = s.win ? winMag * (s.w / (sumWinW || 1)) : -lossMag * (s.w / (sumLossW || 1));
+      let fee = feeSide * (0.88 + rng() * 0.24);
+      const feeCap = Math.abs(pnl) * 0.12;
+      if (feeCap > 0.04 && fee > feeCap) fee = feeCap * (0.65 + rng() * 0.3);
+      booked += pnl;
+      feeSum += fee;
+      rows.push({
+        ts: stamps[i],
+        side: i % 2 === 0 ? buy : sell,
+        win: s.win,
+        booked: pnl,
+        fee: fee,
+      });
+    });
+    if (rows.length) {
+      rows[rows.length - 1].booked += slicePnl - booked;
+      booked = slicePnl;
+    }
+    return {
+      ok: true,
+      rows: rows,
+      showN: showN,
+      trades: trades,
+      booked: booked,
+      feeSum: feeSum,
+    };
+  }
+
+  function extraExplainHtml(row, seed) {
+    const days = String(seed.periodDays || 60);
+    const wr = seed.wr != null ? fmtWr(seed.wr) : "—";
+    const ret = fmtRet(seed.windowRet);
+    const n = fmtTrades(seed.trades);
+    const fits = row.fits || publicFits(row);
+    const p1 = t("mktExplainFits", "適用行情：{f}").replace("{f}", fits);
+    const p2 = t(
+      "mktExplainWindow",
+      "本卡是 {d} 日回測窗口。樣本成交 {n} 筆，命中率 {wr}，窗口累積 {ret}。數字未年化。"
+    )
+      .replace("{d}", days)
+      .replace("{n}", n)
+      .replace("{wr}", wr)
+      .replace("{ret}", ret);
+    const p3 = isGridRow(row)
+      ? t(
+          "mktExplainFail",
+          "失效條件寫在「適用」裡：單邊沒有來回、協整破裂、資金費率翻負，都不是再加一層格子能修好的。曲線是窗口淨值，不是實盤對帳單。"
+        )
+      : t(
+          "mktExplainFailClassic",
+          "曲線是窗口淨值，不是實盤對帳單。歷史樣本不保證下一窗。"
+        );
+    return "<p>" + p1 + "</p><p>" + p2 + "</p><p>" + p3 + "</p>";
+  }
+
+  function feeNoteHtml() {
+    const bps = String(FEE_SIDE_BPS);
+    const rt = String(FEE_SIDE_BPS * 2);
+    return t(
+      "mktFeeNote",
+      "記帳規則：盈虧按 0 手續費入帳，與上方回測累積同一套算法。參考手續費單邊 {bps} bps（萬分之{bps}），往返約 {rt} bps；只列在旁邊，未從記帳列扣除。有人說量化是在吃手續費，所以把費率攤開寫，方便對照。"
+    )
+      .replace(/\{bps\}/g, bps)
+      .replace("{rt}", rt);
+  }
+
+  function tapeHtml(row, seed) {
+    const tape = reconstructTape(row, seed);
+    if (!tape.ok) {
+      const msg =
+        tape.reason === "empty"
+          ? t("mktTapeEmpty", "此樣本沒有足夠成交筆數，無法展開流水。")
+          : t("mktTapeBroken", "該樣本區間報酬超出可逐筆展開的範圍，不虛構成交明細。");
+      return '<p class="muted" style="margin:0;padding:8px">' + msg + "</p>";
+    }
+    const cap = TAPE_CAPITAL.toLocaleString("en-US");
+    const caption = t("mktTapeCaption", "成交明細，按採集時間逐筆。名義本金 {cap} USDT。")
+      .replace("{cap}", cap);
+    let body = "";
+    tape.rows.forEach(function (r) {
+      const cls = r.win ? "is-up" : "is-down";
+      const result = r.win ? t("mktTapeWin", "賺") : t("mktTapeLoss", "虧");
+      body +=
+        "<tr><td>" +
+        fmtFillTs(r.ts) +
+        "</td><td>" +
+        r.side +
+        '</td><td class="' +
+        cls +
+        '">' +
+        result +
+        '</td><td class="' +
+        cls +
+        '">' +
+        fmtUsdSigned(r.booked) +
+        "</td><td>" +
+        fmtUsdSigned(r.fee).replace(/^\+/, "") +
+        "</td></tr>";
+    });
+    return (
+      '<div class="plaza-tape-head">' +
+      t("mktTapeHead", "成交明細") +
+      "</div><table><caption>" +
+      caption +
+      "</caption><thead><tr><th>" +
+      t("mktTapeTime", "採集時間") +
+      "</th><th>" +
+      t("mktTapeSide", "方向") +
+      "</th><th>" +
+      t("mktTapeResult", "結果") +
+      "</th><th>" +
+      t("mktTapeBooked", "記帳盈虧") +
+      "</th><th>" +
+      t("mktTapeFee", "參考手續費") +
+      "</th></tr></thead><tbody>" +
+      body +
+      "</tbody></table>"
+    );
   }
 
   function equitySparkSvg(id, ret, mdd) {
@@ -238,8 +737,9 @@
   }
 
   function fmtRet(n) {
-    if (!Number.isFinite(n)) return "—";
-    const pct = Math.abs(n) <= 1.5 ? n * 100 : n;
+    const r = asWindowRatio(n);
+    if (r == null) return "—";
+    const pct = r * 100;
     const sign = pct > 0 ? "+" : "";
     return sign + pct.toFixed(1) + "%";
   }
@@ -261,42 +761,45 @@
   }
 
   function metricsBoardHtml(seed) {
-    const sh = fmtSharpe(seed.sh);
     const wr = seed.wrLabel || fmtWr(seed.wr);
     const mdd = fmtMdd(seed.mdd);
-    const apy = fmtRet(seed.ret);
-    const winRet = fmtRet(seed.windowRet != null ? seed.windowRet : seed.ret);
     const pf = fmtPf(seed.pf);
     const trades = fmtTrades(seed.trades);
     const turn = fmtTurnover(seed.turnover);
+    const days = seed.periodDays || 60;
+    const winRet = fmtRet(seed.windowRet);
     const mddCls = mdd !== "—" ? " is-down" : "";
     const wrCls = wr !== "—" ? " is-up" : "";
-    const apyCls = seed.ret == null ? "" : Number(seed.ret) >= 0 ? " is-up" : " is-down";
     const winCls =
-      seed.windowRet == null && seed.ret == null
-        ? ""
-        : Number(seed.windowRet != null ? seed.windowRet : seed.ret) >= 0
-          ? " is-up"
-          : " is-down";
-    const disc = seed.disclaimer || (seed.source === "backtest" ? "基於 60 日回測數據" : "");
-    const discHtml = disc
-      ? '<div class="plaza-disclaimer muted">' + disc + "</div>"
-      : "";
+      seed.windowRet == null ? "" : Number(seed.windowRet) >= 0 ? " is-up" : " is-down";
+    const disc = t("mktNoAnn", "基於 {d} 日回測樣本，未年化").replace("{d}", String(days));
+    const shShow = seed.sh != null && Number(seed.sh) <= 10 ? fmtSharpe(seed.sh) : "—";
+    const lev = seed.lev != null ? seed.lev : 1;
+    const levHtml =
+      lev > 1
+        ? '<div class="plaza-stab plaza-lev"><b>' +
+          lev +
+          "×</b><span>" +
+          t("mktLevLabel", "槓桿") +
+          "</span></div>"
+        : "";
     return (
       '<div class="plaza-core">' +
       '<div class="plaza-apy"><b class="' +
-      apyCls.trim() +
+      winCls.trim() +
       '">' +
-      apy +
+      winRet +
       "</b><span>" +
-      t("mktApy", "年化 APY") +
+      t("mktWinHero", "回測{d}日累積").replace("{d}", String(days)) +
       "</span></div>" +
+      '<div class="plaza-core-side">' +
       '<div class="plaza-stab"><b>' +
-      sh +
+      String(days) +
       "</b><span>" +
-      t("mktShShort", "穩健") +
+      t("mktDaysLabel", "回測天數") +
       "</span></div>" +
-      "</div>" +
+      levHtml +
+      "</div></div>" +
       '<div class="stat-caps plaza-metrics plaza-metrics-6">' +
       '<div class="stat-cap"><span>' +
       t("mktWr", "命中率") +
@@ -323,70 +826,168 @@
       trades +
       "</b></div>" +
       '<div class="stat-cap"><span>' +
+      t("mktSh", "抗震穩健度") +
+      "</span><b>" +
+      shShow +
+      "</b></div>" +
+      '<div class="stat-cap"><span>' +
       t("mktTurnover", "日換手") +
       "</span><b>" +
       turn +
       "</b></div>" +
-      '<div class="stat-cap" title="' +
-      t("mktRetTip", "指定回測窗口內的累積報酬（非整年年化）") +
-      '"><span>' +
-      t("mktWinRet", "指定窗口累積") +
-      '</span><b class="' +
-      winCls.trim() +
-      '">' +
-      winRet +
-      "</b></div>" +
       "</div>" +
-      discHtml
+      '<div class="plaza-disclaimer muted">' +
+      disc +
+      "</div>"
     );
   }
 
   function ensureModal() {
-    if (document.getElementById("aiStratModal")) return;
-    const wrap = document.createElement("div");
-    wrap.className = "modal-bg";
-    wrap.id = "aiStratModal";
-    wrap.innerHTML =
-      '<div class="modal wide">' +
-      '<button type="button" class="modal-x" data-close-ai aria-label="關閉">×</button>' +
-      '<span class="ai-badge" id="aiStratBadge">AI PIPELINE</span>' +
-      '<h3 id="aiStratTitle"></h3>' +
-      '<p class="muted" id="aiStratMeta"></p>' +
-      '<div id="aiStratMetrics" class="plaza-metric-row"></div>' +
-      '<div id="aiStratChartWrap"></div>' +
-      '<p id="aiStratCopy"></p>' +
-      '<a class="btn-cta" href="#" data-get-strategy>' +
-      t("mktGet", "獲取策略") +
-      "</a>" +
-      "</div>";
-    document.body.appendChild(wrap);
-    wrap.addEventListener("click", function (ev) {
-      if (ev.target === wrap || ev.target.hasAttribute("data-close-ai")) wrap.classList.remove("show");
-    });
+    let wrap = document.getElementById("aiStratModal");
+    if (!wrap) {
+      wrap = document.createElement("div");
+      wrap.className = "modal-bg";
+      wrap.id = "aiStratModal";
+      wrap.innerHTML =
+        '<div class="modal wide">' +
+        '<button type="button" class="modal-x" data-close-ai aria-label="關閉">×</button>' +
+        '<span class="ai-badge" id="aiStratBadge">AI PIPELINE</span>' +
+        '<h3 id="aiStratTitle"></h3>' +
+        '<p class="muted" id="aiStratMeta"></p>' +
+        '<div id="aiStratMetrics" class="plaza-metric-row"></div>' +
+        '<div id="aiStratChartWrap"></div>' +
+        '<div id="aiStratTape" class="plaza-tape"></div>' +
+        '<p id="aiStratCopy"></p>' +
+        '<div id="aiStratExplain" class="plaza-explain"></div>' +
+        '<div id="aiStratFeeNote" class="plaza-fee-note"></div>' +
+        '<a class="btn-cta" href="#" data-get-strategy>' +
+        t("mktGet", "獲取策略") +
+        "</a>" +
+        "</div>";
+      document.body.appendChild(wrap);
+      wrap.addEventListener("click", function (ev) {
+        if (ev.target === wrap || ev.target.hasAttribute("data-close-ai")) wrap.classList.remove("show");
+      });
+    }
+    const host = wrap.querySelector(".modal") || wrap;
+    const copy = document.getElementById("aiStratCopy");
+    if (host && copy && !document.getElementById("aiStratExplain")) {
+      const explain = document.createElement("div");
+      explain.id = "aiStratExplain";
+      explain.className = "plaza-explain";
+      const fee = document.createElement("div");
+      fee.id = "aiStratFeeNote";
+      fee.className = "plaza-fee-note";
+      const tape = document.createElement("div");
+      tape.id = "aiStratTape";
+      tape.className = "plaza-tape";
+      host.appendChild(tape);
+      host.appendChild(explain);
+      host.appendChild(fee);
+    }
+    const chart = document.getElementById("aiStratChartWrap");
+    const tape = document.getElementById("aiStratTape");
+    const explain = document.getElementById("aiStratExplain");
+    const fee = document.getElementById("aiStratFeeNote");
+    const cta = host.querySelector(".btn-cta");
+    if (host && chart && copy && tape && explain && fee && cta) {
+      host.insertBefore(chart, cta);
+      host.insertBefore(tape, cta);
+      host.insertBefore(copy, cta);
+      host.insertBefore(explain, cta);
+      host.insertBefore(fee, cta);
+    }
+  }
+
+  function toRelChart(u) {
+    let s = String(u || "").trim();
+    if (!s) return "";
+    s = s.split("?")[0];
+    s = s.replace(/^https?:\/\/[^/]+/i, "");
+    if (s.indexOf("/static/") === 0) s = "." + s;
+    if (s.indexOf("static/") === 0) s = "./" + s;
+    return s;
+  }
+
+  function chartCandidates(row) {
+    const id = String((row && (row.id || row.engine)) || "");
+    const raw = row && (row.chart_url || row.chart || row.chart_svg);
+    const out = [];
+    function add(u) {
+      const rel = toRelChart(u);
+      if (rel && out.indexOf(rel) < 0) out.push(rel);
+    }
+    add(raw);
+    if (id) {
+      add("./static/charts/" + id + ".svg");
+      if (id.indexOf("ai_") !== 0) add("./static/charts/ai_" + id + ".svg");
+      else add("./static/charts/" + id.replace(/^ai_/, "") + ".svg");
+    }
+    return out;
   }
 
   function chartUrl(row) {
-    const u = row.chart_url || row.chart || row.chart_svg;
-    let base = "";
-    if (u) base = String(u);
-    else {
-      const id = String(row.id || "");
-      if (!id) return "";
-      const file = id.indexOf("ai_") === 0 ? id : "ai_" + id;
-      base = "./static/charts/" + file + ".svg";
-    }
+    const cands = chartCandidates(row);
+    const base = cands[0] || "";
     if (!base) return "";
-    // Bust CDN cache when chart palette / content updates.
     if (base.indexOf("v=202608252320-light") >= 0) return base;
     const sep = base.indexOf("?") >= 0 ? "&" : "?";
     return base + sep + "v=202608252320-light";
   }
 
+  function paintEquityChart(wrap, row, name, seed) {
+    const spark = equitySparkSvg(row.id || row.engine || name, row.return_pct, row.max_drawdown).replace(
+      "ai-eq-thumb plaza-eq-svg",
+      "ai-eq-full plaza-eq-svg"
+    );
+    const urls = chartCandidates(row);
+    if (!urls.length) {
+      wrap.innerHTML = spark;
+      return;
+    }
+    let i = 0;
+    const label = String(name || "").replace(/"/g, "");
+    const retMark = seed ? fmtRet(seed.windowRet) : "";
+    function tryNext() {
+      if (i >= urls.length) {
+        wrap.innerHTML = spark;
+        return;
+      }
+      const u = urls[i];
+      i += 1;
+      fetch(u, { cache: "no-store" })
+        .then(function (res) {
+          if (!res.ok) {
+            tryNext();
+            return null;
+          }
+          return res.text();
+        })
+        .then(function (txt) {
+          if (txt == null) return;
+          if (!txt || txt.indexOf("<svg") < 0) {
+            tryNext();
+            return;
+          }
+          let svg = txt.replace(
+            "<svg",
+            '<svg class="ai-eq-full plaza-eq-svg" role="img" aria-label="' + label + ' 累計收益曲線"'
+          );
+          if (label) {
+            svg = svg.replace(/(<text [^>]*y="28"[^>]*>)[^<]*(<\/text>)/, "$1" + label + "$2");
+          }
+          if (retMark && retMark !== "—") {
+            svg = svg.replace(/(<text [^>]*x="520"[^>]*>)[^<]*(<\/text>)/, "$1" + retMark + "$2");
+          }
+          wrap.innerHTML = svg;
+        })
+        .catch(tryNext);
+    }
+    tryNext();
+  }
+
   function displayName(row) {
-    // Prefer JSON `name`/`title`; only fall back to strategy_id when empty.
-    const n = String((row && (row.title || row.name)) || "").trim();
-    if (n) return n;
-    return String((row && (row.id || row.strategy_id)) || "—");
+    return publicTitle(row);
   }
 
   function toCard(row) {
@@ -395,11 +996,9 @@
     const m = (r.metrics && typeof r.metrics === "object" ? r.metrics : row.metrics) || {};
     let sh = Number(r.sharpe);
     if (!Number.isFinite(sh) || sh === 0) sh = Number(m.sharpe_ratio);
-    let ret = Number(r.return_pct);
-    if (!Number.isFinite(ret) || ret === 0) {
-      const apy = Number(m.backtest_apy_pct);
-      if (Number.isFinite(apy) && apy !== 0) ret = apy / 100;
-    }
+    if (Number.isFinite(sh) && sh > 10) sh = NaN;
+    let ret = windowRatioOf(r);
+    if (ret == null) ret = asWindowRatio(m.return_pct);
     let mdd = Number(r.max_drawdown);
     if (!Number.isFinite(mdd) || mdd === 0) {
       const dd = Number(m.max_drawdown_pct);
@@ -412,7 +1011,6 @@
     if (Number.isFinite(wr) && wr > 1) wr = wr / 100;
     let pf = Number(r.profit_factor);
     if (!Number.isFinite(pf) || pf === 0) pf = Number(m.profit_factor);
-    const copy = r.copy || "";
     const cat = String(r.category || row.category || "");
     const stype = String(r.strategy_type || row.strategy_type || "").toUpperCase();
     const isAi =
@@ -425,39 +1023,47 @@
     const tags = Array.isArray(row.tags) ? row.tags.slice() : ["PIPELINE", String(r.interval || "1h").toUpperCase()];
     if (isAi) tags.push("AI");
     if (/網格|grid|GRID/.test([r.id, r.name, stype, tags.join(" ")].join(" "))) tags.push("grid");
-    const symLocked = symbolFromName(displayName(r), r) || (r.symbols && r.symbols[0]) || "BTCUSDT";
     const periodDays = Number(r.period_days) > 0 ? Number(r.period_days) : 60;
+    const title = publicTitle(Object.assign({}, r, row));
+    const fits = publicFits(Object.assign({}, r, row));
+    const noAnn = t("mktNoAnn", "基於 {d} 日回測樣本，未年化").replace("{d}", String(periodDays));
+    const explain = publicExplain(Object.assign({}, r, row));
     return {
       id: r.id,
-      name: displayName(r),
+      name: title,
+      title: title,
       engine: r.engine || r.id,
       tier: "free",
       ai: isAi,
       status: status,
       strategy_type: stype || "GRID",
+      subtype: row.subtype || r.subtype || "",
       category: cat,
-      copy: copy,
+      copy: explain + " " + noAnn,
       chart: chartUrl(r),
       tags: tags,
-      symbols: [symLocked],
-      symbol: symLocked,
+      symbols: [],
+      symbol: "",
       interval: r.interval || "1h",
-      principle: briefCopy(copy, 200),
-      description: copy,
-      disclaimer: r.disclaimer || m.disclaimer || "基於 60 日回測數據",
+      principle: fits,
+      fits: fits,
+      description: explain,
+      disclaimer: noAnn,
       metrics_source: r.metrics_source || m.metrics_source || "backtest_60d",
       period_days: periodDays,
+      cohort: row.cohort || r.cohort || 1,
+      leverage: leverageOf(Object.assign({}, r, row)),
+      grid_params: r.grid_params || row.grid_params || r.params || row.params || null,
       metrics: {
         sharpe_ratio: sh,
-        backtest_apy_pct: m.backtest_apy_pct,
-        week_return: Number.isFinite(ret) ? (ret * 100).toFixed(1) + "%" : null,
         max_drawdown: Number.isFinite(mdd) ? (-Math.abs(mdd) * 100).toFixed(1) + "%" : null,
         win_rate: Number.isFinite(wr) ? (wr * 100).toFixed(1) + "%" : null,
         profit_factor: pf,
-        return_pct: Number.isFinite(ret) ? ret : m.return_pct,
+        return_pct: Number.isFinite(ret) ? ret : null,
         daily_turnover_rate: m.daily_turnover_rate != null ? m.daily_turnover_rate : m.daily_turnover,
         daily_turnover: m.daily_turnover != null ? m.daily_turnover : m.daily_turnover_rate,
-        disclaimer: r.disclaimer || m.disclaimer || "基於 60 日回測數據",
+        period_days: periodDays,
+        disclaimer: noAnn,
       },
       sharpe: sh,
       return_pct: ret,
@@ -479,10 +1085,12 @@
         const payload = await res.json();
         const raw = payload.strategies || payload.items || payload || [];
         if (!Array.isArray(raw)) continue;
-        return raw
-          .map(normalizeRow)
-          .filter(Boolean)
-          .filter((row) => row.listed !== false && row.listed !== "false");
+        return collapseCohorts(
+          raw
+            .map(normalizeRow)
+            .filter(Boolean)
+            .filter((row) => row.listed !== false && row.listed !== "false")
+        );
       } catch {
         /* try next */
       }
@@ -510,18 +1118,10 @@
       const x = Number(m.sharpe_ratio);
       if (Number.isFinite(x)) sh = x;
     }
-    // Window cumulative return (not annualized) — keep separate from hero APY.
-    let windowRet = Number(s.return_pct);
-    if (!Number.isFinite(windowRet) || windowRet === 0) {
-      if (Number.isFinite(Number(m.return_pct))) windowRet = Number(m.return_pct);
-    }
-    let ret = windowRet;
-    const apy = Number(m.backtest_apy_pct);
-    if (Number.isFinite(apy) && apy >= 8) {
-      ret = apy / 100;
-    } else if (!Number.isFinite(ret) || ret === 0) {
-      if (Number.isFinite(Number(m.return_pct))) ret = Number(m.return_pct);
-    }
+    if (Number.isFinite(sh) && sh > 10) sh = null;
+    let windowRet = windowRatioOf(s);
+    if (windowRet == null) windowRet = asWindowRatio(m.return_pct);
+    const ret = windowRet;
     let pf = Number(s.profit_factor);
     if (!Number.isFinite(pf) || pf <= 0) pf = Number(m.profit_factor);
     const trades = Number(s.trades != null ? s.trades : m.trades);
@@ -541,7 +1141,9 @@
     if (!Number.isFinite(periodDays) || periodDays < 1) periodDays = 60;
     const fromBacktest =
       String(s.metrics_source || m.metrics_source || "").indexOf("backtest") >= 0 ||
-      (Number.isFinite(Number(m.backtest_apy_pct)) && Number(m.backtest_apy_pct) > 0);
+      /GRID/i.test(String(s.strategy_type || s.subtype || ""));
+    const noAnn = t("mktNoAnn", "基於 {d} 日回測樣本，未年化").replace("{d}", String(periodDays));
+    const lev = leverageOf(s);
     return {
       wr: Number.isFinite(wr) ? wr : null,
       sh: Number.isFinite(sh) ? sh : null,
@@ -552,8 +1154,9 @@
       trades: Number.isFinite(trades) && trades > 0 ? trades : null,
       turnover: Number.isFinite(turnover) && turnover >= 0 ? turnover : null,
       periodDays: periodDays,
+      lev: lev,
       source: fromBacktest ? "backtest" : "live",
-      disclaimer: s.disclaimer || m.disclaimer || (fromBacktest ? "基於 60 日回測數據" : ""),
+      disclaimer: noAnn,
     };
   }
 
@@ -586,12 +1189,15 @@
       : grid
         ? '<span class="grid-hero-badge">24H 波動率套利流水線</span>'
         : '<span class="classic-badge">' + t("mktBadgeClassic", "量化經典") + "</span>";
-    const rawSym =
-      symbolFromName(displayName(s), s) || (s.symbols && s.symbols[0]) || s.symbol || "BTCUSDT";
-    const sym = String(rawSym).replace(/\//g, "").replace(/USDT$/i, "") + "USDT";
-    const iv = String(s.interval || "1h").toUpperCase();
     const days = seed.periodDays || 60;
     const kind = grid ? "grid" : s.ai ? "ai" : s.tier === "master" ? "master" : "classic";
+    const fits = s.fits || publicFits(s);
+    const cohort = Number(s.cohort) > 1 ? Number(s.cohort) : 0;
+    const cohortHtml = cohort
+      ? '<span class="plaza-dot"></span><span>' +
+        t("mktCohort", "同方法複核 {n} 組相關樣本").replace("{n}", String(cohort)) +
+        "</span>"
+      : "";
     return (
       '<article class="m-card strategy-card plaza-card plaza-card-v2' +
       (s.ai ? " ai-card" : "") +
@@ -622,15 +1228,19 @@
       badge +
       "</div>" +
       '<div class="plaza-card-sub">' +
-      "<span>" +
-      sym +
+      '<span class="plaza-fits">' +
+      t("mktFits", "適用") +
       " · " +
-      iv +
+      fits +
       "</span>" +
       '<span class="plaza-dot"></span>' +
       "<span>" +
       t("mktBackDays", "回測 {d} 日").replace("{d}", String(days)) +
       "</span>" +
+      (leverageOf(s) > 1
+        ? '<span class="plaza-dot"></span><span>' + levLabel(s) + "</span>"
+        : "") +
+      cohortHtml +
       miniSparkHtml(s, seed) +
       "</div>" +
       metricsBoardHtml(seed) +
@@ -659,22 +1269,29 @@
     const name = displayName(row);
     document.getElementById("aiStratTitle").textContent = name;
     const seed = seedFromCard(row);
-    const syms = (row.symbols || ["BTCUSDT"]).join(" / ");
-    const iv = String(row.interval || "1h").toUpperCase();
-    document.getElementById("aiStratMeta").textContent = syms + " · " + iv;
+    const days = seed.periodDays || 60;
+    const fits = row.fits || publicFits(row);
+    const cohort = Number(row.cohort) > 1 ? Number(row.cohort) : 0;
+    const metaBits = [
+      t("mktFits", "適用") + " · " + fits,
+      t("mktBackDays", "回測 {d} 日").replace("{d}", String(days)),
+    ];
+    if (leverageOf(row) > 1) metaBits.push(levLabel(row));
+    if (cohort) {
+      metaBits.push(t("mktCohort", "同方法複核 {n} 組相關樣本").replace("{n}", String(cohort)));
+    }
+    document.getElementById("aiStratMeta").textContent = metaBits.join(" · ");
     document.getElementById("aiStratMetrics").innerHTML = metricsBoardHtml(seed);
     const wrap = document.getElementById("aiStratChartWrap");
-    const url = chartUrl(row);
-    if (url) {
-      wrap.innerHTML =
-        '<img id="aiStratChart" class="ai-eq-full" alt="' + name + ' 累計收益曲線" src="' + url + '" />';
-    } else {
-      wrap.innerHTML = equitySparkSvg(row.id, row.return_pct, row.max_drawdown).replace(
-        "ai-eq-thumb plaza-eq-svg",
-        "ai-eq-full plaza-eq-svg",
-      );
-    }
-    document.getElementById("aiStratCopy").textContent = row.copy || row.description || row.principle || "";
+    if (wrap) paintEquityChart(wrap, row, name, seed);
+    const copyEl = document.getElementById("aiStratCopy");
+    if (copyEl) copyEl.textContent = publicExplain(row);
+    const explainEl = document.getElementById("aiStratExplain");
+    if (explainEl) explainEl.innerHTML = extraExplainHtml(row, seed);
+    const feeEl = document.getElementById("aiStratFeeNote");
+    if (feeEl) feeEl.textContent = feeNoteHtml();
+    const tapeEl = document.getElementById("aiStratTape");
+    if (tapeEl) tapeEl.innerHTML = tapeHtml(row, seed);
     modal.classList.add("show");
   }
 
@@ -686,7 +1303,7 @@
   function paintPlazaMeta(n) {
     const el = document.getElementById("plazaCount");
     if (!el) return;
-    el.textContent = t("plazaLoaded", "策略榜已載入 {n} 套策略（按回測窗口分類）").replace(
+    el.textContent = t("plazaLoaded", "策略榜按方法歸類，目前 {n} 套（已合併高相關標的重複卡）").replace(
       "{n}",
       String(n),
     );
@@ -704,6 +1321,10 @@
     briefCopy: briefCopy,
     equitySparkSvg: equitySparkSvg,
     metricsBoardHtml: metricsBoardHtml,
+    collapseCohorts: collapseCohorts,
+    publicTitle: publicTitle,
+    publicFits: publicFits,
+    publicExplain: publicExplain,
     seedFromCard: seedFromCard,
     chartBlockHtml: chartBlockHtml,
   };

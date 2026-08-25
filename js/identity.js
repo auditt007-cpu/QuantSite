@@ -62,7 +62,23 @@
     return true;
   }
 
+  function closeNavIfOpen() {
+    if (typeof window.QACloseNavDrawer === "function") {
+      window.QACloseNavDrawer();
+      return;
+    }
+    const bar = document.querySelector(".topbar");
+    if (bar) bar.classList.remove("nav-open");
+    document.body.classList.remove("nav-drawer-open");
+    const bd = document.getElementById("navDrawerBackdrop");
+    if (bd) {
+      bd.hidden = true;
+      bd.style.pointerEvents = "none";
+    }
+  }
+
   function openAuth() {
+    closeNavIfOpen();
     if (loggedIn()) {
       if (!/member\.html/i.test(location.pathname)) {
         location.href = "./member.html";

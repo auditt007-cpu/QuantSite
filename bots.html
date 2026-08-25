@@ -15,13 +15,13 @@
   <link rel="stylesheet" href="./styles.css?v=202608260306-chrome" />
   <link rel="stylesheet" href="./css/mobile-global.css?v=202608260306-chrome" />
   <link rel="stylesheet" href="./css/mobile-subpages.css?v=202608260306-chrome" />
-  <link rel="stylesheet" href="./css/bots.css?v=202608260306-chrome" />
-  <link rel="stylesheet" href="./css/bloomberg-system.css?v=202608260306-chrome" />
+  <link rel="stylesheet" href="./css/bots.css?v=202608260421-ux" />
+  <link rel="stylesheet" href="./css/bloomberg-system.css?v=202608260421-ux" />
   <link rel="stylesheet" href="./css/bloomberg-dark.css?v=202608260306-chrome" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./css/chrome-lock.css?v=202608260306-chrome" />
+  <link rel="stylesheet" href="./css/chrome-lock.css?v=202608260421-ux" />
 </head>
 <body class="editorial-light bots-page" data-title-key="titleBots">
   <div class="site-sticky-chrome">
@@ -143,7 +143,7 @@
           </div>
           <div class="bot-band-row">
             <input id="botLower" type="number" step="any" inputmode="decimal" aria-label="lower" />
-            <input id="botUpper" type="number" step="any" inputmode="decimal" aria-label="upper" />
+            <input id="botUpper" type="number" step="any" inputmode="decimal" max="100000" aria-label="upper" />
           </div>
           <div class="bot-band-track" id="botBandTrack" role="group" aria-label="price band">
             <div class="bot-band-fill" id="botBandFill"></div>
@@ -178,8 +178,12 @@
             <textarea id="botAiPrompt" rows="1" data-ph="botAiPh" placeholder="幫我把 ETH 做成 5 倍、80 格的震盪網格…"></textarea>
             <button type="button" class="bot-btn bot-ai-go" id="botAiGo">
               <span data-i18n="botAiGoShort">AI 調參</span>
-              <span class="bot-ai-remain" id="botAiQuota" aria-live="polite"></span>
             </button>
+          </div>
+          <p class="bot-ai-quota-line" id="botAiQuota" aria-live="polite"></p>
+          <div class="bot-ai-top3" id="botAiTop3">
+            <p class="bot-ai-top3-lab" data-i18n="botAiTop3Lab">排行榜 TOP 3 快捷套用</p>
+            <div class="bot-ai-top3-row" id="botAiTop3Row"></div>
           </div>
           <div class="bot-ai-chips preset-scroll" id="botAiChips">
             <button type="button" class="bot-ai-chip" data-fill-key="botAiChip1Fill" data-i18n="botAiChip1">震盪幣密網</button>
@@ -243,15 +247,15 @@
   <div class="toast" id="toast"></div>
   <script src="./js/binance-feed.js?v=202608252340-board"></script>
   <script src="./js/offline-klines.js?v=202608252340-board"></script>
-  <script src="./js/nav.js?v=202608252340-board"></script>
+  <script src="./js/nav.js?v=202608260421-ux"></script>
   <script src="./config.js?v=202608252340-board"></script>
   <script src="./js/meta-events.js?v=202608252340-board"></script>
-  <script src="./i18n.js?v=202608252340-board"></script>
+  <script src="./i18n.js?v=202608260421-ux"></script>
   <script src="./js/i18n-boot.js?v=202608252340-board"></script>
-  <script src="./js/identity.js?v=202608252340-board"></script>
+  <script src="./js/identity.js?v=202608260421-ux"></script>
   <script src="./js/compliance.js?v=202608252340-board"></script>
   <script src="./js/lead-bind.js?v=202608252340-board"></script>
   <script src="./js/money.js?v=202608252340-board"></script>
-  <script src="./js/grid-backtest.js?v=202608252340-board"></script>
+  <script src="./js/grid-backtest.js?v=202608260421-ux"></script>
 </body>
 </html>

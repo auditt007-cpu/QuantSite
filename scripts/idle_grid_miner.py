@@ -609,7 +609,7 @@ def overwrite_slot(
         "chart_url": chart_rel,
         "monetization": "trading_volume_rebate",
         "replaced_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "copy": "{0} · {1} 高換手網格 · 手續費返傭導向".format(name, compact),
+        "copy": "{0} · {1} 高換手網格 · 按方法歸類展示".format(name, compact),
     }
     rows = []
     replaced = False

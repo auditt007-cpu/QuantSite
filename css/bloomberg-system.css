@@ -90,7 +90,9 @@ html, body {
   border: 1px solid #444444;
   background: transparent;
   height: 24px;
-  display: inline-flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  width: min(100%, 240px);
   border-radius: 2px;
   overflow: hidden;
 }
@@ -102,12 +104,16 @@ html, body {
   border: 0;
   min-height: 24px;
   min-width: 0;
-  padding: 0 10px;
+  width: 100%;
+  padding: 0 4px;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0;
   text-transform: none;
   white-space: nowrap;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
   cursor: pointer;
   line-height: 1;
 }
@@ -1135,10 +1141,10 @@ textarea,
   }
   .bb-util-right {
     min-width: 0;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    justify-content: flex-end;
-    max-width: 72vw;
+    overflow: hidden;
+    justify-content: stretch;
+    max-width: 100%;
+    width: 100%;
   }
   .bb-util-mark {
     font-size: 10px;

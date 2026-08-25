@@ -1,6 +1,7 @@
 (function (root) {
   /* Display copy still says ~4bps; engine fee forced to 0 for prettier curves. */
   const FEE = 0;
+  const BAND_PRICE_CAP = 100000;
   const CACHE = {};
   const AI_QUOTA_KEY = "qa_bot_ai_quota";
   const PRESETS = {
@@ -265,6 +266,93 @@
     redrawChart();
   }
 
+  function downsamplePts(pts, maxPts) {
+    if (!pts || pts.length < 3) return pts || [];
+    const k = 2;
+    const smoothed = [];
+    for (let i = 0; i < pts.length; i += 1) {
+      let s = 0;
+      let n = 0;
+      for (let j = Math.max(0, i - k); j <= Math.min(pts.length - 1, i + k); j += 1) {
+        s += pts[j].v;
+        n += 1;
+      }
+      smoothed.push({ t: pts[i].t, v: s / n });
+    }
+    if (smoothed.length <= maxPts) return smoothed;
+    const out = [];
+    const step = (smoothed.length - 1) / Math.max(1, maxPts - 1);
+    for (let i = 0; i < maxPts; i += 1) {
+      const idx = i === maxPts - 1 ? smoothed.length - 1 : Math.round(i * step);
+      out.push(smoothed[idx]);
+    }
+    return out;
+  }
+
+  function buildTimeMap(bands, vT0, vT1) {
+    const span = Math.max(1, vT1 - vT0);
+    const linear = function (sec) {
+      return (sec - vT0) / span;
+    };
+    if (!Array.isArray(bands) || bands.length < 2) return linear;
+    const vis = bands.filter(function (b) {
+      return b && b.t >= vT0 - 1 && b.t <= vT1 + 1;
+    });
+    if (vis.length < 2) return linear;
+    const segs = [];
+    let idle = 0;
+    let active = 0;
+    let t0 = Math.max(vT0, vis[0].t);
+    let on = !!vis[0].active;
+    for (let i = 1; i < vis.length; i += 1) {
+      const t1 = Math.min(vT1, vis[i].t);
+      const dur = Math.max(0, t1 - t0);
+      if (dur > 0) {
+        segs.push({ t0: t0, t1: t1, active: on });
+        if (on) active += dur;
+        else idle += dur;
+      }
+      on = !!vis[i].active;
+      t0 = vis[i].t;
+    }
+    if (t0 < vT1) {
+      segs.push({ t0: t0, t1: vT1, active: on });
+      const dur = vT1 - t0;
+      if (on) active += dur;
+      else idle += dur;
+    }
+    const total = idle + active;
+    if (!(total > 0) || idle / total < 0.32) return linear;
+    const idleShare = 0.18;
+    const activeShare = 1 - idleShare;
+    let x = 0;
+    const mapped = segs.map(function (s) {
+      const dur = s.t1 - s.t0;
+      const w = s.active
+        ? active > 0
+          ? (dur / active) * activeShare
+          : 0
+        : idle > 0
+          ? (dur / idle) * idleShare
+          : 0;
+      const rec = { t0: s.t0, t1: s.t1, x0: x, x1: x + w };
+      x += w;
+      return rec;
+    });
+    return function (sec) {
+      const t = Math.max(vT0, Math.min(vT1, sec));
+      for (let i = 0; i < mapped.length; i += 1) {
+        const m = mapped[i];
+        if (t <= m.t1 || i === mapped.length - 1) {
+          const seg = m.t1 - m.t0;
+          const u = seg > 0 ? (t - m.t0) / seg : 0;
+          return m.x0 + Math.max(0, Math.min(1, u)) * (m.x1 - m.x0);
+        }
+      }
+      return 1;
+    };
+  }
+
   function drawEquity(canvas, eq, marks, bandActive, view) {
     if (!canvas || !eq || eq.length < 2) return;
     view = view || { lo: 0, hi: 1 };
@@ -297,15 +385,16 @@
     if (!(mx > mn)) mx = mn + 0.01;
     const plotW = w - pad.l - pad.r;
     const plotH = h - pad.t - pad.b;
+    const bands = Array.isArray(bandActive) ? bandActive : [];
+    const xFrac = buildTimeMap(bands, vT0, vT1);
     const xAtTime = function (sec) {
-      return pad.l + ((sec - vT0) / vSpan) * plotW;
+      return pad.l + xFrac(sec) * plotW;
     };
     const yAt = function (v) {
       return pad.t + (1 - (v - mn) / (mx - mn)) * plotH;
     };
 
     const idleLabel = t("botIdleBand", "此時間段未觸發策略");
-    const bands = Array.isArray(bandActive) ? bandActive : [];
     if (bands.length) {
       let segStart = null;
       const flushSeg = function (endT) {
@@ -364,8 +453,9 @@
 
     const up = eq[eq.length - 1].v >= eq[0].v;
     const col = up ? "#0f7b3a" : "#c2410c";
+    const plotLine = downsamplePts(plotEq, 520);
     ctx.beginPath();
-    plotEq.forEach(function (p, i) {
+    plotLine.forEach(function (p, i) {
       const x = xAtTime(p.t);
       const y = yAt(p.v);
       if (i === 0) ctx.moveTo(x, y);
@@ -869,11 +959,7 @@
   }
 
   function vibrateLite() {
-    try {
-      if (navigator.vibrate) navigator.vibrate(22);
-    } catch {
-      /* ignore */
-    }
+    /* Site-wide 10ms press haptic lives in nav.js */
   }
 
   function scrollToResults() {
@@ -966,11 +1052,10 @@
     const m = row.metrics || {};
     let r = Number(row.return_pct);
     if (!Number.isFinite(r)) r = Number(m.return_pct);
-    if (!Number.isFinite(r) && Number.isFinite(Number(m.backtest_apy_pct))) {
-      // Prefer period return; APY is not used for ranking when period ret missing
-      r = null;
-    }
-    return Number.isFinite(r) ? r : -Infinity;
+    if (!Number.isFinite(r)) return -Infinity;
+    const pct = Math.abs(r) <= 5 ? r * 100 : r;
+    if (!(pct > -80) || pct > 400) return -Infinity;
+    return r;
   }
 
   function isGridStrategy(row) {
@@ -1080,6 +1165,34 @@
     });
     grid.innerHTML = cards.join("");
     if (sel) sel.innerHTML = opts.join("");
+    const top3Row = $("botAiTop3Row");
+    if (top3Row) {
+      top3Row.innerHTML = top
+        .map(function (row, i) {
+          const pid = row._fallback || "g" + i;
+          const preset = DYNAMIC_PRESETS[pid] || {};
+          const retTxt = fmtRetPct(gridRetOf(row));
+          const title = preset.title || row.title || row.name || pid;
+          const short = String(title).length > 16 ? String(title).slice(0, 14) + "…" : title;
+          return (
+            '<button type="button" class="bot-ai-top3-btn" data-bot-preset="' +
+            pid +
+            '"><span>' +
+            short +
+            "</span><small>" +
+            retTxt +
+            "</small></button>"
+          );
+        })
+        .join("");
+      top3Row.querySelectorAll("[data-bot-preset]").forEach(function (b) {
+        b.addEventListener("click", function () {
+          const id = b.getAttribute("data-bot-preset");
+          loadPreset(id);
+          if (sel && id) sel.value = id;
+        });
+      });
+    }
     grid.querySelectorAll("[data-bot-preset]").forEach(function (b) {
       b.addEventListener("click", function () {
         const id = b.getAttribute("data-bot-preset");
@@ -1160,12 +1273,12 @@
     const tier = aiTier();
     const cap = quotaCap(tier);
     if (!Number.isFinite(cap)) {
-      el.textContent = t("botAiRemainVip", "不限");
+      el.textContent = t("botAiRemainVip", "今日 AI 調參不限次數");
       return;
     }
     const used = readAiQuota().used;
     const left = Math.max(0, cap - used);
-    el.textContent = t("botAiRemainLeft", "剩{n}次").replace("{n}", String(left));
+    el.textContent = t("botAiRemainLeft", "今日還可 AI 調參 {n} 次").replace("{n}", String(left));
   }
 
   function showAiLimit(code) {
@@ -1320,7 +1433,14 @@
       Number.isFinite(lo) && Number.isFinite(hi) && hi > lo ? hi - lo : Math.abs(mid) * 0.2;
     const pad = Math.max(width * 1.5, Math.abs(mid) * 0.12, 1e-6);
     const min = Math.max(1e-8, mid - pad * 2);
-    const max = mid + pad * 2;
+    let max = mid + pad * 2;
+    if (mid >= BAND_PRICE_CAP) {
+      max = Math.min(max, mid * 1.25);
+    } else {
+      max = Math.min(max, BAND_PRICE_CAP);
+    }
+    if (Number.isFinite(hi) && hi > max) max = hi;
+    if (!(max > min)) max = min * 1.05;
     return { min: min, max: max, lo: lo, hi: hi };
   }
 

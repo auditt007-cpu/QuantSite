@@ -116,8 +116,9 @@
   function fmtRoiPct(x) {
     const n = Number(x);
     if (!Number.isFinite(n)) return "—";
-    const frac = Math.abs(n) >= 1.5 ? n / 100 : n / 100;
-    return "ΔP = " + Math.abs(frac).toFixed(3);
+    const pct = Math.abs(n) <= 1.5 ? n * 100 : n;
+    const sign = pct > 0 ? "+" : "";
+    return sign + pct.toFixed(1) + "%";
   }
 
   function fmtSharpeFromWr(wr) {

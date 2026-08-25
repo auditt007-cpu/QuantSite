@@ -184,8 +184,8 @@ def build_slot(sid: str, index: int) -> dict:
         "chart": chart,
         "chart_url": chart,
         "copy": (
-            "{0} · {1} 高頻網格 · 回測 APY {2}% · 日換手 {3} · 手續費返傭導向"
-        ).format(name, compact, m["backtest_apy_pct"], m["daily_turnover"]),
+            "{0} · {1} 高頻網格 · 日換手 {2}"
+        ).format(name, compact, m["daily_turnover"]),
         "principle": "賽馬篩選網格 · 基於 60 日回測預渲染 · Live 掃描同步中",
         "monetization": "trading_volume_rebate",
         "cleaned_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),

@@ -100,9 +100,9 @@
   function langPillsHtml() {
     return (
       '<div class="lang-pills bb-lang-pills" role="group" aria-label="Language">' +
-      '<button type="button" data-lang="zh-CN">简体中文</button>' +
-      '<button type="button" data-lang="zh-Hant">繁體（台灣）</button>' +
-      '<button type="button" data-lang="en">EN-US</button>' +
+      '<button type="button" data-lang="zh-CN">简体</button>' +
+      '<button type="button" data-lang="zh-Hant">繁體</button>' +
+      '<button type="button" data-lang="en">EN</button>' +
       "</div>"
     );
   }
@@ -211,6 +211,8 @@
     }
     if (toggle) toggle.setAttribute("aria-expanded", "false");
   }
+
+  window.QACloseNavDrawer = closeNavDrawer;
 
   function syncNavDrawer(forceOpen) {
     const mobile = window.matchMedia("(max-width: 768px)").matches;
@@ -471,4 +473,52 @@
     const t = ev.target;
     if (t && t.classList) t.classList.remove("is-focused");
   });
+
+  function pressTarget(el) {
+    if (!el || !el.closest) return null;
+    if (el.closest("input, textarea, select, option, .bot-band-thumb, .bot-band-track, .ticker-bar")) {
+      return null;
+    }
+    return el.closest(
+      "button, a.btn-cta, a.btn, a.nav-link, a.bot-btn, .auth-btn, .id-pill, .nav-toggle, .mv-tab, .bot-mode, .bot-days, .bot-ai-chip, .bot-ai-top3-btn, .lang-pills button, .bb-lang-pills button, [data-plaza-detail], [data-get-strategy], [data-bot-preset], [data-bot-deploy], .term-tab, .strat-tab, .seg-btn"
+    );
+  }
+
+  function isAndroidUA() {
+    return /Android/i.test(navigator.userAgent || "");
+  }
+
+  function bindPressFeel() {
+    if (document.documentElement.getAttribute("data-qa-press") === "1") return;
+    document.documentElement.setAttribute("data-qa-press", "1");
+    const release = function () {
+      document.querySelectorAll(".is-pressing").forEach(function (n) {
+        n.classList.remove("is-pressing");
+      });
+    };
+    document.addEventListener(
+      "pointerdown",
+      function (ev) {
+        const hit = pressTarget(ev.target);
+        if (!hit || hit.disabled) return;
+        hit.classList.add("is-pressing");
+        if (isAndroidUA() && navigator.vibrate) {
+          try {
+            navigator.vibrate(10);
+          } catch (e) {
+            /* ignore */
+          }
+        }
+      },
+      { passive: true }
+    );
+    document.addEventListener("pointerup", release, { passive: true });
+    document.addEventListener("pointercancel", release, { passive: true });
+    document.addEventListener("pointerleave", release, { passive: true });
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", bindPressFeel, { once: true });
+  } else {
+    bindPressFeel();
+  }
 })();

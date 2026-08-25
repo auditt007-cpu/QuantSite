@@ -108,7 +108,7 @@ async def publish_grid(row: dict) -> None:
             "return_pct": round(agg["return_pct"] * 100, 1),
             "trades": agg.get("trades"),
             "grid_params": row.get("grid_params"),
-            "narrative": "高換手網格·手續費返傭·動態風控延長存活",
+            "narrative": "高換手網格·動態風控延長存活",
         }
     )
     chart = publish.chart_url(svg)

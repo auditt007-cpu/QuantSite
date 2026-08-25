@@ -124,3 +124,126 @@ body.bots-page .ticker-pill .tp-px {
     forced-color-adjust: none;
   }
 }
+
+/* Login / plaza modals must sit above the hamburger drawer (~10080). */
+.modal-bg.show,
+#loginModal.modal-bg,
+#loginModal.modal-bg.show,
+#aiStratModal.modal-bg.show {
+  z-index: 12050 !important;
+}
+
+.mobile-view-tabs {
+  display: none !important;
+}
+
+.bb-util-bar .lang-pills,
+.bb-lang-pills {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr 1fr;
+  width: min(100%, 240px);
+  height: 24px;
+}
+
+.bb-util-bar .lang-pills button,
+.bb-lang-pills button {
+  width: 100%;
+  min-width: 0 !important;
+  max-width: none;
+  flex: 1 1 0;
+  padding: 0 4px !important;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .bb-util-right {
+    max-width: 100% !important;
+    width: 100%;
+    justify-content: stretch !important;
+  }
+  .bb-util-bar .lang-pills,
+  .bb-lang-pills {
+    width: 100%;
+    height: 28px;
+  }
+}
+
+/* Press: Android haptic is JS 10ms; both platforms get shrink-spring. */
+button:not(:disabled),
+a.btn-cta,
+a.btn,
+a.nav-link,
+.auth-btn,
+.id-pill,
+.nav-toggle,
+.mv-tab,
+.bot-mode,
+.bot-days,
+.bot-ai-chip,
+.bot-ai-top3-btn,
+.bot-btn,
+.lang-pills button,
+.bb-lang-pills button,
+[data-plaza-detail],
+[data-get-strategy],
+[data-bot-preset],
+[data-bot-deploy],
+.term-tab,
+.strat-tab,
+.seg-btn {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+@media (hover: none), (pointer: coarse) {
+  button:not(:disabled):not(.bot-band-thumb):not(.nav-drawer-backdrop),
+  a.btn-cta,
+  a.btn,
+  a.nav-link,
+  .auth-btn,
+  .id-pill,
+  .nav-toggle,
+  .bot-mode,
+  .bot-days,
+  .bot-ai-chip,
+  .bot-ai-top3-btn,
+  .bot-btn,
+  .lang-pills button,
+  .bb-lang-pills button,
+  [data-plaza-detail],
+  [data-get-strategy],
+  [data-bot-preset],
+  [data-bot-deploy],
+  .term-tab,
+  .strat-tab,
+  .seg-btn {
+    transition: transform 0.18s cubic-bezier(0.22, 1.55, 0.36, 1);
+    transform-origin: center center;
+  }
+  button.is-pressing:not(:disabled):not(.bot-band-thumb),
+  a.btn-cta.is-pressing,
+  a.btn.is-pressing,
+  a.nav-link.is-pressing,
+  .auth-btn.is-pressing,
+  .id-pill.is-pressing,
+  .nav-toggle.is-pressing,
+  .bot-mode.is-pressing,
+  .bot-days.is-pressing,
+  .bot-ai-chip.is-pressing,
+  .bot-ai-top3-btn.is-pressing,
+  .bot-btn.is-pressing,
+  .lang-pills button.is-pressing,
+  .bb-lang-pills button.is-pressing,
+  [data-plaza-detail].is-pressing,
+  [data-get-strategy].is-pressing,
+  [data-bot-preset].is-pressing,
+  [data-bot-deploy].is-pressing,
+  .term-tab.is-pressing,
+  .strat-tab.is-pressing,
+  .seg-btn.is-pressing {
+    transform: scale(0.94);
+  }
+}
