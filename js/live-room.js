@@ -522,8 +522,13 @@
 
       const edge = window.QAEdgeSpeak;
       if (edge && edge.speak) {
-        const ok = await edge.speak(text, voiceLang(), gen, speakAlive);
-        if (ok || edgeOnlyVoiceLang()) return resolve();
+        try {
+          const ok = await edge.speak(text, voiceLang(), gen, speakAlive);
+          if (ok || edgeOnlyVoiceLang()) return resolve();
+        } catch {
+          /* Edge failed: never fall back to system TTS for zh-CN / en (female on many phones) */
+          if (edgeOnlyVoiceLang()) return resolve();
+        }
       } else if (edgeOnlyVoiceLang()) {
         return resolve();
       }

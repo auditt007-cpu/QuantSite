@@ -272,6 +272,22 @@ body.bots-page .wrap {
 .bot-kpi-val.is-up { color: #0f7b3a; }
 .bot-kpi-val.is-down { color: #c2410c; }
 
+.bot-kpi-val.data-updated-up {
+  animation: botKpiFlashUp 0.5s ease-out;
+}
+.bot-kpi-val.data-updated-down {
+  animation: botKpiFlashDown 0.5s ease-out;
+}
+
+@keyframes botKpiFlashUp {
+  0% { background: rgba(15, 123, 58, 0.35); color: #0f7b3a; }
+  100% { background: transparent; }
+}
+@keyframes botKpiFlashDown {
+  0% { background: rgba(194, 65, 12, 0.35); color: #c2410c; }
+  100% { background: transparent; }
+}
+
 .bot-chart-toolbar {
   display: flex;
   flex-wrap: wrap;

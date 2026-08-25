@@ -761,15 +761,14 @@
       kpiRaf[id] = 0;
     }
     const fmt = opts.fmt;
+    const shouldFlash = from != null && Number.isFinite(from) && from !== to;
+    if (shouldFlash && root.QAUi) root.QAUi.flash(el, !!opts.down);
     if (from == null || !Number.isFinite(from) || from === to) {
       el.textContent = fmt(to);
-      if (from != null && Number.isFinite(from) && from !== to && root.QAUi) {
-        root.QAUi.flash(el, !!opts.down);
-      }
       return;
     }
     const start = performance.now();
-    const dur = 520;
+    const dur = Math.min(780, 360 + Math.abs(to - from) * 12);
     const step = function (now) {
       const t = Math.min(1, (now - start) / dur);
       const v = from + (to - from) * easeOutCubic(t);
@@ -779,7 +778,6 @@
       } else {
         el.textContent = fmt(to);
         kpiRaf[id] = 0;
-        if (root.QAUi) root.QAUi.flash(el, !!opts.down);
       }
     };
     kpiRaf[id] = requestAnimationFrame(step);
@@ -860,7 +858,7 @@
 
   function vibrateLite() {
     try {
-      if (navigator.vibrate) navigator.vibrate(18);
+      if (navigator.vibrate) navigator.vibrate(22);
     } catch {
       /* ignore */
     }
