@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-25T13:27:07.968754+00:00",
+  "updated_at": "2026-08-25T13:50:54.646050+00:00",
   "strategies": [
     {
       "id": "dual",
@@ -50,20 +50,49 @@
     {
       "id": "ribbon",
       "engine": "ribbon",
-      "strategy_type": "GRID",
-      "title": "ribbon",
-      "name": "ribbon",
-      "metrics": {
-        "sharpe_ratio": 0.0,
-        "backtest_apy_pct": 0.0,
-        "max_drawdown_pct": 99.0,
-        "win_rate_pct": 0.0,
-        "daily_turnover_rate": 0.0
-      },
-      "return_pct": 0.0,
-      "sharpe": 0.0,
+      "plaza_slot": true,
       "slot": true,
-      "plaza_slot": true
+      "strategy_type": "GRID",
+      "subtype": "FIBO_DCA_GRID",
+      "title": "SOL·時序動量幾何DCA網格 V3.8",
+      "name": "SOL·時序動量幾何DCA網格 V3.8",
+      "symbol": "SOL/USDT",
+      "timeframe": "15m",
+      "period_days": 45,
+      "backtest_days": 45,
+      "grid_params": {
+        "lower_price": 67.5355,
+        "upper_price": 103.938,
+        "grids_count": 32,
+        "grid_mode": "geometric",
+        "leverage": 3.0,
+        "profit_per_grid_pct": 0.45,
+        "atr_multiplier": null,
+        "geo_ratio": 1.2
+      },
+      "params": {
+        "leverage": 3,
+        "profit_per_grid_pct": 0.45,
+        "geo_ratio": 1.2
+      },
+      "metrics": {
+        "backtest_apy_pct": 157.1,
+        "max_drawdown_pct": 0.06,
+        "daily_turnover_rate": 7.7,
+        "sharpe_ratio": 43.744,
+        "win_rate_pct": 89.7,
+        "profit_factor": 33.785,
+        "return_pct": 0.1234
+      },
+      "sharpe": 43.744,
+      "max_drawdown": 0.0006,
+      "return_pct": 0.1234,
+      "trades": 348,
+      "chart": "/static/charts/ribbon.svg",
+      "chart_url": "/static/charts/ribbon.svg",
+      "monetization": "trading_volume_rebate",
+      "replaced_at": "2026-08-25T13:50:54Z",
+      "copy": "SOL·時序動量幾何DCA網格 V3.8 · 高換手網格 · 手續費返傭導向"
     },
     {
       "id": "rsi",
