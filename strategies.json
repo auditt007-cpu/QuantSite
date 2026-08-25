@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-25T14:50:22.718476+00:00",
+  "updated_at": "2026-08-25T15:02:22.985609+00:00",
   "status": "BACKTEST_PRERENDER",
   "strategies": [
     {
@@ -60,47 +60,54 @@
       "status": "BACKTEST_READY",
       "strategy_type": "GRID",
       "subtype": "BASIS_FUNDING_GRID",
-      "title": "ETH·時序動量基差對沖網格 V3.1",
-      "name": "ETH·時序動量基差對沖網格 V3.1",
-      "symbol": "ETH/USDT",
+      "title": "DOGE·非對稱防守基差對沖網格 V3.1",
+      "name": "DOGE·非對稱防守基差對沖網格 V3.1",
+      "symbol": "DOGE/USDT",
       "symbols": [
-        "ETHUSDT"
+        "DOGEUSDT"
       ],
       "timeframe": "15m",
       "interval": "15m",
       "period_days": 60,
       "backtest_days": 60,
       "grid_params": {
-        "leverage": 5,
-        "grids_count": 60,
-        "grid_mode": "geometric",
-        "profit_per_grid_pct": 0.55
+        "lower_price": 0.081862,
+        "upper_price": 0.096098,
+        "grids_count": 40,
+        "grid_mode": "arithmetic",
+        "leverage": 3.0,
+        "profit_per_grid_pct": 0.45,
+        "atr_multiplier": null,
+        "mode": "spot_long_perp_short_1x"
+      },
+      "params": {
+        "leverage": 3,
+        "profit_per_grid_pct": 0.45
       },
       "metrics": {
-        "backtest_apy_pct": 72.2,
-        "max_drawdown_pct": -3.3,
-        "win_rate_pct": 84.6,
-        "daily_turnover_rate": 65.8,
-        "daily_turnover": 65.8,
-        "sharpe_ratio": 2.87,
-        "profit_factor": 3.93,
-        "return_pct": 0.1187,
+        "backtest_apy_pct": 980.0,
+        "max_drawdown_pct": -0.2,
+        "daily_turnover_rate": 36.5,
+        "daily_turnover": 36.5,
+        "sharpe_ratio": 83.241,
+        "win_rate_pct": 88.3,
+        "profit_factor": 45.94,
+        "return_pct": 1.8966,
         "period_days": 60,
         "metrics_source": "backtest_60d",
         "disclaimer": "基於 60 日回測數據"
       },
-      "sharpe": 2.87,
-      "max_drawdown": -0.033,
-      "return_pct": 0.1187,
-      "profit_factor": 3.93,
-      "win_rate": 0.846,
-      "trades": 717,
+      "sharpe": 83.241,
+      "max_drawdown": -0.002,
+      "return_pct": 1.8966,
+      "profit_factor": 45.94,
+      "win_rate": 0.8828,
+      "trades": 1639,
       "chart": "/static/charts/ribbon.svg",
       "chart_url": "/static/charts/ribbon.svg",
-      "copy": "ETH·時序動量基差對沖網格 V3.1 · ETHUSDT 高頻網格 · 回測 APY 72.2% · 日換手 65.8 · 手續費返傭導向",
-      "principle": "賽馬篩選網格 · 基於 60 日回測預渲染 · Live 掃描同步中",
       "monetization": "trading_volume_rebate",
-      "cleaned_at": "2026-08-25T14:13:11Z"
+      "replaced_at": "2026-08-25T15:02:22Z",
+      "copy": "DOGE·非對稱防守基差對沖網格 V3.1 · DOGEUSDT 高換手網格 · 手續費返傭導向"
     },
     {
       "id": "rsi",
