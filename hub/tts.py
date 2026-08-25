@@ -11,10 +11,10 @@ except ImportError:  # pragma: no cover
     edge_tts = None
 
 VOICE_BY_LANG: dict[str, Tuple[str, str, str]] = {
-    # zh-CN: Yunjian ≈ 京味男声（郭德纲人设文案，非克隆）
-    "zh-CN": ("zh-CN-YunjianNeural", "+5%", "-5Hz"),
-    # en: Guy ≈ 低沉男声（Trump 演说风文案，非克隆）
-    "en": ("en-US-GuyNeural", "+8%", "+0Hz"),
+    # zh-CN: Yunyang ≈ 年长沉稳男声（新闻/解说腔，非克隆）
+    "zh-CN": ("zh-CN-YunyangNeural", "-5%", "-8Hz"),
+    # en: Christopher ≈ 年长权威男声（新闻腔，非克隆）
+    "en": ("en-US-ChristopherNeural", "-3%", "-5Hz"),
     "zh-Hant": ("zh-TW-HsiaoChenNeural", "+8%", "+0Hz"),
 }
 

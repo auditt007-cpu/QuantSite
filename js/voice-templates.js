@@ -1,7 +1,7 @@
 /**
  * Persona voice templates + promo asset map for live-room TTS.
  * zh-CN ≈ 相声京味文案；en ≈ Trump 演说风文案；zh-Hant ≈ 曉臻专业播报。
- * Runtime TTS uses hub Edge-TTS (MP3) with male Yunjian / Guy / HsiaoChen.
+ * Runtime TTS uses hub Edge-TTS (MP3): zh-CN Yunyang / en Christopher / zh-TW HsiaoChen.
  * Fallback Web Speech filters out female voices when Edge API unavailable.
  * Idle ads use pre-rendered /audio/promo_*.mp3.
  */
@@ -145,8 +145,8 @@
   }
 
   const EDGE_VOICE = {
-    "zh-CN": "zh-CN-YunjianNeural",
-    en: "en-US-GuyNeural",
+    "zh-CN": "zh-CN-YunyangNeural",
+    en: "en-US-ChristopherNeural",
     "zh-Hant": "zh-TW-HsiaoChenNeural",
   };
 
@@ -166,18 +166,18 @@
       return {
         lang: "zh-CN",
         edgeVoice: EDGE_VOICE["zh-CN"],
-        rate: "+5%",
-        pitch: "-5Hz",
-        prefer: [/Yunjian/i, /Yunxi/i, /Yunyang/i, /Kangkang/i, /zh-CN.*Neural.*Male/i, /zh-CN/i],
+        rate: "-5%",
+        pitch: "-8Hz",
+        prefer: [/Yunyang/i, /Yunjian/i, /Yunxi/i, /Kangkang/i, /zh-CN.*Neural.*Male/i, /zh-CN/i],
       };
     }
     if (key === "en") {
       return {
         lang: "en-US",
         edgeVoice: EDGE_VOICE.en,
-        rate: "+8%",
-        pitch: "+0Hz",
-        prefer: [/Guy/i, /Christopher/i, /Davis/i, /Eric/i, /David/i, /Ryan/i, /Roger/i, /en-US.*Neural.*Male/i, /en-US/i],
+        rate: "-3%",
+        pitch: "-5Hz",
+        prefer: [/Christopher/i, /Eric/i, /Steffan/i, /Guy/i, /Davis/i, /David/i, /en-US.*Neural.*Male/i, /en-US/i],
       };
     }
     return {
