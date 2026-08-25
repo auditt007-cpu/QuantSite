@@ -28,6 +28,7 @@ ALLOWED_EXACT = frozenset(
         "strategies.json",
         "leaderboard.json",
         "live_feed.json",
+        "plaza_live_registry.json",
         "data/signals.json",
         "static/charts/.gitkeep",
     }
@@ -147,6 +148,12 @@ def _seed_default_artifacts(repo: Path) -> List[str]:
     if feed.is_file():
         shutil.copy2(feed, repo / "live_feed.json")
         written.append("live_feed.json")
+    plaza_reg = Path("/var/www/html/plaza_live_registry.json")
+    if not plaza_reg.is_file():
+        plaza_reg = APP_ROOT / "plaza_live_registry.json"
+    if plaza_reg.is_file():
+        shutil.copy2(plaza_reg, repo / "plaza_live_registry.json")
+        written.append("plaza_live_registry.json")
     sig = Path("/var/www/html/data/signals.json")
     if not sig.is_file():
         sig = APP_ROOT / "data" / "signals.json"
@@ -184,6 +191,13 @@ def _resolve_push_list(repo: Path, files_to_push: Optional[Iterable[str]]) -> Li
                     cand = src if src.is_file() else Path("/var/www/html/live_feed.json")
                     if not cand.is_file():
                         cand = APP_ROOT / "live_feed.json"
+                    if cand.is_file():
+                        shutil.copy2(cand, repo / rel)
+                elif src.name == "plaza_live_registry.json" or rel == "plaza_live_registry.json":
+                    rel = "plaza_live_registry.json"
+                    cand = src if src.is_file() else Path("/var/www/html/plaza_live_registry.json")
+                    if not cand.is_file():
+                        cand = APP_ROOT / "plaza_live_registry.json"
                     if cand.is_file():
                         shutil.copy2(cand, repo / rel)
                 elif rel == "data/signals.json" or src.name == "signals.json":
