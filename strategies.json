@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-25T17:00:54.692476+00:00",
+  "updated_at": "2026-08-25T17:25:21.858635+00:00",
   "status": "BACKTEST_PRERENDER",
   "strategies": [
     {
@@ -9,49 +9,56 @@
       "slot": true,
       "status": "BACKTEST_READY",
       "strategy_type": "GRID",
-      "subtype": "DYNAMIC_ATR_GRID",
-      "title": "BTC·自適應波動收割網格 V2.0",
-      "name": "BTC·自適應波動收割網格 V2.0",
-      "symbol": "BTC/USDT",
+      "subtype": "FIBO_DCA_GRID",
+      "title": "SOL·非對稱防守幾何DCA網格 V4.5",
+      "name": "SOL·非對稱防守幾何DCA網格 V4.5",
+      "symbol": "SOL/USDT",
       "symbols": [
-        "BTCUSDT"
+        "SOLUSDT"
       ],
       "timeframe": "15m",
       "interval": "15m",
-      "period_days": 30,
-      "backtest_days": 30,
+      "period_days": 60,
+      "backtest_days": 60,
       "grid_params": {
-        "leverage": 5,
-        "grids_count": 60,
+        "lower_price": 67.5355,
+        "upper_price": 103.938,
+        "grids_count": 32,
         "grid_mode": "geometric",
-        "profit_per_grid_pct": 0.55
+        "leverage": 3.0,
+        "profit_per_grid_pct": 0.45,
+        "atr_multiplier": null,
+        "geo_ratio": 1.2
+      },
+      "params": {
+        "leverage": 3,
+        "profit_per_grid_pct": 0.45,
+        "geo_ratio": 1.2
       },
       "metrics": {
-        "backtest_apy_pct": 62.9,
-        "max_drawdown_pct": -1.8,
-        "win_rate_pct": 86.6,
-        "daily_turnover_rate": 38.0,
-        "daily_turnover": 38.0,
-        "sharpe_ratio": 3.38,
-        "profit_factor": 2.25,
-        "return_pct": 0.1034,
-        "period_days": 30,
+        "backtest_apy_pct": 159.0,
+        "max_drawdown_pct": -0.06,
+        "daily_turnover_rate": 7.8,
+        "daily_turnover": 7.8,
+        "sharpe_ratio": 44.002,
+        "win_rate_pct": 89.8,
+        "profit_factor": 34.038,
+        "return_pct": 0.1244,
+        "period_days": 60,
         "metrics_source": "backtest_60d",
-        "disclaimer": "基於 30 日回測數據"
+        "disclaimer": "基於 60 日回測數據"
       },
-      "sharpe": 3.38,
-      "max_drawdown": -0.018000000000000002,
-      "return_pct": 0.1034,
-      "profit_factor": 2.25,
-      "win_rate": 0.866,
-      "trades": 1026,
+      "sharpe": 44.002,
+      "max_drawdown": -0.0006,
+      "return_pct": 0.1244,
+      "profit_factor": 34.038,
+      "win_rate": 0.8975,
+      "trades": 350,
       "chart": "/static/charts/dual.svg",
       "chart_url": "/static/charts/dual.svg",
-      "copy": "BTC·自適應波動收割網格 V2.0 · BTCUSDT 高頻網格 · 回測 APY 62.9% · 日換手 38.0 · 手續費返傭導向",
-      "principle": "賽馬篩選網格 · 基於 60 日回測預渲染 · Live 掃描同步中",
       "monetization": "trading_volume_rebate",
-      "cleaned_at": "2026-08-25T14:13:11Z",
-      "disclaimer": "基於 30 日回測數據"
+      "replaced_at": "2026-08-25T17:25:21Z",
+      "copy": "SOL·非對稱防守幾何DCA網格 V4.5 · SOLUSDT 高換手網格 · 手續費返傭導向"
     },
     {
       "id": "ribbon",
