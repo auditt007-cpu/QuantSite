@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-25T08:16:13Z",
+  "updated_at": "2026-08-25T08:18:19Z",
   "period_hours": 3,
   "poll_sec": 5,
   "scan_tf": "15m+1h",
@@ -1798,6 +1798,80 @@
   "exec_log": [
     {
       "kind": "batch",
+      "name_zh": "布林寬帶回歸",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787645838,
+      "bar_ts": 1787645700,
+      "event": "open",
+      "strategy_id": "bb_wide_15m_45",
+      "symbols": [
+        {
+          "symbol": "AVAXUSDT",
+          "price": 7.547,
+          "sl_pct": -0.5710745991784786,
+          "tp_pct": 1.142149198356969,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "SHIBUSDT",
+          "price": 5.5e-06,
+          "sl_pct": -9.090909090909081,
+          "tp_pct": 9.090909090909097,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
+      "name_zh": "量均突破",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "空頭平倉翻多 (BUY)",
+      "logged_at": 1787645776,
+      "bar_ts": 1787645700,
+      "event": "open",
+      "strategy_id": "vol_ma_15m_39",
+      "symbols": [
+        {
+          "symbol": "ONDOUSDT",
+          "price": 0.38371,
+          "sl_pct": -0.8634124729613538,
+          "tp_pct": 1.7270855594068422,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "量均突破",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787645775,
+      "bar_ts": 1787645700,
+      "event": "close",
+      "strategy_id": "vol_ma_15m_39",
+      "symbols": [
+        {
+          "symbol": "ONDOUSDT",
+          "price": 0.38371,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": 2.2245438793191354
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
       "name_zh": "MACD柱翻轉",
       "interval": "15m",
       "side": "SHORT",
@@ -2324,72 +2398,6 @@
           "price": 100.16,
           "sl_pct": -0.5378584265175723,
           "tp_pct": 1.075717851437698,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "複合動能確認",
-      "interval": "1h",
-      "side": "SHORT",
-      "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787645020,
-      "bar_ts": 1787644800,
-      "event": "open",
-      "strategy_id": "combo_1h_42",
-      "symbols": [
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.09624,
-          "sl_pct": -1.6479634247713946,
-          "tp_pct": 3.2959268495428176,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "MACD信號交叉",
-      "interval": "1h",
-      "side": "SHORT",
-      "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787645019,
-      "bar_ts": 1787644800,
-      "event": "open",
-      "strategy_id": "macd_s_1h_22",
-      "symbols": [
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.09624,
-          "sl_pct": -1.6479634247713946,
-          "tp_pct": 3.2959268495428176,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "MACD柱翻轉",
-      "interval": "1h",
-      "side": "SHORT",
-      "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787645020,
-      "bar_ts": 1787644800,
-      "event": "open",
-      "strategy_id": "macd_h_1h_20",
-      "symbols": [
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.09624,
-          "sl_pct": -1.6479634247713946,
-          "tp_pct": 3.2959268495428176,
           "event": "open",
           "pnl_pct": null
         }
