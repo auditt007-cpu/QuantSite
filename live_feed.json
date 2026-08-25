@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-25T06:38:09Z",
+  "updated_at": "2026-08-25T06:40:17Z",
   "period_hours": 3,
   "poll_sec": 5,
   "scan_tf": "15m+1h",
@@ -946,6 +946,126 @@
   "exec_log": [
     {
       "kind": "batch",
+      "name_zh": "樞軸點突破",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "空頭平倉翻多 (BUY)",
+      "logged_at": 1787639958,
+      "bar_ts": 1787639400,
+      "event": "open",
+      "strategy_id": "pivot_15m_35",
+      "symbols": [
+        {
+          "symbol": "BNBUSDT",
+          "price": 716.64,
+          "sl_pct": -0.19820607278410715,
+          "tp_pct": 0.3964121455682143,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "AVAXUSDT",
+          "price": 7.666,
+          "sl_pct": -0.3052308896425827,
+          "tp_pct": 0.6104748238977307,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
+      "name_zh": "樞軸點突破",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787639957,
+      "bar_ts": 1787639400,
+      "event": "close",
+      "strategy_id": "pivot_15m_35",
+      "symbols": [
+        {
+          "symbol": "BNBUSDT",
+          "price": 716.64,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.10756142875102767
+        },
+        {
+          "symbol": "AVAXUSDT",
+          "price": 7.666,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.15678076822577025
+        },
+        {
+          "symbol": "INJUSDT",
+          "price": 5.983,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.6900033658700687
+        }
+      ],
+      "strategy_count": 3
+    },
+    {
+      "kind": "batch",
+      "name_zh": "樞軸點突破",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "多頭平倉翻空 (SELL)",
+      "logged_at": 1787639894,
+      "bar_ts": 1787639400,
+      "event": "open",
+      "strategy_id": "pivot_15m_35",
+      "symbols": [
+        {
+          "symbol": "BNBUSDT",
+          "price": 715.87,
+          "sl_pct": -0.29284185676170066,
+          "tp_pct": 0.5856837135234013,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "樞軸點突破",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787639893,
+      "bar_ts": 1787639400,
+      "event": "close",
+      "strategy_id": "pivot_15m_35",
+      "symbols": [
+        {
+          "symbol": "BNBUSDT",
+          "price": 715.87,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.10744585845054447
+        },
+        {
+          "symbol": "SUIUSDT",
+          "price": 0.8251,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": 0.07277137659186585
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
       "name_zh": "量均突破",
       "interval": "15m",
       "side": "LONG",
@@ -984,36 +1104,6 @@
     },
     {
       "kind": "batch",
-      "name_zh": "樞軸點突破",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787639830,
-      "bar_ts": 1787639400,
-      "event": "open",
-      "strategy_id": "pivot_15m_35",
-      "symbols": [
-        {
-          "symbol": "BNBUSDT",
-          "price": 716.64,
-          "sl_pct": -0.19820607278410715,
-          "tp_pct": 0.3964121455682143,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "AVAXUSDT",
-          "price": 7.666,
-          "sl_pct": -0.3052308896425827,
-          "tp_pct": 0.6104748238977307,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
       "name_zh": "成交量價差VSA",
       "interval": "15m",
       "side": "LONG",
@@ -1041,44 +1131,6 @@
         }
       ],
       "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "樞軸點突破",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787639828,
-      "bar_ts": 1787639400,
-      "event": "close",
-      "strategy_id": "pivot_15m_35",
-      "symbols": [
-        {
-          "symbol": "BNBUSDT",
-          "price": 716.64,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.10756142875102767
-        },
-        {
-          "symbol": "AVAXUSDT",
-          "price": 7.666,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.15678076822577025
-        },
-        {
-          "symbol": "INJUSDT",
-          "price": 5.983,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.6900033658700687
-        }
-      ],
-      "strategy_count": 3
     },
     {
       "kind": "batch",
@@ -1408,28 +1460,6 @@
     },
     {
       "kind": "batch",
-      "name_zh": "樞軸點突破",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787639450,
-      "bar_ts": 1787639400,
-      "event": "open",
-      "strategy_id": "pivot_15m_35",
-      "symbols": [
-        {
-          "symbol": "BNBUSDT",
-          "price": 715.87,
-          "sl_pct": -0.29284185676170066,
-          "tp_pct": 0.5856837135234013,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
       "name_zh": "EMA快線交叉",
       "interval": "15m",
       "side": "SHORT",
@@ -1471,36 +1501,6 @@
         }
       ],
       "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "樞軸點突破",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787639450,
-      "bar_ts": 1787639400,
-      "event": "close",
-      "strategy_id": "pivot_15m_35",
-      "symbols": [
-        {
-          "symbol": "SUIUSDT",
-          "price": 0.8251,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.07277137659186585
-        },
-        {
-          "symbol": "BNBUSDT",
-          "price": 715.87,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.0
-        }
-      ],
-      "strategy_count": 2
     },
     {
       "kind": "batch",
