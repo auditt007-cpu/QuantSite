@@ -67,7 +67,7 @@
     }, 5200);
   }
 
-  function showClaimModal(token, copied) {
+  function showClaimModal(token, copied, bound) {
     let wrap = document.getElementById("claimTokenModal");
     if (!wrap) {
       wrap = document.createElement("div");
@@ -86,26 +86,36 @@
       wrap.addEventListener("click", function (ev) {
         if (ev.target === wrap || ev.target.hasAttribute("data-close-claim")) wrap.classList.remove("show");
         if (ev.target && ev.target.hasAttribute("data-open-bot")) {
+          if (wrap.dataset.bound !== "1") return;
           root.open(botStartUrl(wrap.dataset.token || ""), "_blank", "noopener");
         }
       });
     }
     wrap.dataset.token = token;
+    wrap.dataset.bound = bound ? "1" : "0";
     wrap.classList.add("show");
     const msg = document.getElementById("claimTokenMsg");
     const code = document.getElementById("claimTokenCode");
+    const openBtn = wrap.querySelector("[data-open-bot]");
     if (code) code.textContent = token;
+    if (openBtn) openBtn.hidden = !bound;
     if (msg) {
-      msg.textContent = copied
-        ? "您的專屬訂閱碼：" + token + "（已複製）。若跳轉後未自動填入，請直接在對話框發送此碼。"
-        : "您的專屬訂閱碼：" + token + "。剪貼簿不可用，請手動複製後在節點通道對話框發送此碼。";
+      if (!bound) {
+        msg.textContent = "歸因寫入未成功，Telegram 尚未打開。請保留此碼並重試「訂閱」，以免 CAPI 無法回傳 fbclid。";
+      } else {
+        msg.textContent = copied
+          ? "您的專屬訂閱碼：" + token + "（已複製）。若跳轉後未自動填入，請直接在對話框發送此碼。"
+          : "您的專屬訂閱碼：" + token + "。剪貼簿不可用，請手動複製後在節點通道對話框發送此碼。";
+      }
     }
-    toast(
-      copied
-        ? "您的專屬訂閱碼：" + token + "（已複製）。若跳轉後未自動填入，請直接在對話框發送此碼。"
-        : "您的專屬訂閱碼：" + token + "（請手動複製）",
-      copied ? "ok" : "err",
-    );
+    if (bound) {
+      toast(
+        copied
+          ? "您的專屬訂閱碼：" + token + "（已複製）。若跳轉後未自動填入，請直接在對話框發送此碼。"
+          : "您的專屬訂閱碼：" + token + "（請手動複製）",
+        copied ? "ok" : "err",
+      );
+    }
   }
 
   async function copyText(s) {
@@ -141,36 +151,52 @@
     }
   }
 
+  async function postLeadBind(token, fbclid, ua) {
+    const res = await fetch(hubBase() + "/api/leads/bind", {
+      method: "POST",
+      headers: { "content-type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ token: token, fbclid: fbclid, user_agent: ua }),
+      mode: "cors",
+      credentials: "omit",
+    });
+    let data = null;
+    try {
+      data = await res.json();
+    } catch {
+      data = null;
+    }
+    if (!res.ok || !data || data.ok !== true || !data.token) {
+      throw new Error("lead_bind_failed");
+    }
+    return data;
+  }
+
   async function claimStrategy() {
     const token = makeToken();
     const fbclid = fbclidFromLocation();
     const ua = (navigator && navigator.userAgent) || "";
-    const copied = await copyText(token);
     try {
       localStorage.setItem("quant_claim_token", token);
     } catch {
       /* */
     }
-    /* Lead only on explicit subscribe CTA — never on bare page load */
+    let bound;
+    try {
+      bound = await postLeadBind(token, fbclid, ua);
+    } catch {
+      toast("節點尚未寫入歸因庫，未打開 Telegram。請檢查網絡後重試，以免 CAPI 斷鏈。", "err");
+      showClaimModal(token, false, false);
+      return "";
+    }
+    const copied = await copyText(bound.token || token);
     if (root.QAMetaEvents && typeof root.QAMetaEvents.trackLead === "function") {
       root.QAMetaEvents.trackLead({ content_name: "node_stream_subscribe" });
     }
-    try {
-      await fetch(hubBase() + "/api/leads/bind", {
-        method: "POST",
-        headers: { "content-type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ token: token, fbclid: fbclid, user_agent: ua }),
-        mode: "cors",
-        credentials: "omit",
-      });
-    } catch {
-      /* offline / CORS — still open community with start payload */
-    }
-    showClaimModal(token, copied);
+    showClaimModal(bound.token || token, copied, true);
     setTimeout(function () {
-      root.open(botStartUrl(token), "_blank", "noopener");
+      root.open(botStartUrl(bound.start || bound.token || token), "_blank", "noopener");
     }, 350);
-    return token;
+    return bound.token || token;
   }
 
   function shouldHijack(el) {
@@ -180,7 +206,7 @@
     if (
       el.matches &&
       el.matches(
-        "[data-get-strategy], [data-community-open], #ctaBannerBtn, #btnGetStrategy, #tgFab, #btnChannel, #btnChannel2, a.cta-btn-gold, a.tg-fab",
+        "[data-get-strategy], [data-community-open], #ctaBannerBtn, #btnGetStrategy, #btnChannel, #btnChannel2, a.cta-btn-gold",
       )
     ) {
       return true;
@@ -205,7 +231,7 @@
   function retargetHrefs() {
     fbclidFromLocation();
     const bot = communityBase();
-    document.querySelectorAll("[data-community-open], #tgFab, #btnChannel, #btnChannel2, #btnGetStrategy, a[data-get-strategy]").forEach((a) => {
+    document.querySelectorAll("[data-community-open], #btnChannel, #btnChannel2, #btnGetStrategy, a[data-get-strategy]").forEach((a) => {
       if (a.id === "paySupport" || a.id === "btnOpenBot") return;
       if (a.tagName === "A") {
         a.setAttribute("href", "#");

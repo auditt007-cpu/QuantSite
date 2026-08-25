@@ -98,8 +98,8 @@
     bar.className = "bb-util-bar";
     bar.innerHTML =
       '<div class="bb-util-left">' +
-      '<a class="bb-util-link" href="./terminal.html#statusPill" data-i18n="bbUtilStatus">节点状态</a>' +
-      '<a class="bb-util-link bb-util-link-accent" href="./terminal.html" data-i18n="bbUtilApi">API 文档</a>' +
+      '<a class="bb-util-link" href="./strategies.html#statusPill" data-i18n="bbUtilStatus">节点状态</a>' +
+      '<a class="bb-util-link bb-util-link-accent" href="./strategies.html" data-i18n="bbUtilApi">API 文档</a>' +
       '<a class="bb-util-link" href="./affiliate.html" data-i18n="bbUtilVip">VIP 专线</a>' +
       '<a class="bb-util-link" href="./about.html" data-i18n="bbUtilContact">联系我们</a>' +
       "</div>" +

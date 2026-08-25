@@ -34,7 +34,7 @@ from pydantic import BaseModel, Field
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, MessageHandler, filters
 
 from hub import capi, db
-from hub.handlers import handle_callback, handle_start, handle_text
+from hub.handlers import handle_bind, handle_callback, handle_start, handle_text
 from hub.notify import notify_admin
 from hub.settings import HUB_HOST, HUB_PORT, PUBLIC_BASE_URL, TG_BOT_TOKEN, WEBHOOK_SECRET
 
@@ -88,6 +88,7 @@ async def lifespan(app: FastAPI):
         raise RuntimeError("TG_BOT_TOKEN missing in .env")
     tg_app = Application.builder().token(TG_BOT_TOKEN).build()
     tg_app.add_handler(CommandHandler("start", handle_start))
+    tg_app.add_handler(CommandHandler("bind", handle_bind))
     tg_app.add_handler(CallbackQueryHandler(handle_callback))
     tg_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
     await tg_app.initialize()

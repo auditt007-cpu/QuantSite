@@ -385,7 +385,7 @@
       if (!row) return;
       const engine = row.getAttribute("data-engine");
       if (!engine) return;
-      location.href = "./terminal.html?strategy=" + encodeURIComponent(engine);
+      location.href = "./strategies.html?strategy=" + encodeURIComponent(engine);
     });
   }
 

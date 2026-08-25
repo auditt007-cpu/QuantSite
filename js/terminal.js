@@ -36,7 +36,7 @@
     if (list) list.hidden = false;
     if (bt) bt.hidden = true;
     document.body.classList.remove("desk-open");
-    history.replaceState({}, "", /strategies\.html/i.test(location.pathname) ? "./strategies.html" : "./terminal.html");
+    history.replaceState({}, "", "./strategies.html");
   }
 
   function scrollPageTop() {

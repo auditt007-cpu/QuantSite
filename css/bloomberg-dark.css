@@ -137,10 +137,11 @@ body.nav-drawer-open .topbar {
 .foot-brand { color: #b3b3b3; font-size: 11px; }
 .foot-official { color: #b3b3b3; }
 
-/* Floating action button */
-.tg-fab { background: #000000; color: #ffffff; border: 1px solid #333333; }
-.tg-fab:hover { background: var(--color-accent); color: #000000; border-color: var(--color-accent); }
-.fab-dot { background: var(--color-up); }
+/* Prune floating subscribe dock — keep hero CTA + footer only */
+.tg-fab,
+#tgFab {
+  display: none !important;
+}
 
 /* Modals */
 .modal-bg { background: rgba(0,0,0,0.55); }

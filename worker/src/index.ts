@@ -740,18 +740,53 @@ async function handleTelegramUpdate(env: Bindings, update: Record<string, unknow
   const text = String(message.text || "").trim();
   const [cmd, ...rest] = text.split(/\s+/);
   const command = (cmd || "").split("@")[0].toLowerCase();
-  const arg = rest.join(" ").trim().toLowerCase();
+  const argRaw = rest.join(" ").trim();
+  const lane = classifyBotEntry(command, argRaw, text);
 
-  if (command === "/start" || command === "/bind") {
-    const wantCode = command === "/bind" || arg === "bind" || arg === "" || command === "/start";
-    const code = wantCode ? await issueBindCode(env, chatId) : "";
+  if (lane === "meta_vip") {
+    await sendTelegram(
+      env,
+      chatId,
+      [
+        "已識別投放訂閱碼（VIP 開頭 7 碼）。",
+        "此碼只做 Meta / 節點歸因，不會發放網站 4 位登入碼。",
+        "歸因綁定由落地頁與節點服務完成，請勿把此碼填回官網登入框。",
+        "網站登入請傳送 /bind。",
+      ].join("\n"),
+    );
+    return;
+  }
+
+  if (command === "/bind" || (command === "/start" && /^(bind|login|otp)$/i.test(argRaw))) {
+    const code = await issueBindCode(env, chatId);
     await sendTelegram(env, chatId, bindWelcome(code, env));
     return;
   }
-  if (command === "/help") {
+
+  if (lane === "web_otp") {
     await sendTelegram(env, chatId, bindWelcome("", env));
     return;
   }
+
+  if (command === "/start" || command === "/help") {
+    await sendTelegram(env, chatId, bindWelcome("", env));
+    return;
+  }
+}
+
+function classifyBotEntry(command: string, argRaw: string, fullText: string): "meta_vip" | "web_otp" | "none" {
+  const compact = argRaw.replace(/[-_\s]/g, "").toUpperCase();
+  const fullCompact = fullText.replace(/[-_\s]/g, "").toUpperCase();
+  if (/^VIP[0-9A-Z]{4}$/.test(compact) || /(?:^|[^A-Z])VIP[0-9A-Z]{4}$/.test(fullCompact)) {
+    return "meta_vip";
+  }
+  if (command === "/bind" || compact === "BIND" || compact === "LOGIN" || compact === "OTP") {
+    return "web_otp";
+  }
+  if (/^\d{4}$/.test(argRaw) || /^\d{4}$/.test(fullText)) {
+    return "web_otp";
+  }
+  return "none";
 }
 
 async function issueBindCode(env: Bindings, tgId: string) {
@@ -775,7 +810,8 @@ function bindWelcome(code: string, _env: Bindings) {
     "",
     "免費公開頻道：https://t.me/quant_alpha_signals",
     "",
-    "請將 4 位綁定碼回填至網站完成身份驗證。",
+    "網站登入請使用 4 位綁定碼，填回官網。",
+    "投放訂閱請從官網「獲取策略」帶入 VIP 開頭 7 碼，兩條通道互不合併。",
     "綁定碼 5 分鐘內有效。重新傳送 /bind 可換發新碼。",
   ];
   if (code) {

@@ -24,7 +24,7 @@ QuantAlpha 是一套**加密量化研究终端 + 变现闭环**，面向独立�
 | `/` | `index.html` | 首页：KPI、夏普/ΔP 排行、实验室说明、登录 |
 | `/live.html` | 直播作战室 | 实时信号、币卡片、事件带、语音 |
 | `/strategies.html` | 策略广场 | 主入口。浏览策略、本地回测、Pine 复制（付费门） |
-| `/terminal.html` | 与广场几乎重复 | 页脚「节点状态」常链到这里。缓存版本可能和 strategies 不一致 |
+| `/terminal.html` | **301 / 客户端跳转** 到 `strategies.html`（不再维护双份广场） |
 | `/member.html` | 会员中心 | TG 四位码登录、USDT 支付、邀请进度 |
 | `/affiliate.html` | 推荐计划 | L1/L2 佣金、TRC20 提现 |
 | `/about.html` | 关于我们 | 实验室叙事、白皮书锚点 |
@@ -52,7 +52,7 @@ QuantAlpha 是一套**加密量化研究终端 + 变现闭环**，面向独立�
 - `quant-hub.service` → `bot_server.py` :8088
 - `tg-bot.service` → `deploy/quantsite/tg_engine.py`（约 60s 扫策略矩阵，写 `live_feed.json` / `signals.json`，TG 频道 `@quant_alpha_signals`）
 - Nginx：`api.quantalpha.space` 反代 `/api/`、`/health`、`/tg/webhook`
-- 现网常用发布脚本：`python deploy/quantsite/_deploy_marquee_flex.py`（SFTP 推 CSS/JS/HTML 到 `/var/www/html`）
+- 现网常用发布脚本：`python deploy/quantsite/_deploy_marquee_flex.py`（SFTP 推 CSS/JS/HTML 到 `/var/www/html`）。脚本会用 **UTC 时间 + git short SHA** 统一替换各 HTML 里本地 CSS/JS 的 `?v=`，并写入仓库根目录 `asset-query`。GitHub Pages 必须提交同一批已盖戳的 HTML，否则会再漂移。`terminal.html` 在 VPS nginx 上做 301。
 
 **只 push GitHub 不等于线上一定更新。** 用户要「发布」时通常要：commit → `git push origin main` → 跑 VPS deploy。远程常有 `data/signals.json` / `live_feed.json` 自动提交，pull 用 merge，禁止 force push。
 
@@ -74,14 +74,39 @@ VPS：`tg_engine.py` 写直播带；`pipeline.py` / `llm_pipeline/` 生成 AI �
 
 ---
 
-## 登录与钱
+## 登录与投放（两套短码，故意拆开）
 
-两套绑定，不要当成同一个：
+不要合并，也不要当成配错。拆开是为了同时满足 **Meta 像素长链接** 和 **Telegram start 参数上限**。
 
-1. **会员登录（Worker）**：TG 机器人发 4 位码 → `POST /api/bind-tg` → `localStorage`：`quant_tg`、`login_timestamp`（24h）。座位：free → pro（2 个邀请或 `quant_unlocked`）→ vip（`quant_paid`）。价格：试用 9.9 USDT / Pro 99 USDT，TRC20。
-2. **投放归因（VPS hub）**：`VIP####` token，`lead-bind.js` → `api.quantalpha.space/api/leads/bind`，SQLite `data/leads.db`。
+### A. 投放归因 — `VIP` + 4 位 = 正好 7 码（VPS hub）
 
-机器人：`@grid_quant_bot`（登录码）与 VPS hub 的 VIP 绑定可能共用同一 bot，webhook 路由必须分清。
+广告点进来时 URL 上挂着很长的 `fbclid`（再叠加 utm，整段远超 Telegram 能带的长度）。Telegram `t.me/bot?start=` 的 payload 很短，塞不进 fbclid。
+
+所以链路是：
+
+1. 落地页 `lead-bind.js` 把 `fbclid` 存进 `localStorage`（长串只留在网站）。
+2. 用户点「订阅 / 获取策略」时现场生成 `VIPXXXX`（`VIP` + 4 位，hub 校验 `len == 7`）。
+3. `POST api.quantalpha.space/api/leads/bind`：`{ token, fbclid }` 写入 SQLite `data/leads.db`。
+4. 打开 `t.me/<bot>?start=VIPXXXX`。机器人只吃这 7 码；用户也可以在对话框手打同一串。
+5. 以后 CAPI Purchase 用库里的 `fbclid` 拼 `fbc`，不经过 TG。
+
+代码：`js/lead-bind.js`、`hub/handlers.py`、`hub/capi.py`、`bot_server.py`。
+
+### B. 会员登录 — 4 位数字码（Cloudflare Worker）
+
+这是进网站会员中心用的，不是广告归因。TG 里只有 `/bind` 或 `?start=bind` 才发 4 位 OTP；空 `/start` 与 `VIPXXXX` 都不发登录码。用户填回网页 → `POST /api/bind-tg` → `localStorage`：`quant_tg`、`login_timestamp`（24h）。座位：free → pro（2 个邀请或 `quant_unlocked`）→ vip（`quant_paid`）。价格：试用 9.9 USDT / Pro 99 USDT，TRC20。
+
+### 机器人入口路由（严禁合并）
+
+Webhook 按**特征**排他分流，禁止把两套短码合成一种 token：
+
+| 入口 | 判定 | 行为 |
+|------|------|------|
+| `/start VIPXXXX` 或对话里的 VIP 7 码 | `meta_vip` | 只走 VPS hub 归因绑定；Worker **不得**发 4 位登录码 |
+| `/bind`、`/start bind`、纯 4 位数字 | `web_otp` | 只走 Worker 网站登录；hub **不得**当兑换码绑定 |
+| 空 `/start` | `none` | 只回双通道说明，两套都不触发 |
+
+Worker 旧逻辑曾把任意 `/start`（含 `VIPXXXX`）都发 4 位码，会击穿 Meta 转化追踪。已改为先校验入口特征。
 
 分销：L1 34.65 / L2 14.85 USDT（Worker）。Pine 复制对免费用户锁定。
 
@@ -109,7 +134,11 @@ CSS 加载顺序（冲突源）：
 
 `js/nav.js` 会注入 `#bbUtilBar`、补跑马灯、插入「直播作战室」链接、按需加载 `binance-feed.js`。
 
-改 CSS/JS 必须 bump HTML 里的 `?v=`，否则 Pages/CDN 缓存旧文件。VPS 与 GitHub 的 `?v=` 必须一起改。
+**CSS 锁定：** 禁止全局重构 layered `!important`。增量只改 `css/bloomberg-dark.css`（最末层）或页级 CSS 单点剪枝。
+
+改 CSS/JS 必须靠发布脚本统一 `?v=`（不要手改一页漏一页）。VPS 与 GitHub 的 HTML 查询串必须一起提交。
+
+已删除死代码：`js/news.js`、`css/marquee-ticker.css`（不要再写回部署清单）。首页只保留首屏主 CTA 与页脚收口，无右下角悬浮齿轮条。`lead-bind.js` 必须 `POST /api/leads/bind` **成功** 后才打开 Telegram。
 
 ---
 
