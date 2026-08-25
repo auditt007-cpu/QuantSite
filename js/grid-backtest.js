@@ -843,6 +843,7 @@
         },
         down: Number.isFinite(prev) && res.sharpe < prev,
       });
+      sh.className = "bot-kpi-val is-gold";
       kpiPrev.sharpe = res.sharpe;
     }
     if (dd && res.mdd !== kpiPrev.mdd) {
