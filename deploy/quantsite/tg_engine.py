@@ -1662,7 +1662,11 @@ def maybe_sync_pages(payload):
             from utils.git_sync import sync_to_github
 
             status = sync_to_github(
-                ["live_feed.json", "data/signals.json"],
+                [
+                    "live_feed.json",
+                    "data/signals.json",
+                    "plaza_live_registry.json",
+                ],
                 commit_msg="Auto: live tape [{0}]".format(
                     datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M")
                 ),
