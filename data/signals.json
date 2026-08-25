@@ -1,15 +1,37 @@
 {
-  "updated_at": "2026-08-25T18:39:50Z",
+  "updated_at": "2026-08-25T18:41:24Z",
   "venue": "coinbase",
   "poll_sec": 5,
   "exec_log": [
     {
       "kind": "batch",
+      "name_zh": "ATR網格1.0",
+      "interval": "1h",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787683283,
+      "bar_ts": 1787677200,
+      "event": "close",
+      "strategy_id": "strat-017",
+      "symbols": [
+        {
+          "symbol": "DOGEUSDT",
+          "price": 0.08884,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": 0.13
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
       "name_zh": "複合動能B",
       "interval": "15m",
       "side": "SHORT",
       "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787683176,
+      "logged_at": 1787683269,
       "bar_ts": 1787681700,
       "event": "open",
       "strategy_id": "strat-026",
@@ -31,7 +53,7 @@
       "interval": "15m",
       "side": "SHORT",
       "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787683177,
+      "logged_at": 1787683270,
       "bar_ts": 1787681700,
       "event": "open",
       "strategy_id": "strat-011",
@@ -53,7 +75,7 @@
       "interval": "15m",
       "side": "LONG",
       "action": "多頭開倉 (BUY)",
-      "logged_at": 1787683176,
+      "logged_at": 1787683269,
       "bar_ts": 1787681700,
       "event": "close",
       "strategy_id": "strat-026",
@@ -75,7 +97,7 @@
       "interval": "15m",
       "side": "LONG",
       "action": "多頭開倉 (BUY)",
-      "logged_at": 1787683175,
+      "logged_at": 1787683268,
       "bar_ts": 1787681700,
       "event": "close",
       "strategy_id": "strat-011",
@@ -87,6 +109,28 @@
           "tp_pct": null,
           "event": "close",
           "pnl_pct": -1.648446989415231
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "ATR網格1.0",
+      "interval": "1h",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787683263,
+      "bar_ts": 1787677200,
+      "event": "open",
+      "strategy_id": "strat-017",
+      "symbols": [
+        {
+          "symbol": "DOGEUSDT",
+          "price": 0.08896,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "open",
+          "pnl_pct": null
         }
       ],
       "strategy_count": 1
@@ -97,7 +141,7 @@
       "interval": "15m",
       "side": "LONG",
       "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787683157,
+      "logged_at": 1787683194,
       "bar_ts": 1787681700,
       "event": "open",
       "strategy_id": "strat-026",
@@ -119,7 +163,7 @@
       "interval": "15m",
       "side": "LONG",
       "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787683158,
+      "logged_at": 1787683195,
       "bar_ts": 1787681700,
       "event": "open",
       "strategy_id": "strat-011",
@@ -141,7 +185,7 @@
       "interval": "15m",
       "side": "SHORT",
       "action": "空頭開倉 (SELL)",
-      "logged_at": 1787683157,
+      "logged_at": 1787683194,
       "bar_ts": 1787681700,
       "event": "close",
       "strategy_id": "strat-026",
@@ -163,7 +207,7 @@
       "interval": "15m",
       "side": "SHORT",
       "action": "空頭開倉 (SELL)",
-      "logged_at": 1787683156,
+      "logged_at": 1787683193,
       "bar_ts": 1787681700,
       "event": "close",
       "strategy_id": "strat-011",
@@ -502,7 +546,7 @@
         },
         {
           "symbol": "RENDERUSDT",
-          "price": 1.5246,
+          "price": 1.508,
           "sl_pct": null,
           "tp_pct": null,
           "event": "open",
@@ -614,66 +658,6 @@
         }
       ],
       "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "樞軸點突破",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787682682,
-      "bar_ts": 1787681700,
-      "event": "close",
-      "strategy_id": "hs",
-      "symbols": [
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.0951,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.2203336480956897
-        },
-        {
-          "symbol": "NEARUSDT",
-          "price": 1.8919,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.4001052908660201
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "樞軸快線",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787682681,
-      "bar_ts": 1787681700,
-      "event": "close",
-      "strategy_id": "strat-030",
-      "symbols": [
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.0951,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.2203336480956897
-        },
-        {
-          "symbol": "NEARUSDT",
-          "price": 1.8919,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.4001052908660201
-        }
-      ],
-      "strategy_count": 2
     }
   ],
   "exec_log_raw_count": 200,
