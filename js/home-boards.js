@@ -356,10 +356,11 @@
   }
 
   async function loadLeaderboard() {
+    const stamp = Date.now();
     const urls = [
-      cfg.leaderboardUrl || "./leaderboard.json",
-      "/quantsite/leaderboard.json",
-      "./leaderboard.json",
+      cfg.leaderboardUrl || "./leaderboard.json?t=" + stamp,
+      "./leaderboard.json?t=" + stamp,
+      "/leaderboard.json?t=" + stamp,
     ];
     for (let i = 0; i < urls.length; i++) {
       try {

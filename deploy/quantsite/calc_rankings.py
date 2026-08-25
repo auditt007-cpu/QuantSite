@@ -794,11 +794,28 @@ def write_outputs(payload):
     if STATIC_PATH != OUT_PATH:
         with open(STATIC_PATH, "w", encoding="utf-8") as fh:
             fh.write(raw)
+    WWW_LB = "/var/www/html/leaderboard.json"
+    try:
+        os.makedirs("/var/www/html", exist_ok=True)
+        with open(WWW_LB, "w", encoding="utf-8") as fh:
+            fh.write(raw)
+        log("wrote {0}".format(WWW_LB))
+    except OSError as exc:
+        log("www leaderboard skip: {0}".format(exc))
+    try:
+        from utils import git_sync
+
+        git_sync.sync_to_github(
+            files_to_push=["leaderboard.json"],
+            commit_msg="Auto: daily leaderboard",
+        )
+    except Exception as exc:
+        log("leaderboard pages sync skip: {0}".format(exc))
     log(
         "wrote {0} (rows={1} engines={2} wr_board={3})".format(
             OUT_PATH,
-            len(payload["strategies"]),
-            len(payload["by_engine"]),
+            len(payload.get("strategies") or []),
+            len(payload.get("by_engine") or {}),
             len(payload.get("wr_board") or []),
         )
     )

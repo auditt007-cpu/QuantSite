@@ -84,6 +84,10 @@ LIVE_ROOM_SYMBOLS = [
 # Per-strategy tape cap: prefer these when multiple symbols fire same cycle
 PRIORITY_SYMBOLS = ["BTCUSDT", "ETHUSDT", "SOLUSDT"]
 MAX_TAPE_EVENTS_PER_STRATEGY = 3
+TG_CHANNEL_TF = "1h"
+TG_MAX_MESSAGES = 2
+TG_COOLDOWN_SEC = 30 * 60
+TG_LAST_SENT = {}
 TIMEFRAMES = ("15m", "1h")
 POLL_SEC = 60
 FEED_PUBLISH_SEC = 5
@@ -1744,40 +1748,42 @@ def _esc(s):
 
 def format_symbol_row(ev):
     coin = ev["sym"].replace("USDT", "")
-    return (
-        "• <b>{0}/USDT</b>\n"
-        "  現價：<code>{1}</code> ｜ 止損：<code>{2:.1f}%</code> ｜ 止盈：<code>{3:+.1f}%</code>"
-    ).format(_esc(coin), _esc(fmt_px(ev["px"])), ev["sl_pct"], ev["tp_pct"])
+    return "• {0} <code>{1}</code>  SL {2:.1f}%  TP {3:+.1f}%".format(
+        _esc(coin), _esc(fmt_px(ev["px"])), ev["sl_pct"], ev["tp_pct"]
+    )
 
 
 def format_batch_message(group_events):
-    """One Telegram card for a (strategy, side, tf) batch."""
+    """Compact card: one (timeframe, side) batch, several coins, few strategy names."""
     if not group_events:
         return ""
     head = group_events[0]
-    name = head.get("strat_name") or "量化策略"
+    names = []
+    seen = set()
+    for e in group_events:
+        n = e.get("strat_name") or "策略"
+        if n in seen:
+            continue
+        seen.add(n)
+        names.append(n)
+    shown = names[:3]
+    extra = len(names) - len(shown)
+    name_bit = " / ".join(_esc(n) for n in shown)
+    if extra:
+        name_bit += " +{0}".format(extra)
     tf_label = str(head.get("tf") or "1h").upper()
     side = head["side"]
-    # Prefer open/flip label from the first event; if any flip, use flip wording when all flip.
     flips = [e for e in group_events if e.get("prev_side") and e.get("prev_side") != e["side"]]
-    if flips and len(flips) == len(group_events):
-        act = action_label(side, flips[0].get("prev_side"))
-    else:
-        act = action_label(side, None)
-    ts_ms = int(time.time() * 1000)
-    tw = fmt_tw_time_ms(ts_ms)
-    rows = "\n\n".join(format_symbol_row(e) for e in group_events)
+    act = action_label(side, flips[0].get("prev_side") if len(flips) == len(group_events) and flips else None)
+    tw = fmt_tw_time_ms(int(time.time() * 1000))
+    rows = "\n".join(format_symbol_row(e) for e in group_events[:8])
     return (
-        "🚨 <b>【實盤信號觸發】量化共振波段</b>\n"
-        "📌 <b>策略模型</b>：{0} ({1})\n"
-        "⚡ <b>操作方向</b>：{2} {3}\n"
-        "⏱️ <b>觸發時間</b>：<code>{4} (UTC+8)</code>\n"
-        "\n"
-        "━━━━━━━━━━━━━━━━━━━\n"
+        "{0} <b>{1} · {2}</b>\n"
+        "{3}\n"
+        "<code>{4}</code>\n"
         "{5}\n"
-        "━━━━━━━━━━━━━━━━━━━\n"
-        "💡 <i>風控提示：嚴格執行分批止盈，單筆倉位建議不超過總資金 5%。</i>"
-    ).format(_esc(name), _esc(tf_label), action_emoji(side), _esc(act), _esc(tw), rows)
+        "<i>研究信號，非投資建議</i>"
+    ).format(action_emoji(side), _esc(tf_label), _esc(act), name_bit, _esc(tw), rows)
 
 
 def send_tg_signal(strat, sym, side, px, sl, tp, bar_ts, src, prev_side=None):
@@ -1801,21 +1807,54 @@ def format_alert(strat, sym, side, px, sl, tp, bar_ts, src, prev_side=None):
     return send_tg_signal(strat, sym, side, px, sl, tp, bar_ts, src, prev_side=prev_side)
 
 
+def _tg_cooldown_ok(ev):
+    key = (ev.get("sym"), ev.get("side"))
+    now = time.time()
+    last = TG_LAST_SENT.get(key) or 0
+    if now - last < TG_COOLDOWN_SEC:
+        return False
+    TG_LAST_SENT[key] = now
+    return True
+
+
+def events_for_telegram(events):
+    """1h opens only, cooldown per coin/side, drop 15m noise from the channel."""
+    out = []
+    for ev in events or []:
+        if str(ev.get("tf") or "") != TG_CHANNEL_TF:
+            continue
+        if ev.get("heartbeat"):
+            continue
+        if not _tg_cooldown_ok(ev):
+            continue
+        out.append(ev)
+    return out
+
+
 def aggregate_events(events):
-    """Group by (strategy name, side, timeframe); preserve discovery order of groups."""
+    """Group by (side, timeframe); one card per direction."""
     buckets = {}
     order = []
     for ev in events:
-        key = (ev["strat_name"], ev["side"], ev["tf"])
+        key = (ev["side"], ev["tf"])
         if key not in buckets:
             buckets[key] = []
             order.append(key)
         buckets[key].append(ev)
     messages = []
     for key in order:
-        msg = format_batch_message(buckets[key])
+        group = buckets[key]
+        best = {}
+        for ev in group:
+            sym = ev.get("sym")
+            if sym not in best:
+                best[sym] = ev
+        collapsed = list(best.values())
+        msg = format_batch_message(collapsed)
         if msg:
             messages.append(msg)
+        if len(messages) >= TG_MAX_MESSAGES:
+            break
     return messages
 
 
@@ -2099,7 +2138,8 @@ def cycle():
         log("no new tg events this tick")
         return 0
 
-    messages = aggregate_events(events)
+    tg_events = events_for_telegram(events)
+    messages = aggregate_events(tg_events)
     sent = 0
     for msg in messages:
         if not msg or not str(msg).strip():

@@ -158,14 +158,21 @@ def main():
         "llm_pipeline/publish.py",
         "scripts/run_pipeline_cron.sh",
         "scripts/install_hub.sh",
+        "scripts/ops_watch.py",
+        "scripts/plaza_hygiene.py",
+        "scripts/daily_desk.sh",
+        "utils/__init__.py",
+        "utils/git_sync.py",
         "deploy/quantsite/quant-hub.service",
         "deploy/quantsite/nginx-hub.conf",
         "deploy/quantsite/tg_engine.py",
+        "deploy/quantsite/calc_rankings.py",
     ]
     web_files = [
         "js/lead-bind.js",
         "js/plaza-ai.js",
         "js/terminal.js",
+        "js/home-boards.js",
         "config.js",
         "index.html",
         "live.html",
@@ -177,11 +184,16 @@ def main():
     for rel in py_files:
         sftp_put(sftp, REPO / rel, posixpath.join(REMOTE_APP, rel.replace("\\", "/")))
     sftp_put(sftp, REPO / "deploy/quantsite/tg_engine.py", posixpath.join(REMOTE_APP, "tg_engine.py"))
+    sftp_put(sftp, REPO / "deploy/quantsite/calc_rankings.py", posixpath.join(REMOTE_APP, "calc_rankings.py"))
     for rel in web_files:
         sftp_put(sftp, REPO / rel, posixpath.join(REMOTE_WWW, rel.replace("\\", "/")))
 
     merge_env_remote(ssh, sftp)
-    run(ssh, "chmod +x {0}/scripts/run_pipeline_cron.sh {0}/scripts/install_hub.sh".format(REMOTE_APP))
+    run(
+        ssh,
+        "chmod +x {0}/scripts/run_pipeline_cron.sh {0}/scripts/install_hub.sh "
+        "{0}/scripts/daily_desk.sh {0}/scripts/ops_watch.py {0}/scripts/plaza_hygiene.py".format(REMOTE_APP),
+    )
     run(
         ssh,
         "python3 -m pip install -q -r {0}/requirements.txt".format(REMOTE_APP),
@@ -192,10 +204,12 @@ def main():
     patch_nginx(ssh)
     run(
         ssh,
-        "(crontab -l 2>/dev/null | grep -v run_pipeline_cron.sh; "
-        "echo '0 2,8,14,20 * * * {0}/scripts/run_pipeline_cron.sh >> /var/log/quant-pipeline.log 2>&1') | crontab -".format(REMOTE_APP),
+        "(crontab -l 2>/dev/null | grep -v run_pipeline_cron.sh | grep -v calc_rankings.py | grep -v ops_watch.py | grep -v daily_desk.sh; "
+        "echo '0 2,8,14,20 * * * {0}/scripts/run_pipeline_cron.sh >> /var/log/quant-pipeline.log 2>&1'; "
+        "echo '0 0 * * * {0}/scripts/daily_desk.sh'; "
+        "echo '*/5 * * * * /usr/bin/python3 {0}/scripts/ops_watch.py >> /var/log/quant-ops-watch.log 2>&1') | crontab -".format(REMOTE_APP),
     )
-    run(ssh, "crontab -l | grep run_pipeline_cron || true")
+    run(ssh, "crontab -l | grep -E 'pipeline|daily_desk|ops_watch' || true")
     run(ssh, "systemctl daemon-reload && systemctl enable quant-hub && systemctl restart quant-hub")
     run(ssh, "sleep 2 && systemctl is-active quant-hub && curl -sS http://127.0.0.1:8088/health")
     run(
@@ -225,26 +239,21 @@ def main():
         "print('welcome_zh', '歡迎' in welcome_text())\n"
         "PY".format(REMOTE_APP),
     )
-    run(ssh, "sed -i 's/\\r$//' {0}/scripts/run_pipeline_cron.sh && chmod +x {0}/scripts/run_pipeline_cron.sh {0}/tg_engine.py".format(REMOTE_APP))
+    run(ssh, "sed -i 's/\\r$//' {0}/scripts/run_pipeline_cron.sh {0}/scripts/daily_desk.sh && chmod +x {0}/scripts/run_pipeline_cron.sh {0}/scripts/daily_desk.sh {0}/tg_engine.py {0}/calc_rankings.py".format(REMOTE_APP))
     run(ssh, "python3 -m py_compile {0}/tg_engine.py".format(REMOTE_APP))
     run(ssh, "systemctl restart tg-bot; sleep 1; systemctl is-active tg-bot || systemctl is-active tg-bot.service || true")
     run(
         ssh,
-        "echo '== crontab =='; crontab -l; echo '== json headers =='; "
-        "curl -sSI http://127.0.0.1/strategies.json | tr -d '\\r' | grep -iE 'HTTP/|cache-control|content-type|pragma'; "
-        "echo '== json body =='; "
         "python3 - <<'PY'\n"
-        "import json,urllib.request\n"
-        "u='http://127.0.0.1/strategies.json?t=1'\n"
-        "req=urllib.request.Request(u, headers={'Cache-Control':'no-cache'})\n"
-        "raw=urllib.request.urlopen(req, timeout=10).read().decode('utf-8','replace')\n"
-        "d=json.loads(raw)\n"
-        "rows=d.get('strategies') or []\n"
-        "print('count', len(rows))\n"
-        "print('top_id', rows[0].get('id') if rows else None)\n"
-        "print('top_name', (rows[0].get('title') or rows[0].get('name')) if rows else None)\n"
-        "print('has_chart', bool(rows and (rows[0].get('chart') or rows[0].get('chart_url'))))\n"
-        "print('keys', sorted((rows[0] or {}).keys()) if rows else [])\n"
+        "import json\n"
+        "from pathlib import Path\n"
+        "p=Path('/var/www/html/strategies.json')\n"
+        "print('www_json', p.is_file())\n"
+        "if p.is_file():\n"
+        "    d=json.loads(p.read_text(encoding='utf-8'))\n"
+        "    rows=d.get('strategies') or []\n"
+        "    print('count', len(rows))\n"
+        "    print('top_name', (rows[0].get('title') or rows[0].get('name')) if rows else None)\n"
         "PY",
     )
     sftp.close()

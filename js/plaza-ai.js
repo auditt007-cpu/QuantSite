@@ -69,6 +69,7 @@
       code: row.code,
       category: row.category || "",
       engine: row.engine || row.engine_id || "",
+      listed: row.listed,
     };
   }
 
@@ -296,7 +297,10 @@
         const payload = await res.json();
         const raw = payload.strategies || payload.items || payload || [];
         if (!Array.isArray(raw)) continue;
-        return raw.map(normalizeRow).filter(Boolean);
+        return raw
+          .map(normalizeRow)
+          .filter(Boolean)
+          .filter((row) => row.listed !== false && row.listed !== "false");
       } catch {
         /* try next */
       }
