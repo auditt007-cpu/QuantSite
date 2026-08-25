@@ -1,8 +1,60 @@
 {
-  "updated_at": "2026-08-25T16:34:26Z",
+  "updated_at": "2026-08-25T16:36:13Z",
   "venue": "coinbase",
   "poll_sec": 5,
   "exec_log": [
+    {
+      "kind": "batch",
+      "name_zh": "5m動能微破",
+      "interval": "5m",
+      "side": "LONG",
+      "action": "空頭平倉翻多 (BUY)",
+      "logged_at": 1787675704,
+      "bar_ts": 1787675400,
+      "event": "open",
+      "strategy_id": "hb-roc5",
+      "symbols": [
+        {
+          "symbol": "ONDOUSDT",
+          "price": 0.37206,
+          "sl_pct": -0.409342579153899,
+          "tp_pct": 0.818685158307798,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "5m動能微破",
+      "interval": "5m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787675703,
+      "bar_ts": 1787675400,
+      "event": "close",
+      "strategy_id": "hb-roc5",
+      "symbols": [
+        {
+          "symbol": "DOGEUSDT",
+          "price": 0.08918,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "ONDOUSDT",
+          "price": 0.37206,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 2
+    },
     {
       "kind": "batch",
       "name_zh": "布林微破",
@@ -627,50 +679,6 @@
           "tp_pct": 1.0996595625612082,
           "event": "open",
           "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "ROC動能",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787675413,
-      "bar_ts": 1787674500,
-      "event": "open",
-      "strategy_id": "strat-007",
-      "symbols": [
-        {
-          "symbol": "DOGEUSDT",
-          "price": 0.08885,
-          "sl_pct": -0.5244794597636401,
-          "tp_pct": 1.0478334271243683,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "EMA快線交叉",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787675413,
-      "bar_ts": 1787674500,
-      "event": "close",
-      "strategy_id": "strat-012",
-      "symbols": [
-        {
-          "symbol": "AVAXUSDT",
-          "price": 7.49,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.3061360308798042
         }
       ],
       "strategy_count": 1
