@@ -377,6 +377,7 @@
     }
     if (!base) return "";
     // Bust CDN cache when chart palette / content updates.
+    if (base.indexOf("v=202608252320-light") >= 0) return base;
     const sep = base.indexOf("?") >= 0 ? "&" : "?";
     return base + sep + "v=202608252320-light";
   }
