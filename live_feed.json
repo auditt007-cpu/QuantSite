@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-25T02:56:24Z",
+  "updated_at": "2026-08-25T02:58:50Z",
   "period_hours": 3,
   "poll_sec": 5,
   "scan_tf": "15m+1h",
@@ -1954,6 +1954,250 @@
   "exec_log": [
     {
       "kind": "batch",
+      "name_zh": "量均突破",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "多頭平倉翻空 (SELL)",
+      "logged_at": 1787626665,
+      "bar_ts": 1787625900,
+      "event": "open",
+      "strategy_id": "vol_ma_15m_39",
+      "symbols": [
+        {
+          "symbol": "AVAXUSDT",
+          "price": 7.703,
+          "sl_pct": -0.6247046605218756,
+          "tp_pct": 1.249396339088667,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "price": 0.09267,
+          "sl_pct": -0.6496169202546578,
+          "tp_pct": 1.2981547426351523,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "NEARUSDT",
+          "price": 1.9936,
+          "sl_pct": -0.9756721508828192,
+          "tp_pct": 1.9513443017656495,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 3
+    },
+    {
+      "kind": "batch",
+      "name_zh": "成交量價差VSA",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "多頭平倉翻空 (SELL)",
+      "logged_at": 1787626666,
+      "bar_ts": 1787625900,
+      "event": "open",
+      "strategy_id": "vsa_15m_27",
+      "symbols": [
+        {
+          "symbol": "AVAXUSDT",
+          "price": 7.703,
+          "sl_pct": -0.6247046605218756,
+          "tp_pct": 1.249396339088667,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "price": 0.09267,
+          "sl_pct": -0.6496169202546578,
+          "tp_pct": 1.2981547426351523,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "NEARUSDT",
+          "price": 1.9936,
+          "sl_pct": -0.9756721508828192,
+          "tp_pct": 1.9513443017656495,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 3
+    },
+    {
+      "kind": "batch",
+      "name_zh": "量均突破",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787626665,
+      "bar_ts": 1787625900,
+      "event": "close",
+      "strategy_id": "vol_ma_15m_39",
+      "symbols": [
+        {
+          "symbol": "AVAXUSDT",
+          "price": null,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.11670124481327092
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "price": null,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": 1.522787028922001
+        },
+        {
+          "symbol": "NEARUSDT",
+          "price": null,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.6181455633100571
+        },
+        {
+          "symbol": "ETHUSDT",
+          "price": null,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": 0.7754234404461327
+        },
+        {
+          "symbol": "BTCUSDT",
+          "price": null,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": 1.1887145937849766
+        }
+      ],
+      "strategy_count": 5
+    },
+    {
+      "kind": "batch",
+      "name_zh": "成交量價差VSA",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787626664,
+      "bar_ts": 1787625900,
+      "event": "close",
+      "strategy_id": "vsa_15m_27",
+      "symbols": [
+        {
+          "symbol": "AVAXUSDT",
+          "price": null,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.11670124481327092
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "price": null,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": 2.635950825119069
+        },
+        {
+          "symbol": "NEARUSDT",
+          "price": null,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.6181455633100571
+        },
+        {
+          "symbol": "ETHUSDT",
+          "price": null,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": 0.7625154604512723
+        },
+        {
+          "symbol": "BTCUSDT",
+          "price": null,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": 1.2284824824922664
+        }
+      ],
+      "strategy_count": 5
+    },
+    {
+      "kind": "batch",
+      "name_zh": "量均突破",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787626591,
+      "bar_ts": 1787625900,
+      "event": "close",
+      "strategy_id": "vol_ma_15m_39",
+      "symbols": [
+        {
+          "symbol": "AVAXUSDT",
+          "price": null,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.11683759574191163
+        },
+        {
+          "symbol": "NEARUSDT",
+          "price": null,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.6219903691813675
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
+      "name_zh": "成交量價差VSA",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787626591,
+      "bar_ts": 1787625900,
+      "event": "close",
+      "strategy_id": "vsa_15m_27",
+      "symbols": [
+        {
+          "symbol": "AVAXUSDT",
+          "price": null,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.11683759574191163
+        },
+        {
+          "symbol": "NEARUSDT",
+          "price": null,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.6219903691813675
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
       "name_zh": "5m動能微破",
       "interval": "5m",
       "side": "SHORT",
@@ -2050,158 +2294,6 @@
     },
     {
       "kind": "batch",
-      "name_zh": "量均突破",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787626255,
-      "bar_ts": 1787625900,
-      "event": "open",
-      "strategy_id": "vol_ma_15m_39",
-      "symbols": [
-        {
-          "symbol": "NEARUSDT",
-          "price": 1.9936,
-          "sl_pct": -0.9756721508828192,
-          "tp_pct": 1.9513443017656495,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "AVAXUSDT",
-          "price": 7.703,
-          "sl_pct": -0.6247046605218756,
-          "tp_pct": 1.249396339088667,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "成交量價差VSA",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787626256,
-      "bar_ts": 1787625900,
-      "event": "open",
-      "strategy_id": "vsa_15m_27",
-      "symbols": [
-        {
-          "symbol": "NEARUSDT",
-          "price": 1.9936,
-          "sl_pct": -0.9756721508828192,
-          "tp_pct": 1.9513443017656495,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "AVAXUSDT",
-          "price": 7.703,
-          "sl_pct": -0.6247046605218756,
-          "tp_pct": 1.249396339088667,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "量均突破",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787626254,
-      "bar_ts": 1787625900,
-      "event": "close",
-      "strategy_id": "vol_ma_15m_39",
-      "symbols": [
-        {
-          "symbol": "NEARUSDT",
-          "price": null,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.6181455633100571
-        },
-        {
-          "symbol": "AVAXUSDT",
-          "price": null,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.11670124481327092
-        },
-        {
-          "symbol": "ETHUSDT",
-          "price": null,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.7754234404461327
-        },
-        {
-          "symbol": "BTCUSDT",
-          "price": null,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 1.1887145937849766
-        }
-      ],
-      "strategy_count": 4
-    },
-    {
-      "kind": "batch",
-      "name_zh": "成交量價差VSA",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787626255,
-      "bar_ts": 1787625900,
-      "event": "close",
-      "strategy_id": "vsa_15m_27",
-      "symbols": [
-        {
-          "symbol": "NEARUSDT",
-          "price": null,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.6181455633100571
-        },
-        {
-          "symbol": "AVAXUSDT",
-          "price": null,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.11670124481327092
-        },
-        {
-          "symbol": "ETHUSDT",
-          "price": null,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.7625154604512723
-        },
-        {
-          "symbol": "BTCUSDT",
-          "price": null,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 1.2284824824922664
-        }
-      ],
-      "strategy_count": 4
-    },
-    {
-      "kind": "batch",
       "name_zh": "5m動能微破",
       "interval": "5m",
       "side": "LONG",
@@ -2278,66 +2370,6 @@
           "tp_pct": 0.9014522821576854,
           "event": "open",
           "pnl_pct": null
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "量均突破",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787626185,
-      "bar_ts": 1787625900,
-      "event": "close",
-      "strategy_id": "vol_ma_15m_39",
-      "symbols": [
-        {
-          "symbol": "NEARUSDT",
-          "price": null,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.6219903691813675
-        },
-        {
-          "symbol": "AVAXUSDT",
-          "price": null,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.1558441558441502
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "成交量價差VSA",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787626184,
-      "bar_ts": 1787625900,
-      "event": "close",
-      "strategy_id": "vsa_15m_27",
-      "symbols": [
-        {
-          "symbol": "NEARUSDT",
-          "price": null,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.6219903691813675
-        },
-        {
-          "symbol": "AVAXUSDT",
-          "price": null,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.1558441558441502
         }
       ],
       "strategy_count": 2
