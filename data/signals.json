@@ -1,8 +1,120 @@
 {
-  "updated_at": "2026-08-25T11:15:17Z",
+  "updated_at": "2026-08-25T11:17:21Z",
   "venue": "coinbase",
   "poll_sec": 5,
   "exec_log": [
+    {
+      "kind": "batch",
+      "name_zh": "複合動能確認",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "多頭平倉翻空 (SELL)",
+      "logged_at": 1787656581,
+      "bar_ts": 1787656500,
+      "event": "open",
+      "strategy_id": "combo_15m_41",
+      "symbols": [
+        {
+          "symbol": "SHIBUSDT",
+          "price": 5.46e-06,
+          "sl_pct": -8.424908424908422,
+          "tp_pct": 8.424908424908422,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "樞軸點突破",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "多頭平倉翻空 (SELL)",
+      "logged_at": 1787656582,
+      "bar_ts": 1787656500,
+      "event": "open",
+      "strategy_id": "pivot_15m_35",
+      "symbols": [
+        {
+          "symbol": "SHIBUSDT",
+          "price": 5.46e-06,
+          "sl_pct": -8.424908424908422,
+          "tp_pct": 8.424908424908422,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "ETHUSDT",
+          "price": 2474.59,
+          "sl_pct": -0.4059415499133144,
+          "tp_pct": 0.8118830998266472,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
+      "name_zh": "複合動能確認",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787656581,
+      "bar_ts": 1787656500,
+      "event": "close",
+      "strategy_id": "combo_15m_41",
+      "symbols": [
+        {
+          "symbol": "SHIBUSDT",
+          "price": 5.46e-06,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.36496350364963154
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "樞軸點突破",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787656580,
+      "bar_ts": 1787656500,
+      "event": "close",
+      "strategy_id": "pivot_15m_35",
+      "symbols": [
+        {
+          "symbol": "SHIBUSDT",
+          "price": 5.46e-06,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.36496350364963154
+        },
+        {
+          "symbol": "BNBUSDT",
+          "price": 697.71,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.33710914622823623
+        },
+        {
+          "symbol": "ETHUSDT",
+          "price": 2474.59,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.277255014164977
+        }
+      ],
+      "strategy_count": 3
+    },
     {
       "kind": "batch",
       "name_zh": "Dual Thrust",
@@ -95,36 +207,6 @@
           "tp_pct": null,
           "event": "close",
           "pnl_pct": 1.3128729752770665
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "樞軸點突破",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787656522,
-      "bar_ts": 1787656500,
-      "event": "close",
-      "strategy_id": "pivot_15m_35",
-      "symbols": [
-        {
-          "symbol": "BNBUSDT",
-          "price": 697.71,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.33710914622823623
-        },
-        {
-          "symbol": "ETHUSDT",
-          "price": 2474.59,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.277255014164977
         }
       ],
       "strategy_count": 2
@@ -278,28 +360,6 @@
           "sl_pct": null,
           "tp_pct": null,
           "event": "close",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "樞軸點突破",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787656518,
-      "bar_ts": 1787656500,
-      "event": "open",
-      "strategy_id": "pivot_15m_35",
-      "symbols": [
-        {
-          "symbol": "ETHUSDT",
-          "price": 2474.59,
-          "sl_pct": -0.4059415499133144,
-          "tp_pct": 0.8118830998266472,
-          "event": "open",
           "pnl_pct": null
         }
       ],
@@ -529,50 +589,6 @@
           "price": 0.09571,
           "sl_pct": -0.614355866680603,
           "tp_pct": 1.2276669104586726,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "量均突破",
-      "interval": "1h",
-      "side": "LONG",
-      "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787655823,
-      "bar_ts": 1787655600,
-      "event": "open",
-      "strategy_id": "vol_ma_1h_40",
-      "symbols": [
-        {
-          "symbol": "OPUSDT",
-          "price": 0.10485,
-          "sl_pct": -1.6490224129709055,
-          "tp_pct": 3.2980448259418247,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "成交量價差VSA",
-      "interval": "1h",
-      "side": "LONG",
-      "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787655822,
-      "bar_ts": 1787655600,
-      "event": "open",
-      "strategy_id": "vsa_1h_28",
-      "symbols": [
-        {
-          "symbol": "OPUSDT",
-          "price": 0.10485,
-          "sl_pct": -1.6490224129709055,
-          "tp_pct": 3.2980448259418247,
           "event": "open",
           "pnl_pct": null
         }
