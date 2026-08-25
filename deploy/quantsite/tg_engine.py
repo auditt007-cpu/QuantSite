@@ -1661,17 +1661,20 @@ def maybe_sync_pages(payload):
         try:
             from utils.git_sync import sync_to_github
 
+            stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M")
+            # Tape first — never let optional registry kill Pages freshness.
             status = sync_to_github(
-                [
-                    "live_feed.json",
-                    "data/signals.json",
-                    "plaza_live_registry.json",
-                ],
-                commit_msg="Auto: live tape [{0}]".format(
-                    datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M")
-                ),
+                ["live_feed.json", "data/signals.json"],
+                commit_msg="Auto: live tape [{0}]".format(stamp),
             )
             log("pages sync {0}".format(status))
+            try:
+                sync_to_github(
+                    ["plaza_live_registry.json"],
+                    commit_msg="Auto: plaza live registry [{0}]".format(stamp),
+                )
+            except Exception as reg_exc:
+                log("plaza registry pages sync skip: {0}".format(reg_exc))
         except Exception as exc:
             log("pages sync skip: {0}".format(exc))
 
