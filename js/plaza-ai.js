@@ -367,11 +367,18 @@
 
   function chartUrl(row) {
     const u = row.chart_url || row.chart || row.chart_svg;
-    if (u) return u;
-    const id = String(row.id || "");
-    if (!id) return "";
-    const file = id.indexOf("ai_") === 0 ? id : "ai_" + id;
-    return "./static/charts/" + file + ".svg";
+    let base = "";
+    if (u) base = String(u);
+    else {
+      const id = String(row.id || "");
+      if (!id) return "";
+      const file = id.indexOf("ai_") === 0 ? id : "ai_" + id;
+      base = "./static/charts/" + file + ".svg";
+    }
+    if (!base) return "";
+    // Bust CDN cache when chart palette / content updates.
+    const sep = base.indexOf("?") >= 0 ? "&" : "?";
+    return base + sep + "v=202608252320-light";
   }
 
   function displayName(row) {
