@@ -1,8 +1,52 @@
 {
-  "updated_at": "2026-08-25T21:49:39Z",
+  "updated_at": "2026-08-25T21:52:42Z",
   "venue": "coinbase",
   "poll_sec": 5,
   "exec_log": [
+    {
+      "kind": "batch",
+      "name_zh": "布林微破",
+      "interval": "5m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787694763,
+      "bar_ts": 1787694300,
+      "event": "open",
+      "strategy_id": "hb-bb5",
+      "symbols": [
+        {
+          "symbol": "NEARUSDT",
+          "price": 1.8644,
+          "sl_pct": -0.45242437245226186,
+          "tp_pct": 0.9048487449045356,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "5m動能微破",
+      "interval": "5m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787694762,
+      "bar_ts": 1787694300,
+      "event": "open",
+      "strategy_id": "hb-roc5",
+      "symbols": [
+        {
+          "symbol": "SUIUSDT",
+          "price": 0.7611,
+          "sl_pct": -0.5682564708973884,
+          "tp_pct": 1.1366443305741643,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
     {
       "kind": "batch",
       "name_zh": "布林微破",
@@ -678,50 +722,6 @@
         }
       ],
       "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "肯特納快",
-      "interval": "1h",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787693630,
-      "bar_ts": 1787688000,
-      "event": "open",
-      "strategy_id": "strat-025",
-      "symbols": [
-        {
-          "symbol": "SUIUSDT",
-          "price": 0.7749,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "唐奇安14",
-      "interval": "1h",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787693630,
-      "bar_ts": 1787688000,
-      "event": "close",
-      "strategy_id": "strat-024",
-      "symbols": [
-        {
-          "symbol": "SUIUSDT",
-          "price": 0.7556,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 2.36
-        }
-      ],
-      "strategy_count": 1
     }
   ],
   "exec_log_raw_count": 200,
