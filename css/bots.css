@@ -735,8 +735,44 @@ body.bots-page .wrap {
   body.bots-page .ticker-pill .tp-px {
     display: none;
   }
-  body.bots-page .site-foot {
-    display: none;
+  body.bots-page .site-foot,
+  body.bots-page footer,
+  body.bots-page .risk-banner,
+  body.bots-page .legal-strip {
+    display: none !important;
+  }
+  body.bots-page .ticker-bar,
+  body.bots-page .ticker-track {
+    background: #fff !important;
+    border: 0 !important;
+    min-height: 0 !important;
+  }
+  body.bots-page .ticker-pill,
+  body.bots-page .ticker-bar .ticker-pill {
+    background: #f5f7fa !important;
+    border: 1px solid rgba(0, 0, 0, 0.03) !important;
+    border-radius: 40px !important;
+    color: rgba(26, 29, 38, 0.55) !important;
+    box-shadow: none !important;
+  }
+  body.bots-page .ticker-pill .tp-chg.is-up,
+  body.bots-page .ticker-pill .tp-chg {
+    color: #00a86b !important;
+  }
+  body.bots-page .topbar {
+    background: #fff !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04) !important;
+    color: #1a1d26 !important;
+  }
+  body.bots-page .topbar .brand h1,
+  body.bots-page .topbar .brand-text h1 {
+    color: #1a1d26 !important;
+  }
+  body.bots-page .auth-btn,
+  body.bots-page .nav-toggle {
+    color: #1a1d26 !important;
+    border-color: rgba(0, 0, 0, 0.08) !important;
+    background: #fff !important;
   }
 
   .bots-hero {
