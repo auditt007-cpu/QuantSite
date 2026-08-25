@@ -257,6 +257,16 @@ body.bots-page .wrap {
   font-weight: 800;
   color: #000;
   margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+  transition: none;
+}
+
+.bot-kpi-val.data-updated-up {
+  animation: greenFlash 0.45s ease-out;
+}
+
+.bot-kpi-val.data-updated-down {
+  animation: redFlash 0.45s ease-out;
 }
 
 .bot-kpi-val.is-up { color: #0f7b3a; }

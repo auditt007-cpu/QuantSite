@@ -510,6 +510,11 @@
     return gen === state.speakGen;
   }
 
+  function edgeOnlyVoiceLang() {
+    const L = voiceLang();
+    return L === "zh-CN" || L === "en";
+  }
+
   function speakLine(text, gen) {
     return new Promise(async (resolve) => {
       if (!text) return resolve();
@@ -517,12 +522,10 @@
 
       const edge = window.QAEdgeSpeak;
       if (edge && edge.speak) {
-        try {
-          await edge.speak(text, voiceLang(), gen, speakAlive);
-          return resolve();
-        } catch {
-          /* hub Edge-TTS unavailable — fall through */
-        }
+        const ok = await edge.speak(text, voiceLang(), gen, speakAlive);
+        if (ok || edgeOnlyVoiceLang()) return resolve();
+      } else if (edgeOnlyVoiceLang()) {
+        return resolve();
       }
 
       if (!window.speechSynthesis) return resolve();

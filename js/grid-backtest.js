@@ -746,28 +746,109 @@
     });
   }
 
+  const kpiPrev = { apy: null, trades: null, sharpe: null, mdd: null };
+  const kpiRaf = {};
+
+  function easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
+  }
+
+  function animateKpi(el, from, to, opts) {
+    if (!el) return;
+    const id = el.id;
+    if (kpiRaf[id]) {
+      cancelAnimationFrame(kpiRaf[id]);
+      kpiRaf[id] = 0;
+    }
+    const fmt = opts.fmt;
+    if (from == null || !Number.isFinite(from) || from === to) {
+      el.textContent = fmt(to);
+      if (from != null && Number.isFinite(from) && from !== to && root.QAUi) {
+        root.QAUi.flash(el, !!opts.down);
+      }
+      return;
+    }
+    const start = performance.now();
+    const dur = 520;
+    const step = function (now) {
+      const t = Math.min(1, (now - start) / dur);
+      const v = from + (to - from) * easeOutCubic(t);
+      el.textContent = fmt(v);
+      if (t < 1) {
+        kpiRaf[id] = requestAnimationFrame(step);
+      } else {
+        el.textContent = fmt(to);
+        kpiRaf[id] = 0;
+        if (root.QAUi) root.QAUi.flash(el, !!opts.down);
+      }
+    };
+    kpiRaf[id] = requestAnimationFrame(step);
+  }
+
   function paintStats(res) {
     const apy = $("botApy");
     const n = $("botTrades");
     const sh = $("botSharpe");
     const dd = $("botDd");
     if (!res || !res.ok) {
+      kpiPrev.apy = null;
+      kpiPrev.trades = null;
+      kpiPrev.sharpe = null;
+      kpiPrev.mdd = null;
       if (apy) apy.textContent = "—";
       if (n) n.textContent = "—";
       if (sh) sh.textContent = "—";
       if (dd) dd.textContent = "—";
       return;
     }
-    if (apy) {
-      apy.textContent = fmtPct(res.apy, 1);
+    let changed = false;
+    if (apy && res.apy !== kpiPrev.apy) {
+      changed = true;
+      const prev = kpiPrev.apy;
+      animateKpi(apy, prev, res.apy, {
+        fmt: function (v) {
+          return fmtPct(v, 1);
+        },
+        down: Number.isFinite(prev) && res.apy < prev,
+      });
       apy.className = "bot-kpi-val " + (res.apy >= 0 ? "is-up" : "is-down");
+      kpiPrev.apy = res.apy;
     }
-    if (n) n.textContent = String(res.trades);
-    if (sh) sh.textContent = Number.isFinite(res.sharpe) ? res.sharpe.toFixed(2) : "—";
-    if (dd) {
-      dd.textContent = (res.mdd * 100).toFixed(1) + "%";
+    if (n && res.trades !== kpiPrev.trades) {
+      changed = true;
+      const prev = kpiPrev.trades;
+      animateKpi(n, prev, res.trades, {
+        fmt: function (v) {
+          return String(Math.round(v));
+        },
+        down: Number.isFinite(prev) && res.trades < prev,
+      });
+      kpiPrev.trades = res.trades;
+    }
+    if (sh && res.sharpe !== kpiPrev.sharpe) {
+      changed = true;
+      const prev = kpiPrev.sharpe;
+      animateKpi(sh, prev, res.sharpe, {
+        fmt: function (v) {
+          return Number.isFinite(v) ? v.toFixed(2) : "—";
+        },
+        down: Number.isFinite(prev) && res.sharpe < prev,
+      });
+      kpiPrev.sharpe = res.sharpe;
+    }
+    if (dd && res.mdd !== kpiPrev.mdd) {
+      changed = true;
+      const prev = kpiPrev.mdd;
+      animateKpi(dd, prev, res.mdd, {
+        fmt: function (v) {
+          return Number.isFinite(v) ? (v * 100).toFixed(1) + "%" : "—";
+        },
+        down: Number.isFinite(prev) && res.mdd < prev,
+      });
       dd.className = "bot-kpi-val is-down";
+      kpiPrev.mdd = res.mdd;
     }
+    if (changed) vibrateLite();
     chartData = {
       eq: res.equity,
       marks: res.marks,

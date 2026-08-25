@@ -1,6 +1,6 @@
 /**
  * Live-room speech via hub Edge-TTS (MP3 → HTML5 Audio).
- * Keeps playback alive on mobile lock-screen better than speechSynthesis.
+ * Passes explicit Edge voice IDs so zh-CN / en stay male.
  */
 (function (root) {
   const CACHE_MAX = 48;
@@ -11,8 +11,32 @@
     return String(cfg.hubApiBase || "https://api.quantalpha.space").replace(/\/$/, "");
   }
 
-  function cacheKey(text, lang) {
-    return String(lang || "") + "\0" + String(text || "").slice(0, 400);
+  function normalizeLang(raw) {
+    const api = root.QAVoiceTemplates;
+    if (api && api.normalizeLang) return api.normalizeLang(raw);
+    const s = String(raw || "").trim();
+    if (s === "zh-Hans" || s === "zh-CN" || s === "zh") return "zh-CN";
+    if (s === "en" || s === "en-US" || s === "en-GB") return "en";
+    return "zh-Hant";
+  }
+
+  function edgeVoiceFor(lang) {
+    const api = root.QAVoiceTemplates;
+    if (api && api.edgeVoiceFor) return api.edgeVoiceFor(lang);
+    const key = normalizeLang(lang);
+    if (key === "zh-CN") return "zh-CN-YunyangNeural";
+    if (key === "en") return "en-US-ChristopherNeural";
+    return "zh-TW-HsiaoChenNeural";
+  }
+
+  function speechCfg(lang) {
+    const api = root.QAVoiceTemplates;
+    if (api && api.speechConfig) return api.speechConfig(lang);
+    return { lang: normalizeLang(lang), rate: "+0%", pitch: "+0Hz" };
+  }
+
+  function cacheKey(text, lang, voice) {
+    return String(lang || "") + "\0" + String(voice || "") + "\0" + String(text || "").slice(0, 400);
   }
 
   function trimCache() {
@@ -30,20 +54,26 @@
     }
   }
 
-  function cfgForLang(lang) {
-    const api = root.QAVoiceTemplates;
-    return api && api.speechConfig ? api.speechConfig(lang) : { lang: lang || "zh-Hant" };
-  }
-
   async function fetchMp3(text, lang) {
-    const key = cacheKey(text, lang);
+    const keyLang = normalizeLang(lang);
+    const cfg = speechCfg(keyLang);
+    const voice = edgeVoiceFor(keyLang);
+    const key = cacheKey(text, keyLang, voice);
     const hit = cache.get(key);
     if (hit && hit.blob) return hit.blob;
+
+    const body = {
+      text: text,
+      lang: keyLang,
+      voice: voice,
+    };
+    if (cfg.rate && typeof cfg.rate === "string") body.rate = cfg.rate;
+    if (cfg.pitch && typeof cfg.pitch === "string") body.pitch = cfg.pitch;
 
     const res = await fetch(hubBase() + "/api/tts/speak", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: text, lang: lang }),
+      body: JSON.stringify(body),
       credentials: "omit",
       mode: "cors",
     });
@@ -150,13 +180,26 @@
     });
   }
 
+  async function speakOnce(text, lang, gen, isAlive) {
+    const blob = await fetchMp3(text, lang);
+    if (typeof isAlive === "function" && !isAlive(gen)) return false;
+    return playBlob(blob, gen, isAlive);
+  }
+
   async function speak(text, lang, gen, isAlive) {
     const line = String(text || "").trim();
     if (!line) return false;
     if (typeof isAlive === "function" && !isAlive(gen)) return false;
-    const blob = await fetchMp3(line, lang || cfgForLang(lang).lang);
+    const keyLang = normalizeLang(lang);
+    try {
+      const ok = await speakOnce(line, keyLang, gen, isAlive);
+      if (ok) return true;
+    } catch {
+      /* retry below */
+    }
     if (typeof isAlive === "function" && !isAlive(gen)) return false;
-    return playBlob(blob, gen, isAlive);
+    await new Promise((r) => setTimeout(r, 280));
+    return speakOnce(line, keyLang, gen, isAlive);
   }
 
   root.QAEdgeSpeak = {
@@ -164,5 +207,7 @@
     fetchMp3: fetchMp3,
     playBlob: playBlob,
     touchMediaSession: touchMediaSession,
+    edgeVoiceFor: edgeVoiceFor,
+    normalizeLang: normalizeLang,
   };
 })(typeof window !== "undefined" ? window : globalThis);
