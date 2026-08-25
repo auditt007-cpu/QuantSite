@@ -372,10 +372,10 @@
   const AUDIO_STORM_N = 5;
   const PRIORITY_HIGH = "high";
   const PRIORITY_LOW = "low";
-  const IDLE_AD_MS = 120000;
-  const IDLE_AD_COOLDOWN_MS = 180000;
-  const IDLE_AD_SESSION_MAX = 2;
-  const IDLE_AD_JITTER_MS = 15000;
+  const IDLE_AD_MS = 45000;
+  const IDLE_AD_COOLDOWN_MS = 120000;
+  const IDLE_AD_SESSION_MAX = 4;
+  const IDLE_AD_JITTER_MS = 8000;
   const VT = () => window.QAVoiceTemplates || null;
 
   state.lastHighPriorityAudioTime = Date.now();
@@ -510,11 +510,6 @@
     return gen === state.speakGen;
   }
 
-  function edgeOnlyVoiceLang() {
-    const L = voiceLang();
-    return L === "zh-CN" || L === "en";
-  }
-
   function speakLine(text, gen) {
     return new Promise(async (resolve) => {
       if (!text) return resolve();
@@ -524,13 +519,10 @@
       if (edge && edge.speak) {
         try {
           const ok = await edge.speak(text, voiceLang(), gen, speakAlive);
-          if (ok || edgeOnlyVoiceLang()) return resolve();
+          if (ok) return resolve();
         } catch {
-          /* Edge failed: never fall back to system TTS for zh-CN / en (female on many phones) */
-          if (edgeOnlyVoiceLang()) return resolve();
+          /* Edge failed — fall back to male-only Web Speech below */
         }
-      } else if (edgeOnlyVoiceLang()) {
-        return resolve();
       }
 
       if (!window.speechSynthesis) return resolve();
@@ -599,7 +591,25 @@
           finish();
         }
       }, 40);
-      a.play().catch(finish);
+      const tryPlay = () => {
+        const p = a.play();
+        if (p && typeof p.then === "function") {
+          p.catch(() => {
+            try {
+              if (window.QAEdgeSpeak && window.QAEdgeSpeak.unlockPlayback) {
+                window.QAEdgeSpeak.unlockPlayback().then(function () {
+                  a.play().catch(finish);
+                });
+                return;
+              }
+            } catch {
+              /* */
+            }
+            finish();
+          });
+        }
+      };
+      tryPlay();
       setTimeout(finish, 45000);
     });
   }
@@ -752,13 +762,13 @@
     if (state.speaking || state.queue.length) return;
     if (state.idleAdCount >= IDLE_AD_SESSION_MAX) return;
     const now = Date.now();
-    if (now - state.lastHighPriorityAudioTime < IDLE_AD_MS) return;
+    if (now - state.lastHighPriorityAudioTime < IDLE_AD_MS + (state.idleAdJitter || 0)) return;
     if (now - state.lastIdleAdTime < IDLE_AD_COOLDOWN_MS) return;
-    if (Math.random() < 0.35) return;
+    if (Math.random() < 0.12) return;
     const api = VT();
     const src = api ? api.promoSrc(voiceLang()) : "./audio/promo_zh_tw.mp3";
     state.idleAdCount += 1;
-    state.lastIdleAdTime = now + Math.floor(Math.random() * IDLE_AD_JITTER_MS);
+    state.lastIdleAdTime = now;
     enqueueVoice("", { priority: PRIORITY_LOW, chime: false, pauseAfter: 0, promoSrc: src });
   }
 
@@ -942,8 +952,16 @@
         state.lastHighPriorityAudioTime = Date.now();
         state.lastIdleAdTime = Date.now();
         state.idleAdCount = 0;
+        state.idleAdJitter = Math.floor(Math.random() * IDLE_AD_JITTER_MS);
         startIdleAdWatch();
         resumeAudioContext();
+        try {
+          if (window.QAEdgeSpeak && window.QAEdgeSpeak.unlockPlayback) {
+            window.QAEdgeSpeak.unlockPlayback();
+          }
+        } catch {
+          /* */
+        }
         icebreakerVoice();
       } else {
         stopIdleAdWatch();

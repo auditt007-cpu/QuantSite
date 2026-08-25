@@ -99,16 +99,46 @@
     }
   }
 
+  let playbackUnlocked = false;
+
+  async function unlockPlayback() {
+    if (playbackUnlocked) return true;
+    try {
+      const Ctx = root.AudioContext || root.webkitAudioContext;
+      if (Ctx) {
+        const ctx = unlockPlayback._ctx || new Ctx();
+        unlockPlayback._ctx = ctx;
+        if (ctx.state === "suspended") await ctx.resume();
+      }
+    } catch {
+      /* optional */
+    }
+    try {
+      const a = new Audio(
+        "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAA="
+      );
+      a.volume = 0.01;
+      a.setAttribute("playsinline", "");
+      await a.play();
+      playbackUnlocked = true;
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   function playBlob(blob, gen, isAlive) {
     return new Promise((resolve) => {
       if (!blob) return resolve(false);
       if (typeof isAlive === "function" && !isAlive(gen)) return resolve(false);
 
       let done = false;
+      let safetyTimer = null;
       const finish = (ok) => {
         if (done) return;
         done = true;
         if (poll) clearInterval(poll);
+        if (safetyTimer) clearTimeout(safetyTimer);
         resolve(!!ok);
       };
 
@@ -176,11 +206,12 @@
       if (p && typeof p.then === "function") {
         p.catch(() => finish(false));
       }
-      setTimeout(() => finish(true), Math.min(45000, 3200 + String(blob.size || 0) / 8));
+      safetyTimer = setTimeout(() => finish(true), 48000);
     });
   }
 
   async function speakOnce(text, lang, gen, isAlive) {
+    await unlockPlayback();
     const blob = await fetchMp3(text, lang);
     if (typeof isAlive === "function" && !isAlive(gen)) return false;
     return playBlob(blob, gen, isAlive);
@@ -199,13 +230,18 @@
     }
     if (typeof isAlive === "function" && !isAlive(gen)) return false;
     await new Promise((r) => setTimeout(r, 280));
-    return speakOnce(line, keyLang, gen, isAlive);
+    try {
+      return await speakOnce(line, keyLang, gen, isAlive);
+    } catch {
+      return false;
+    }
   }
 
   root.QAEdgeSpeak = {
     speak: speak,
     fetchMp3: fetchMp3,
     playBlob: playBlob,
+    unlockPlayback: unlockPlayback,
     touchMediaSession: touchMediaSession,
     edgeVoiceFor: edgeVoiceFor,
     normalizeLang: normalizeLang,
