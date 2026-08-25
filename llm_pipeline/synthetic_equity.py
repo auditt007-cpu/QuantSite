@@ -131,12 +131,12 @@ def equity_to_svg(
     return (
         '<?xml version="1.0" encoding="utf-8"?>\n'
         '<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">\n'
-        '  <rect width="{w}" height="{h}" fill="#0b0f14"/>\n'
-        '  <text x="24" y="28" fill="#8b9bb4" font-family="JetBrains Mono, Consolas, monospace" font-size="13">{t}</text>\n'
-        '  <text x="24" y="48" fill="#5a6a7e" font-family="JetBrains Mono, Consolas, monospace" font-size="11">{s}</text>\n'
-        '  <text x="520" y="48" fill="#3d9b6e" font-family="JetBrains Mono, Consolas, monospace" font-size="12">{r}</text>\n'
-        '  <polygon points="{area}" fill="#3d9b6e" fill-opacity="0.12"/>\n'
-        '  <polyline points="{poly}" fill="none" stroke="#3d9b6e" stroke-width="2.1" stroke-linejoin="round"/>\n'
+        '  <rect width="{w}" height="{h}" fill="#f8fafc"/>\n'
+        '  <text x="24" y="28" fill="#0f172a" font-family="JetBrains Mono, Consolas, monospace" font-size="13">{t}</text>\n'
+        '  <text x="24" y="48" fill="#64748b" font-family="JetBrains Mono, Consolas, monospace" font-size="11">{s}</text>\n'
+        '  <text x="520" y="48" fill="#0f7b3a" font-family="JetBrains Mono, Consolas, monospace" font-size="12">{r}</text>\n'
+        '  <polygon points="{area}" fill="#0f7b3a" fill-opacity="0.12"/>\n'
+        '  <polyline points="{poly}" fill="none" stroke="#0f7b3a" stroke-width="2.1" stroke-linejoin="round"/>\n'
         "</svg>\n"
     ).format(w=width, h=height, t=safe_t, s=safe_s, r=ret_lbl, area=area, poly=poly)
 
