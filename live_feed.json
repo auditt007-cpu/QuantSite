@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-25T15:43:08Z",
+  "updated_at": "2026-08-25T15:44:40Z",
   "period_hours": 3,
   "poll_sec": 5,
   "scan_tf": "15m+1h",
@@ -2246,11 +2246,19 @@
       "interval": "5m",
       "side": "LONG",
       "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787672409,
+      "logged_at": 1787672592,
       "bar_ts": 1787672100,
       "event": "open",
       "strategy_id": "hb-bb5",
       "symbols": [
+        {
+          "symbol": "ONDOUSDT",
+          "price": 0.37149,
+          "sl_pct": -0.4670381436916166,
+          "tp_pct": 0.9340762873832483,
+          "event": "open",
+          "pnl_pct": null
+        },
         {
           "symbol": "NEARUSDT",
           "price": 1.9114,
@@ -2260,7 +2268,37 @@
           "pnl_pct": null
         }
       ],
-      "strategy_count": 1
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
+      "name_zh": "5m動能微破",
+      "interval": "5m",
+      "side": "LONG",
+      "action": "空頭平倉翻多 (BUY)",
+      "logged_at": 1787672591,
+      "bar_ts": 1787672100,
+      "event": "open",
+      "strategy_id": "hb-roc5",
+      "symbols": [
+        {
+          "symbol": "SOLUSDT",
+          "price": 98.18,
+          "sl_pct": -0.4070584640456389,
+          "tp_pct": 0.8141169280912488,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "ETHUSDT",
+          "price": 2476.45,
+          "sl_pct": -0.2948223465040525,
+          "tp_pct": 0.5896447333885202,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 2
     },
     {
       "kind": "batch",
@@ -2313,28 +2351,6 @@
         }
       ],
       "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "5m動能微破",
-      "interval": "5m",
-      "side": "LONG",
-      "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787672408,
-      "bar_ts": 1787672100,
-      "event": "open",
-      "strategy_id": "hb-roc5",
-      "symbols": [
-        {
-          "symbol": "ETHUSDT",
-          "price": 2476.45,
-          "sl_pct": -0.2948223465040525,
-          "tp_pct": 0.5896447333885202,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
     },
     {
       "kind": "batch",
@@ -2398,17 +2414,9 @@
           "tp_pct": 1.4577222802972798,
           "event": "open",
           "pnl_pct": null
-        },
-        {
-          "symbol": "NEARUSDT",
-          "price": 1.932,
-          "sl_pct": -1.4249482401656228,
-          "tp_pct": 2.8498964803312687,
-          "event": "open",
-          "pnl_pct": null
         }
       ],
-      "strategy_count": 2
+      "strategy_count": 1
     },
     {
       "kind": "batch",
