@@ -1,8 +1,52 @@
 {
-  "updated_at": "2026-08-25T01:04:45Z",
+  "updated_at": "2026-08-25T01:06:55Z",
   "venue": "coinbase",
   "poll_sec": 5,
   "exec_log": [
+    {
+      "kind": "batch",
+      "name_zh": "布林微破",
+      "interval": "5m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787620016,
+      "bar_ts": 1787619600,
+      "event": "open",
+      "strategy_id": "hb-bb5",
+      "symbols": [
+        {
+          "symbol": "PEPEUSDT",
+          "price": 4.14e-06,
+          "sl_pct": -3.3816425120773026,
+          "tp_pct": 3.3816425120773026,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "5m動能微破",
+      "interval": "5m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787620015,
+      "bar_ts": 1787619600,
+      "event": "open",
+      "strategy_id": "hb-roc5",
+      "symbols": [
+        {
+          "symbol": "NEARUSDT",
+          "price": 1.9716,
+          "sl_pct": -0.49949279772773786,
+          "tp_pct": 0.9989855954554644,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
     {
       "kind": "batch",
       "name_zh": "複合動能確認",
@@ -619,50 +663,6 @@
           "tp_pct": 1.3319244349372454,
           "event": "open",
           "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "肯特納突破",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787619625,
-      "bar_ts": 1787619600,
-      "event": "open",
-      "strategy_id": "kelt_15m_33",
-      "symbols": [
-        {
-          "symbol": "SUIUSDT",
-          "price": 0.8131,
-          "sl_pct": -0.6884762021891515,
-          "tp_pct": 1.376952404378303,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "ROC10動能",
-      "interval": "1h",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787619625,
-      "bar_ts": 1787619600,
-      "event": "close",
-      "strategy_id": "roc10_1h_30",
-      "symbols": [
-        {
-          "symbol": "ADAUSDT",
-          "price": null,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -2.1283340125888737
         }
       ],
       "strategy_count": 1
