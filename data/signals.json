@@ -1,8 +1,68 @@
 {
-  "updated_at": "2026-08-25T08:33:04Z",
+  "updated_at": "2026-08-25T08:35:11Z",
   "venue": "coinbase",
   "poll_sec": 5,
   "exec_log": [
+    {
+      "kind": "batch",
+      "name_zh": "樞軸點突破",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "空頭平倉翻多 (BUY)",
+      "logged_at": 1787646788,
+      "bar_ts": 1787646600,
+      "event": "open",
+      "strategy_id": "pivot_15m_35",
+      "symbols": [
+        {
+          "symbol": "APTUSDT",
+          "price": 0.6086,
+          "sl_pct": -0.9516924088071014,
+          "tp_pct": 1.9033848176141848,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "樞軸點突破",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787646787,
+      "bar_ts": 1787646600,
+      "event": "close",
+      "strategy_id": "pivot_15m_35",
+      "symbols": [
+        {
+          "symbol": "APTUSDT",
+          "price": 0.6086,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.9286898839137728
+        },
+        {
+          "symbol": "ETHUSDT",
+          "price": 2493.42,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": 0.20372141796511303
+        },
+        {
+          "symbol": "BTCUSDT",
+          "price": 80168.02,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": 0.3717541416896028
+        }
+      ],
+      "strategy_count": 3
+    },
     {
       "kind": "batch",
       "name_zh": "量均突破",
@@ -361,36 +421,6 @@
     },
     {
       "kind": "batch",
-      "name_zh": "樞軸點突破",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787646662,
-      "bar_ts": 1787646600,
-      "event": "close",
-      "strategy_id": "pivot_15m_35",
-      "symbols": [
-        {
-          "symbol": "ETHUSDT",
-          "price": 2493.42,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.20372141796511303
-        },
-        {
-          "symbol": "BTCUSDT",
-          "price": 80168.02,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.3717541416896028
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
       "name_zh": "多策略共振",
       "interval": "15m",
       "side": "LONG",
@@ -426,7 +456,7 @@
         },
         {
           "symbol": "INJUSDT",
-          "price": 5.98,
+          "price": 5.84,
           "sl_pct": null,
           "tp_pct": null,
           "event": "open",
@@ -625,28 +655,6 @@
           "tp_pct": 2.2982500420662997,
           "event": "open",
           "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "EMA快線交叉",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787646030,
-      "bar_ts": 1787645700,
-      "event": "close",
-      "strategy_id": "ema_5_13_15m_3",
-      "symbols": [
-        {
-          "symbol": "INJUSDT",
-          "price": 5.943,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.6264815441923455
         }
       ],
       "strategy_count": 1
