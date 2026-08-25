@@ -151,14 +151,16 @@ body.nav-drawer-open .wrap.wide {
   animation: none;
 }
 .cta-btn-gold,
-a[data-get-strategy]:not(.btn-tg) {
+.hero-cta a[data-get-strategy],
+.btn-cta[data-get-strategy] {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
 }
 .cta-btn-gold::before,
-a[data-get-strategy]:not(.btn-tg)::before {
+.hero-cta a[data-get-strategy]::before,
+.btn-cta[data-get-strategy]::before {
   content: "";
   width: 12px;
   height: 12px;
@@ -196,8 +198,24 @@ a[data-get-strategy]:not(.btn-tg)::before {
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='M16 16l5 5'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 
+.term-tab.active,
+.term-tab.active:hover,
+.term-tab.active:active,
+.seg-btn.active {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border-color: #000000 !important;
+  filter: none !important;
+}
+.term-tab:active:not(.active) {
+  background: #f2f2f2 !important;
+  color: #000000 !important;
+  filter: none !important;
+}
 .term-home-link,
-.topbar .term-home-link { color: #ffffff; border: 1px solid #555555; background: #000000; font-size: 12px; padding: 6px 10px; }
+.topbar .term-home-link {
+  display: none !important;
+}
 
 /* Black utility bar */
 .bb-util-bar { background: #000000; color: #ffffff; border-bottom: 1px solid #333333; }
@@ -269,16 +287,42 @@ a[data-get-strategy]:not(.btn-tg)::before {
 .risk-banner { background: #f7f7f7; border: 1px solid var(--border-line); color: #6b6b6b; font-size: 11px; }
 
 /* Footer — black Bloomberg band */
-.site-foot { background: #000000; border-top: 1px solid #333333; color: #b3b3b3; font-size: 12px; }
-.site-foot a { color: #b3b3b3; }
-.site-foot a:hover { color: #ffffff; }
+.site-foot {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-main, #ffffff);
+  border-top: 1px solid var(--border-line);
+  color: #6b6b6b;
+  font-size: 12px;
+}
+.site-foot a { color: #6b6b6b; }
+.site-foot a:hover { color: #000000; }
 .site-foot .foot-link,
 .foot-legal .foot-link {
-  color: #b3b3b3;
+  color: #6b6b6b;
   min-height: 36px;
 }
-.foot-brand { color: #b3b3b3; font-size: 11px; }
-.foot-official { color: #b3b3b3; }
+.foot-risk-banner {
+  width: 100%;
+  margin: 0;
+  box-sizing: border-box;
+  display: block;
+  background: #f7f7f7;
+  border: 0;
+  border-bottom: 1px solid var(--border-line);
+}
+.foot-brand {
+  width: 100%;
+  box-sizing: border-box;
+  background: #000000;
+  color: #b3b3b3;
+  font-size: 11px;
+}
+.foot-brand a { color: #b3b3b3; }
+.foot-brand a:hover { color: #ffffff; }
+.foot-official { color: #6b6b6b; }
+.status-pill,
+.status-pill-desk { display: none !important; }
 
 /* Prune floating subscribe dock — keep hero CTA + footer only */
 .tg-fab,

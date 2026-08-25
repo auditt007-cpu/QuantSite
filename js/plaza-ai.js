@@ -94,50 +94,84 @@
   }
 
   function equitySparkSvg(id, ret, mdd) {
-    const r = Number.isFinite(Number(ret)) ? Number(ret) : 0.12;
+    const r = Number.isFinite(Number(ret)) ? Number(ret) : 0;
     const d = Math.abs(Number.isFinite(Number(mdd)) ? Number(mdd) : 0.08);
     let h = hashSeed(id);
-    const pts = [];
-    let v = 38;
-    const n = 48;
+    const n = 28;
+    const raw = [];
+    let v = 0.42;
+    const drift = Math.max(-0.35, Math.min(0.55, r <= 1.5 ? r : r / 100)) / n;
+    const dipAt = Math.floor(n * 0.62);
     for (let i = 0; i < n; i += 1) {
       h = (Math.imul(h, 1664525) + 1013904223) >>> 0;
-      const noise = ((h % 1000) / 1000 - 0.5) * 7;
-      const drift = (Math.max(-0.2, Math.min(0.6, r)) * 42) / n;
-      const dip = i === Math.floor(n * 0.58) ? -Math.min(28, d * 90) : 0;
-      v = Math.max(10, Math.min(70, v + drift + noise + dip));
-      pts.push([2 + (i / (n - 1)) * 196, 78 - v]);
+      const noise = ((h % 1000) / 1000 - 0.5) * 0.035;
+      const dip = i === dipAt ? -Math.min(0.28, d <= 1.5 ? d : d / 100) : 0;
+      v = Math.max(0.08, Math.min(0.92, v + drift + noise + dip));
+      raw.push(v);
     }
-    const path = pts
-      .map(function (p, i) {
-        return (i ? "L" : "M") + p[0].toFixed(1) + "," + p[1].toFixed(1);
-      })
-      .join("");
+    const sm = raw.map(function (x, i, a) {
+      const a0 = a[Math.max(0, i - 1)];
+      const a2 = a[Math.min(a.length - 1, i + 1)];
+      return (a0 + x + a2) / 3;
+    });
+    const w = 240;
+    const ht = 72;
+    const pad = 4;
+    const pts = sm.map(function (x, i) {
+      return [pad + (i / (n - 1)) * (w - pad * 2), ht - pad - x * (ht - pad * 2)];
+    });
+    let dPath = "M" + pts[0][0].toFixed(1) + "," + pts[0][1].toFixed(1);
+    for (let i = 1; i < pts.length; i += 1) {
+      const p0 = pts[i - 1];
+      const p1 = pts[i];
+      const mx = ((p0[0] + p1[0]) / 2).toFixed(1);
+      dPath += " Q" + p0[0].toFixed(1) + "," + p0[1].toFixed(1) + " " + mx + "," + ((p0[1] + p1[1]) / 2).toFixed(1);
+    }
     const last = pts[pts.length - 1];
-    return (
-      '<svg class="ai-eq-thumb plaza-eq-svg" viewBox="0 0 200 80" preserveAspectRatio="none" role="img" aria-hidden="true">' +
-      '<path d="' +
-      path +
-      '" fill="none" stroke="#d4a017" stroke-width="1.6"/>' +
-      '<circle cx="' +
+    dPath += " L" + last[0].toFixed(1) + "," + last[1].toFixed(1);
+    const area =
+      dPath +
+      " L" +
       last[0].toFixed(1) +
-      '" cy="' +
-      last[1].toFixed(1) +
-      '" r="2.2" fill="#d4a017"/></svg>'
+      "," +
+      (ht - 1) +
+      " L" +
+      pts[0][0].toFixed(1) +
+      "," +
+      (ht - 1) +
+      " Z";
+    const gid = "eqg-" + String(id || "x").replace(/[^a-zA-Z0-9_-]/g, "");
+    const up = r >= 0;
+    const stroke = up ? "#0f7b3a" : "#c2410c";
+    const fill0 = up ? "rgba(15,123,58,0.22)" : "rgba(194,65,12,0.18)";
+    return (
+      '<svg class="ai-eq-thumb plaza-eq-svg" viewBox="0 0 ' +
+      w +
+      " " +
+      ht +
+      '" preserveAspectRatio="none" role="img" aria-hidden="true">' +
+      "<defs><linearGradient id=\"" +
+      gid +
+      '" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0%" stop-color="' +
+      fill0 +
+      '"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></linearGradient></defs>' +
+      '<path d="' +
+      area +
+      '" fill="url(#' +
+      gid +
+      ')" stroke="none"/>' +
+      '<path d="' +
+      dPath +
+      '" fill="none" stroke="' +
+      stroke +
+      '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+      "</svg>"
     );
   }
 
   function chartBlockHtml(s) {
-    if (s.chart) {
-      return (
-        '<img class="ai-eq-thumb" src="' +
-        s.chart +
-        '" alt="' +
-        String(s.name || "").replace(/"/g, "") +
-        ' equity" loading="lazy" />'
-      );
-    }
-    return equitySparkSvg(s.id, s.return_pct, s.max_drawdown);
+    return equitySparkSvg(s.id || s.name, s.return_pct, s.max_drawdown);
   }
 
   function fmtSharpe(n) {
@@ -157,45 +191,72 @@
     return v.toFixed(1) + "%";
   }
 
+  function fmtRet(n) {
+    if (!Number.isFinite(n)) return "—";
+    const pct = Math.abs(n) <= 1.5 ? n * 100 : n;
+    const sign = pct > 0 ? "+" : "";
+    return sign + pct.toFixed(1) + "%";
+  }
+
+  function fmtPf(n) {
+    if (!Number.isFinite(n) || n <= 0) return "—";
+    return n.toFixed(2);
+  }
+
+  function fmtTrades(n) {
+    const x = Number(n);
+    if (!Number.isFinite(x) || x <= 0) return "—";
+    return Math.round(x).toLocaleString("en-US");
+  }
+
   function metricsBoardHtml(seed) {
     const sh = fmtSharpe(seed.sh);
     const wr = fmtWr(seed.wr);
     const mdd = fmtMdd(seed.mdd);
+    const ret = fmtRet(seed.ret);
+    const pf = fmtPf(seed.pf);
+    const trades = fmtTrades(seed.trades);
     const mddCls = mdd !== "—" ? " is-down" : "";
     const wrCls = wr !== "—" ? " is-up" : "";
+    const retCls = seed.ret == null ? "" : Number(seed.ret) >= 0 ? " is-up" : " is-down";
     return (
       '<div class="stat-caps plaza-metrics">' +
-      '<div class="stat-cap" title="' +
-      t("mktShTip", "承受1分風險賺回的分數") +
-      '"><span>' +
+      '<div class="stat-cap"><span>' +
       t("mktSh", "抗震穩健度") +
       "</span><b>" +
       sh +
-      '</b><em class="stat-tip">' +
-      t("mktShTip", "承受1分風險賺回的分數") +
-      "</em></div>" +
-      '<div class="stat-cap" title="' +
-      t("mktWrTip", "歷史信號裡賺錢次數的占比") +
-      '"><span>' +
-      t("mktWr", "勝率") +
+      "</b></div>" +
+      '<div class="stat-cap"><span>' +
+      t("mktRet", "樣本收益") +
+      "</span><b class=\"" +
+      retCls.trim() +
+      '">' +
+      ret +
+      "</b></div>" +
+      '<div class="stat-cap"><span>' +
+      t("mktWr", "命中率") +
       '</span><b class="' +
       wrCls.trim() +
       '">' +
       wr +
-      '</b><em class="stat-tip">' +
-      t("mktWrTip", "歷史信號裡賺錢次數的占比") +
-      "</em></div>" +
-      '<div class="stat-cap" title="' +
-      t("mktMddTip", "歷史最背時最大虧損幅度") +
-      '"><span>' +
+      "</b></div>" +
+      '<div class="stat-cap"><span>' +
       t("mktMdd", "歷史最大回跌") +
       '</span><b class="' +
       mddCls.trim() +
       '">' +
       mdd +
-      '</b><em class="stat-tip">' +
-      t("mktMddTip", "歷史最背時最大虧損幅度") +
-      "</em></div>" +
+      "</b></div>" +
+      '<div class="stat-cap"><span>' +
+      t("kpiPf", "盈虧因子") +
+      "</span><b>" +
+      pf +
+      "</b></div>" +
+      '<div class="stat-cap"><span>' +
+      t("hbColTrades", "樣本筆數") +
+      "</span><b>" +
+      trades +
+      "</b></div>" +
       "</div>"
     );
   }
@@ -314,11 +375,15 @@
     let mdd = s.max_drawdown != null ? Number(s.max_drawdown) : null;
     if (mdd != null && Number.isFinite(mdd) && mdd > 0) mdd = -Math.abs(mdd);
     const sh = s.sharpe != null ? Number(s.sharpe) : null;
+    const pf = Number(s.profit_factor);
+    const trades = Number(s.trades);
     return {
       wr: Number.isFinite(wr) ? wr : null,
       sh: Number.isFinite(sh) ? sh : null,
       mdd: Number.isFinite(mdd) ? mdd : null,
       ret: Number.isFinite(Number(s.return_pct)) ? Number(s.return_pct) : null,
+      pf: Number.isFinite(pf) && pf > 0 ? pf : null,
+      trades: Number.isFinite(trades) && trades > 0 ? trades : null,
     };
   }
 
@@ -349,20 +414,6 @@
     const sym = ((s.symbols && s.symbols[0]) || "BTCUSDT").replace(/USDT$/i, "") + "USDT";
     const iv = String(s.interval || "1h").toUpperCase();
     const kind = grid ? "grid" : s.ai ? "ai" : s.tier === "master" ? "master" : "classic";
-    const trades = Number(s.trades);
-    const monthN = Number.isFinite(trades) ? Math.max(420, Math.round(trades * 9.2)) : 1420;
-    const ann =
-      seed.ret != null ? (Math.abs(seed.ret) <= 1.5 ? seed.ret * 100 * 4.8 : seed.ret * 4.8) : 42;
-    const extra = grid
-      ? '<div class="stat-caps plaza-metrics plaza-grid-kpi">' +
-        '<div class="stat-cap"><span>月均套利次數</span><b>' +
-        monthN.toLocaleString("en-US") +
-        " 次/月</b></div>" +
-        '<div class="stat-cap"><span>年化預期收益</span><b class="' + (ann >= 0 ? 'is-up' : 'is-down') + '">' +
-        (ann > 0 ? "+" : "") +
-        ann.toFixed(1) +
-        "%</b></div></div>"
-      : "";
     return (
       '<article class="m-card strategy-card plaza-card' +
       (s.ai ? " ai-card" : "") +
@@ -394,7 +445,6 @@
       " · " +
       iv +
       "</p>" +
-      extra +
       metricsBoardHtml(seed) +
       '<div class="card-actions">' +
       '<button type="button" class="btn-cta compact" data-plaza-detail="' +
