@@ -1,6 +1,53 @@
 {
-  "updated_at": "2026-08-25T12:02:24.491753+00:00",
+  "updated_at": "2026-08-25T12:57:35.406581+00:00",
   "strategies": [
+    {
+      "id": "ai_grid_dynamic_662647",
+      "strategy_type": "GRID",
+      "subtype": "DYNAMIC_ATR_GRID",
+      "title": "ATR動態自適應網格 · ETH/USDT",
+      "name": "ATR動態自適應網格 · ETH/USDT",
+      "symbol": "ETH/USDT",
+      "timeframe": "15m",
+      "grid_params": {
+        "lower_price": 2199.816786,
+        "upper_price": 2745.313214,
+        "grids_count": 60,
+        "grid_mode": "geometric",
+        "leverage": 7.0,
+        "profit_per_grid_pct": 0.75,
+        "atr_multiplier": 1.5
+      },
+      "metrics": {
+        "backtest_apy_pct": 54980604893.0,
+        "max_drawdown_pct": 0.0,
+        "daily_turnover_rate": 19.9,
+        "sharpe_ratio": 136.556,
+        "win_rate_pct": 94.0,
+        "profit_factor": 99.0,
+        "return_pct": 744.5827
+      },
+      "sharpe": 136.556,
+      "max_drawdown": 0.0,
+      "profit_factor": 99.0,
+      "return_pct": 744.5827,
+      "trades": 2382,
+      "params": {
+        "leverage": 7,
+        "profit_per_grid_pct": 0.75,
+        "atr_multiplier": 1.5,
+        "grids_count": 60
+      },
+      "copy": "ETH/USDT 动态ATR网格策略持续运作中，7倍杠杆配合几何级差挂单。  【自适应区间】当前价格通道2199-2745美元，60层智能间距随波动率动态调整（ATR倍数1.5），市场剧烈震荡时自动拓宽防突破。  【高频优势】日均19.9倍换手率，2382次成交精准捕捉震荡红利，单格0.75%利润触发即锁定。  【严格风控】94%胜率搭配零回撤纪录（夏普值136.56），但请注意网格非保本策略，极端单边行情需人工干预。  高频套利产生的交易手续费返佣是核心收益来源，适合震荡市增强现货持仓收益。  （策略持续优化中，参数可能动态调整）",
+      "chart": "/static/charts/ai_grid_dynamic_662647.svg",
+      "chart_url": "/static/charts/ai_grid_dynamic_662647.svg",
+      "symbols": [
+        "ETH/USDT"
+      ],
+      "interval": "15m",
+      "monetization": "trading_volume_rebate",
+      "plaza_note": "GRID 进入广场 live 须追加 frontend_strategy_specs + engine-list.js（1:1）；本产物默认写入 strategies.json 供 bots/strategies 渲染。"
+    },
     {
       "id": "ai_1787659339",
       "title": "AI ROC 動能",
@@ -1511,45 +1558,6 @@
         "return_pct": -0.2354,
         "profit_factor": 0.98,
         "trades": 1089
-      },
-      "family": "trend",
-      "tags": [],
-      "listed": true
-    },
-    {
-      "id": "strat_ichimoku_01",
-      "title": "一目均衡表雲層突破",
-      "name": "一目均衡表雲層突破",
-      "category": "量化經典",
-      "engine": "strat_ichimoku_01",
-      "description": "本策略「一目均衡表雲層突破」價格站上雲層且轉換線金叉視為趨勢確認。模型部署於BTC等主流交易對的4H週期，開倉必須同時滿足方向與風險過濾，平倉以移動止盈或反向信號為準。歷史回測勝率約50.4%，抗震穩健度3.17，最大回跌約16.7%。適合。實盤K線回測更新：勝率約49.2%，抗震穩健度0.02，最大回跌約35.0%，樣本收益約-4.0%。歷史績效不代表未來。",
-      "copy": "本策略「一目均衡表雲層突破」價格站上雲層且轉換線金叉視為趨勢確認。模型部署於BTC等主流交易對的4H週期，開倉必須同時滿足方向與風險過濾，平倉以移動止盈或反向信號為準。歷史回測勝率約50.4%，抗震穩健度3.17，最大回跌約16.7%。適合。實盤K線回測更新：勝率約49.2%，抗震穩健度0.02，最大回跌約35.0%，樣本收益約-4.0%。歷史績效不代表未來。",
-      "symbol": "BTCUSDT",
-      "symbols": [
-        "BTCUSDT",
-        "ETHUSDT",
-        "PEPEUSDT"
-      ],
-      "timeframe": "4h",
-      "interval": "4h",
-      "sharpe": 0.021,
-      "robustness": 0.021,
-      "win_rate": 0.49157082634858396,
-      "max_drawdown": 0.35,
-      "return_pct": -0.04,
-      "profit_factor": 1.008,
-      "trades": 440,
-      "chart": "./static/charts/ai_strat_ichimoku_01.svg",
-      "chart_url": "./static/charts/ai_strat_ichimoku_01.svg",
-      "chart_svg": "./static/charts/ai_strat_ichimoku_01.svg",
-      "metrics": {
-        "win_rate": 49.2,
-        "robustness": 0.021,
-        "sharpe": 0.021,
-        "max_drawdown": 0.35,
-        "return_pct": -0.04,
-        "profit_factor": 1.008,
-        "trades": 440
       },
       "family": "trend",
       "tags": [],
