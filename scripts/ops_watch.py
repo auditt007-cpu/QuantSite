@@ -150,7 +150,7 @@ def daily_text() -> str:
         "· live_feed 延遲 {5:.0f}s · 成交帶 {6} 條\n"
         "· 廣場策略 {7} 條 · 更新 {8}\n"
         "· 排行榜年齡 {9:.1f}h · 更新 {10}\n"
-        "· 歷史回測：每日 00:00 `calc_rankings --days 60 --full`\n"
+        "· 歷史回測：每日 00:00 `calc_rankings --days 60 --full --hero-scan`（多周期择优）\n"
         "· AI 挖礦：02/08/14/20 點 pipeline"
     ).format(
         now,

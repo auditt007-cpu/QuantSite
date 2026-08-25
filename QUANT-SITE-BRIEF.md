@@ -73,12 +73,12 @@ QuantAlpha 是一套**加密量化研究终端 + 变现闭环**，面向独立�
 
 VPS：`tg_engine.py` 写直播带；`pipeline.py` / `llm_pipeline/` 生成 AI 策略 SVG；`calc_rankings.py` 写 `leaderboard.json`。
 
-### 策略广场 ↔ Live（必须 1:1）
+### 策略广场 ↔ Live（已 1:1，勿写成两套矩阵）
 
-- **唯一 ID 源**：`tg_engine.frontend_strategy_specs()`（45 条：`dual`…`hg` + `strat-001`…`strat-030`），必须与 `js/engine-list.js` 的 `QA_ENGINE_LIST` 字节级一致。
-- Live 3h 簿（`build_live_feed_matrix`）与 TG 扫描矩阵（`STRATEGY_MATRIX`）都从这张表展开；扫描 TF = `15m` + `1h` → **90** 个 scan slot。
-- 每轮 `cycle()` 调用 `refresh_strategy_matrix()` + `write_plaza_live_registry()`；公开校验：https://quantalpha.space/plaza_live_registry.json（`sync=1:1`，`plaza_count=45`）。
-- **上一套进一套**：在 `frontend_strategy_specs()` 追加一行 + 同步改 `js/engine-list.js` → 部署并重启 `tg-bot` → 下一轮 poll 自动进 live。不要再维护旧的 `ema_12_26_*` 族矩阵。
+- **唯一 ID 源**：`tg_engine.frontend_strategy_specs()`（45 条：`dual`…`hg` + `strat-001`…`strat-030`），必须与 `js/engine-list.js` 的 `QA_ENGINE_LIST` 字节级一致。广场有几条，live 就认几条——**不是**旧的 `ema_12_26_*` 族矩阵。
+- **1:1 指 strategy_id**；每条广场策略在 live 上用同一 ID 扫两个执行周期 `15m` + `1h`（实现上 `STRATEGY_MATRIX` = 45×2 个 scan slot）。Live 3h 簿（`build_live_feed_matrix`）与 TG 扫描都读这同一张广场表。
+- 每轮 `cycle()`：`refresh_strategy_matrix()` + `write_plaza_live_registry()`。校验：https://quantalpha.space/plaza_live_registry.json（`sync=1:1`，`plaza_count=45`）。
+- **上一套进一套**：追加 `frontend_strategy_specs()` + `js/engine-list.js` → 部署重启 `tg-bot` → 下一轮 poll 自动进 live。
 - 信号时间戳用 **K 线收盘**（`bar_close_ts` = open + interval），跳过未收盘 bar；否则相对墙钟会系统性偏约一个周期（曾误判为「信号晚 3 分钟」）。
 
 ### 直播语音（TTS）
@@ -90,8 +90,13 @@ VPS：`tg_engine.py` 写直播带；`pipeline.py` / `llm_pipeline/` 生成 AI �
 ### 排行榜 + 运维告警（TG）
 
 - `scripts/ops_watch.py`：每小时 cron → `ADMIN_CHAT_ID`。`leaderboard.json` **mtime > 36h** 会发 `⚠️ VPS 告警 · leaderboard.json 超过 36 小时未刷新`；恢复发 `✅ VPS 已恢复正常`。还查 `tg-bot` / `quant-hub`、`live_feed` 延迟、Hub `/health`、官网可达。
-- 日更：`0 0 * * * /root/quantsite/scripts/daily_desk.sh` → `calc_rankings.py --days 60 --full` → 写 `/root/quantsite/leaderboard.json` **且必须** 写 `/var/www/html/leaderboard.json` + `git_sync` 推 Pages。日志：`/var/log/quant-daily-desk.log`；旧直跑日志曾是 `/root/quantsite/cron_calc.log`。
-- **坑（2026-08-25 已踩）**：根目录算出新榜但没进 www/Pages → ops 告警、公网仍旧。处理：拷贝最新 → www + `sync_to_github(['leaderboard.json'])`，并确认 crontab 用 `daily_desk.sh`（不要裸跑 `--hero-scan` 挡主路径）。`--hero-scan` 是可选加重任务，可单独跑，勿默认塞进午夜主线。
+- 午夜日更：`0 0 * * * /root/quantsite/scripts/daily_desk.sh` →  
+  `calc_rankings.py --days 60 --full --hero-scan`  
+  - **主榜**：60 日 deep sample（广场 45 ID × `15m`+`1h`）写入 `rows` / `by_engine` / `wr_board`  
+  - **多周期择优**：`HERO_PERIODS = [3,7,10,20,30,60,100,180]` 日窗口各出冠军，汇总 `hero_by_period`；全窗口最优写入 `hero_highlight`（首页/看板择优展示用）  
+  - 产物必须落到 `/root/quantsite/leaderboard.json` **和** `/var/www/html/leaderboard.json`，再 `git_sync` 推 Pages  
+  - 日志：`/var/log/quant-daily-desk.log`
+- **坑（2026-08-25 已踩）**：只写到 `/root/quantsite`、没进 www/Pages → ops 告警、公网仍旧。处理：拷贝最新 → www + `sync_to_github(['leaderboard.json'])`，crontab 必须走 `daily_desk.sh`。
 - AI 挖矿：`0 2,8,14,20 * * * run_pipeline_cron.sh`。
 
 ---
@@ -195,7 +200,7 @@ PowerShell 注意：不要用 bash `&&` / heredoc；用 `;` 或临时 `.py`。
 11. Live 语音：广告能播、信号不播 → 用户手势丢失；改服务端 TTS + `<audio src>`。
 12. 信号「晚约 3 分钟」→ `bar_ts` 用开盘时刻；改为收盘戳 + `POLL_SEC=15`。
 13. 策略广场 1:1 进 live + 注册表 `plaza_live_registry.json`；后面上一套进一套。
-14. TG `VPS 告警 · leaderboard.json`：www/Pages 未吃到 VPS 新榜；已发布并改回 `daily_desk.sh` 午夜任务。
+14. TG `VPS 告警 · leaderboard.json`：www/Pages 未吃到 VPS 新榜；已发布并改回 `daily_desk.sh`（`--full --hero-scan` 多周期择优）。
 
 ---
 
