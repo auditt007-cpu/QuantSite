@@ -1,8 +1,60 @@
 {
-  "updated_at": "2026-08-25T18:54:31Z",
+  "updated_at": "2026-08-25T18:56:03Z",
   "venue": "coinbase",
   "poll_sec": 5,
   "exec_log": [
+    {
+      "kind": "batch",
+      "name_zh": "5m動能微破",
+      "interval": "5m",
+      "side": "SHORT",
+      "action": "多頭平倉翻空 (SELL)",
+      "logged_at": 1787684112,
+      "bar_ts": 1787683800,
+      "event": "open",
+      "strategy_id": "hb-roc5",
+      "symbols": [
+        {
+          "symbol": "DOGEUSDT",
+          "price": 0.08862,
+          "sl_pct": -0.22116903633491503,
+          "tp_pct": 0.44233807266983005,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "5m動能微破",
+      "interval": "5m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787684111,
+      "bar_ts": 1787683800,
+      "event": "close",
+      "strategy_id": "hb-roc5",
+      "symbols": [
+        {
+          "symbol": "PEPEUSDT",
+          "price": 3.95e-06,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "price": 0.08862,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 2
+    },
     {
       "kind": "batch",
       "name_zh": "布林微破",
@@ -731,50 +783,6 @@
       "bar_ts": 1787682600,
       "event": "close",
       "strategy_id": "rsi",
-      "symbols": [
-        {
-          "symbol": "RENDERUSDT",
-          "price": 1.53,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 1.1904761904761914
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "複合動能B",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787683511,
-      "bar_ts": 1787682600,
-      "event": "close",
-      "strategy_id": "strat-026",
-      "symbols": [
-        {
-          "symbol": "INJUSDT",
-          "price": 5.662,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -1.7525594308519865
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "量價突破",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787683511,
-      "bar_ts": 1787682600,
-      "event": "close",
-      "strategy_id": "strat-021",
       "symbols": [
         {
           "symbol": "RENDERUSDT",
