@@ -442,9 +442,11 @@ def run_subtype(
 
 def passes_grid(agg: Dict[str, Any]) -> bool:
     """Fee-driven gate: turnover + survival, not pure directional sharpe."""
+    dd = agg.get("max_drawdown")
+    dd = float(dd) if dd is not None else 1.0
     return (
         float(agg.get("sharpe") or 0) > 1.0
-        and float(agg.get("max_drawdown") or 1) < 0.18
+        and dd < 0.18
         and float(agg.get("profit_factor") or 0) > 1.2
         and int(agg.get("trades") or 0) >= 40
         and float(agg.get("win_rate_pct") or 0) >= 78.0
