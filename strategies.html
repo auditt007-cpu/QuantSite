@@ -68,16 +68,17 @@
       <button type="button" class="mv-tab is-active" data-view="strategies" data-i18n="mvTabStrategies">核心監控 / 策略</button>
       <button type="button" class="mv-tab" data-view="leaderboard" data-i18n="mvTabLeaderboard">收益 TOP 5</button>
     </div>
+    <section class="desk plaza-intro mv-panel-strategies">
+      <div class="kicker desk-only">STRATEGY PLAZA</div>
+      <h2 class="h2" data-i18n="termDesk">策略廣場</h2>
+      <p class="muted desk-only" data-i18n="mktLead">AI 挖礦與量化經典統一展架 · 曲線與通俗指標一眼看懂 · 獲取策略跳轉 TG 綁定</p>
+      <p class="open-src desk-only" data-i18n="openSrc">100% 邏輯開源透明 · 支援一鍵導入 TradingView 自行復現與驗證</p>
+      <p class="muted" id="plazaCount"></p>
+    </section>
     <div class="editorial-grid">
       <div class="editorial-main">
     <div id="viewList" data-mv-panel="strategies">
       <section class="desk">
-        <div class="kicker desk-only">STRATEGY PLAZA</div>
-        <h2 class="h2" data-i18n="termDesk">策略廣場</h2>
-        <p class="muted desk-only" data-i18n="mktLead">AI 挖礦與量化經典統一展架 · 曲線與通俗指標一眼看懂 · 獲取策略跳轉 TG 綁定</p>
-        <p class="open-src desk-only" data-i18n="openSrc">100% 邏輯開源透明 · 支援一鍵導入 TradingView 自行復現與驗證</p>
-        <p class="muted" id="plazaCount"></p>
-
         <div class="term-tabs" id="termTabs" role="tablist"></div>
         <div class="market-grid" id="gridAll"></div>
         <button type="button" class="btn ghost grid-more" id="gridMore" hidden data-i18n="gridMore">載入更多策略</button>
@@ -278,9 +279,9 @@ Upper = Mid + k · ATR_n , Lower = Mid − k · ATR_n</pre>
               <p data-i18n="trustStressBody">全站策略均經過 2023-2026 極端牛熊行情回測檢驗，內建最大回撤與停損熔斷機制。</p>
             </article>
           </div>
-          <section class="week-board-mobile sheet-extra" aria-label="Weekly ranking">
+          <section class="week-board-mobile sheet-extra" aria-label="Peak return ranking">
             <div class="kicker kicker-plain">ALPHA</div>
-            <h3 class="rail-h" data-week-title> 近 7 天收益榜 TOP 5</h3>
+            <h3 class="rail-h" data-week-title>峰值窗口收益榜 TOP 5</h3>
             <p class="muted lb-period-note" data-lb-period></p>
             <ol class="week-list" data-week-board></ol>
           </section>
@@ -291,7 +292,7 @@ Upper = Mid + k · ATR_n , Lower = Mid − k · ATR_n</pre>
       <aside class="editorial-rail" aria-label="Flash news">
         <section class="rail-block week-board-desk mv-panel-leaderboard">
           <div class="kicker kicker-plain">ALPHA</div>
-          <h3 class="rail-h" data-week-title> 近 7 天收益榜 TOP 5</h3>
+          <h3 class="rail-h" data-week-title>峰值窗口收益榜 TOP 5</h3>
           <p class="muted lb-period-note" data-lb-period></p>
           <ol class="week-list" data-week-board></ol>
         </section>

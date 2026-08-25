@@ -475,8 +475,17 @@ input:focus, textarea:focus, select:focus { border-color: var(--color-accent); o
   .brand { max-width: 70vw; }
   .brand h1 { font-size: clamp(17px, 6vw, 22px); }
   .logo { width: 20px; height: 20px; }
-  .home-hero .hero-top { flex-direction: column; align-items: flex-start; gap: 16px; }
-  .home-hero .hero-cta { justify-content: flex-start; }
+  .home-hero .hero-top { flex-direction: column; align-items: stretch; gap: 12px; }
+  .home-hero .hero-row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+  }
+  .home-hero .hero-cta { justify-content: flex-end; flex: 0 0 auto; }
 
   /* Ensure header buttons stay consistent in black header */
   .topbar .nav-toggle,

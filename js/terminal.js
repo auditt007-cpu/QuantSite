@@ -87,12 +87,11 @@
   }
 
   function paintLeaderboardMeta(lb) {
-    const n = (lb && lb.period_days) || 7;
     document.querySelectorAll("[data-week-title]").forEach((el) => {
-      el.textContent = t("weekBoardTitleTpl").replace("{n}", String(n));
+      el.textContent = t("weekBoardTitlePeak");
     });
     document.querySelectorAll("[data-lb-period]").forEach((el) => {
-      el.textContent = t("lbPeriodTag").replace("{n}", String(n));
+      el.textContent = t("lbPeriodTagPeak");
     });
   }
 
@@ -118,18 +117,93 @@
     return NaN;
   }
 
+  function bestWindowFromTrades(tradeLog, maxDays) {
+    const trades = (tradeLog || [])
+      .map((t) => ({
+        ts: Number(t.exit_ts),
+        pnl: Number(t.pnl_pct),
+      }))
+      .filter((t) => Number.isFinite(t.ts) && Number.isFinite(t.pnl))
+      .sort((a, b) => a.ts - b.ts);
+    if (!trades.length) return null;
+    const DAY = 86400000;
+    let best = null;
+    const cap = maxDays || 30;
+    for (let days = 1; days <= cap; days++) {
+      const win = days * DAY;
+      let j = 0;
+      let sum = 0;
+      for (let i = 0; i < trades.length; i++) {
+        sum += trades[i].pnl;
+        while (j <= i && trades[i].ts - trades[j].ts > win) {
+          sum -= trades[j].pnl;
+          j += 1;
+        }
+        if (!best || sum > best.roi) best = { roi: sum, days: days };
+      }
+    }
+    return best;
+  }
+
+  function buildPeakBoard(lb) {
+    const rows = [];
+    const seen = new Set();
+    const hbp = (lb && lb.hero_by_period) || {};
+    Object.keys(hbp)
+      .map((k) => ({ k: k, entry: hbp[k] }))
+      .filter((x) => x.entry)
+      .sort((a, b) => (Number(b.entry.roi_pct) || 0) - (Number(a.entry.roi_pct) || 0))
+      .forEach((x) => {
+        const entry = x.entry;
+        const days = Number(entry.period_days != null ? entry.period_days : x.k);
+        if (!Number.isFinite(days) || days < 1 || days > 30) return;
+        const eng = entry.engine || entry.id;
+        if (!eng || seen.has(eng)) return;
+        seen.add(eng);
+        rows.push({
+          engine: eng,
+          id: eng,
+          name_zh: entry.name_zh,
+          name_en: entry.name_en,
+          roi_pct: Number(entry.roi_pct),
+          period_days: days,
+        });
+      });
+
+    const be = (lb && lb.by_engine) || {};
+    Object.keys(be).forEach((eng) => {
+      if (seen.has(eng)) return;
+      const row = be[eng];
+      const hit = bestWindowFromTrades(row.trade_log || row.execution_logs, 30);
+      if (!hit || !Number.isFinite(hit.roi)) return;
+      seen.add(eng);
+      rows.push({
+        engine: eng,
+        id: eng,
+        name_zh: row.name_zh,
+        name_en: row.name_en,
+        roi_pct: hit.roi,
+        period_days: hit.days,
+      });
+    });
+
+    rows.sort((a, b) => (Number(b.roi_pct) || -1e9) - (Number(a.roi_pct) || -1e9));
+    return rows.slice(0, 5);
+  }
+
   function paintWeekBoard(lb) {
     const boards = document.querySelectorAll("[data-week-board]");
     if (!boards.length) return;
-    let top = [];
-    if (lb && Array.isArray(lb.pnl_board) && lb.pnl_board.length) {
-      top = lb.pnl_board.slice().sort((a, b) => roiOfRow(b) - roiOfRow(a)).slice(0, 5);
-    } else if (lb && lb.by_engine) {
-      top = Object.keys(lb.by_engine)
-        .map((k) => lb.by_engine[k])
-        .filter((r) => Number(r.trades) >= 5)
+    let top = buildPeakBoard(lb);
+    if (!top.length && lb && Array.isArray(lb.pnl_board) && lb.pnl_board.length) {
+      top = lb.pnl_board
+        .slice()
         .sort((a, b) => roiOfRow(b) - roiOfRow(a))
-        .slice(0, 5);
+        .slice(0, 5)
+        .map((r) => ({
+          ...r,
+          period_days: Number((lb && lb.period_days) || 7),
+        }));
     }
     const html = top.length
       ? top
@@ -137,6 +211,7 @@
             const roi = roiOfRow(r);
             const up = roi >= 0;
             const id = r.engine || r.id || "";
+            const days = Number(r.period_days) || Number((lb && lb.period_days) || 7);
             return (
               '<li><button type="button" class="week-row" data-open-week="' +
               id +
@@ -149,7 +224,10 @@
               '">' +
               (up ? "+" : "") +
               roi.toFixed(1) +
-              "%</em></button></li>"
+              '% <small class="week-days">' +
+              days +
+              t("weekDaysUnit") +
+              "</small></em></button></li>"
             );
           })
           .join("")
@@ -401,6 +479,10 @@
   function asCard(s, tier) {
     const spec = catalog.get(s.engine || s.id) || catalog.get(s.id);
     const metrics = (spec && spec.metrics) || s.metrics || null;
+    const packRow =
+      (Array.isArray(window.QA_STRATEGY_ROWS) &&
+        window.QA_STRATEGY_ROWS.find((r) => r && (r.id === s.id || r.id === (s.engine || s.id)))) ||
+      null;
     return {
       id: s.id,
       name: s.name,
@@ -412,6 +494,7 @@
       engine: s.engine || s.id,
       tier,
       metrics,
+      release_date: s.release_date || (packRow && packRow.release_date) || (spec && spec.release_date) || "",
     };
   }
 
@@ -442,6 +525,15 @@
   );
   let allList = aiList.concat(freeList.concat(masterList));
   if (!allList.length) allList = buildFallbackList();
+  (function ensureFullCatalog() {
+    const have = new Set(allList.map((s) => s.id));
+    buildFallbackList().forEach((s) => {
+      if (!have.has(s.id)) {
+        allList.push(s);
+        have.add(s.id);
+      }
+    });
+  })();
   if (!allList.length) {
     const gridFail = document.getElementById("gridAll");
     if (gridFail) gridFail.innerHTML = `<p class="muted">${t("mktEmpty")}</p>`;
@@ -459,7 +551,7 @@
   const tabsEl = document.getElementById("termTabs");
   const PAGE = 999;
   let pageN = PAGE;
-  let activeFilter = "grid";
+  let activeFilter = "all";
 
   async function openEngine(engine, interval) {
     showBacktest();
@@ -509,7 +601,7 @@
     const chartBlock = s.chart
       ? `<img class="ai-eq-thumb" src="${s.chart}" alt="${s.name} equity" loading="lazy" />`
       : "";
-    return `<article class="m-card strategy-card plaza-card${s.ai ? " ai-card" : ""}${s.tier === "master" ? " master" : ""}" data-id="${s.id}" data-tier="${s.tier === "master" ? "master" : "free"}" data-kind="${kindOf(s)}" data-engine="${s.engine || s.id}">
+    return `<article class="m-card strategy-card plaza-card${s.ai ? " ai-card" : ""}${s.tier === "master" ? " master" : ""}" data-id="${s.id}" data-tier="${s.tier === "master" ? "master" : "free"}" data-kind="${kindOf(s)}" data-engine="${s.engine || s.id}" data-release="${s.release_date || ""}">
         ${badge}
         <h3>${s.name}</h3>
         ${chartBlock}
@@ -582,11 +674,13 @@
     const kind = kindOf(s);
     if (f === "all") return true;
     if (f === "grid") return kind === "grid" || isGridMartin(s);
-    if (f === "inst") return s.tier === "master" || (seed.sh != null && seed.sh >= 2.55);
     if (f === "moon") return seed.ret != null && seed.ret >= 0.12;
-    if (f === "wr90") return seed.wr != null && seed.wr >= 0.9;
+    if (f === "recent") {
+      const d = Date.parse(s.release_date || "");
+      if (!Number.isFinite(d)) return Boolean(s.ai);
+      return Date.now() - d <= 180 * 86400000;
+    }
     if (f === "ai") return Boolean(s.ai);
-    if (f === "free") return s.tier !== "master" && !s.ai;
     return true;
   }
 
@@ -596,13 +690,11 @@
 
   function buildTabDefs() {
     return [
-      { id: "grid", label: "旗艦網格/馬丁 (明星推薦 · 高頻收租)", hero: true },
-      { id: "inst", label: "機構實盤榜 (" + countLane("inst") + ")" },
-      { id: "moon", label: "爆發投報榜" },
-      { id: "wr90", label: "90%+ 高勝率榜" },
-      { id: "ai", label: "AI 動態挖礦" },
-      { id: "free", label: "開源免費試用 (" + countLane("free") + ")" },
       { id: "all", label: "全部策略 (" + allList.length + ")" },
+      { id: "grid", label: "旗艦網格/馬丁 (明星推薦 · 高頻收租)", hero: true },
+      { id: "recent", label: "新銳上線榜 (" + countLane("recent") + ")" },
+      { id: "moon", label: "爆發投報榜" },
+      { id: "ai", label: "AI 動態挖礦" },
     ];
   }
 
@@ -662,6 +754,7 @@
       ai: card.getAttribute("data-ai") === "1" || card.classList.contains("ai-card"),
       name: (card.querySelector("h3") && card.querySelector("h3").textContent) || "",
       tags: [card.getAttribute("data-kind") || ""],
+      release_date: card.getAttribute("data-release") || "",
       win_rate: Number(card.getAttribute("data-wr")),
       sharpe: Number(card.getAttribute("data-sh")),
       return_pct: Number(card.getAttribute("data-ret")),
@@ -673,6 +766,14 @@
   function applyFilter() {
     if (!gridEl) return;
     const cards = [...gridEl.querySelectorAll(".m-card")];
+    if (activeFilter === "recent") {
+      cards.sort((a, b) => {
+        const da = Date.parse(a.getAttribute("data-release") || "") || 0;
+        const db = Date.parse(b.getAttribute("data-release") || "") || 0;
+        return db - da;
+      });
+      cards.forEach((c) => gridEl.appendChild(c));
+    }
     cards.forEach((card) => {
       const show = cardMatches(card, activeFilter);
       card.classList.toggle("is-hidden", !show);
@@ -681,8 +782,6 @@
         setTimeout(() => card.classList.remove("plaza-fade"), 280);
       }
     });
-    const visible = cards.filter((c) => !c.classList.contains("is-hidden"));
-    visible.forEach((c) => c.classList.remove("is-paged"));
     const more = document.getElementById("gridMore");
     if (more) more.hidden = true;
   }
@@ -755,6 +854,15 @@
       ({ free: LOCAL_FREE, master: LOCAL_MASTER } = localLists());
     }
     allList = aiNext.concat(merge("free", LOCAL_FREE).concat(merge("master", LOCAL_MASTER)));
+    (function ensureFullCatalog() {
+      const have = new Set(allList.map((s) => s.id));
+      buildFallbackList().forEach((s) => {
+        if (!have.has(s.id)) {
+          allList.push(s);
+          have.add(s.id);
+        }
+      });
+    })();
     renderTabs();
     paintGrid();
     paintPlazaCount();

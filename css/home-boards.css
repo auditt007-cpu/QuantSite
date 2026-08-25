@@ -11,37 +11,45 @@
 .home-hero .hero-top {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 16px;
+  align-items: stretch;
+  gap: 12px;
   width: 100%;
 }
 
-.home-hero .hero-copy {
-  flex: 1 1 auto;
+.home-hero .hero-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 20px;
+  width: 100%;
   min-width: 0;
 }
 
-.home-hero .hero-h1 {
-  color: var(--text-main);
-  max-width: none;
+.home-hero .hero-row .hero-h1 {
+  flex: 1 1 auto;
+  min-width: 0;
   margin: 0;
+  max-width: none;
 }
 
 .home-hero .hero-h2 {
   color: var(--text-muted);
-  margin: 10px 0 0;
+  margin: 0;
   max-width: none;
 }
 
 .home-hero .hero-cta {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: flex-end;
   gap: 10px;
   margin: 0;
-  white-space: normal;
-  max-width: 100%;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  max-width: none;
   min-width: 0;
 }
 
@@ -63,24 +71,33 @@
 }
 
 @media (max-width: 900px) {
-  .home-hero .hero-top {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 16px;
+  .home-hero .hero-row {
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .home-hero .hero-row .hero-h1 {
+    font-size: clamp(1.05rem, 4.2vw, 1.55rem);
+    line-height: 1.25;
   }
 
   .home-hero .hero-cta {
-    flex-wrap: wrap;
-    white-space: normal;
-    width: 100%;
-    max-width: 100%;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    width: auto;
+    max-width: 46%;
   }
 
   .home-hero .hero-cta .btn-cta,
   .home-hero .hero-cta .btn {
-    width: 100%;
+    width: auto;
+    max-width: 100%;
     text-align: center;
-    display: block;
+    display: inline-flex;
+    font-size: 12px;
+    padding: 10px 12px;
+    white-space: nowrap;
   }
 }
 
@@ -430,7 +447,7 @@
   }
 
   body.home-boards .ticker-bar .ticker-track {
-    overflow: hidden !important;
+    overflow: visible !important;
   }
 
   body.home-boards .home-hero,
@@ -452,9 +469,9 @@
 
 @media (max-width: 480px) {
   body.home-boards .home-hero .hero-h1 {
-    font-size: clamp(1.35rem, 6vw, 1.75rem) !important;
+    font-size: clamp(1.05rem, 4.2vw, 1.55rem) !important;
     line-height: 1.25 !important;
-    margin-bottom: 10px;
+    margin-bottom: 0;
     overflow-wrap: break-word;
     word-break: break-word;
   }
@@ -466,13 +483,13 @@
 
   body.home-boards .home-hero .hero-cta .btn-cta,
   body.home-boards .home-hero .hero-cta .btn {
-    width: 100%;
+    width: auto;
     max-width: 100%;
     margin: 0;
-    padding: 12px 16px;
+    padding: 8px 10px;
     box-sizing: border-box;
-    font-size: 14px;
-    white-space: normal;
+    font-size: 11px;
+    white-space: nowrap;
     text-align: center;
   }
 

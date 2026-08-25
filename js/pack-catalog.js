@@ -318,6 +318,7 @@
       tier: vip ? "master" : "free",
       tags: kindTag(row),
       metrics: row.metrics,
+      release_date: row.release_date || "",
       run(bars) {
         if (!fn || !bars || bars.length < 30) return [];
         const indicators = makeIndicators(bars);

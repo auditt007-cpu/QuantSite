@@ -1151,7 +1151,6 @@ input.is-focused, textarea.is-focused, select.is-focused {
   height: 40px;
   line-height: 40px;
   min-width: max-content;
-  transform: none;
   will-change: transform;
   animation: qaTickerMarquee 60s linear infinite;
 }
@@ -1648,7 +1647,7 @@ input.is-focused, textarea.is-focused, select.is-focused {
 /* Bloomberg editorial grid + tactile system */
 .editorial-grid {
   display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
   gap: 24px;
   align-items: start;
   margin-top: 16px;
@@ -1656,6 +1655,22 @@ input.is-focused, textarea.is-focused, select.is-focused {
   min-width: 0;
   max-width: 100%;
   overflow: hidden;
+}
+.plaza-intro {
+  width: 100%;
+  max-width: 100%;
+  margin: 8px 0 0;
+  padding-right: 0;
+}
+.plaza-intro .h2,
+.plaza-intro .muted,
+.plaza-intro .open-src,
+.plaza-intro #plazaCount {
+  max-width: none;
+  width: 100%;
+}
+.plaza-intro .open-src {
+  margin-top: 8px;
 }
 .editorial-main { min-width: 0; max-width: 100%; overflow: hidden; }
 #viewList, #viewBacktest { min-width: 0; max-width: 100%; }
@@ -1721,7 +1736,14 @@ input.is-focused, textarea.is-focused, select.is-focused {
   cursor: pointer;
   font: inherit;
 }
-.week-row b { font-variant-numeric: tabular-nums; color: #64748b; }
+.week-row em .week-days {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  opacity: 0.72;
+  letter-spacing: 0;
+}
 .week-row span { font-size: 12px; line-height: 1.35; }
 .week-row em { font-style: normal; font-weight: 800; font-variant-numeric: tabular-nums; font-size: 12px; }
 .week-row em.up { color: #00873c; }
@@ -2682,7 +2704,9 @@ body.live-page .mv-panel-strategies {
   body[data-mv-view="leaderboard"] .mv-panel-strategies,
   body[data-mv-view="news"] .mv-panel-strategies,
   body[data-mv-view="leaderboard"] #viewList,
-  body[data-mv-view="news"] #viewList {
+  body[data-mv-view="news"] #viewList,
+  body[data-mv-view="leaderboard"] .plaza-intro,
+  body[data-mv-view="news"] .plaza-intro {
     display: none !important;
   }
   body:not([data-mv-view="leaderboard"]) .mv-panel-leaderboard,
