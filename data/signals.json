@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-25T07:50:56Z",
+  "updated_at": "2026-08-25T07:53:03Z",
   "venue": "coinbase",
   "poll_sec": 5,
   "exec_log": [
@@ -9,7 +9,7 @@
       "interval": "1h",
       "side": "LONG",
       "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787644197,
+      "logged_at": 1787644323,
       "bar_ts": 1787641200,
       "event": "open",
       "strategy_id": "pivot_1h_36",
@@ -31,7 +31,7 @@
       "interval": "1h",
       "side": "SHORT",
       "action": "空頭開倉 (SELL)",
-      "logged_at": 1787644196,
+      "logged_at": 1787644322,
       "bar_ts": 1787641200,
       "event": "close",
       "strategy_id": "pivot_1h_36",
@@ -43,6 +43,154 @@
           "tp_pct": null,
           "event": "close",
           "pnl_pct": -1.8218968159373436
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "複合動能確認",
+      "interval": "1h",
+      "side": "LONG",
+      "action": "空頭平倉翻多 (BUY)",
+      "logged_at": 1787644261,
+      "bar_ts": 1787641200,
+      "event": "open",
+      "strategy_id": "combo_1h_42",
+      "symbols": [
+        {
+          "symbol": "NEARUSDT",
+          "price": 1.941,
+          "sl_pct": -1.4743431221020151,
+          "tp_pct": 2.9487377640391514,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "樞軸點突破",
+      "interval": "1h",
+      "side": "SHORT",
+      "action": "多頭平倉翻空 (SELL)",
+      "logged_at": 1787644262,
+      "bar_ts": 1787641200,
+      "event": "open",
+      "strategy_id": "pivot_1h_36",
+      "symbols": [
+        {
+          "symbol": "INJUSDT",
+          "price": 5.873,
+          "sl_pct": -2.263391792950789,
+          "tp_pct": 4.526783585901593,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "複合動能確認",
+      "interval": "1h",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787644261,
+      "bar_ts": 1787641200,
+      "event": "close",
+      "strategy_id": "combo_1h_42",
+      "symbols": [
+        {
+          "symbol": "NEARUSDT",
+          "price": 1.941,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.14446393561036713
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "樞軸點突破",
+      "interval": "1h",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787644260,
+      "bar_ts": 1787641200,
+      "event": "close",
+      "strategy_id": "pivot_1h_36",
+      "symbols": [
+        {
+          "symbol": "INJUSDT",
+          "price": 5.873,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -1.7892976588628797
+        },
+        {
+          "symbol": "ETHUSDT",
+          "price": 2497.5,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.41468958092428293
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
+      "name_zh": "5m動能微破",
+      "interval": "5m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787644261,
+      "bar_ts": 1787643900,
+      "event": "close",
+      "strategy_id": "hb-roc5",
+      "symbols": [
+        {
+          "symbol": "NEARUSDT",
+          "price": 1.9249,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "SOLUSDT",
+          "price": 100.72,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
+      "name_zh": "5m動能微破",
+      "interval": "5m",
+      "side": "SHORT",
+      "action": "多頭平倉翻空 (SELL)",
+      "logged_at": 1787644260,
+      "bar_ts": 1787643900,
+      "event": "open",
+      "strategy_id": "hb-roc5",
+      "symbols": [
+        {
+          "symbol": "SOLUSDT",
+          "price": 100.72,
+          "sl_pct": -0.4349146147736298,
+          "tp_pct": 0.8698302223987266,
+          "event": "open",
+          "pnl_pct": null
         }
       ],
       "strategy_count": 1
@@ -71,28 +219,6 @@
     },
     {
       "kind": "batch",
-      "name_zh": "樞軸點突破",
-      "interval": "1h",
-      "side": "SHORT",
-      "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787644135,
-      "bar_ts": 1787641200,
-      "event": "open",
-      "strategy_id": "pivot_1h_36",
-      "symbols": [
-        {
-          "symbol": "INJUSDT",
-          "price": 5.873,
-          "sl_pct": -2.263391792950789,
-          "tp_pct": 4.526783585901593,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
       "name_zh": "複合動能確認",
       "interval": "1h",
       "side": "LONG",
@@ -109,80 +235,6 @@
           "tp_pct": null,
           "event": "close",
           "pnl_pct": -0.14425553838228417
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "樞軸點突破",
-      "interval": "1h",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787644133,
-      "bar_ts": 1787641200,
-      "event": "close",
-      "strategy_id": "pivot_1h_36",
-      "symbols": [
-        {
-          "symbol": "INJUSDT",
-          "price": 5.873,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -1.7892976588628797
-        },
-        {
-          "symbol": "ETHUSDT",
-          "price": 2497.5,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.41468958092428293
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "複合動能確認",
-      "interval": "1h",
-      "side": "LONG",
-      "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787644074,
-      "bar_ts": 1787641200,
-      "event": "open",
-      "strategy_id": "combo_1h_42",
-      "symbols": [
-        {
-          "symbol": "NEARUSDT",
-          "price": 1.941,
-          "sl_pct": -1.4743431221020151,
-          "tp_pct": 2.9487377640391514,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "複合動能確認",
-      "interval": "1h",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787644072,
-      "bar_ts": 1787641200,
-      "event": "close",
-      "strategy_id": "combo_1h_42",
-      "symbols": [
-        {
-          "symbol": "NEARUSDT",
-          "price": 1.941,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.14446393561036713
         }
       ],
       "strategy_count": 1
@@ -539,50 +591,6 @@
           "tp_pct": null,
           "event": "close",
           "pnl_pct": -1.124519257566459
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "EMA雙均交叉",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787643947,
-      "bar_ts": 1787643900,
-      "event": "close",
-      "strategy_id": "ema_12_26_15m_1",
-      "symbols": [
-        {
-          "symbol": "APTUSDT",
-          "price": 0.6167,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -1.547834678083332
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "5m動能微破",
-      "interval": "5m",
-      "side": "LONG",
-      "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787643946,
-      "bar_ts": 1787643600,
-      "event": "open",
-      "strategy_id": "hb-roc5",
-      "symbols": [
-        {
-          "symbol": "SOLUSDT",
-          "price": 101.65,
-          "sl_pct": -0.3156123954746796,
-          "tp_pct": 0.6312247909493313,
-          "event": "open",
-          "pnl_pct": null
         }
       ],
       "strategy_count": 1
