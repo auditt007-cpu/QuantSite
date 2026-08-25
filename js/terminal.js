@@ -289,34 +289,53 @@
   }
 
   function seedMetrics(s) {
-    const eng = s.engine || s.id;
-    const lb = lbForEngine(eng);
-    if (lb) {
-      return {
-        wr: Number.isFinite(lb.win_rate_smooth)
-          ? lb.win_rate_smooth
-          : Number.isFinite(lb.win_rate)
-            ? lb.win_rate
-            : null,
-        sh: Number.isFinite(lb.sharpe)
-          ? lb.sharpe
-          : Number.isFinite(lb.profit_factor)
-            ? lb.profit_factor
-            : null,
-        ret: Number.isFinite(lb.roi_pct)
-          ? lb.roi_pct / 100
-          : Number.isFinite(lb.net_profit_pct)
-            ? lb.net_profit_pct
-            : null,
-        pf: Number.isFinite(lb.profit_factor) ? lb.profit_factor : null,
-        mdd: Number.isFinite(lb.max_drawdown) ? lb.max_drawdown : null,
-        trades: Number.isFinite(lb.trades) ? lb.trades : null,
-        periodDays: Number(lb.period_days) || Number((window.__QA_LB && window.__QA_LB.period_days) || 60),
-        source: "leaderboard",
-      };
+    const status = String(s.status || "").toUpperCase();
+    const initializing = status === "INITIALIZING";
+    // Plaza wipe / grid placeholders must NOT inherit legacy leaderboard DD/ROI.
+    if (!initializing) {
+      const eng = s.engine || s.id;
+      const lb = lbForEngine(eng);
+      if (lb) {
+        return {
+          wr: Number.isFinite(lb.win_rate_smooth)
+            ? lb.win_rate_smooth
+            : Number.isFinite(lb.win_rate)
+              ? lb.win_rate
+              : null,
+          sh: Number.isFinite(lb.sharpe)
+            ? lb.sharpe
+            : Number.isFinite(lb.profit_factor)
+              ? lb.profit_factor
+              : null,
+          ret: Number.isFinite(lb.roi_pct)
+            ? lb.roi_pct / 100
+            : Number.isFinite(lb.net_profit_pct)
+              ? lb.net_profit_pct
+              : null,
+          pf: Number.isFinite(lb.profit_factor) ? lb.profit_factor : null,
+          mdd: Number.isFinite(lb.max_drawdown) ? lb.max_drawdown : null,
+          trades: Number.isFinite(lb.trades) ? lb.trades : null,
+          periodDays: Number(lb.period_days) || Number((window.__QA_LB && window.__QA_LB.period_days) || 60),
+          source: "leaderboard",
+        };
+      }
     }
     const spec = catalog.get(s.engine || s.id) || catalog.get(s.id);
     const m = (spec && spec.metrics) || s.metrics || {};
+    if (initializing) {
+      const apy = Number(m.backtest_apy_pct);
+      return {
+        wr: 1,
+        sh: 0,
+        ret: Number.isFinite(apy) ? apy / 100 : 0,
+        pf: null,
+        mdd: 0,
+        trades: 0,
+        periodDays: 0,
+        source: "initializing",
+        wrLabel: m.win_rate_label || s.win_rate_label || "等候實盤數據",
+      };
+    }
     const wr = parsePct(m.win_rate);
     const sh = Number(s.sharpe != null ? s.sharpe : m.sharpe_ratio);
     const ret =
@@ -510,12 +529,16 @@
     localFallback.forEach((s) => byId.set(s.id, asCard(s, tier)));
     fromApi.forEach((s) => {
       const loc = catalog.get(s.engine || s.id) || catalog.get(s.id);
+      const remoteName = String(s.name || s.title || "").trim();
       byId.set(s.id, {
         ...asCard(s, tier),
         engine: s.engine || s.id,
-        name: (loc && loc.name) || s.name,
-        principle: (loc && loc.principle) || s.principle || "",
-        description: (loc && loc.description) || s.description || "",
+        // Prefer strategies.json display name over stale catalog labels (EMA/RSI…).
+        name: remoteName || (loc && loc.name) || s.id,
+        principle: s.principle || (loc && loc.principle) || "",
+        description: s.description || (loc && loc.description) || "",
+        status: s.status || "",
+        strategy_type: s.strategy_type || "",
       });
     });
     return Array.from(byId.values());
@@ -581,8 +604,10 @@
   function cardHtml(s) {
     const seed = seedMetrics(s);
     const pipe = window.QAPipeline || {};
+    const title = String(s.name || s.title || "").trim() || String(s.id || s.engine || "—");
     const enriched = {
       ...s,
+      name: title,
       sharpe: seed.sh != null ? seed.sh : s.sharpe,
       win_rate: seed.wr != null ? seed.wr : s.win_rate,
       max_drawdown: seed.mdd != null ? seed.mdd : s.max_drawdown,
@@ -601,16 +626,26 @@
     const principle = enriched.principle;
     const sym = ((s.symbols && s.symbols[0]) || "BTCUSDT");
     const iv = String(s.interval || "1h").toUpperCase();
-    const wrPct = seed.wr != null ? (seed.wr * 100).toFixed(1) + "%" : "—";
+    const wrPct =
+      seed.wrLabel ||
+      (seed.source === "initializing"
+        ? "等候實盤"
+        : seed.wr != null
+          ? (seed.wr * 100).toFixed(1) + "%"
+          : "—");
     const shTxt = seed.sh != null ? seed.sh.toFixed(2) : "—";
     const mddTxt =
-      seed.mdd != null ? (-Math.abs(seed.mdd <= 1.5 ? seed.mdd * 100 : seed.mdd)).toFixed(1) + "%" : "—";
+      seed.source === "initializing" || seed.mdd === 0
+        ? "0.0%"
+        : seed.mdd != null
+          ? (-Math.abs(seed.mdd <= 1.5 ? seed.mdd * 100 : seed.mdd)).toFixed(1) + "%"
+          : "—";
     const chartBlock = s.chart
-      ? `<img class="ai-eq-thumb" src="${s.chart}" alt="${s.name} equity" loading="lazy" />`
+      ? `<img class="ai-eq-thumb" src="${s.chart}" alt="${title} equity" loading="lazy" />`
       : "";
-    return `<article class="m-card strategy-card plaza-card${s.ai ? " ai-card" : ""}${s.tier === "master" ? " master" : ""}" data-id="${s.id}" data-tier="${s.tier === "master" ? "master" : "free"}" data-kind="${kindOf(s)}" data-engine="${s.engine || s.id}" data-release="${s.release_date || ""}">
+    return `<article class="m-card strategy-card plaza-card${s.ai ? " ai-card" : ""}${s.tier === "master" ? " master" : ""}" data-id="${s.id}" data-tier="${s.tier === "master" ? "master" : "free"}" data-kind="${kindOf(s)}" data-engine="${s.engine || s.id}" data-release="${s.release_date || ""}" data-status="${s.status || ""}">
         ${badge}
-        <h3>${s.name}</h3>
+        <h3>${title}</h3>
         ${chartBlock}
         ${principle ? `<p class="card-principle">${principle}</p>` : ""}
         <p class="card-meta muted">${sym} · ${iv}</p>
@@ -861,6 +896,21 @@
       ({ free: LOCAL_FREE, master: LOCAL_MASTER } = localLists());
     }
     allList = aiNext.concat(merge("free", LOCAL_FREE).concat(merge("master", LOCAL_MASTER)));
+    (function preferPipelineById() {
+      // strategies.json plaza wipe wins over catalog EMA names / leaderboard ghosts.
+      const byId = new Map();
+      allList.forEach((s) => byId.set(s.id, s));
+      aiNext.forEach((s) => {
+        if (!s || !s.id) return;
+        byId.set(s.id, s);
+      });
+      allList = Array.from(byId.values());
+      // Keep INITIALIZING / plaza GRID rows near top.
+      allList.sort((a, b) => {
+        const ai = (x) => (String(x.status || "").toUpperCase() === "INITIALIZING" || x.ai ? 0 : 1);
+        return ai(a) - ai(b);
+      });
+    })();
     (function ensureFullCatalog() {
       const have = new Set(allList.map((s) => s.id));
       buildFallbackList().forEach((s) => {

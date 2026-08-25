@@ -71,41 +71,22 @@ def strip_fences(code: str) -> str:
 
 
 async def generate_strategy_code(hint: str = "") -> str:
-    families = [
-        "EMA crossover trend",
-        "RSI mean reversion",
-        "Bollinger band breakout",
-        "Donchian channel breakout",
-        "MACD histogram + EMA filter",
-        "ATR trailing stop trend",
-        "dual RSI + SMA regime",
-        "Keltner channel squeeze",
-        "momentum ROC + SMA",
-        "mean-reversion z-score of close",
-    ]
-    user = (
-        "Write PARAMS + generate_signals for a 1H BTC/ETH/SOL {0}. {1} "
-        "Keep the logic simple and vectorized."
-    ).format(families[hash(hint) % len(families)] if hint else families[0], hint)
-    raw = await chat(
-        [{"role": "system", "content": SYSTEM_CODE}, {"role": "user", "content": user}],
-        temperature=0.55,
+    """DEPRECATED: directional EMA/RSI families removed.
+
+    Cron / idle miner must use llm_pipeline.grid_models only (5 HF grid subtypes).
+    """
+    raise RuntimeError(
+        "generate_strategy_code is disabled — use llm_pipeline.grid_models "
+        "(DYNAMIC_ATR_GRID / BASIS_FUNDING_GRID / BOLLINGER_SQUEEZE_GRID / "
+        "FIBO_DCA_GRID / PAIRS_COINT_GRID) via pipeline.py or idle_grid_miner.py"
     )
-    return strip_fences(raw)
 
 
 async def repair_strategy_code(code: str, error: str) -> str:
-    raw = await chat(
-        [
-            {"role": "system", "content": SYSTEM_FIX},
-            {
-                "role": "user",
-                "content": "Current code:\n{0}\n\nException:\n{1}".format(code, error[:2500]),
-            },
-        ],
-        temperature=0.2,
+    raise RuntimeError(
+        "repair_strategy_code is disabled with legacy directional mining; "
+        "use grid_models param sweeps instead"
     )
-    return strip_fences(raw)
 
 
 async def write_copy(metrics: dict[str, Any]) -> str:

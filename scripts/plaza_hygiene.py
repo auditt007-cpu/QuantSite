@@ -21,14 +21,8 @@ CHART_DIRS = [
 ]
 
 TITLE_RULES = (
-    (re.compile(r"bollinger|bb_|布林", re.I), "AI 布林帶研究"),
-    (re.compile(r"rsi", re.I), "AI RSI 均值回歸"),
-    (re.compile(r"ema|dual", re.I), "AI EMA 趨勢"),
-    (re.compile(r"donchian|turtle|唐奇", re.I), "AI 唐奇安通道"),
-    (re.compile(r"macd", re.I), "AI MACD 動能"),
-    (re.compile(r"keltner|肯特", re.I), "AI 肯特納通道"),
-    (re.compile(r"atr|supertrend", re.I), "AI ATR 跟蹤"),
-    (re.compile(r"roc", re.I), "AI ROC 動能"),
+    # Legacy directional titles retired — hygiene must not re-label grids as EMA/RSI.
+    (re.compile(r"grid|網格|atr_grid|fibo|basis|squeeze|pairs|coint", re.I), "AI 高頻網格研究"),
 )
 
 
@@ -43,6 +37,10 @@ def _chart_exists(rel: str) -> bool:
 
 
 def infer_title(row: dict) -> str:
+    if str(row.get("status") or "").upper() == "INITIALIZING":
+        title = str(row.get("title") or row.get("name") or "").strip()
+        if title:
+            return title
     title = str(row.get("title") or row.get("name") or "").strip()
     if title and not re.match(r"^AI\s+ai_\d+$", title, re.I) and not re.match(r"^ai_\d+$", title, re.I):
         if not re.match(r"^\d+$", title):
@@ -53,13 +51,15 @@ def infer_title(row: dict) -> str:
             str(row.get("code") or "")[:800],
             str(row.get("engine") or ""),
             str(row.get("id") or ""),
+            str(row.get("subtype") or ""),
+            str(row.get("strategy_type") or ""),
         ]
     )
     for rx, name in TITLE_RULES:
         if rx.search(blob):
             return name
     sid = str(row.get("id") or "")[-6:]
-    return "AI 時序研究 {0}".format(sid)
+    return "AI 高頻網格研究 {0}".format(sid)
 
 
 def load_payload() -> tuple[dict, Path]:

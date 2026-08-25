@@ -50,18 +50,28 @@
     if (!id) return null;
     const copy = row.copy || row.description || row.intro || "";
     const chart = row.chart_url || row.chart || "";
+    // Prefer JSON display name; never invent EMA/RSI labels from copy.
+    const display = String(row.title || row.name || "").trim();
     return {
       id: String(id),
-      name: row.title || row.name || String(id),
-      title: row.title || row.name,
+      name: display || String(id),
+      title: display || undefined,
       copy: copy,
       chart: chart,
       chart_url: chart,
+      status: row.status || "",
+      strategy_type: row.strategy_type || row.subtype || "",
+      metrics: m,
       sharpe: pickNum(row.sharpe, m.sharpe, m.sharpe_ratio, m.robustness, row.robustness),
-      return_pct: pickNum(row.return_pct, m.return_pct, m.ret),
-      max_drawdown: pickNum(row.max_drawdown, m.max_drawdown, m.mdd),
+      return_pct: pickNum(
+        row.return_pct,
+        m.return_pct,
+        m.ret,
+        m.backtest_apy_pct != null ? Number(m.backtest_apy_pct) / 100 : NaN
+      ),
+      max_drawdown: pickNum(row.max_drawdown, m.max_drawdown_pct, m.max_drawdown, m.mdd),
       profit_factor: pickNum(row.profit_factor, m.profit_factor, m.pf),
-      win_rate: pickNum(row.win_rate, m.win_rate, m.hit),
+      win_rate: pickNum(row.win_rate, m.win_rate_pct, m.win_rate, m.hit),
       trades: row.trades != null ? row.trades : m.trades,
       symbols: row.symbols,
       interval: row.interval || row.tf || "1h",
@@ -70,6 +80,7 @@
       category: row.category || "",
       engine: row.engine || row.engine_id || "",
       listed: row.listed,
+      win_rate_label: m.win_rate_label || row.win_rate_label || "",
     };
   }
 
@@ -171,6 +182,17 @@
   }
 
   function chartBlockHtml(s) {
+    const url = chartUrl(s);
+    if (url) {
+      const title = displayName(s);
+      return (
+        '<img class="ai-eq-thumb" src="' +
+        url +
+        '" alt="' +
+        title +
+        ' equity" loading="lazy" />'
+      );
+    }
     return equitySparkSvg(s.id || s.name, s.return_pct, s.max_drawdown);
   }
 
@@ -216,16 +238,21 @@
   }
 
   function metricsBoardHtml(seed) {
-    const sh = fmtSharpe(seed.sh);
-    const wr = fmtWr(seed.wr);
-    const mdd = fmtMdd(seed.mdd);
-    const ret = fmtRet(seed.ret);
-    const pf = fmtPf(seed.pf);
-    const trades = fmtTrades(seed.trades);
+    const sh = seed.source === "initializing" ? "0.00" : fmtSharpe(seed.sh);
+    const wr =
+      seed.wrLabel ||
+      (seed.source === "initializing" ? "等候實盤數據" : fmtWr(seed.wr));
+    const mdd = seed.source === "initializing" || seed.mdd === 0 ? "0.0%" : fmtMdd(seed.mdd);
+    const ret = seed.source === "initializing" ? "0.0%" : fmtRet(seed.ret);
+    const pf = seed.source === "initializing" ? "—" : fmtPf(seed.pf);
+    const trades = seed.source === "initializing" ? "—" : fmtTrades(seed.trades);
     const mddCls = mdd !== "—" ? " is-down" : "";
     const wrCls = wr !== "—" ? " is-up" : "";
     const retCls = seed.ret == null ? "" : Number(seed.ret) >= 0 ? " is-up" : " is-down";
-    const retLab = retLabel(seed.periodDays);
+    const retLab =
+      seed.source === "initializing"
+        ? t("mktRet", "回測{d}日區間報酬").replace(/\{d\}/g, "—")
+        : retLabel(seed.periodDays);
     const retTip = t("mktRetTip", "指定回測窗口內的累積報酬（非整年年化）");
     return (
       '<div class="stat-caps plaza-metrics">' +
@@ -307,35 +334,46 @@
   }
 
   function displayName(row) {
-    const n = String(row.title || row.name || "");
-    if (n && !/^AI ai_/i.test(n)) return n;
-    const copy = String(row.copy || "");
-    if (/布林/.test(copy)) return "AI 布林帶突破增強版";
-    if (/RSI|rsi/.test(copy)) return "AI RSI 均值回歸";
-    return "AI 策略 " + String(row.id || "").replace(/^ai_/, "");
+    // Prefer JSON `name`/`title`; only fall back to strategy_id when empty.
+    const n = String((row && (row.title || row.name)) || "").trim();
+    if (n) return n;
+    return String((row && (row.id || row.strategy_id)) || "—");
   }
 
   function toCard(row) {
     const r = normalizeRow(row) || row;
+    const status = String(r.status || row.status || "").toUpperCase();
+    const initializing = status === "INITIALIZING";
     const sh = Number(r.sharpe);
     const ret = Number(r.return_pct);
     let mdd = Number(r.max_drawdown);
     if (Number.isFinite(mdd) && mdd > 0 && mdd < 2) mdd = -Math.abs(mdd);
+    if (initializing) mdd = 0;
     let wr = Number(r.win_rate);
     if (Number.isFinite(wr) && wr > 1) wr = wr / 100;
+    if (initializing && !Number.isFinite(wr)) wr = 1;
     const copy = r.copy || "";
     const cat = String(r.category || row.category || "");
-    const isAi = /AI/.test(cat) || String(r.id).indexOf("ai_") === 0;
+    const stype = String(r.strategy_type || row.strategy_type || "").toUpperCase();
+    const isAi =
+      /AI/.test(cat) ||
+      String(r.id).indexOf("ai_") === 0 ||
+      initializing ||
+      stype === "GRID" ||
+      /GRID/.test(stype);
     const tags = Array.isArray(row.tags) ? row.tags.slice() : ["PIPELINE", String(r.interval || "1h").toUpperCase()];
     if (isAi) tags.push("AI");
+    if (initializing) tags.push("INITIALIZING");
     const blob = [r.id, r.engine, r.title, r.name, cat, tags.join(" ")].join(" ").toLowerCase();
-    if (/網格|馬丁|martin|grid|atr_grid|adaptive_grid/.test(blob)) tags.push("grid");
+    if (/網格|馬丁|martin|grid|atr_grid|adaptive_grid/.test(blob) || /GRID/.test(stype)) tags.push("grid");
     return {
       id: r.id,
       name: displayName(r),
       engine: r.engine || r.id,
       tier: "free",
       ai: isAi,
+      status: status,
+      strategy_type: stype || "GRID",
       category: cat,
       copy: copy,
       chart: chartUrl(r),
@@ -344,15 +382,20 @@
       interval: r.interval || "1h",
       principle: briefCopy(copy, 200),
       description: copy,
+      win_rate_label: r.win_rate_label || (initializing ? "等候實盤數據" : ""),
       metrics: {
-        sharpe_ratio: sh,
-        week_return: Number.isFinite(ret) ? (ret * 100).toFixed(1) + "%" : null,
-        max_drawdown: Number.isFinite(mdd) ? (-Math.abs(mdd) * 100).toFixed(1) + "%" : null,
-        win_rate: Number.isFinite(wr) ? (wr * 100).toFixed(1) + "%" : null,
+        sharpe_ratio: initializing ? 0 : sh,
+        week_return: initializing
+          ? "0%"
+          : Number.isFinite(ret)
+            ? (ret * 100).toFixed(1) + "%"
+            : null,
+        max_drawdown: initializing ? "0%" : Number.isFinite(mdd) ? (-Math.abs(mdd) * 100).toFixed(1) + "%" : null,
+        win_rate: initializing ? "等候實盤數據" : Number.isFinite(wr) ? (wr * 100).toFixed(1) + "%" : null,
       },
-      sharpe: sh,
-      return_pct: ret,
-      max_drawdown: mdd,
+      sharpe: initializing ? 0 : sh,
+      return_pct: initializing ? 0 : ret,
+      max_drawdown: initializing ? 0 : mdd,
       profit_factor: Number(r.profit_factor),
       win_rate: wr,
       trades: r.trades,
@@ -382,6 +425,20 @@
   }
 
   function seedFromCard(s) {
+    const status = String(s.status || "").toUpperCase();
+    if (status === "INITIALIZING") {
+      return {
+        wr: 1,
+        sh: 0,
+        mdd: 0,
+        ret: 0,
+        pf: null,
+        trades: 0,
+        periodDays: 0,
+        wrLabel: s.win_rate_label || "等候實盤數據",
+        source: "initializing",
+      };
+    }
     let wr = s.win_rate != null ? Number(s.win_rate) : null;
     if (wr != null && Number.isFinite(wr) && wr > 1) wr = wr / 100;
     let mdd = s.max_drawdown != null ? Number(s.max_drawdown) : null;
@@ -421,7 +478,8 @@
 
   function cardHtml(s) {
     const seed = seedFromCard(s);
-    const grid = isGridMartin(s);
+    const title = displayName(s);
+    const grid = isGridMartin(s) || /GRID/i.test(String(s.strategy_type || ""));
     const badge = s.ai
       ? '<span class="ai-badge">' + t("mktBadgeAi", "AI 挖礦") + "</span>"
       : grid
@@ -444,6 +502,8 @@
       kind +
       '" data-engine="' +
       (s.engine || s.id) +
+      '" data-status="' +
+      (s.status || "") +
       '"' +
       (s.ai ? ' data-ai="1"' : "") +
       (seed.wr != null ? ' data-wr="' + seed.wr + '"' : "") +
@@ -453,7 +513,7 @@
       ">" +
       badge +
       "<h3>" +
-      s.name +
+      title +
       "</h3>" +
       chartBlockHtml(s) +
       (principle ? '<p class="card-principle">' + principle + "</p>" : "") +
