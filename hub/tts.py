@@ -19,28 +19,28 @@ except ImportError:  # pragma: no cover
 
 log = logging.getLogger("hub.tts")
 
-# voice, rate, pitch
+# voice, rate, pitch — rates are ~1.2× prior (-5%→+14%, -3%→+16%, +8%→+30%)
 VOICE_BY_LANG: dict[str, Tuple[str, str, str]] = {
-    "zh-CN": ("zh-CN-YunyangNeural", "-5%", "-8Hz"),
-    "en": ("en-US-ChristopherNeural", "-3%", "-5Hz"),
-    "zh-Hant": ("zh-TW-HsiaoChenNeural", "+8%", "+0Hz"),
+    "zh-CN": ("zh-CN-YunyangNeural", "+14%", "-8Hz"),
+    "en": ("en-US-ChristopherNeural", "+16%", "-5Hz"),
+    "zh-Hant": ("zh-TW-HsiaoChenNeural", "+30%", "+0Hz"),
 }
 
 # Same-lang Edge alternates when primary voice fails (male/female OK)
 EDGE_ALTS: dict[str, List[Tuple[str, str, str]]] = {
     "zh-CN": [
-        ("zh-CN-YunjianNeural", "-4%", "-5Hz"),
-        ("zh-CN-YunxiNeural", "-2%", "+0Hz"),
-        ("zh-CN-XiaoxiaoNeural", "+0%", "+0Hz"),
+        ("zh-CN-YunjianNeural", "+15%", "-5Hz"),
+        ("zh-CN-YunxiNeural", "+18%", "+0Hz"),
+        ("zh-CN-XiaoxiaoNeural", "+20%", "+0Hz"),
     ],
     "en": [
-        ("en-US-GuyNeural", "-2%", "+0Hz"),
-        ("en-US-EricNeural", "-3%", "-3Hz"),
-        ("en-US-JennyNeural", "+0%", "+0Hz"),
+        ("en-US-GuyNeural", "+18%", "+0Hz"),
+        ("en-US-EricNeural", "+16%", "-3Hz"),
+        ("en-US-JennyNeural", "+20%", "+0Hz"),
     ],
     "zh-Hant": [
-        ("zh-TW-YunJheNeural", "+0%", "+0Hz"),
-        ("zh-TW-HsiaoYuNeural", "+4%", "+0Hz"),
+        ("zh-TW-YunJheNeural", "+20%", "+0Hz"),
+        ("zh-TW-HsiaoYuNeural", "+25%", "+0Hz"),
     ],
 }
 
