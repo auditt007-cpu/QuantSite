@@ -521,4 +521,74 @@
   } else {
     bindPressFeel();
   }
+
+  const LIVE_MUTE_KEY = "qa_live_mute";
+  const LIVE_ARM_KEY = "qa_live_voice_armed";
+  const SILENT_WAV =
+    "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAA=";
+
+  function armLiveVoice() {
+    try {
+      localStorage.setItem(LIVE_MUTE_KEY, "0");
+      sessionStorage.setItem(LIVE_ARM_KEY, "1");
+    } catch (e) {
+      /* private */
+    }
+    try {
+      let a = window.globalTTSAudio;
+      if (!a) {
+        a = new Audio();
+        a.preload = "auto";
+        a.setAttribute("playsinline", "");
+        a.setAttribute("webkit-playsinline", "");
+        window.globalTTSAudio = a;
+      }
+      a.src = SILENT_WAV;
+      a.volume = 0.01;
+      const played = a.play();
+      if (played && typeof played.catch === "function") played.catch(function () {});
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (Ctx) {
+        const ctx = window.__qaArmCtx || new Ctx();
+        window.__qaArmCtx = ctx;
+        if (ctx.state === "suspended" && ctx.resume) ctx.resume();
+      }
+      if (window.QAEdgeSpeak && typeof window.QAEdgeSpeak.unlockPlayback === "function") {
+        window.QAEdgeSpeak.unlockPlayback(true);
+      }
+    } catch (e) {
+      /* iOS may still require a later tap */
+    }
+    try {
+      window.dispatchEvent(new CustomEvent("qa-live-voice-arm"));
+    } catch (e) {
+      /* */
+    }
+  }
+
+  function isLiveNavTarget(el) {
+    if (!el || !el.closest) return false;
+    const onLive = /live\.html/i.test(location.pathname || "") || /live\.html/i.test(location.href || "");
+    if (el.id === "navToggle" || (el.classList && el.classList.contains("nav-toggle"))) {
+      return onLive ? false : "menu";
+    }
+    const link = el.closest("a, button");
+    if (!link) return false;
+    const href = link.getAttribute("href") || "";
+    const i18n = link.getAttribute("data-i18n") || "";
+    if (link.classList && link.classList.contains("nav-link-live")) return "live";
+    if (/live\.html/i.test(href)) return "live";
+    if (i18n === "navLive" || i18n === "aboutCtaLive") return "live";
+    return false;
+  }
+
+  document.addEventListener(
+    "pointerdown",
+    function (ev) {
+      const kind = isLiveNavTarget(ev.target);
+      if (!kind) return;
+      armLiveVoice();
+    },
+    true
+  );
 })();

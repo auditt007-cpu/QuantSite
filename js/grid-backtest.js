@@ -170,7 +170,88 @@
     const d = Number(days) || 30;
     if (d <= 7) return { interval: "15m", limit: 7 * 24 * 4 };
     if (d <= 30) return { interval: "1h", limit: 30 * 24 };
-    return { interval: "4h", limit: 90 * 6 };
+    return { interval: "4h", limit: Math.min(1000, Math.max(90 * 6, Math.ceil(d * 6) + 24)) };
+  }
+
+  function paintIdleLabels(ctx, label, boxes, pad, plotW, plotH) {
+    if (!ctx || !label || !boxes || !boxes.length) return;
+    const fontFace = "JetBrains Mono, ui-monospace, monospace";
+    const plotLeft = pad.l;
+    const plotTop = pad.t;
+    const plotRight = pad.l + plotW;
+    const plotBottom = pad.t + plotH;
+    const widest = boxes.slice().sort(function (a, b) {
+      return b.x1 - b.x0 - (a.x1 - a.x0);
+    })[0];
+    function drawFitted(box, preferAxis) {
+      const x0 = Math.max(plotLeft, box.x0);
+      const x1 = Math.min(plotRight, box.x1);
+      const y0 = Math.max(plotTop, box.y0);
+      const y1 = Math.min(plotBottom, box.y1);
+      const bw = x1 - x0;
+      const bh = y1 - y0;
+      if (bw < 4 || bh < 8) return false;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(x0, y0, bw, bh);
+      ctx.clip();
+      ctx.fillStyle = "#888";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      let size = Math.min(16, bh * 0.42, bw / Math.max(2, label.length) * 1.65);
+      size = Math.max(6, size);
+      ctx.font = size + "px " + fontFace;
+      let tw = ctx.measureText(label).width;
+      while (tw > bw - 6 && size > 6) {
+        size -= 0.5;
+        ctx.font = size + "px " + fontFace;
+        tw = ctx.measureText(label).width;
+      }
+      if (tw <= bw - 6 && size >= 7 && !preferAxis) {
+        ctx.fillText(label, (x0 + x1) / 2, (y0 + y1) / 2);
+        ctx.restore();
+        return true;
+      }
+      /* Narrow band: rotate along the Y axis inside the plot box. */
+      size = Math.min(12, Math.max(6, bw - 5));
+      ctx.font = size + "px " + fontFace;
+      tw = ctx.measureText(label).width;
+      while (tw > bh - 8 && size > 6) {
+        size -= 0.4;
+        ctx.font = size + "px " + fontFace;
+        tw = ctx.measureText(label).width;
+      }
+      if (tw <= bh - 6) {
+        ctx.translate(x0 + Math.min(bw / 2, 8), (y0 + y1) / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText(label, 0, 0);
+        ctx.restore();
+        return true;
+      }
+      ctx.restore();
+      return false;
+    }
+    let painted = false;
+    boxes.forEach(function (box) {
+      if (drawFitted(box, false)) painted = true;
+    });
+    if (!painted && widest) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(plotLeft, plotTop, plotW, plotH);
+      ctx.clip();
+      ctx.fillStyle = "#888";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      let size = 10;
+      ctx.font = size + "px " + fontFace;
+      while (ctx.measureText(label).width > plotW * 0.55 && size > 7) {
+        size -= 0.5;
+        ctx.font = size + "px " + fontFace;
+      }
+      ctx.fillText(label, plotLeft + 6, plotTop + plotH / 2);
+      ctx.restore();
+    }
   }
 
   async function loadBars(symbol, days) {
@@ -407,10 +488,10 @@
     const plotW = w - pad.l - pad.r;
     const plotH = h - pad.t - pad.b;
     const bands = Array.isArray(bandActive) ? bandActive : [];
-    const daySpan = (tFull1 - tFull0) / 86400;
-    const xFrac = daySpan <= 8 ? function (sec) {
+    /* Linear time so 7d/30d/60d ranking windows match the strategy curve length. */
+    const xFrac = function (sec) {
       return (sec - vT0) / vSpan;
-    } : buildTimeMap(bands, vT0, vT1);
+    };
     const xAtTime = function (sec) {
       return pad.l + xFrac(sec) * plotW;
     };
@@ -419,23 +500,17 @@
     };
 
     const idleLabel = t("botIdleBand", "此時間段未觸發策略");
+    const idleBoxes = [];
     if (bands.length) {
       let segStart = null;
       const flushSeg = function (endT) {
         if (segStart == null) return;
         const x0 = xAtTime(segStart);
         const x1 = xAtTime(endT);
+        const bw = Math.max(2, x1 - x0);
         ctx.fillStyle = "rgba(160,160,160,0.14)";
-        ctx.fillRect(x0, pad.t, Math.max(2, x1 - x0), plotH);
-        if (x1 - x0 > 36) {
-          ctx.save();
-          ctx.fillStyle = "#999";
-          ctx.font = "18px JetBrains Mono, ui-monospace, monospace";
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillText(idleLabel, (x0 + x1) / 2, pad.t + plotH / 2);
-          ctx.restore();
-        }
+        ctx.fillRect(x0, pad.t, bw, plotH);
+        idleBoxes.push({ x0: x0, x1: x0 + bw, y0: pad.t, y1: pad.t + plotH });
         segStart = null;
       };
       for (let i = 0; i < bands.length; i += 1) {
@@ -445,6 +520,7 @@
       }
       if (segStart != null) flushSeg(bands[bands.length - 1].t);
     }
+    paintIdleLabels(ctx, idleLabel, idleBoxes, pad, plotW, plotH);
 
     ctx.strokeStyle = "#e2e2e2";
     ctx.lineWidth = 1;
@@ -823,7 +899,22 @@
     });
   }
 
+  let daysOverride = null;
+
+  function nearestDayChip(n) {
+    const chips = [7, 30, 90];
+    const x = Number(n) || 30;
+    for (let i = 0; i < chips.length; i += 1) {
+      if (chips[i] >= x - 0.5) return chips[i];
+    }
+    return chips[chips.length - 1];
+  }
+
   function readForm() {
+    const chipDays = Number(
+      document.querySelector(".bot-days.is-on") && document.querySelector(".bot-days.is-on").getAttribute("data-days")
+    );
+    const days = Number.isFinite(daysOverride) && daysOverride > 0 ? daysOverride : chipDays || 30;
     return {
       symbol: ($("botSymbol") && $("botSymbol").value) || "BTCUSDT",
       lower: Number($("botLower") && $("botLower").value),
@@ -837,10 +928,7 @@
         document.querySelector(".bot-mode.is-on") &&
         document.querySelector(".bot-mode.is-on").getAttribute("data-mode") === "geo"
       ),
-      days:
-        Number(
-          document.querySelector(".bot-days.is-on") && document.querySelector(".bot-days.is-on").getAttribute("data-days")
-        ) || 30,
+      days: days,
     };
   }
 
@@ -850,9 +938,11 @@
     });
   }
 
-  function setDays(n) {
+  function setDays(n, keepOverride) {
+    if (!keepOverride) daysOverride = null;
+    const chip = nearestDayChip(n);
     document.querySelectorAll(".bot-days").forEach(function (b) {
-      b.classList.toggle("is-on", Number(b.getAttribute("data-days")) === Number(n));
+      b.classList.toggle("is-on", Number(b.getAttribute("data-days")) === Number(chip));
     });
     resetChartView();
   }
@@ -1082,18 +1172,36 @@
     paintGridStep();
   }
 
+  function ensureSymbolOption(sym) {
+    const sel = $("botSymbol");
+    if (!sel || !sym) return;
+    const v = String(sym).toUpperCase();
+    let found = false;
+    for (let i = 0; i < sel.options.length; i += 1) {
+      if (String(sel.options[i].value).toUpperCase() === v) found = true;
+    }
+    if (!found) {
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = v.replace(/USDT$/i, "/USDT");
+      sel.appendChild(opt);
+    }
+    sel.value = v;
+  }
+
   function loadPreset(id) {
     const p = DYNAMIC_PRESETS[id] || PRESETS[id];
     if (!p) return;
-    if ($("botSymbol")) $("botSymbol").value = p.symbol;
+    ensureSymbolOption(p.symbol);
     setLev(p.leverage);
-    setDays(p.days);
+    daysOverride = Number(p.days) > 0 ? Number(p.days) : 30;
+    setDays(daysOverride, true);
     setMode(p.geo);
     if ($("botGrids")) {
       $("botGrids").value = p.grids;
       if ($("botGridsOut")) $("botGridsOut").textContent = String(p.grids);
     }
-    loadBars(p.symbol, p.days).then(function (bars) {
+    loadBars(p.symbol, daysOverride).then(function (bars) {
       const px = bars.length ? Number(bars[bars.length - 1].close) : 0;
       if (px > 0) {
         const lo = Number.isFinite(p.lower) ? p.lower : px * p.lowerMult;
@@ -1108,6 +1216,7 @@
         }
         syncBandTrack();
       }
+      paintGridStep();
       runBacktest();
     });
   }
@@ -1167,7 +1276,7 @@
       const lev = clamp(Number(gp.leverage) || 5, 1, 10);
       const grids = clamp(Number(gp.grids_count) || 60, 20, 150);
       const geo = String(gp.grid_mode || "").toLowerCase() === "geometric";
-      const days = clamp(Number(row.period_days) || Number(row.backtest_days) || 30, 7, 90);
+      const days = clamp(Number(row.period_days) || Number(row.backtest_days) || Number(row.metrics && row.metrics.period_days) || 30, 7, 90);
       const preset = {
         symbol: /USDT$/i.test(symbol) ? symbol : symbol + "USDT",
         leverage: lev,
@@ -1273,24 +1382,143 @@
     });
   }
 
-  async function loadTopGridStrategies() {
-    const urls = ["./strategies.json?_=" + Date.now(), "/strategies.json?_=" + Date.now()];
-    let rows = [];
-    for (let i = 0; i < urls.length; i += 1) {
+  const DEAD_GRID_SYMS = { FETUSDT: true };
+
+  function normGridSym(raw) {
+    return String(raw || "")
+      .replace("/", "")
+      .replace("-", "")
+      .replace(/\s/g, "")
+      .toUpperCase();
+  }
+
+  function isListedGrid(row) {
+    if (!isGridStrategy(row)) return false;
+    if (row.listed === false || row.listed === "false") return false;
+    const st = String(row.status || "").toUpperCase();
+    if (/DELIST|OFFLINE|ARCHIVED|DISABLED|RETIRED|UNLIST/.test(st)) return false;
+    const gp = row.grid_params || {};
+    const sym = normGridSym(row.symbol || gp.symbol || (row.symbols && row.symbols[0]) || "");
+    if (!sym) return false;
+    if (DEAD_GRID_SYMS[sym] || DEAD_GRID_SYMS[sym.replace(/USDT$/, "") + "USDT"]) return false;
+    if (/^FET/.test(sym)) return false;
+    return true;
+  }
+
+  function mergeStrategyRows(a, b) {
+    const map = {};
+    (a || []).concat(b || []).forEach(function (row) {
+      if (!row || typeof row !== "object") return;
+      const id = String(row.id || row.engine || "");
+      if (!id) return;
+      const prev = map[id];
+      if (!prev) {
+        map[id] = row;
+        return;
+      }
+      const ta = Date.parse(row.replaced_at || row.updated_at || 0) || 0;
+      const tb = Date.parse(prev.replaced_at || prev.updated_at || 0) || 0;
+      if (ta >= tb) map[id] = row;
+    });
+    return Object.keys(map).map(function (k) {
+      return map[k];
+    });
+  }
+
+  async function fetchStrategyPack(url, ms) {
+    const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+    const timer = ctrl && ms ? setTimeout(function () { ctrl.abort(); }, ms) : null;
+    try {
+      const res = await fetch(url, {
+        cache: "no-store",
+        headers: { Accept: "application/json" },
+        signal: ctrl ? ctrl.signal : undefined,
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      const rows = Array.isArray(data.strategies)
+        ? data.strategies
+        : Array.isArray(data.items)
+          ? data.items
+          : Array.isArray(data)
+            ? data
+            : [];
+      return rows;
+    } catch {
+      return [];
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  }
+
+  function listedGridSorted(rows) {
+    let grids = (rows || []).filter(isListedGrid);
+    if (root.QAPipeline && typeof root.QAPipeline.collapseCohorts === "function") {
       try {
-        const res = await fetch(urls[i], { cache: "no-store" });
-        if (!res.ok) continue;
-        const data = await res.json();
-        rows = Array.isArray(data.strategies) ? data.strategies : [];
-        break;
+        grids = root.QAPipeline.collapseCohorts(grids) || grids;
       } catch {
-        /* next */
+        /* keep */
       }
     }
-    const grids = rows.filter(isGridStrategy).sort(function (a, b) {
-      return gridRetOf(b) - gridRetOf(a);
+    grids.sort(function (a, b) {
+      const ra = gridRetOf(b) - gridRetOf(a);
+      if (ra !== 0) return ra;
+      const ta = Date.parse(b.replaced_at || b.updated_at || 0) || 0;
+      const tb = Date.parse(a.replaced_at || a.updated_at || 0) || 0;
+      return ta - tb;
     });
-    renderTopGridCards(grids);
+    return grids;
+  }
+
+  async function loadTopGridStrategies() {
+    const stamp = Date.now();
+    const cfg = root.QUANT_CONFIG || {};
+    let rows = await fetchStrategyPack("./strategies.json?_=" + stamp, 8000);
+    if (!rows.length) rows = await fetchStrategyPack("/strategies.json?_=" + stamp, 4000);
+    renderTopGridCards(listedGridSorted(rows));
+    mergeLiveStrategyPacks(rows, stamp, cfg);
+  }
+
+  function mergeLiveStrategyPacks(baseRows, stamp, cfg) {
+    const remotes = [];
+    const hub = String((cfg || {}).hubApiBase || "").replace(/\/$/, "");
+    const api = String((cfg || {}).apiBase || "").replace(/\/$/, "");
+    if (hub) remotes.push(fetchStrategyPack(hub + "/api/strategies?t=" + stamp, 4500));
+    if (api) remotes.push(fetchStrategyPack(api + "/api/strategies?t=" + stamp, 4500));
+    if (root.QAPipeline && typeof root.QAPipeline.fetchRows === "function") {
+      remotes.push(
+        Promise.resolve()
+          .then(function () {
+            return root.QAPipeline.fetchRows();
+          })
+          .catch(function () {
+            return [];
+          })
+      );
+    }
+    if (!remotes.length) return;
+    Promise.all(remotes).then(function (extra) {
+      let merged = baseRows;
+      let added = false;
+      extra.forEach(function (pack) {
+        if (pack && pack.length) {
+          merged = mergeStrategyRows(merged, pack);
+          added = true;
+        }
+      });
+      if (added) renderTopGridCards(listedGridSorted(merged));
+    });
+  }
+
+  let topRefreshTimer = 0;
+  function scheduleTopRefresh() {
+    if (topRefreshTimer) return;
+    topRefreshTimer = setInterval(function () {
+      loadTopGridStrategies();
+    }, 10 * 60 * 1000);
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "visible") loadTopGridStrategies();
+    });
   }
 
   /* ---- AI tune (quota: guest 3 / logged-in 10 / paid unlimited) ---- */
@@ -1759,6 +1987,7 @@
     loadTopGridStrategies().finally(function () {
       seedBandFromSpot().then(runBacktest);
     });
+    scheduleTopRefresh();
   }
 
   function bindPresetSelect() {

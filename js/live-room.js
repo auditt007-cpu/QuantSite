@@ -967,11 +967,48 @@
     el.hidden = !on;
   }
 
+  function consumeVoiceArm() {
+    try {
+      if (sessionStorage.getItem("qa_live_voice_armed") === "1") {
+        sessionStorage.removeItem("qa_live_voice_armed");
+        localStorage.setItem(MUTE_KEY, "0");
+        return true;
+      }
+    } catch {
+      /* private */
+    }
+    return false;
+  }
+
+  function applyVoiceOnFromArm() {
+    state.voiceOn = true;
+    saveVoiceOn(true);
+    paintVoiceBtn();
+    showHint(false);
+    state.lastHighPriorityAudioTime = Date.now();
+    state.lastIdleAdTime = Date.now();
+    state.idleAdCount = 0;
+    startIdleAdWatch();
+    resumeAudioContext();
+    const edge = window.QAEdgeSpeak;
+    const p =
+      edge && typeof edge.unlockPlayback === "function"
+        ? edge.unlockPlayback(true)
+        : Promise.resolve(true);
+    p.then(function () {
+      icebreakerVoice();
+    }).catch(function () {
+      icebreakerVoice();
+    });
+  }
+
   function bindVoice() {
     const btn = document.getElementById("liveMuteBtn");
     if (!btn || btn.getAttribute("data-bound") === "1") return;
     btn.setAttribute("data-bound", "1");
-    state.voiceOn = !loadVoicePref();
+    const armed = consumeVoiceArm();
+    state.voiceOn = armed || !loadVoicePref();
+    if (armed) saveVoiceOn(true);
     paintVoiceBtn();
     let seen = false;
     try {
@@ -1039,8 +1076,12 @@
       if (state.voiceOn) resumeAudioContext();
     });
     if (state.voiceOn) {
-      startIdleAdWatch();
-      icebreakerVoice();
+      if (armed) {
+        applyVoiceOnFromArm();
+      } else {
+        startIdleAdWatch();
+        icebreakerVoice();
+      }
       const unlockOnce = function () {
         document.removeEventListener("pointerdown", unlockOnce, true);
         if (!state.voiceOn) return;
@@ -1058,6 +1099,9 @@
       };
       document.addEventListener("pointerdown", unlockOnce, true);
     }
+    window.addEventListener("qa-live-voice-arm", function () {
+      applyVoiceOnFromArm();
+    });
   }
 
   /* ---- canvas sparklines (fixed height for mobile) ---- */
