@@ -4,10 +4,13 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path("/root/quantsite") if Path("/root/quantsite").is_dir() else Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 JSON_CANDIDATES = [
     Path("/var/www/html/strategies.json"),
     ROOT / "strategies.json",
