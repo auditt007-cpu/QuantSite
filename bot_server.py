@@ -167,12 +167,31 @@ class TtsBody(BaseModel):
 
 @app.post("/api/tts/speak")
 async def tts_speak(body: TtsBody) -> Response:
-    """TTS MP3: Edge primary → Edge alts → Google TTS backup (avoids ugly Web Speech)."""
-    lang = normalize_lang(body.lang)
+    """TTS MP3 POST: Edge primary → Edge alts → Google TTS backup."""
+    return await _tts_response(body.text, body.lang, body.voice, body.rate, body.pitch)
+
+
+@app.get("/api/tts/speak")
+async def tts_speak_get(
+    text: str = "",
+    lang: str = "zh-Hant",
+    voice: str = "",
+    rate: str = "",
+    pitch: str = "",
+) -> Response:
+    """TTS MP3 GET — for <audio src=\"...\"> (keeps autoplay unlock on media element)."""
+    return await _tts_response(text, lang, voice, rate, pitch)
+
+
+async def _tts_response(text: str, lang: str, voice: str, rate: str, pitch: str) -> Response:
+    clean = (text or "").strip()
+    if not clean:
+        raise HTTPException(400, "empty text")
+    if len(clean) > 480:
+        clean = clean[:480]
+    key = normalize_lang(lang)
     try:
-        mp3, voice_used, source = await synthesize_mp3_ex(
-            body.text, lang, body.voice, body.rate, body.pitch
-        )
+        mp3, voice_used, source = await synthesize_mp3_ex(clean, key, voice, rate, pitch)
     except RuntimeError as exc:
         raise HTTPException(503, str(exc)) from exc
     except ValueError as exc:
@@ -183,10 +202,11 @@ async def tts_speak(body: TtsBody) -> Response:
         content=mp3,
         media_type="audio/mpeg",
         headers={
-            "Cache-Control": "public, max-age=3600",
+            "Cache-Control": "public, max-age=120",
             "X-TTS-Voice": voice_used,
-            "X-TTS-Lang": lang,
+            "X-TTS-Lang": key,
             "X-TTS-Source": source,
+            "Access-Control-Expose-Headers": "X-TTS-Voice, X-TTS-Lang, X-TTS-Source",
         },
     )
 

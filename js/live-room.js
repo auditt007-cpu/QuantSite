@@ -515,33 +515,33 @@
     return gen === state.speakGen;
   }
 
-  function speakLine(text, gen, prefetchedBlob) {
+  function speakLine(text, gen, prefetched) {
     return new Promise(async (resolve) => {
       if (!text) return resolve();
       if (gen != null && gen !== state.speakGen) return resolve();
 
+      const forceServer = window.FORCE_SERVER_TTS !== false;
       const edge = window.QAEdgeSpeak;
       if (edge) {
         try {
-          if (edge.unlockPlayback) await edge.unlockPlayback();
+          if (edge.unlockPlayback) await edge.unlockPlayback(true);
           let ok = false;
-          if (prefetchedBlob && edge.speakBlob) {
-            ok = await edge.speakBlob(prefetchedBlob, gen, speakAlive);
+          if (prefetched && edge.speakBlob) {
+            ok = await edge.speakBlob(prefetched, gen, speakAlive);
           }
           if (!ok && edge.speak) {
             ok = await edge.speak(text, voiceLang(), gen, speakAlive);
           }
-          /* zh-CN: one more hub round-trip (server tries Edge alts + Google TTS) before Web Speech */
-          if (!ok && voiceLang() === "zh-CN" && edge.speak) {
-            await sleep(200);
-            if (gen == null || gen === state.speakGen) {
-              ok = await edge.speak(text, "zh-CN", gen, speakAlive);
-            }
-          }
           if (ok) return resolve();
-        } catch {
-          /* fall through to Web Speech — never leave chime-only silence */
+          console.error("[TTS] Server audio failed for line:", String(text).slice(0, 80));
+        } catch (err) {
+          console.error("[TTS Play Error] speakLine", err);
         }
+      }
+
+      if (forceServer) {
+        console.error("[TTS] FORCE_SERVER_TTS=true — Web Speech fallback disabled");
+        return resolve();
       }
 
       if (!window.speechSynthesis) return resolve();
@@ -577,6 +577,23 @@
     return new Promise((resolve) => {
       if (!src) return resolve();
       if (gen != null && gen !== state.speakGen) return resolve();
+      const edge = window.QAEdgeSpeak;
+      const url = src + (src.indexOf("?") >= 0 ? "&" : "?") + "t=" + Date.now();
+      if (edge && edge.playServerUrl) {
+        edge
+          .unlockPlayback(true)
+          .then(function () {
+            return edge.playServerUrl(url, gen, speakAlive);
+          })
+          .then(function () {
+            resolve();
+          })
+          .catch(function (err) {
+            console.error("[TTS Play Error] promo", err);
+            resolve();
+          });
+        return;
+      }
       killPromoAudio();
       let done = false;
       const finish = () => {
@@ -587,7 +604,9 @@
       };
       let a;
       try {
-        a = new Audio(src + (src.indexOf("?") >= 0 ? "&" : "?") + "t=" + Date.now());
+        a = window.globalTTSAudio || new Audio(url);
+        if (!window.globalTTSAudio) window.globalTTSAudio = a;
+        a.src = url;
         a.preload = "auto";
         a.setAttribute("playsinline", "");
         a.setAttribute("webkit-playsinline", "");
@@ -603,32 +622,16 @@
         if (gen != null && gen !== state.speakGen) {
           try {
             a.pause();
-            a.currentTime = 0;
           } catch {
             /* */
           }
           finish();
         }
       }, 40);
-      const tryPlay = () => {
-        const p = a.play();
-        if (p && typeof p.then === "function") {
-          p.catch(() => {
-            try {
-              if (window.QAEdgeSpeak && window.QAEdgeSpeak.unlockPlayback) {
-                window.QAEdgeSpeak.unlockPlayback().then(function () {
-                  a.play().catch(finish);
-                });
-                return;
-              }
-            } catch {
-              /* */
-            }
-            finish();
-          });
-        }
-      };
-      tryPlay();
+      a.play().catch(function (err) {
+        console.error("[TTS Play Error] promo fallback", err);
+        finish();
+      });
       setTimeout(finish, 45000);
     });
   }
@@ -668,10 +671,9 @@
         const priority = job.priority === PRIORITY_LOW ? PRIORITY_LOW : PRIORITY_HIGH;
         state.audioPriority = priority;
         const gen = state.speakGen;
-        let prefBlob = null;
+        let pref = null;
         const edge = window.QAEdgeSpeak;
         if (job.text && !job.promoSrc && edge && edge.prefetch) {
-          /* Prefetch TTS while chime plays — closes autoplay gap that killed signal voice */
           const prefP = edge.prefetch(job.text, voiceLang());
           if (job.chime) {
             await playMrtChime();
@@ -685,9 +687,9 @@
             }
           }
           try {
-            prefBlob = await prefP;
+            pref = await prefP;
           } catch {
-            prefBlob = null;
+            pref = null;
           }
         } else if (job.chime) {
           await playMrtChime();
@@ -696,7 +698,7 @@
         if (job.promoSrc) {
           await playPromoFile(job.promoSrc, gen);
         } else if (job.text) {
-          await speakLine(job.text, gen, prefBlob);
+          await speakLine(job.text, gen, pref);
         } else {
           continue;
         }
@@ -995,14 +997,18 @@
         state.idleAdJitter = Math.floor(Math.random() * IDLE_AD_JITTER_MS);
         startIdleAdWatch();
         resumeAudioContext();
-        try {
-          if (window.QAEdgeSpeak && window.QAEdgeSpeak.unlockPlayback) {
-            window.QAEdgeSpeak.unlockPlayback();
-          }
-        } catch {
-          /* */
-        }
-        icebreakerVoice();
+        const unlockP =
+          window.QAEdgeSpeak && window.QAEdgeSpeak.unlockPlayback
+            ? window.QAEdgeSpeak.unlockPlayback(true)
+            : Promise.resolve(true);
+        unlockP
+          .then(function () {
+            icebreakerVoice();
+          })
+          .catch(function (err) {
+            console.error("[TTS] Unlock on voice button failed", err);
+            icebreakerVoice();
+          });
       } else {
         stopIdleAdWatch();
         clearAudioQueue();

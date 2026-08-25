@@ -1,16 +1,23 @@
 /**
- * Live-room speech via hub Edge-TTS (MP3 → shared HTML5 Audio).
- * Same playback path as promo ads so zh-CN / en stay male (Yunyang / Christopher).
+ * Live-room Edge-TTS player — defeats Autoplay Policy + lost User Activation.
+ *
+ * Key rules:
+ * 1. One global HTMLAudioElement (window.globalTTSAudio), unlocked on first gesture.
+ * 2. Prefer GET /api/tts/speak?... so the <audio> element fetches (no JS fetch() play).
+ * 3. Never silently swallow NotAllowedError; log [TTS Play Error].
+ * 4. window.FORCE_SERVER_TTS === true → never fall back to speechSynthesis.
  */
 (function (root) {
-  const CACHE_MAX = 48;
-  const cache = new Map();
   const SILENT_WAV =
     "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAA=";
 
-  let sharedAudio = null;
   let playbackUnlocked = false;
   let playToken = 0;
+  let unlockBound = false;
+
+  if (typeof root.FORCE_SERVER_TTS === "undefined") {
+    root.FORCE_SERVER_TTS = true;
+  }
 
   function hubBase() {
     const cfg = root.QUANT_CONFIG || {};
@@ -41,58 +48,15 @@
     return { lang: normalizeLang(lang), rate: "+0%", pitch: "+0Hz" };
   }
 
-  function cacheKey(text, lang, voice) {
-    return String(lang || "") + "\0" + String(voice || "") + "\0" + String(text || "").slice(0, 400);
-  }
-
-  function trimCache() {
-    while (cache.size > CACHE_MAX) {
-      const first = cache.keys().next().value;
-      cache.delete(first);
-    }
-  }
-
-  function ensureSharedAudio() {
-    if (sharedAudio) return sharedAudio;
+  function ensureGlobalAudio() {
+    if (root.globalTTSAudio) return root.globalTTSAudio;
     const a = new Audio();
     a.preload = "auto";
     a.setAttribute("playsinline", "");
     a.setAttribute("webkit-playsinline", "");
-    sharedAudio = a;
+    root.globalTTSAudio = a;
     root.currentPromoAudio = a;
     return a;
-  }
-
-  async function fetchMp3(text, lang) {
-    const keyLang = normalizeLang(lang);
-    const cfg = speechCfg(keyLang);
-    const voice = edgeVoiceFor(keyLang);
-    const key = cacheKey(text, keyLang, voice);
-    const hit = cache.get(key);
-    if (hit && hit.blob) return hit.blob;
-
-    const body = {
-      text: text,
-      lang: keyLang,
-      voice: voice,
-    };
-    if (cfg.rate && typeof cfg.rate === "string") body.rate = cfg.rate;
-    if (cfg.pitch && typeof cfg.pitch === "string") body.pitch = cfg.pitch;
-
-    const res = await fetch(hubBase() + "/api/tts/speak", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      credentials: "omit",
-      mode: "cors",
-    });
-    if (!res.ok) throw new Error("tts_http_" + res.status);
-    const raw = await res.arrayBuffer();
-    if (!raw || raw.byteLength < 128) throw new Error("tts_empty");
-    const blob = new Blob([raw], { type: "audio/mpeg" });
-    cache.set(key, { blob: blob });
-    trimCache();
-    return blob;
   }
 
   function touchMediaSession(title) {
@@ -109,8 +73,23 @@
     }
   }
 
+  function ttsGetUrl(text, lang) {
+    const keyLang = normalizeLang(lang);
+    const cfg = speechCfg(keyLang);
+    const voice = edgeVoiceFor(keyLang);
+    const q = new URLSearchParams();
+    q.set("text", String(text || "").slice(0, 480));
+    q.set("lang", keyLang);
+    q.set("voice", voice);
+    if (cfg.rate && typeof cfg.rate === "string") q.set("rate", cfg.rate);
+    if (cfg.pitch && typeof cfg.pitch === "string") q.set("pitch", cfg.pitch);
+    q.set("t", String(Date.now()));
+    return hubBase() + "/api/tts/speak?" + q.toString();
+  }
+
   async function unlockPlayback(force) {
     if (playbackUnlocked && !force) return true;
+    const a = ensureGlobalAudio();
     try {
       const Ctx = root.AudioContext || root.webkitAudioContext;
       if (Ctx) {
@@ -122,7 +101,6 @@
       /* optional */
     }
     try {
-      const a = ensureSharedAudio();
       a.src = SILENT_WAV;
       a.volume = 0.01;
       await a.play();
@@ -134,69 +112,72 @@
       }
       a.volume = 1;
       playbackUnlocked = true;
+      try {
+        console.log("[TTS] Audio Context Unlocked");
+      } catch {
+        /* */
+      }
       return true;
-    } catch {
+    } catch (err) {
+      try {
+        console.error("[TTS] Unlock failed", err);
+      } catch {
+        /* */
+      }
       return false;
     }
+  }
+
+  function bindGestureUnlock() {
+    if (unlockBound) return;
+    unlockBound = true;
+    const run = function () {
+      unlockPlayback(false);
+    };
+    document.addEventListener("click", run, { capture: true, passive: true });
+    document.addEventListener("touchstart", run, { capture: true, passive: true });
+    document.addEventListener("pointerdown", run, { capture: true, passive: true });
   }
 
   function stopShared() {
     playToken += 1;
     try {
-      const a = sharedAudio;
+      const a = root.globalTTSAudio;
       if (!a) return;
       a.pause();
-      a.removeAttribute("src");
-      a.load();
+      /* Do NOT clear src / load() — that can drop the unlocked media element state */
     } catch {
       /* */
     }
   }
 
-  function playBlob(blob, gen, isAlive) {
+  function waitEndedOrError(a, token, gen, isAlive) {
     return new Promise((resolve) => {
-      if (!blob) return resolve(false);
-      if (typeof isAlive === "function" && !isAlive(gen)) return resolve(false);
-
-      const token = ++playToken;
       let done = false;
-      let safetyTimer = null;
-      let url = "";
-      const a = ensureSharedAudio();
-      root.currentPromoAudio = a;
-
       const finish = (ok) => {
         if (done) return;
         done = true;
-        if (poll) clearInterval(poll);
-        if (safetyTimer) clearTimeout(safetyTimer);
-        if (url) {
-          try {
-            URL.revokeObjectURL(url);
-          } catch {
-            /* */
-          }
-        }
+        clearInterval(poll);
+        clearTimeout(safety);
+        a.removeEventListener("ended", onEnded);
+        a.removeEventListener("error", onError);
         resolve(!!ok);
       };
-
-      try {
-        url = URL.createObjectURL(blob);
-      } catch {
-        return finish(false);
-      }
-
-      touchMediaSession("QUANT ALPHA · Live Voice");
-
-      a.onended = () => {
+      const onEnded = () => {
         if (token !== playToken) return finish(false);
         finish(true);
       };
-      a.onerror = () => {
+      const onError = (ev) => {
+        try {
+          console.error("[TTS Play Error] media error", a.error || ev);
+        } catch {
+          /* */
+        }
         if (token !== playToken) return finish(false);
         finish(false);
       };
-
+      a.addEventListener("ended", onEnded);
+      a.addEventListener("error", onError);
       const poll = setInterval(() => {
         if (typeof isAlive === "function" && !isAlive(gen)) {
           try {
@@ -207,51 +188,111 @@
           finish(false);
         }
       }, 40);
-
-      const tryPlay = (attempt) => {
-        if (done || token !== playToken) return finish(false);
-        if (typeof isAlive === "function" && !isAlive(gen)) return finish(false);
-        a.volume = 1;
-        const p = a.play();
-        if (p && typeof p.then === "function") {
-          p.then(() => {
-            /* playing */
-          }).catch(() => {
-            if (done || token !== playToken) return;
-            if (attempt >= 3) return finish(false);
-            unlockPlayback(true).then(() => {
-              setTimeout(() => tryPlay(attempt + 1), 80);
-            });
-          });
-        }
-      };
-
-      try {
-        a.src = url;
-        a.load();
-      } catch {
-        return finish(false);
-      }
-
-      const start = () => tryPlay(0);
-      if (a.readyState >= 2) start();
-      else {
-        a.addEventListener("canplay", start, { once: true });
-        setTimeout(start, 400);
-      }
-      safetyTimer = setTimeout(() => {
-        if (!done && a && !a.paused && a.currentTime > 0) finish(true);
-        else finish(!a.paused && a.currentTime > 0);
+      const safety = setTimeout(() => {
+        if (!a.paused && a.currentTime > 0) finish(true);
+        else finish(false);
       }, 48000);
     });
   }
 
-  async function speakOnce(text, lang, gen, isAlive) {
-    await unlockPlayback();
-    const blob = await fetchMp3(text, lang);
+  /**
+   * Primary path: set unlocked <audio>.src to GET TTS URL (element fetches MP3).
+   * No JS fetch() → no lost User Activation from network round-trip before play().
+   */
+  async function playServerUrl(url, gen, isAlive) {
+    const a = ensureGlobalAudio();
+    root.currentPromoAudio = a;
+    const token = ++playToken;
     if (typeof isAlive === "function" && !isAlive(gen)) return false;
-    await unlockPlayback();
-    return playBlob(blob, gen, isAlive);
+
+    touchMediaSession("QUANT ALPHA · Live Voice");
+    a.volume = 1;
+    a.src = url;
+
+    try {
+      const p = a.play();
+      if (p && typeof p.then === "function") await p;
+      try {
+        console.log("[TTS] Successfully played server audio:", url.slice(0, 120));
+      } catch {
+        /* */
+      }
+    } catch (err) {
+      try {
+        console.error("[TTS Play Error]", err);
+      } catch {
+        /* */
+      }
+      const unlocked = await unlockPlayback(true);
+      if (!unlocked) return false;
+      try {
+        await a.play();
+        try {
+          console.log("[TTS] Play retry OK after re-unlock");
+        } catch {
+          /* */
+        }
+      } catch (err2) {
+        try {
+          console.error("[TTS Play Error] retry failed", err2);
+        } catch {
+          /* */
+        }
+        return false;
+      }
+    }
+
+    if (token !== playToken) return false;
+    return waitEndedOrError(a, token, gen, isAlive);
+  }
+
+  async function playBlob(blob, gen, isAlive) {
+    if (!blob) return false;
+    let url = "";
+    try {
+      url = URL.createObjectURL(blob);
+      const ok = await playServerUrl(url, gen, isAlive);
+      try {
+        URL.revokeObjectURL(url);
+      } catch {
+        /* */
+      }
+      return ok;
+    } catch (err) {
+      try {
+        console.error("[TTS Play Error] blob path", err);
+      } catch {
+        /* */
+      }
+      if (url) {
+        try {
+          URL.revokeObjectURL(url);
+        } catch {
+          /* */
+        }
+      }
+      return false;
+    }
+  }
+
+  async function fetchMp3(text, lang) {
+    const keyLang = normalizeLang(lang);
+    const cfg = speechCfg(keyLang);
+    const voice = edgeVoiceFor(keyLang);
+    const body = { text: text, lang: keyLang, voice: voice };
+    if (cfg.rate && typeof cfg.rate === "string") body.rate = cfg.rate;
+    if (cfg.pitch && typeof cfg.pitch === "string") body.pitch = cfg.pitch;
+    const res = await fetch(hubBase() + "/api/tts/speak", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      credentials: "omit",
+      mode: "cors",
+    });
+    if (!res.ok) throw new Error("tts_http_" + res.status);
+    const raw = await res.arrayBuffer();
+    if (!raw || raw.byteLength < 128) throw new Error("tts_empty");
+    return new Blob([raw], { type: "audio/mpeg" });
   }
 
   async function speak(text, lang, gen, isAlive) {
@@ -259,35 +300,66 @@
     if (!line) return false;
     if (typeof isAlive === "function" && !isAlive(gen)) return false;
     const keyLang = normalizeLang(lang);
-    for (let i = 0; i < 3; i += 1) {
-      if (typeof isAlive === "function" && !isAlive(gen)) return false;
+
+    await unlockPlayback();
+    if (typeof isAlive === "function" && !isAlive(gen)) return false;
+
+    /* 1) GET via <audio src> — preferred (no JS fetch before play) */
+    try {
+      const ok = await playServerUrl(ttsGetUrl(line, keyLang), gen, isAlive);
+      if (ok) return true;
+    } catch (err) {
       try {
-        const ok = await speakOnce(line, keyLang, gen, isAlive);
-        if (ok) return true;
+        console.error("[TTS Play Error] GET path", err);
       } catch {
-        /* retry */
+        /* */
       }
-      await new Promise((r) => setTimeout(r, 180 + i * 160));
     }
-    return false;
+
+    if (typeof isAlive === "function" && !isAlive(gen)) return false;
+
+    /* 2) POST blob fallback (still on unlocked singleton) */
+    try {
+      const blob = await fetchMp3(line, keyLang);
+      if (typeof isAlive === "function" && !isAlive(gen)) return false;
+      await unlockPlayback();
+      return await playBlob(blob, gen, isAlive);
+    } catch (err) {
+      try {
+        console.error("[TTS Play Error] POST blob path", err);
+      } catch {
+        /* */
+      }
+      return false;
+    }
   }
 
-  /** Prefetch TTS during chime so play starts immediately after ding. */
   async function prefetch(text, lang) {
+    /* Warm CDN/DNS only — real play uses GET on unlocked element */
     const line = String(text || "").trim();
     if (!line) return null;
     try {
-      return await fetchMp3(line, normalizeLang(lang));
+      const url = ttsGetUrl(line, lang);
+      ensureGlobalAudio();
+      return { url: url, text: line, lang: normalizeLang(lang) };
     } catch {
       return null;
     }
   }
 
-  async function speakBlob(blob, gen, isAlive) {
-    if (!blob) return false;
+  async function speakBlob(blobOrPref, gen, isAlive) {
     await unlockPlayback();
-    return playBlob(blob, gen, isAlive);
+    if (blobOrPref && blobOrPref.url) {
+      return playServerUrl(blobOrPref.url, gen, isAlive);
+    }
+    if (blobOrPref instanceof Blob) {
+      return playBlob(blobOrPref, gen, isAlive);
+    }
+    return false;
   }
+
+  bindGestureUnlock();
+  ensureGlobalAudio();
 
   root.QAEdgeSpeak = {
     speak: speak,
@@ -295,6 +367,8 @@
     prefetch: prefetch,
     fetchMp3: fetchMp3,
     playBlob: playBlob,
+    playServerUrl: playServerUrl,
+    ttsGetUrl: ttsGetUrl,
     unlockPlayback: unlockPlayback,
     stopShared: stopShared,
     touchMediaSession: touchMediaSession,
