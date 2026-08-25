@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-25T12:17:39Z",
+  "updated_at": "2026-08-25T12:19:09Z",
   "venue": "coinbase",
   "poll_sec": 5,
   "exec_log": [
@@ -9,7 +9,7 @@
       "interval": "15m",
       "side": "SHORT",
       "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787660246,
+      "logged_at": 1787660336,
       "bar_ts": 1787659200,
       "event": "open",
       "strategy_id": "combo_15m_41",
@@ -31,11 +31,19 @@
       "interval": "15m",
       "side": "SHORT",
       "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787660247,
+      "logged_at": 1787660337,
       "bar_ts": 1787659200,
       "event": "open",
       "strategy_id": "pivot_15m_35",
       "symbols": [
+        {
+          "symbol": "SUIUSDT",
+          "price": 0.7981,
+          "sl_pct": -0.4540784362861748,
+          "tp_pct": 0.9081568725723634,
+          "event": "open",
+          "pnl_pct": null
+        },
         {
           "symbol": "AVAXUSDT",
           "price": 7.51,
@@ -51,14 +59,6 @@
           "tp_pct": 0.6323695002825558,
           "event": "open",
           "pnl_pct": null
-        },
-        {
-          "symbol": "SUIUSDT",
-          "price": 0.8004,
-          "sl_pct": -0.40329835082458876,
-          "tp_pct": 0.8064717641179396,
-          "event": "open",
-          "pnl_pct": null
         }
       ],
       "strategy_count": 3
@@ -69,7 +69,7 @@
       "interval": "15m",
       "side": "LONG",
       "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787660246,
+      "logged_at": 1787660336,
       "bar_ts": 1787659200,
       "event": "open",
       "strategy_id": "vol_ma_15m_39",
@@ -107,7 +107,7 @@
       "interval": "15m",
       "side": "LONG",
       "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787660245,
+      "logged_at": 1787660335,
       "bar_ts": 1787659200,
       "event": "open",
       "strategy_id": "vsa_15m_27",
@@ -145,7 +145,7 @@
       "interval": "15m",
       "side": "LONG",
       "action": "多頭開倉 (BUY)",
-      "logged_at": 1787660246,
+      "logged_at": 1787660336,
       "bar_ts": 1787659200,
       "event": "close",
       "strategy_id": "combo_15m_41",
@@ -167,19 +167,11 @@
       "interval": "15m",
       "side": "LONG",
       "action": "多頭開倉 (BUY)",
-      "logged_at": 1787660245,
+      "logged_at": 1787660335,
       "bar_ts": 1787659200,
       "event": "close",
       "strategy_id": "vol_ma_15m_39",
       "symbols": [
-        {
-          "symbol": "APTUSDT",
-          "price": 0.596,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.2343488449949896
-        },
         {
           "symbol": "SUIUSDT",
           "price": 0.7981,
@@ -197,31 +189,15 @@
           "pnl_pct": 0.027012425715841306
         },
         {
-          "symbol": "AAVEUSDT",
-          "price": 128.7,
+          "symbol": "APTUSDT",
+          "price": 0.596,
           "sl_pct": null,
           "tp_pct": null,
           "event": "close",
-          "pnl_pct": -0.06212144742973483
-        },
-        {
-          "symbol": "OPUSDT",
-          "price": 0.104,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.9523809523809533
-        },
-        {
-          "symbol": "ONDOUSDT",
-          "price": 0.37784,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.64685774388641
+          "pnl_pct": -0.2343488449949896
         }
       ],
-      "strategy_count": 6
+      "strategy_count": 3
     },
     {
       "kind": "batch",
@@ -229,7 +205,7 @@
       "interval": "15m",
       "side": "SHORT",
       "action": "空頭開倉 (SELL)",
-      "logged_at": 1787660244,
+      "logged_at": 1787660334,
       "bar_ts": 1787659200,
       "event": "close",
       "strategy_id": "vol_ma_15m_39",
@@ -267,19 +243,11 @@
       "interval": "15m",
       "side": "LONG",
       "action": "多頭開倉 (BUY)",
-      "logged_at": 1787660245,
+      "logged_at": 1787660335,
       "bar_ts": 1787659200,
       "event": "close",
       "strategy_id": "pivot_15m_35",
       "symbols": [
-        {
-          "symbol": "AVAXUSDT",
-          "price": 7.51,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.26560424966800084
-        },
         {
           "symbol": "SUIUSDT",
           "price": 0.7981,
@@ -289,31 +257,23 @@
           "pnl_pct": -0.4490457777223321
         },
         {
+          "symbol": "AVAXUSDT",
+          "price": 7.51,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.26560424966800084
+        },
+        {
           "symbol": "ETHUSDT",
           "price": 2477.4,
           "sl_pct": null,
           "tp_pct": null,
           "event": "close",
           "pnl_pct": -0.16602727360649486
-        },
-        {
-          "symbol": "APTUSDT",
-          "price": 0.5958,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.5840146837977738
-        },
-        {
-          "symbol": "PEPEUSDT",
-          "price": 4.02e-06,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.6172839506172989
         }
       ],
-      "strategy_count": 5
+      "strategy_count": 3
     },
     {
       "kind": "batch",
@@ -321,7 +281,7 @@
       "interval": "15m",
       "side": "LONG",
       "action": "多頭開倉 (BUY)",
-      "logged_at": 1787660244,
+      "logged_at": 1787660334,
       "bar_ts": 1787659200,
       "event": "close",
       "strategy_id": "vsa_15m_27",
@@ -341,17 +301,9 @@
           "tp_pct": null,
           "event": "close",
           "pnl_pct": 0.027012425715841306
-        },
-        {
-          "symbol": "OPUSDT",
-          "price": 0.104,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.9523809523809533
         }
       ],
-      "strategy_count": 3
+      "strategy_count": 2
     },
     {
       "kind": "batch",
@@ -359,7 +311,7 @@
       "interval": "15m",
       "side": "SHORT",
       "action": "空頭開倉 (SELL)",
-      "logged_at": 1787660243,
+      "logged_at": 1787660333,
       "bar_ts": 1787659200,
       "event": "close",
       "strategy_id": "vsa_15m_27",
@@ -387,9 +339,69 @@
       "kind": "batch",
       "name_zh": "樞軸點突破",
       "interval": "15m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787660317,
+      "bar_ts": 1787659200,
+      "event": "close",
+      "strategy_id": "pivot_15m_35",
+      "symbols": [
+        {
+          "symbol": "SUIUSDT",
+          "price": 0.8017,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.45107129432401155
+        },
+        {
+          "symbol": "AVAXUSDT",
+          "price": 7.53,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.2663115845539343
+        },
+        {
+          "symbol": "ONDOUSDT",
+          "price": 0.37887,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.27260215964428736
+        }
+      ],
+      "strategy_count": 3
+    },
+    {
+      "kind": "batch",
+      "name_zh": "複合動能確認",
+      "interval": "15m",
       "side": "LONG",
       "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787660228,
+      "logged_at": 1787660301,
+      "bar_ts": 1787659200,
+      "event": "open",
+      "strategy_id": "combo_15m_41",
+      "symbols": [
+        {
+          "symbol": "SHIBUSDT",
+          "price": 5.44e-06,
+          "sl_pct": -8.088235294117633,
+          "tp_pct": 8.088235294117633,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "樞軸點突破",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "空頭平倉翻多 (BUY)",
+      "logged_at": 1787660300,
       "bar_ts": 1787659200,
       "event": "open",
       "strategy_id": "pivot_15m_35",
@@ -403,18 +415,18 @@
           "pnl_pct": null
         },
         {
-          "symbol": "NEARUSDT",
-          "price": 1.925,
-          "sl_pct": -0.7362597402597397,
-          "tp_pct": 1.4725714285714233,
+          "symbol": "SUIUSDT",
+          "price": 0.8017,
+          "sl_pct": -0.6337782212797807,
+          "tp_pct": 1.2675564425595613,
           "event": "open",
           "pnl_pct": null
         },
         {
-          "symbol": "LINKUSDT",
-          "price": 11.569,
-          "sl_pct": -0.2438067248681895,
-          "tp_pct": 0.48761344973636356,
+          "symbol": "NEARUSDT",
+          "price": 1.925,
+          "sl_pct": -0.7362597402597397,
+          "tp_pct": 1.4725714285714233,
           "event": "open",
           "pnl_pct": null
         }
@@ -427,7 +439,7 @@
       "interval": "15m",
       "side": "SHORT",
       "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787660227,
+      "logged_at": 1787660301,
       "bar_ts": 1787659200,
       "event": "open",
       "strategy_id": "vol_ma_15m_39",
@@ -447,17 +459,9 @@
           "tp_pct": 0.34966442953019716,
           "event": "open",
           "pnl_pct": null
-        },
-        {
-          "symbol": "AAVEUSDT",
-          "price": 128.7,
-          "sl_pct": -0.32803574203575814,
-          "tp_pct": 0.6560714840714721,
-          "event": "open",
-          "pnl_pct": null
         }
       ],
-      "strategy_count": 3
+      "strategy_count": 2
     },
     {
       "kind": "batch",
@@ -465,7 +469,7 @@
       "interval": "15m",
       "side": "SHORT",
       "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787660228,
+      "logged_at": 1787660300,
       "bar_ts": 1787659200,
       "event": "open",
       "strategy_id": "vsa_15m_27",
@@ -499,49 +503,25 @@
     },
     {
       "kind": "batch",
-      "name_zh": "樞軸點突破",
+      "name_zh": "複合動能確認",
       "interval": "15m",
       "side": "SHORT",
       "action": "空頭開倉 (SELL)",
-      "logged_at": 1787660226,
+      "logged_at": 1787660299,
       "bar_ts": 1787659200,
       "event": "close",
-      "strategy_id": "pivot_15m_35",
+      "strategy_id": "combo_15m_41",
       "symbols": [
         {
-          "symbol": "AVAXUSDT",
-          "price": 7.53,
+          "symbol": "SHIBUSDT",
+          "price": 5.44e-06,
           "sl_pct": null,
           "tp_pct": null,
           "event": "close",
-          "pnl_pct": -0.2663115845539343
-        },
-        {
-          "symbol": "SUIUSDT",
-          "price": 0.8017,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.45107129432401155
-        },
-        {
-          "symbol": "ONDOUSDT",
-          "price": 0.37887,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.27260215964428736
-        },
-        {
-          "symbol": "LINKUSDT",
-          "price": 11.569,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.2773684666724454
+          "pnl_pct": 0.5484460694698456
         }
       ],
-      "strategy_count": 4
+      "strategy_count": 1
     },
     {
       "kind": "batch",
@@ -575,50 +555,6 @@
     },
     {
       "kind": "batch",
-      "name_zh": "複合動能確認",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787660173,
-      "bar_ts": 1787659200,
-      "event": "open",
-      "strategy_id": "combo_15m_41",
-      "symbols": [
-        {
-          "symbol": "SHIBUSDT",
-          "price": 5.44e-06,
-          "sl_pct": -8.088235294117633,
-          "tp_pct": 8.088235294117633,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "複合動能確認",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787660172,
-      "bar_ts": 1787659200,
-      "event": "close",
-      "strategy_id": "combo_15m_41",
-      "symbols": [
-        {
-          "symbol": "SHIBUSDT",
-          "price": 5.44e-06,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.5484460694698456
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
       "name_zh": "多策略共振",
       "interval": "15m",
       "side": "LONG",
@@ -638,7 +574,7 @@
         },
         {
           "symbol": "LINKUSDT",
-          "price": 11.569,
+          "price": 11.551,
           "sl_pct": null,
           "tp_pct": null,
           "event": "open",
@@ -678,7 +614,7 @@
         },
         {
           "symbol": "ONDOUSDT",
-          "price": 0.37784,
+          "price": 0.37791,
           "sl_pct": null,
           "tp_pct": null,
           "event": "open",
@@ -762,7 +698,7 @@
         },
         {
           "symbol": "SOLUSDT",
-          "price": 98.59,
+          "price": 99.79,
           "sl_pct": null,
           "tp_pct": null,
           "event": "open",
@@ -882,7 +818,7 @@
         },
         {
           "symbol": "ETHUSDT",
-          "price": 2477.52,
+          "price": 2474.03,
           "sl_pct": null,
           "tp_pct": null,
           "event": "open",
@@ -890,7 +826,7 @@
         },
         {
           "symbol": "SOLUSDT",
-          "price": 98.59,
+          "price": 99.79,
           "sl_pct": null,
           "tp_pct": null,
           "event": "open",
