@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-25T17:50:21.678491+00:00",
+  "updated_at": "2026-08-25T18:02:38.523278+00:00",
   "status": "BACKTEST_PRERENDER",
   "strategies": [
     {
@@ -177,48 +177,55 @@
       "status": "BACKTEST_READY",
       "strategy_type": "GRID",
       "subtype": "FIBO_DCA_GRID",
-      "title": "DOGE·多維共振幾何DCA網格 V5.3",
-      "name": "DOGE·多維共振幾何DCA網格 V5.3",
-      "symbol": "DOGE/USDT",
+      "title": "ETH·多維共振幾何DCA網格 V2.7",
+      "name": "ETH·多維共振幾何DCA網格 V2.7",
+      "symbol": "ETH/USDT",
       "symbols": [
-        "DOGEUSDT"
+        "ETHUSDT"
       ],
       "timeframe": "15m",
       "interval": "15m",
       "period_days": 60,
       "backtest_days": 60,
       "grid_params": {
-        "leverage": 5,
-        "grids_count": 60,
+        "lower_price": 1665.9105,
+        "upper_price": 2572.644,
+        "grids_count": 32,
         "grid_mode": "geometric",
-        "profit_per_grid_pct": 0.55
+        "leverage": 3.0,
+        "profit_per_grid_pct": 0.45,
+        "atr_multiplier": null,
+        "geo_ratio": 1.2
+      },
+      "params": {
+        "leverage": 3,
+        "profit_per_grid_pct": 0.45,
+        "geo_ratio": 1.2
       },
       "metrics": {
-        "backtest_apy_pct": 79.7,
-        "max_drawdown_pct": -2.5,
-        "win_rate_pct": 89.1,
-        "daily_turnover_rate": 48.7,
-        "daily_turnover": 48.7,
-        "sharpe_ratio": 3.67,
-        "profit_factor": 3.14,
-        "return_pct": 0.131,
+        "backtest_apy_pct": 109.8,
+        "max_drawdown_pct": -0.02,
+        "daily_turnover_rate": 6.0,
+        "daily_turnover": 6.0,
+        "sharpe_ratio": 43.359,
+        "win_rate_pct": 89.4,
+        "profit_factor": 40.323,
+        "return_pct": 0.0956,
         "period_days": 60,
         "metrics_source": "backtest_60d",
         "disclaimer": "基於 60 日回測數據"
       },
-      "sharpe": 3.67,
-      "max_drawdown": -0.025,
-      "return_pct": 0.131,
-      "profit_factor": 3.14,
-      "win_rate": 0.8909999999999999,
-      "trades": 422,
+      "sharpe": 43.359,
+      "max_drawdown": -0.0002,
+      "return_pct": 0.0956,
+      "profit_factor": 40.323,
+      "win_rate": 0.8936,
+      "trades": 271,
       "chart": "/static/charts/squeeze.svg",
       "chart_url": "/static/charts/squeeze.svg",
-      "copy": "DOGE·多維共振幾何DCA網格 V5.3 · DOGEUSDT 高頻網格 · 回測 APY 79.7% · 日換手 48.7 · 手續費返傭導向",
-      "principle": "賽馬篩選網格 · 基於 60 日回測預渲染 · Live 掃描同步中",
       "monetization": "trading_volume_rebate",
-      "cleaned_at": "2026-08-25T14:13:11Z",
-      "disclaimer": "基於 60 日回測數據"
+      "replaced_at": "2026-08-25T18:02:38Z",
+      "copy": "ETH·多維共振幾何DCA網格 V2.7 · ETHUSDT 高換手網格 · 手續費返傭導向"
     },
     {
       "id": "atr",
