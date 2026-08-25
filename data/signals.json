@@ -1,8 +1,68 @@
 {
-  "updated_at": "2026-08-25T18:52:59Z",
+  "updated_at": "2026-08-25T18:54:31Z",
   "venue": "coinbase",
   "poll_sec": 5,
   "exec_log": [
+    {
+      "kind": "batch",
+      "name_zh": "布林微破",
+      "interval": "5m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787683982,
+      "bar_ts": 1787683500,
+      "event": "open",
+      "strategy_id": "hb-bb5",
+      "symbols": [
+        {
+          "symbol": "SOLUSDT",
+          "price": 98.56,
+          "sl_pct": -0.25200689935065185,
+          "tp_pct": 0.5040137987013037,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "ETHUSDT",
+          "price": 2468.11,
+          "sl_pct": -0.14362905218972924,
+          "tp_pct": 0.28725810437947685,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
+      "name_zh": "5m動能微破",
+      "interval": "5m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787683981,
+      "bar_ts": 1787683500,
+      "event": "open",
+      "strategy_id": "hb-roc5",
+      "symbols": [
+        {
+          "symbol": "ETHUSDT",
+          "price": 2468.84,
+          "sl_pct": -0.1435865831726611,
+          "tp_pct": 0.2871731663453222,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "BTCUSDT",
+          "price": 79197.0,
+          "sl_pct": -0.13110726542671888,
+          "tp_pct": 0.2622145295907724,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 2
+    },
     {
       "kind": "batch",
       "name_zh": "5m動能微破",
@@ -42,50 +102,6 @@
           "sl_pct": null,
           "tp_pct": null,
           "event": "close",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "布林微破",
-      "interval": "5m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787683799,
-      "bar_ts": 1787683500,
-      "event": "open",
-      "strategy_id": "hb-bb5",
-      "symbols": [
-        {
-          "symbol": "ETHUSDT",
-          "price": 2468.11,
-          "sl_pct": -0.14362905218972924,
-          "tp_pct": 0.28725810437947685,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "5m動能微破",
-      "interval": "5m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787683798,
-      "bar_ts": 1787683500,
-      "event": "open",
-      "strategy_id": "hb-roc5",
-      "symbols": [
-        {
-          "symbol": "BTCUSDT",
-          "price": 79197.0,
-          "sl_pct": -0.13110726542671888,
-          "tp_pct": 0.2622145295907724,
-          "event": "open",
           "pnl_pct": null
         }
       ],
