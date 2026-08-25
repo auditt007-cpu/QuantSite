@@ -94,7 +94,13 @@ body.nav-drawer-open .wrap.wide {
 .brand,
 .topbar .brand { gap: 10px; max-width: min(320px, 44vw); }
 .logo,
-.topbar .logo { width: 18px; height: 18px; background: var(--color-accent); }
+.topbar .logo {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #000000 url("./mark-q.svg") center / 100% 100% no-repeat;
+  box-shadow: 0 0 0 1px #ffffff;
+}
 .brand h1,
 .topbar .brand h1 { font-size: 24px; letter-spacing: 0.08em; color: #ffffff; font-weight: 900; }
 .site-slogan,
@@ -109,11 +115,86 @@ body.nav-drawer-open .wrap.wide {
 .lang-pills button { color: #b3b3b3; background: #000000; }
 .lang-pills button.active { color: #000000; background: #ffffff; }
 
-/* Auth / login - white subscribe-style button */
+/* Auth / login — Bloomberg Subscribe: lock + label + circular Q */
 .auth-btn,
-.topbar .auth-btn { color: #000000; border: 1px solid #ffffff; background: #ffffff; font-size: 12px; padding: 7px 14px; border-radius: 4px; font-weight: 700; }
+.topbar .auth-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #000000;
+  border: 1px solid #ffffff;
+  background: #ffffff;
+  font-size: 12px;
+  padding: 6px 10px 6px 12px;
+  border-radius: 4px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
 .auth-btn:hover { background: #e6e6e6; border-color: #e6e6e6; }
-.auth-btn::after { background: var(--color-accent); }
+.auth-btn::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linejoin='round'%3E%3Crect x='5' y='11' width='14' height='10' rx='1.6'/%3E%3Cpath d='M8 11V8a4 4 0 0 1 8 0v3'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linejoin='round'%3E%3Crect x='5' y='11' width='14' height='10' rx='1.6'/%3E%3Cpath d='M8 11V8a4 4 0 0 1 8 0v3'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.auth-btn::after {
+  content: "";
+  width: 14px;
+  height: 14px;
+  margin-left: 2px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #000000 url("./mark-q.svg") center / 100% 100% no-repeat;
+  animation: none;
+}
+.cta-btn-gold,
+a[data-get-strategy]:not(.btn-tg) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.cta-btn-gold::before,
+a[data-get-strategy]:not(.btn-tg)::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linejoin='round'%3E%3Crect x='5' y='11' width='14' height='10' rx='1.6'/%3E%3Cpath d='M8 11V8a4 4 0 0 1 8 0v3'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linejoin='round'%3E%3Crect x='5' y='11' width='14' height='10' rx='1.6'/%3E%3Cpath d='M8 11V8a4 4 0 0 1 8 0v3'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.btn-tg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-tg::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M3 11.5L21 3l-7.5 18-2.2-7.3L3 11.5z'/%3E%3Cpath d='M11.3 13.7L21 3'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M3 11.5L21 3l-7.5 18-2.2-7.3L3 11.5z'/%3E%3Cpath d='M11.3 13.7L21 3'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.chart-touch-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.chart-touch-toggle::before {
+  content: "";
+  width: 11px;
+  height: 11px;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='M16 16l5 5'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='M16 16l5 5'/%3E%3C/svg%3E") center / contain no-repeat;
+}
 
 .term-home-link,
 .topbar .term-home-link { color: #ffffff; border: 1px solid #555555; background: #000000; font-size: 12px; padding: 6px 10px; }
@@ -302,13 +383,12 @@ input:focus, textarea:focus, select:focus { border-color: var(--color-accent); o
 
   .brand { max-width: 70vw; }
   .brand h1 { font-size: clamp(17px, 6vw, 22px); }
-  .logo { width: 18px; height: 18px; }
+  .logo { width: 20px; height: 20px; }
   .home-hero .hero-top { flex-direction: column; align-items: flex-start; gap: 16px; }
   .home-hero .hero-cta { justify-content: flex-start; }
 
   /* Ensure header buttons stay consistent in black header */
   .topbar .nav-toggle,
-  .topbar .auth-btn,
   .topbar .term-home-link {
     background: #000000 !important;
     color: #ffffff !important;
@@ -316,7 +396,6 @@ input:focus, textarea:focus, select:focus { border-color: var(--color-accent); o
   }
   .topbar .nav-toggle:hover,
   .topbar .nav-toggle:active,
-  .topbar .auth-btn:hover,
   .topbar .term-home-link:hover {
     background: #000000 !important;
     border-color: #555555 !important;

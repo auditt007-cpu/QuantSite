@@ -158,8 +158,9 @@ body.nav-drawer-open::before {
   margin-left: auto;
 }
 .logo {
-  width: 18px; height: 18px; border-radius: 4px; background: var(--bg-pill);
-  box-shadow: none; flex-shrink: 0;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: #000000 url("./favicon.svg") center / 100% 100% no-repeat;
+  box-shadow: 0 0 0 1px #ffffff; flex-shrink: 0;
 }
 .brand-text { display: flex; flex-direction: column; gap: 0; min-width: 0; overflow: hidden; max-width: 100%; }
 .brand h1 {
@@ -184,21 +185,12 @@ body.nav-drawer-open::before {
 .auth-dock { display: flex; align-items: center; min-width: 0; }
 .auth-btn {
   font-family: inherit; font-size: 12px; cursor: pointer; white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 7px;
   color: #000000; background: #ffffff;
   border: 1px solid #000000; border-radius: 4px;
-  padding: 7px 14px;
+  padding: 6px 10px 6px 12px;
   box-shadow: none;
   transition: transform 0.05s ease, filter 0.05s ease, border-color 0.15s ease;
-}
-.auth-btn::after {
-  content: "";
-  display: inline-block; width: 7px; height: 7px; border-radius: 50%;
-  background: var(--color-accent); margin-left: 8px; vertical-align: middle;
-  animation: authPulse 1.4s ease-in-out infinite;
-}
-@keyframes authPulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.35; }
 }
 .lang-switch { display: flex; border: 1px solid var(--border-line); }
 .lang-switch button {

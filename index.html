@@ -4,18 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- iOS Safari 专属高清大图标（防白色方块） -->
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=202608250450-qmark">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=202608250450-qmark">
+  <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png?v=202608250450-qmark">
+  <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png?v=202608250450-qmark">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#09090b">
   <title>QUANT ALPHA</title>
-  <link rel="stylesheet" href="./styles.css?v=202608250400-c5b1836" />
-  <link rel="stylesheet" href="./css/mobile-global.css?v=202608250400-c5b1836" />
-  <link rel="stylesheet" href="./css/home-boards.css?v=202608250400-c5b1836" />
-  <link rel="stylesheet" href="./css/bloomberg-system.css?v=202608250400-c5b1836" />
-  <link rel="stylesheet" href="./css/bloomberg-dark.css?v=202608250400-c5b1836" />
+  <link rel="stylesheet" href="./styles.css?v=202608250450-qmark" />
+  <link rel="stylesheet" href="./css/mobile-global.css?v=202608250450-qmark" />
+  <link rel="stylesheet" href="./css/home-boards.css?v=202608250450-qmark" />
+  <link rel="stylesheet" href="./css/bloomberg-system.css?v=202608250450-qmark" />
+  <link rel="stylesheet" href="./css/bloomberg-dark.css?v=202608250450-qmark" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
@@ -33,7 +34,7 @@
       <button type="button" class="nav-toggle" id="navToggle" aria-label="選單" data-i18n-aria="ariaMenu">☰</button>
       <div class="nav-end">
         <div class="auth-dock" id="authDock">
-          <button type="button" class="auth-btn" id="btnAuth">[ 🔐 請先登入 ]</button>
+          <button type="button" class="auth-btn" id="btnAuth">[ 請先登入 ]</button>
         </div>
         
       </div>
@@ -66,11 +67,11 @@
       <p id="onboardHi"></p>
       <p id="onboardNeed"></p>
       <div class="newbie">
-        <p data-i18n="newbieTitle">⏳ 限時福利：註冊後 24 小時內邀請 2 人，額外贈送 7 天 VIP 50ms 專線體驗</p>
+        <p data-i18n="newbieTitle">限時福利：註冊後 24 小時內邀請 2 人，額外贈送 7 天 VIP 50ms 專線體驗</p>
         <b id="newbieClock">24:00:00</b>
         <div class="progress"><i id="newbieBar"></i></div>
       </div>
-      <button type="button" class="btn-cta" id="btnOnboardInvite" data-i18n="onboardCta">🔥 立即獲取專屬邀請鏈接</button>
+      <button type="button" class="btn-cta" id="btnOnboardInvite" data-i18n="onboardCta">立即獲取專屬邀請鏈接</button>
     </div>
 
     <section class="hero home-hero">
@@ -167,7 +168,7 @@ x̂_{k|k} = x̂_{k|k−1} + K_k (z_k − H x̂_{k|k−1})</pre>
         <h3>3. ATR 通道與破位觸發</h3>
         <pre class="paper-math">TR_t = max(H_t−L_t, |H_t−C_{t−1}|, |L_t−C_{t−1}|)
 ATR_n = EMA(TR, n)
-Upper = Mid + k · ATR_n ,  Lower = Mid − k · ATR_n</pre>
+Upper = Mid + k · ATR_n , Lower = Mid − k · ATR_n</pre>
         <p class="muted">回測破位觸發點位為基準參考價格，非交易建議。</p>
       </article>
       <article class="paper-block">
@@ -180,7 +181,7 @@ Upper = Mid + k · ATR_n ,  Lower = Mid − k · ATR_n</pre>
       </article>
     </section>
 
-    <div class="risk-banner" data-i18n="riskBanner">⚠️ 免責聲明：歷史回測數據不代表未來實盤收益，未計入滑點與手續費。本站信號僅供技術研究與量化編程參考，不構成任何投資建議。</div>
+    <div class="risk-banner" data-i18n="riskBanner">免責聲明：歷史回測數據不代表未來實盤收益，未計入滑點與手續費。本站信號僅供技術研究與量化編程參考，不構成任何投資建議。</div>
 
     <footer class="site-foot">
       <div class="foot-cta">
@@ -213,7 +214,7 @@ Upper = Mid + k · ATR_n ,  Lower = Mid − k · ATR_n</pre>
         <li data-i18n="loginS3">3. 在此填入 4 位碼</li>
       </ol>
       <div class="login-step">
-        <a id="btnOpenBot" class="btn-tg" href="#" data-keep-channel="1" target="_blank" rel="noopener" data-i18n="openBot">📱 打開 Telegram 獲取 4 位登入碼</a>
+        <a id="btnOpenBot" class="btn-tg" href="#" data-keep-channel="1" target="_blank" rel="noopener" data-i18n="openBot">打開 Telegram 獲取 4 位登入碼</a>
       </div>
       <div class="login-step">
         <label data-i18n="codeLabel">4 位驗證碼</label>
@@ -242,18 +243,18 @@ Upper = Mid + k · ATR_n ,  Lower = Mid − k · ATR_n</pre>
   </div>
 
   <div class="toast" id="toast"></div>
-  <script src="./js/binance-feed.js?v=202608250400-c5b1836"></script>
-  <script src="./js/nav.js?v=202608250400-c5b1836"></script>
-  <script src="./config.js?v=202608250400-c5b1836"></script>
-  <script src="./js/meta-events.js?v=202608250400-c5b1836"></script>
-  <script src="./i18n.js?v=202608250400-c5b1836"></script>
-  <script src="./js/i18n-boot.js?v=202608250400-c5b1836"></script>
-  <script src="./js/money.js?v=202608250400-c5b1836"></script>
-  <script src="./js/clipboard.js?v=202608250400-c5b1836"></script>
-  <script src="./js/identity.js?v=202608250400-c5b1836"></script>
-  <script src="./js/compliance.js?v=202608250400-c5b1836"></script>
-  <script src="./js/lead-bind.js?v=202608250400-c5b1836"></script>
-<script src="./js/home-boards.js?v=202608250400-c5b1836"></script>
-  <script src="./app.js?v=202608250400-c5b1836"></script>
+  <script src="./js/binance-feed.js?v=202608250450-qmark"></script>
+  <script src="./js/nav.js?v=202608250450-qmark"></script>
+  <script src="./config.js?v=202608250450-qmark"></script>
+  <script src="./js/meta-events.js?v=202608250450-qmark"></script>
+  <script src="./i18n.js?v=202608250450-qmark"></script>
+  <script src="./js/i18n-boot.js?v=202608250450-qmark"></script>
+  <script src="./js/money.js?v=202608250450-qmark"></script>
+  <script src="./js/clipboard.js?v=202608250450-qmark"></script>
+  <script src="./js/identity.js?v=202608250450-qmark"></script>
+  <script src="./js/compliance.js?v=202608250450-qmark"></script>
+  <script src="./js/lead-bind.js?v=202608250450-qmark"></script>
+<script src="./js/home-boards.js?v=202608250450-qmark"></script>
+  <script src="./app.js?v=202608250450-qmark"></script>
 </body>
 </html>

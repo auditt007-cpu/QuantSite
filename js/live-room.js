@@ -668,8 +668,8 @@
     btn.setAttribute("aria-pressed", state.voiceOn ? "true" : "false");
     if (label) {
       label.textContent = state.voiceOn
-        ? t("liveMuteOn", "🔊 實況語音播報：已啟用")
-        : t("liveMuteOff", "🔊 實況語音播報：未啟用");
+        ? t("liveMuteOn", " 實況語音播報：已啟用")
+        : t("liveMuteOff", " 實況語音播報：未啟用");
     }
   }
 
@@ -1434,9 +1434,9 @@
                 " · " +
                 (close
                   ? Number.isFinite(Number(e.pnl_pct))
-                    ? (Number(e.pnl_pct) > 0 ? "🟢 " : "🔴 ") + "平倉 " + fmtPnl(e.pnl_pct)
+                    ? "平倉 " + fmtPnl(e.pnl_pct)
                     : "平倉"
-                  : (buy ? "🟢 BUY" : "🔴 SELL") + " @ " + fmtPx(e.price)) +
+                  : (buy ? "BUY" : "SELL") + " @ " + fmtPx(e.price)) +
                 " · " +
                 stratAnchor(e) +
                 "</div>"
@@ -1892,7 +1892,7 @@
     if (!rows.length) {
       const idle = document.createElement("div");
       idle.className = "radar-idle";
-      idle.textContent = t("radarIdle", "⏳ 戰情雷達全天候掃描中，各幣種策略就緒...");
+      idle.textContent = t("radarIdle", " 戰情雷達全天候掃描中，各幣種策略就緒...");
       list.appendChild(idle);
       list.style.animation = "none";
       return;
@@ -1908,7 +1908,7 @@
           '<span class="t">[' +
           fmt12h(ev.ts) +
           "]</span>" +
-          '<span class="side">⚪ 全網資產</span>' +
+          '<span class="side">全網資產</span>' +
           "<span>| " +
           escapeHtml(String(ev.aggCount || 0)) +
           " 套" +
@@ -1924,7 +1924,7 @@
       const buy = isBuy(ev);
       const close = isClose(ev);
       const pnl = close ? Number(ev.pnl_pct) : pnlOf(ev);
-      const pnlCls = pnl == null || !Number.isFinite(pnl) ? "" : pnl >= 0 ? " is-up" : " is-down";
+      const pnlCls = pnl == null || !Number.isFinite(pnl) ? "" : pnl >= 0 ? " is-up" : "is-down";
       const act = close
         ? "平倉 " + (Number.isFinite(pnl) ? fmtPnl(pnl) : "—")
         : (buy ? "多頭開倉" : "空頭開倉") + " @ " + fmtPx(ev.price);
@@ -1938,7 +1938,6 @@
         fmt12h(ev.ts) +
         "]</span>" +
         '<span class="side">' +
-        (buy && !close ? "🟢 " : close && Number(pnl) > 0 ? "🟢 " : "🔴 ") +
         escapeHtml(pairLabel(ev.symbol)) +
         "</span>" +
         "<span>| " +

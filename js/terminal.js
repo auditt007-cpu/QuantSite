@@ -521,12 +521,12 @@
 
   function buildTabDefs() {
     return [
-      { id: "grid", label: "🔥 旗艦網格/馬丁 (明星推薦 · 高頻收租)", hero: true },
-      { id: "inst", label: "🏆 機構實盤榜 (" + countLane("inst") + ")" },
-      { id: "moon", label: "🚀 爆發投報榜" },
-      { id: "wr90", label: "🛡️ 90%+ 高勝率榜" },
-      { id: "ai", label: "🤖 AI 動態挖礦" },
-      { id: "free", label: "🆓 開源免費試用 (" + countLane("free") + ")" },
+      { id: "grid", label: "旗艦網格/馬丁 (明星推薦 · 高頻收租)", hero: true },
+      { id: "inst", label: "機構實盤榜 (" + countLane("inst") + ")" },
+      { id: "moon", label: "爆發投報榜" },
+      { id: "wr90", label: "90%+ 高勝率榜" },
+      { id: "ai", label: "AI 動態挖礦" },
+      { id: "free", label: "開源免費試用 (" + countLane("free") + ")" },
       { id: "all", label: "全部策略 (" + allList.length + ")" },
     ];
   }
