@@ -1,19 +1,49 @@
 {
-  "updated_at": "2026-08-25T11:06:49Z",
-  "venue": "coinbase",
+  "updated_at": "2026-08-25T11:08:58Z",
+  "venue": "binance_us",
   "poll_sec": 5,
   "exec_log": [
+    {
+      "kind": "batch",
+      "name_zh": "布林微破",
+      "interval": "5m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787656139,
+      "bar_ts": 1787655600,
+      "event": "open",
+      "strategy_id": "hb-bb5",
+      "symbols": [
+        {
+          "symbol": "PEPEUSDT",
+          "price": 4.04e-06,
+          "sl_pct": -0.9900990099010015,
+          "tp_pct": 0.9900990099010015,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
     {
       "kind": "batch",
       "name_zh": "5m動能微破",
       "interval": "5m",
       "side": "SHORT",
       "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787655949,
+      "logged_at": 1787656138,
       "bar_ts": 1787655600,
       "event": "open",
       "strategy_id": "hb-roc5",
       "symbols": [
+        {
+          "symbol": "NEARUSDT",
+          "price": 1.9133,
+          "sl_pct": -0.3455809334657431,
+          "tp_pct": 0.6911618669314745,
+          "event": "open",
+          "pnl_pct": null
+        },
         {
           "symbol": "SOLUSDT",
           "price": 99.34,
@@ -23,7 +53,7 @@
           "pnl_pct": null
         }
       ],
-      "strategy_count": 1
+      "strategy_count": 2
     },
     {
       "kind": "batch",
@@ -572,44 +602,6 @@
         }
       ],
       "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "多策略共振",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787655696,
-      "bar_ts": 1787655600,
-      "event": "open",
-      "strategy_id": "resonance_357531139",
-      "symbols": [
-        {
-          "symbol": "RENDERUSDT",
-          "price": 1.516,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "AAVEUSDT",
-          "price": 129.0,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "INJUSDT",
-          "price": 5.787,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 3
     }
   ],
   "exec_log_raw_count": 200,
