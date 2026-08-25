@@ -19,6 +19,13 @@ load_dotenv(REPO / ".env")
 
 STAMP_FILE = REPO / "asset-query"
 REMOTE_WWW = "/var/www/html"
+REMOTE_APP = "/root/quantsite"
+
+HUB_PUTS = [
+    "bot_server.py",
+    "hub/tts.py",
+    "requirements.txt",
+]
 
 HTML_NAMES = [
     "index.html",
@@ -60,6 +67,7 @@ PUTS = [
     "js/offline-klines.js",
     "js/live-room.js",
     "js/voice-templates.js",
+    "js/edge-speak.js",
     "audio/promo_zh_cn.mp3",
     "audio/promo_en_us.mp3",
     "audio/promo_zh_tw.mp3",
@@ -180,6 +188,42 @@ def patch_terminal_redirect(ssh) -> None:
     ssh.exec_command("nginx -t && systemctl reload nginx", timeout=30)
 
 
+def deploy_hub_tts(ssh) -> None:
+    sftp = ssh.open_sftp()
+    for rel in HUB_PUTS:
+        local = REPO / rel
+        if not local.is_file():
+            safe_print("hub skip missing " + rel)
+            continue
+        remote = REMOTE_APP + "/" + rel.replace("\\", "/")
+        parts = rel.split("/")
+        if len(parts) > 1:
+            cur = REMOTE_APP
+            for part in parts[:-1]:
+                cur = cur + "/" + part
+                try:
+                    sftp.stat(cur)
+                except OSError:
+                    sftp.mkdir(cur)
+        sftp.put(str(local), remote)
+        safe_print("hub put " + rel)
+    sftp.close()
+    cmd = (
+        "pip3 install --break-system-packages 'edge-tts>=6.1.0' 2>/dev/null || "
+        "pip3 install 'edge-tts>=6.1.0' 2>/dev/null || true; "
+        "python3 -m py_compile {0}/bot_server.py {0}/hub/tts.py && "
+        "systemctl restart quant-hub 2>/dev/null || systemctl restart tg-bot 2>/dev/null || true; "
+        "sleep 2; curl -sS http://127.0.0.1:8088/health; "
+        "curl -sS -o /dev/null -w 'tts=%{{http_code}}\\n' -X POST http://127.0.0.1:8088/api/tts/speak "
+        "-H 'Content-Type: application/json' -d '{{\"text\":\"ok\",\"lang\":\"en\"}}'"
+    ).format(REMOTE_APP)
+    _, stdout, stderr = ssh.exec_command(cmd, timeout=120)
+    safe_print(stdout.read().decode("utf-8", "replace"))
+    err = stderr.read().decode("utf-8", "replace")
+    if err:
+        safe_print("hub ERR " + err)
+
+
 def main():
     stamp = make_stamp()
     stamp_repo_html(stamp)
@@ -217,6 +261,7 @@ def main():
             safe_print("rm_miss " + rel)
     sftp.close()
     patch_terminal_redirect(ssh)
+    deploy_hub_tts(ssh)
     _, stdout, stderr = ssh.exec_command(
         "python3 - <<'PY'\n"
         "from pathlib import Path\n"

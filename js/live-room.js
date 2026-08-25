@@ -372,11 +372,15 @@
   const AUDIO_STORM_N = 5;
   const PRIORITY_HIGH = "high";
   const PRIORITY_LOW = "low";
-  const IDLE_AD_MS = 30000;
+  const IDLE_AD_MS = 120000;
+  const IDLE_AD_COOLDOWN_MS = 180000;
+  const IDLE_AD_SESSION_MAX = 2;
+  const IDLE_AD_JITTER_MS = 15000;
   const VT = () => window.QAVoiceTemplates || null;
 
   state.lastHighPriorityAudioTime = Date.now();
   state.lastIdleAdTime = Date.now();
+  state.idleAdCount = 0;
   state.audioPriority = null;
   state.speakGen = 0;
   state.idleAdTimer = null;
@@ -475,16 +479,60 @@
     return voices.find((v) => /HsiaoChen|zh-TW|zh-CN|en-US/i.test(v.name + v.lang)) || null;
   }
 
+  function resumeAudioContext() {
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      const ctx = playMrtChime._ctx || resumeAudioContext._ctx;
+      if (ctx && ctx.state === "suspended") ctx.resume();
+    } catch {
+      /* */
+    }
+    try {
+      const a = state.promoAudio || window.currentPromoAudio;
+      if (a && a.paused && !a.ended && state.voiceOn) a.play().catch(function () {});
+    } catch {
+      /* */
+    }
+  }
+
+  function touchMediaSession(title) {
+    try {
+      if (window.QAEdgeSpeak && window.QAEdgeSpeak.touchMediaSession) {
+        window.QAEdgeSpeak.touchMediaSession(title);
+      }
+    } catch {
+      /* */
+    }
+  }
+
+  function speakAlive(gen) {
+    return gen === state.speakGen;
+  }
+
   function speakLine(text, gen) {
-    return new Promise((resolve) => {
-      if (!window.speechSynthesis || !text) return resolve();
+    return new Promise(async (resolve) => {
+      if (!text) return resolve();
+      if (gen != null && gen !== state.speakGen) return resolve();
+
+      const edge = window.QAEdgeSpeak;
+      if (edge && edge.speak) {
+        try {
+          await edge.speak(text, voiceLang(), gen, speakAlive);
+          return resolve();
+        } catch {
+          /* hub Edge-TTS unavailable — fall through */
+        }
+      }
+
+      if (!window.speechSynthesis) return resolve();
       if (gen != null && gen !== state.speakGen) return resolve();
       const api = VT();
       const cfg = api ? api.speechConfig(voiceLang()) : { lang: "zh-TW", rate: 1.08, pitch: 1 };
       const u = new SpeechSynthesisUtterance(text);
       u.lang = cfg.lang;
-      u.rate = cfg.rate;
-      u.pitch = cfg.pitch;
+      u.rate = typeof cfg.rate === "number" ? cfg.rate : 1.08;
+      u.pitch = typeof cfg.pitch === "number" ? cfg.pitch : 1;
       u.volume = 1;
       const voice = pickPersonaVoice();
       if (voice) u.voice = voice;
@@ -522,6 +570,8 @@
       try {
         a = new Audio(src + (src.indexOf("?") >= 0 ? "&" : "?") + "t=" + Date.now());
         a.preload = "auto";
+        a.setAttribute("playsinline", "");
+        a.setAttribute("webkit-playsinline", "");
         window.currentPromoAudio = a;
         state.promoAudio = a;
       } catch {
@@ -529,6 +579,7 @@
       }
       a.onended = finish;
       a.onerror = finish;
+      touchMediaSession("QUANT ALPHA · Promo");
       const poll = setInterval(() => {
         if (gen != null && gen !== state.speakGen) {
           try {
@@ -691,11 +742,15 @@
   function tickIdleAd() {
     if (!state.voiceOn || state.disposed) return;
     if (state.speaking || state.queue.length) return;
+    if (state.idleAdCount >= IDLE_AD_SESSION_MAX) return;
     const now = Date.now();
     if (now - state.lastHighPriorityAudioTime < IDLE_AD_MS) return;
-    if (now - state.lastIdleAdTime < IDLE_AD_MS) return;
+    if (now - state.lastIdleAdTime < IDLE_AD_COOLDOWN_MS) return;
+    if (Math.random() < 0.35) return;
     const api = VT();
     const src = api ? api.promoSrc(voiceLang()) : "./audio/promo_zh_tw.mp3";
+    state.idleAdCount += 1;
+    state.lastIdleAdTime = now + Math.floor(Math.random() * IDLE_AD_JITTER_MS);
     enqueueVoice("", { priority: PRIORITY_LOW, chime: false, pauseAfter: 0, promoSrc: src });
   }
 
@@ -878,7 +933,9 @@
       if (state.voiceOn) {
         state.lastHighPriorityAudioTime = Date.now();
         state.lastIdleAdTime = Date.now();
+        state.idleAdCount = 0;
         startIdleAdWatch();
+        resumeAudioContext();
         icebreakerVoice();
       } else {
         stopIdleAdWatch();
@@ -902,6 +959,12 @@
     window.addEventListener("quant-lang", function () {
       /* language switch: sync TTS persona; do not interrupt active HIGH mid-sentence unless idle */
       pickPersonaVoice();
+    });
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "visible" && state.voiceOn) resumeAudioContext();
+    });
+    window.addEventListener("pageshow", function () {
+      if (state.voiceOn) resumeAudioContext();
     });
     if (state.voiceOn) {
       startIdleAdWatch();

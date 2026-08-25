@@ -37,6 +37,7 @@ from hub import capi, db
 from hub.handlers import handle_bind, handle_callback, handle_start, handle_text
 from hub.notify import notify_admin
 from hub.settings import HUB_HOST, HUB_PORT, PUBLIC_BASE_URL, TG_BOT_TOKEN, WEBHOOK_SECRET
+from hub.tts import normalize_lang, synthesize_mp3
 
 tg_app: Optional[Application] = None
 
@@ -154,6 +155,29 @@ class CapiEventBody(BaseModel):
     user_agent: str = ""
     content_name: str = ""
     content_category: str = ""
+
+
+class TtsBody(BaseModel):
+    text: str = Field(..., min_length=1, max_length=480)
+    lang: str = "zh-Hant"
+    voice: str = ""
+    rate: str = ""
+    pitch: str = ""
+
+
+@app.post("/api/tts/speak")
+async def tts_speak(body: TtsBody) -> Response:
+    """Edge-TTS MP3 for live-room persona voices (zh-CN male / en male / zh-TW)."""
+    lang = normalize_lang(body.lang)
+    try:
+        mp3 = await synthesize_mp3(body.text, lang, body.voice, body.rate, body.pitch)
+    except RuntimeError as exc:
+        raise HTTPException(503, str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(502, "tts failed") from exc
+    return Response(content=mp3, media_type="audio/mpeg", headers={"Cache-Control": "public, max-age=3600"})
 
 
 @app.post("/api/capi/event")

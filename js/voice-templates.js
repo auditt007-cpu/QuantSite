@@ -1,7 +1,8 @@
 /**
  * Persona voice templates + promo asset map for live-room TTS.
  * zh-CN ≈ 相声京味文案；en ≈ Trump 演说风文案；zh-Hant ≈ 曉臻专业播报。
- * Runtime TTS uses Web Speech voices (Edge/Azure neural when available).
+ * Runtime TTS uses hub Edge-TTS (MP3) with male Yunjian / Guy / HsiaoChen.
+ * Fallback Web Speech filters out female voices when Edge API unavailable.
  * Idle ads use pre-rendered /audio/promo_*.mp3.
  */
 (function (root) {
@@ -143,29 +144,48 @@
     return PROMO_SRC[key] || PROMO_SRC["zh-Hant"];
   }
 
+  const EDGE_VOICE = {
+    "zh-CN": "zh-CN-YunjianNeural",
+    en: "en-US-GuyNeural",
+    "zh-Hant": "zh-TW-HsiaoChenNeural",
+  };
+
+  function isFemaleVoiceName(name, lang) {
+    const blob = String(name || "").toLowerCase();
+    if (/female|女/.test(blob)) return true;
+    if (/xiaoxiao|xiaoyi|huihui|yaoyao|hanhan|meijia|tingting|linda|heera|helen|amy|emma|samantha|victoria|zira|susan|karen|moira|tessa|fiona|veena|lekha|catherine|laura|sara|jenny|aria|sabina|hazel|heather|michelle|sonia|libby|mia|olivia|natasha|yuna|yukari|nanami|hsiaoyu|hsiaochen.*female/i.test(blob)) {
+      return true;
+    }
+    if (lang === "zh-CN" && /xiaoxiao|xiaoyi|xiaomo|xiaorui|xiaoshuang|xiaoyan|xiaochen(?!neural)/i.test(blob)) return true;
+    return false;
+  }
+
   function speechConfig(lang) {
     const key = normalizeLang(lang || currentVoiceLang());
     if (key === "zh-CN") {
       return {
         lang: "zh-CN",
-        rate: 1.05,
-        pitch: 0.95,
-        prefer: [/Yunjian/i, /Yunxi/i, /Kangkang/i, /Xiaoyi/i, /zh-CN/i, /Chinese/i],
+        edgeVoice: EDGE_VOICE["zh-CN"],
+        rate: "+5%",
+        pitch: "-5Hz",
+        prefer: [/Yunjian/i, /Yunxi/i, /Yunyang/i, /Kangkang/i, /zh-CN.*Neural.*Male/i, /zh-CN/i],
       };
     }
     if (key === "en") {
       return {
         lang: "en-US",
-        rate: 1.1,
-        pitch: 1.05,
-        prefer: [/Guy/i, /Christopher/i, /Davis/i, /Eric/i, /David/i, /en-US/i, /English/i],
+        edgeVoice: EDGE_VOICE.en,
+        rate: "+8%",
+        pitch: "+0Hz",
+        prefer: [/Guy/i, /Christopher/i, /Davis/i, /Eric/i, /David/i, /Ryan/i, /Roger/i, /en-US.*Neural.*Male/i, /en-US/i],
       };
     }
     return {
       lang: "zh-TW",
-      rate: 1.08,
-      pitch: 1.0,
-      prefer: [/HsiaoChen/i, /曉臻/, /zh-TW-HsiaoChenNeural/i, /zh-TW/i, /Taiwan/i, /Hanhan/i],
+      edgeVoice: EDGE_VOICE["zh-Hant"],
+      rate: "+8%",
+      pitch: "+0Hz",
+      prefer: [/HsiaoChen/i, /曉臻/, /zh-TW-HsiaoChenNeural/i, /zh-TW/i, /Taiwan/i],
     };
   }
 
@@ -173,15 +193,22 @@
     const list = voices || [];
     if (!list.length) return null;
     const cfg = speechConfig(lang);
+    const males = list.filter((v) => !isFemaleVoiceName(v.name, cfg.lang));
+    const pool = males.length ? males : list;
     for (let i = 0; i < cfg.prefer.length; i += 1) {
       const re = cfg.prefer[i];
-      const hit = list.find((v) => re.test((v.name || "") + " " + (v.lang || "")));
+      const hit = pool.find((v) => re.test((v.name || "") + " " + (v.lang || "")));
       if (hit) return hit;
     }
-    const exact = list.find((v) => (v.lang || "").toLowerCase().replace("_", "-") === cfg.lang.toLowerCase());
+    const exact = pool.find((v) => (v.lang || "").toLowerCase().replace("_", "-") === cfg.lang.toLowerCase());
     if (exact) return exact;
     const prefix = cfg.lang.slice(0, 2);
-    return list.find((v) => (v.lang || "").toLowerCase().indexOf(prefix) === 0) || null;
+    return pool.find((v) => (v.lang || "").toLowerCase().indexOf(prefix) === 0) || null;
+  }
+
+  function edgeVoiceFor(lang) {
+    const key = normalizeLang(lang || currentVoiceLang());
+    return EDGE_VOICE[key] || EDGE_VOICE["zh-Hant"];
   }
 
   function line(kind, lang, a, b) {
@@ -198,6 +225,7 @@
     promoSrc: promoSrc,
     speechConfig: speechConfig,
     pickSpeechVoice: pickSpeechVoice,
+    edgeVoiceFor: edgeVoiceFor,
     line: line,
   };
 })(typeof window !== "undefined" ? window : globalThis);
