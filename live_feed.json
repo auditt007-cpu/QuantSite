@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-25T19:51:58Z",
+  "updated_at": "2026-08-25T19:53:30Z",
   "period_hours": 3,
   "poll_sec": 5,
   "scan_tf": "15m+1h",
@@ -960,6 +960,50 @@
       "kind": "batch",
       "name_zh": "ROC20動能",
       "interval": "1h",
+      "side": "SHORT",
+      "action": "多頭平倉翻空 (SELL)",
+      "logged_at": 1787687577,
+      "bar_ts": 1787680800,
+      "event": "open",
+      "strategy_id": "strat-014",
+      "symbols": [
+        {
+          "symbol": "INJUSDT",
+          "price": 5.643,
+          "sl_pct": -1.3840864788233318,
+          "tp_pct": 2.768155236576293,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "ROC20動能",
+      "interval": "1h",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787687576,
+      "bar_ts": 1787680800,
+      "event": "close",
+      "strategy_id": "strat-014",
+      "symbols": [
+        {
+          "symbol": "INJUSDT",
+          "price": 5.643,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.3531696980399163
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "ROC20動能",
+      "interval": "1h",
       "side": "LONG",
       "action": "空頭平倉翻多 (BUY)",
       "logged_at": 1787687485,
@@ -996,50 +1040,6 @@
           "tp_pct": null,
           "event": "close",
           "pnl_pct": -0.3544214070529942
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "ROC20動能",
-      "interval": "1h",
-      "side": "SHORT",
-      "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787687394,
-      "bar_ts": 1787680800,
-      "event": "open",
-      "strategy_id": "strat-014",
-      "symbols": [
-        {
-          "symbol": "INJUSDT",
-          "price": 5.643,
-          "sl_pct": -1.3840864788233318,
-          "tp_pct": 2.768155236576293,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "ROC20動能",
-      "interval": "1h",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787687393,
-      "bar_ts": 1787680800,
-      "event": "close",
-      "strategy_id": "strat-014",
-      "symbols": [
-        {
-          "symbol": "INJUSDT",
-          "price": 5.643,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.3531696980399163
         }
       ],
       "strategy_count": 1
@@ -1527,7 +1527,7 @@
         },
         {
           "symbol": "INJUSDT",
-          "price": 5.643,
+          "price": 5.663,
           "sl_pct": null,
           "tp_pct": null,
           "event": "open",
