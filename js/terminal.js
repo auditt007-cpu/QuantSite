@@ -289,10 +289,15 @@
   }
 
   function seedMetrics(s) {
-    const status = String(s.status || "").toUpperCase();
-    const initializing = status === "INITIALIZING";
-    // Plaza wipe / grid placeholders must NOT inherit legacy leaderboard DD/ROI.
-    if (!initializing) {
+    const m = (s.metrics && typeof s.metrics === "object" ? s.metrics : {}) || {};
+    const hasBacktest =
+      Number.isFinite(Number(m.backtest_apy_pct)) && Number(m.backtest_apy_pct) > 0;
+    const isGrid =
+      String(s.strategy_type || "").toUpperCase() === "GRID" ||
+      /grid/i.test(String(s.subtype || "")) ||
+      (Array.isArray(s.tags) && s.tags.some((t) => /grid/i.test(String(t))));
+    // Plaza GRID / prerender packs must NOT inherit legacy leaderboard DD/ROI.
+    if (!hasBacktest && !isGrid && String(s.status || "").toUpperCase() !== "BACKTEST_READY") {
       const eng = s.engine || s.id;
       const lb = lbForEngine(eng);
       if (lb) {
@@ -321,49 +326,50 @@
       }
     }
     const spec = catalog.get(s.engine || s.id) || catalog.get(s.id);
-    const m = (spec && spec.metrics) || s.metrics || {};
-    if (initializing) {
-      const apy = Number(m.backtest_apy_pct);
-      return {
-        wr: 1,
-        sh: 0,
-        ret: Number.isFinite(apy) ? apy / 100 : 0,
-        pf: null,
-        mdd: 0,
-        trades: 0,
-        periodDays: 0,
-        source: "initializing",
-        wrLabel: m.win_rate_label || s.win_rate_label || "等候實盤數據",
-      };
+    const pack = (spec && spec.metrics) || m;
+    let wr = parsePct(pack.win_rate);
+    if (wr == null && Number.isFinite(Number(pack.win_rate_pct))) {
+      wr = Number(pack.win_rate_pct) / 100;
     }
-    const wr = parsePct(m.win_rate);
-    const sh = Number(s.sharpe != null ? s.sharpe : m.sharpe_ratio);
-    const ret =
-      s.return_pct != null && Number.isFinite(Number(s.return_pct))
-        ? Number(s.return_pct)
-        : parsePct(m.week_return || m.optimal_return);
-    let mdd =
-      s.max_drawdown != null && Number.isFinite(Number(s.max_drawdown))
-        ? -Math.abs(Number(s.max_drawdown))
-        : parsePct(m.max_drawdown);
-    if (mdd != null && mdd > 0) mdd = -Math.abs(mdd);
-    let wrN = wr != null ? wr : null;
     if (s.win_rate != null && Number.isFinite(Number(s.win_rate))) {
-      wrN = Number(s.win_rate);
-      if (wrN > 1) wrN = wrN / 100;
+      wr = Number(s.win_rate);
+      if (wr > 1) wr = wr / 100;
     }
-    let periodDays = Number(s.period_days || s.backtest_days || m.period_days);
-    if (!Number.isFinite(periodDays) || periodDays < 1) {
-      periodDays = s.ai || String(s.strategy_type || "").toUpperCase() === "GRID" ? 120 : 60;
+    let sh = Number(s.sharpe != null ? s.sharpe : pack.sharpe_ratio);
+    let ret =
+      s.return_pct != null && Number.isFinite(Number(s.return_pct)) && Number(s.return_pct) !== 0
+        ? Number(s.return_pct)
+        : parsePct(pack.week_return || pack.optimal_return);
+    if ((ret == null || ret === 0) && Number.isFinite(Number(pack.backtest_apy_pct))) {
+      ret = Number(pack.backtest_apy_pct) / 100;
     }
+    if ((ret == null || ret === 0) && Number.isFinite(Number(pack.return_pct))) {
+      ret = Number(pack.return_pct);
+      if (Math.abs(ret) > 1.5) ret = ret / 100;
+    }
+    let mdd =
+      s.max_drawdown != null && Number.isFinite(Number(s.max_drawdown)) && Number(s.max_drawdown) !== 0
+        ? Number(s.max_drawdown)
+        : null;
+    if (mdd == null && Number.isFinite(Number(pack.max_drawdown_pct))) {
+      mdd = Number(pack.max_drawdown_pct);
+    }
+    if (mdd == null) mdd = parsePct(pack.max_drawdown);
+    if (mdd != null && Math.abs(mdd) > 1.5) mdd = mdd / 100;
+    if (mdd != null && mdd > 0) mdd = -Math.abs(mdd);
+    let pf = Number(s.profit_factor != null ? s.profit_factor : pack.profit_factor);
+    let periodDays = Number(s.period_days || s.backtest_days || pack.period_days);
+    if (!Number.isFinite(periodDays) || periodDays < 1) periodDays = 60;
     return {
-      wr: wrN,
-      sh: Number.isFinite(sh) ? sh : null,
+      wr: wr != null ? wr : null,
+      sh: Number.isFinite(sh) && sh !== 0 ? sh : Number.isFinite(Number(pack.sharpe_ratio)) ? Number(pack.sharpe_ratio) : null,
       ret: ret != null ? ret : null,
-      pf: Number.isFinite(Number(s.profit_factor)) ? Number(s.profit_factor) : null,
+      pf: Number.isFinite(pf) && pf > 0 ? pf : null,
       mdd: mdd,
+      trades: Number.isFinite(Number(s.trades)) ? Number(s.trades) : Number(pack.trades) || null,
       periodDays: periodDays,
-      source: s.ai ? "pipeline" : "pack",
+      source: hasBacktest || isGrid ? "backtest" : s.ai ? "pipeline" : "pack",
+      disclaimer: pack.disclaimer || s.disclaimer || (hasBacktest || isGrid ? "基於 60 日回測數據" : ""),
     };
   }
 
@@ -605,9 +611,16 @@
     const seed = seedMetrics(s);
     const pipe = window.QAPipeline || {};
     const title = String(s.name || s.title || "").trim() || String(s.id || s.engine || "—");
+    const nameSym = (title.match(/^([A-Za-z0-9]+)\s*[·・.]/) || [])[1];
+    const lockedSym = nameSym
+      ? nameSym.toUpperCase().replace(/USDT$/i, "") + "USDT"
+      : String((s.symbols && s.symbols[0]) || s.symbol || "BTCUSDT")
+          .replace(/\//g, "")
+          .replace(/USDT$/i, "") + "USDT";
     const enriched = {
       ...s,
       name: title,
+      symbols: [lockedSym],
       sharpe: seed.sh != null ? seed.sh : s.sharpe,
       win_rate: seed.wr != null ? seed.wr : s.win_rate,
       max_drawdown: seed.mdd != null ? seed.mdd : s.max_drawdown,
@@ -616,6 +629,7 @@
       principle: briefCopy(s.principle || s.description || s.copy || ""),
       description: s.description || s.copy || s.principle || "",
       copy: s.copy || s.description || s.principle || "",
+      disclaimer: seed.disclaimer || s.disclaimer || "",
     };
     if (typeof pipe.cardHtml === "function") {
       return pipe.cardHtml(enriched);
@@ -624,22 +638,17 @@
       ? `<span class="ai-badge">${t("mktBadgeAi")}</span>`
       : `<span class="classic-badge">${t("mktBadgeClassic")}</span>`;
     const principle = enriched.principle;
-    const sym = ((s.symbols && s.symbols[0]) || "BTCUSDT");
     const iv = String(s.interval || "1h").toUpperCase();
     const wrPct =
-      seed.wrLabel ||
-      (seed.source === "initializing"
-        ? "等候實盤"
-        : seed.wr != null
-          ? (seed.wr * 100).toFixed(1) + "%"
-          : "—");
-    const shTxt = seed.sh != null ? seed.sh.toFixed(2) : "—";
+      seed.wrLabel || (seed.wr != null ? (seed.wr * 100).toFixed(1) + "%" : "—");
+    const shTxt = seed.sh != null ? Number(seed.sh).toFixed(2) : "—";
     const mddTxt =
-      seed.source === "initializing" || seed.mdd === 0
-        ? "0.0%"
-        : seed.mdd != null
-          ? (-Math.abs(seed.mdd <= 1.5 ? seed.mdd * 100 : seed.mdd)).toFixed(1) + "%"
-          : "—";
+      seed.mdd != null
+        ? (-Math.abs(seed.mdd <= 1.5 ? seed.mdd * 100 : seed.mdd)).toFixed(1) + "%"
+        : "—";
+    const disc =
+      seed.disclaimer ||
+      (seed.source === "backtest" ? "基於 60 日回測數據" : "");
     const chartBlock = s.chart
       ? `<img class="ai-eq-thumb" src="${s.chart}" alt="${title} equity" loading="lazy" />`
       : "";
@@ -648,12 +657,13 @@
         <h3>${title}</h3>
         ${chartBlock}
         ${principle ? `<p class="card-principle">${principle}</p>` : ""}
-        <p class="card-meta muted">${sym} · ${iv}</p>
+        <p class="card-meta muted">${lockedSym} · ${iv}</p>
         <div class="stat-caps plaza-metrics">
           <div class="stat-cap"><span>${t("mktSh")}</span><b>${shTxt}</b><em class="stat-tip">${t("mktShTip")}</em></div>
           <div class="stat-cap"><span>${t("mktWr")}</span><b class="is-up">${wrPct}</b><em class="stat-tip">${t("mktWrTip")}</em></div>
           <div class="stat-cap"><span>${t("mktMdd")}</span><b class="is-down">${mddTxt}</b><em class="stat-tip">${t("mktMddTip")}</em></div>
         </div>
+        ${disc ? `<p class="muted" style="font-size:11px;opacity:.75;margin:4px 0 0">${disc}</p>` : ""}
         <div class="card-actions">
           <button type="button" class="btn-cta compact" data-plaza-detail="${s.id}">${t("mktDetail")}</button>
           <a class="btn-cta compact" href="#" data-get-strategy>${t("mktGet")}</a>

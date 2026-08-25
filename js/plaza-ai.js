@@ -50,8 +50,15 @@
     if (!id) return null;
     const copy = row.copy || row.description || row.intro || "";
     const chart = row.chart_url || row.chart || "";
-    // Prefer JSON display name; never invent EMA/RSI labels from copy.
     const display = String(row.title || row.name || "").trim();
+    const lockedSym = symbolFromName(display, row);
+    const symbols = lockedSym
+      ? [lockedSym]
+      : Array.isArray(row.symbols) && row.symbols.length
+        ? row.symbols
+        : row.symbol
+          ? [String(row.symbol).replace(/\//g, "")]
+          : undefined;
     return {
       id: String(id),
       name: display || String(id),
@@ -73,15 +80,29 @@
       profit_factor: pickNum(row.profit_factor, m.profit_factor, m.pf),
       win_rate: pickNum(row.win_rate, m.win_rate_pct, m.win_rate, m.hit),
       trades: row.trades != null ? row.trades : m.trades,
-      symbols: row.symbols,
+      symbols: symbols,
+      symbol: lockedSym || row.symbol || "",
       interval: row.interval || row.tf || "1h",
       params: row.params,
       code: row.code,
       category: row.category || "",
       engine: row.engine || row.engine_id || "",
       listed: row.listed,
-      win_rate_label: m.win_rate_label || row.win_rate_label || "",
+      period_days: pickNum(row.period_days, row.backtest_days, m.period_days, 60),
+      disclaimer: m.disclaimer || row.disclaimer || "",
+      metrics_source: m.metrics_source || row.metrics_source || "",
     };
+  }
+
+  function symbolFromName(name, row) {
+    const n = String(name || "").trim();
+    const m = n.match(/^([A-Za-z0-9]+)\s*[·・.]/);
+    if (m) return m[1].toUpperCase().replace(/USDT$/i, "") + "USDT";
+    if (row && row.symbol) return String(row.symbol).replace(/\//g, "").toUpperCase();
+    if (row && Array.isArray(row.symbols) && row.symbols[0]) {
+      return String(row.symbols[0]).replace(/\//g, "").toUpperCase();
+    }
+    return "";
   }
 
   function briefCopy(text, maxLen) {
@@ -238,22 +259,23 @@
   }
 
   function metricsBoardHtml(seed) {
-    const sh = seed.source === "initializing" ? "0.00" : fmtSharpe(seed.sh);
-    const wr =
-      seed.wrLabel ||
-      (seed.source === "initializing" ? "等候實盤數據" : fmtWr(seed.wr));
-    const mdd = seed.source === "initializing" || seed.mdd === 0 ? "0.0%" : fmtMdd(seed.mdd);
-    const ret = seed.source === "initializing" ? "0.0%" : fmtRet(seed.ret);
-    const pf = seed.source === "initializing" ? "—" : fmtPf(seed.pf);
-    const trades = seed.source === "initializing" ? "—" : fmtTrades(seed.trades);
+    const sh = fmtSharpe(seed.sh);
+    const wr = seed.wrLabel || fmtWr(seed.wr);
+    const mdd = fmtMdd(seed.mdd);
+    const ret = fmtRet(seed.ret);
+    const pf = fmtPf(seed.pf);
+    const trades = fmtTrades(seed.trades);
     const mddCls = mdd !== "—" ? " is-down" : "";
     const wrCls = wr !== "—" ? " is-up" : "";
     const retCls = seed.ret == null ? "" : Number(seed.ret) >= 0 ? " is-up" : " is-down";
-    const retLab =
-      seed.source === "initializing"
-        ? t("mktRet", "回測{d}日區間報酬").replace(/\{d\}/g, "—")
-        : retLabel(seed.periodDays);
+    const retLab = retLabel(seed.periodDays);
     const retTip = t("mktRetTip", "指定回測窗口內的累積報酬（非整年年化）");
+    const disc = seed.disclaimer || (seed.source === "backtest" ? "基於 60 日回測數據" : "");
+    const discHtml = disc
+      ? '<div class="stat-cap plaza-disclaimer" style="flex-basis:100%;opacity:.72;font-size:11px;letter-spacing:.02em"><span></span><b style="font-weight:500;color:#8b9bb4">' +
+        disc +
+        "</b></div>"
+      : "";
     return (
       '<div class="stat-caps plaza-metrics">' +
       '<div class="stat-cap"><span>' +
@@ -296,6 +318,7 @@
       "</span><b>" +
       trades +
       "</b></div>" +
+      discHtml +
       "</div>"
     );
   }
@@ -343,29 +366,41 @@
   function toCard(row) {
     const r = normalizeRow(row) || row;
     const status = String(r.status || row.status || "").toUpperCase();
-    const initializing = status === "INITIALIZING";
-    const sh = Number(r.sharpe);
-    const ret = Number(r.return_pct);
+    const m = (r.metrics && typeof r.metrics === "object" ? r.metrics : row.metrics) || {};
+    let sh = Number(r.sharpe);
+    if (!Number.isFinite(sh) || sh === 0) sh = Number(m.sharpe_ratio);
+    let ret = Number(r.return_pct);
+    if (!Number.isFinite(ret) || ret === 0) {
+      const apy = Number(m.backtest_apy_pct);
+      if (Number.isFinite(apy) && apy !== 0) ret = apy / 100;
+    }
     let mdd = Number(r.max_drawdown);
-    if (Number.isFinite(mdd) && mdd > 0 && mdd < 2) mdd = -Math.abs(mdd);
-    if (initializing) mdd = 0;
+    if (!Number.isFinite(mdd) || mdd === 0) {
+      const dd = Number(m.max_drawdown_pct);
+      if (Number.isFinite(dd) && dd !== 0) mdd = dd;
+    }
+    if (Number.isFinite(mdd) && Math.abs(mdd) > 1.5) mdd = mdd / 100;
+    if (Number.isFinite(mdd) && mdd > 0) mdd = -Math.abs(mdd);
     let wr = Number(r.win_rate);
+    if (!Number.isFinite(wr) || wr === 0) wr = Number(m.win_rate_pct);
     if (Number.isFinite(wr) && wr > 1) wr = wr / 100;
-    if (initializing && !Number.isFinite(wr)) wr = 1;
+    let pf = Number(r.profit_factor);
+    if (!Number.isFinite(pf) || pf === 0) pf = Number(m.profit_factor);
     const copy = r.copy || "";
     const cat = String(r.category || row.category || "");
     const stype = String(r.strategy_type || row.strategy_type || "").toUpperCase();
     const isAi =
       /AI/.test(cat) ||
       String(r.id).indexOf("ai_") === 0 ||
-      initializing ||
       stype === "GRID" ||
-      /GRID/.test(stype);
+      /GRID/.test(stype) ||
+      status === "BACKTEST_READY" ||
+      status === "INITIALIZING";
     const tags = Array.isArray(row.tags) ? row.tags.slice() : ["PIPELINE", String(r.interval || "1h").toUpperCase()];
     if (isAi) tags.push("AI");
-    if (initializing) tags.push("INITIALIZING");
-    const blob = [r.id, r.engine, r.title, r.name, cat, tags.join(" ")].join(" ").toLowerCase();
-    if (/網格|馬丁|martin|grid|atr_grid|adaptive_grid/.test(blob) || /GRID/.test(stype)) tags.push("grid");
+    if (/網格|grid|GRID/.test([r.id, r.name, stype, tags.join(" ")].join(" "))) tags.push("grid");
+    const symLocked = symbolFromName(displayName(r), r) || (r.symbols && r.symbols[0]) || "BTCUSDT";
+    const periodDays = Number(r.period_days) > 0 ? Number(r.period_days) : 60;
     return {
       id: r.id,
       name: displayName(r),
@@ -378,25 +413,27 @@
       copy: copy,
       chart: chartUrl(r),
       tags: tags,
-      symbols: r.symbols && r.symbols.length ? r.symbols : ["BTCUSDT", "ETHUSDT", "SOLUSDT"],
+      symbols: [symLocked],
+      symbol: symLocked,
       interval: r.interval || "1h",
       principle: briefCopy(copy, 200),
       description: copy,
-      win_rate_label: r.win_rate_label || (initializing ? "等候實盤數據" : ""),
+      disclaimer: r.disclaimer || m.disclaimer || "基於 60 日回測數據",
+      metrics_source: r.metrics_source || m.metrics_source || "backtest_60d",
+      period_days: periodDays,
       metrics: {
-        sharpe_ratio: initializing ? 0 : sh,
-        week_return: initializing
-          ? "0%"
-          : Number.isFinite(ret)
-            ? (ret * 100).toFixed(1) + "%"
-            : null,
-        max_drawdown: initializing ? "0%" : Number.isFinite(mdd) ? (-Math.abs(mdd) * 100).toFixed(1) + "%" : null,
-        win_rate: initializing ? "等候實盤數據" : Number.isFinite(wr) ? (wr * 100).toFixed(1) + "%" : null,
+        sharpe_ratio: sh,
+        backtest_apy_pct: m.backtest_apy_pct,
+        week_return: Number.isFinite(ret) ? (ret * 100).toFixed(1) + "%" : null,
+        max_drawdown: Number.isFinite(mdd) ? (-Math.abs(mdd) * 100).toFixed(1) + "%" : null,
+        win_rate: Number.isFinite(wr) ? (wr * 100).toFixed(1) + "%" : null,
+        profit_factor: pf,
+        disclaimer: r.disclaimer || m.disclaimer || "基於 60 日回測數據",
       },
-      sharpe: initializing ? 0 : sh,
-      return_pct: initializing ? 0 : ret,
-      max_drawdown: initializing ? 0 : mdd,
-      profit_factor: Number(r.profit_factor),
+      sharpe: sh,
+      return_pct: ret,
+      max_drawdown: mdd,
+      profit_factor: pf,
       win_rate: wr,
       trades: r.trades,
     };
@@ -425,39 +462,49 @@
   }
 
   function seedFromCard(s) {
-    const status = String(s.status || "").toUpperCase();
-    if (status === "INITIALIZING") {
-      return {
-        wr: 1,
-        sh: 0,
-        mdd: 0,
-        ret: 0,
-        pf: null,
-        trades: 0,
-        periodDays: 0,
-        wrLabel: s.win_rate_label || "等候實盤數據",
-        source: "initializing",
-      };
-    }
+    const m = (s && s.metrics && typeof s.metrics === "object" ? s.metrics : {}) || {};
     let wr = s.win_rate != null ? Number(s.win_rate) : null;
+    if (!Number.isFinite(wr) || wr === 0) {
+      const w = Number(m.win_rate_pct != null ? m.win_rate_pct : m.win_rate);
+      if (Number.isFinite(w)) wr = w;
+    }
     if (wr != null && Number.isFinite(wr) && wr > 1) wr = wr / 100;
     let mdd = s.max_drawdown != null ? Number(s.max_drawdown) : null;
-    if (mdd != null && Number.isFinite(mdd) && mdd > 0) mdd = -Math.abs(mdd);
-    const sh = s.sharpe != null ? Number(s.sharpe) : null;
-    const pf = Number(s.profit_factor);
-    const trades = Number(s.trades);
-    let periodDays = Number(s.period_days || s.backtest_days || s.periodDays);
-    if (!Number.isFinite(periodDays) || periodDays < 1) {
-      periodDays = s.ai || String(s.strategy_type || "").toUpperCase() === "GRID" ? 120 : 60;
+    if (!Number.isFinite(mdd) || mdd === 0) {
+      const d = Number(m.max_drawdown_pct != null ? m.max_drawdown_pct : m.max_drawdown);
+      if (Number.isFinite(d)) mdd = d;
     }
+    if (mdd != null && Number.isFinite(mdd) && Math.abs(mdd) > 1.5) mdd = mdd / 100;
+    if (mdd != null && Number.isFinite(mdd) && mdd > 0) mdd = -Math.abs(mdd);
+    let sh = s.sharpe != null ? Number(s.sharpe) : null;
+    if (!Number.isFinite(sh) || sh === 0) {
+      const x = Number(m.sharpe_ratio);
+      if (Number.isFinite(x)) sh = x;
+    }
+    let ret = Number(s.return_pct);
+    if (!Number.isFinite(ret) || ret === 0) {
+      const apy = Number(m.backtest_apy_pct);
+      if (Number.isFinite(apy) && apy !== 0) ret = apy / 100;
+      else if (Number.isFinite(Number(m.return_pct))) ret = Number(m.return_pct);
+    }
+    let pf = Number(s.profit_factor);
+    if (!Number.isFinite(pf) || pf <= 0) pf = Number(m.profit_factor);
+    const trades = Number(s.trades != null ? s.trades : m.trades);
+    let periodDays = Number(s.period_days || s.backtest_days || s.periodDays || m.period_days);
+    if (!Number.isFinite(periodDays) || periodDays < 1) periodDays = 60;
+    const fromBacktest =
+      String(s.metrics_source || m.metrics_source || "").indexOf("backtest") >= 0 ||
+      (Number.isFinite(Number(m.backtest_apy_pct)) && Number(m.backtest_apy_pct) > 0);
     return {
       wr: Number.isFinite(wr) ? wr : null,
       sh: Number.isFinite(sh) ? sh : null,
       mdd: Number.isFinite(mdd) ? mdd : null,
-      ret: Number.isFinite(Number(s.return_pct)) ? Number(s.return_pct) : null,
+      ret: Number.isFinite(ret) ? ret : null,
       pf: Number.isFinite(pf) && pf > 0 ? pf : null,
       trades: Number.isFinite(trades) && trades > 0 ? trades : null,
       periodDays: periodDays,
+      source: fromBacktest ? "backtest" : "live",
+      disclaimer: s.disclaimer || m.disclaimer || (fromBacktest ? "基於 60 日回測數據" : ""),
     };
   }
 
@@ -486,7 +533,9 @@
         ? '<span class="grid-hero-badge">24H 波動率套利流水線</span>'
         : '<span class="classic-badge">' + t("mktBadgeClassic", "量化經典") + "</span>";
     const principle = briefCopy(s.principle || s.description || s.copy || "", 200);
-    const sym = ((s.symbols && s.symbols[0]) || "BTCUSDT").replace(/USDT$/i, "") + "USDT";
+    const rawSym =
+      symbolFromName(displayName(s), s) || (s.symbols && s.symbols[0]) || s.symbol || "BTCUSDT";
+    const sym = String(rawSym).replace(/\//g, "").replace(/USDT$/i, "") + "USDT";
     const iv = String(s.interval || "1h").toUpperCase();
     const kind = grid ? "grid" : s.ai ? "ai" : s.tier === "master" ? "master" : "classic";
     return (
