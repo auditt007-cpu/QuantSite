@@ -41,20 +41,21 @@ QuantAlpha 是一套**加密量化研究终端 + 变现闭环**，面向独立�
 
 - 域名 `quantalpha.space`（根目录 `CNAME`）
 - HTML / CSS / JS / `audio/` / 白名单 JSON
-- VPS 用 deploy key 推白名单产物：`strategies.json`、`leaderboard.json`、`live_feed.json`、`data/signals.json`、`static/charts/ai_*.svg`
+- VPS 用 deploy key 推白名单产物（`utils/git_sync.py` → `ALLOWED_EXACT`）：`strategies.json`、`leaderboard.json`、`live_feed.json`、`plaza_live_registry.json`、`data/signals.json`、`static/charts/ai_*.svg`
 - Pages 专用克隆：`/root/QuantSite-pages`
+- 公网站点走 **GitHub Pages**（`Server: GitHub.com`），不是直接读 VPS `/var/www/html`。只写 www、不同步 Pages → 用户侧仍是旧文件。
 
 ### VPS（算力 + 直播）
 
-- Web 根：`/var/www/html`
+- Web 根：`/var/www/html`（镜像/同机副本；ops 与部分脚本会读这里）
 - 应用根：`/root/quantsite`
 - SSH：环境变量 `SSH_HOST` / `SSH_PORT`（现网常用 1063）/ `SSH_USER` / `SSH_PASS`，在 `deploy/quantsite/.env`（**不要提交密码**）
-- `quant-hub.service` → `bot_server.py` :8088
-- `tg-bot.service` → `deploy/quantsite/tg_engine.py`（约 60s 扫策略矩阵，写 `live_feed.json` / `signals.json`，TG 频道 `@quant_alpha_signals`）
+- `quant-hub.service` → `bot_server.py` :8088（Edge TTS 级联；健康检查 `http://127.0.0.1:8088/health`）
+- `tg-bot.service` → `/root/quantsite/tg_engine.py`（源：`deploy/quantsite/tg_engine.py`；`POLL_SEC=15`；写 `live_feed.json` / `signals.json` / `plaza_live_registry.json`；TG 频道 `@quant_alpha_signals`）
 - Nginx：`api.quantalpha.space` 反代 `/api/`、`/health`、`/tg/webhook`
-- 现网常用发布脚本：`python deploy/quantsite/_deploy_marquee_flex.py`（SFTP 推 CSS/JS/HTML 到 `/var/www/html`）。脚本会用 **UTC 时间 + git short SHA** 统一替换各 HTML 里本地 CSS/JS 的 `?v=`，并写入仓库根目录 `asset-query`。GitHub Pages 必须提交同一批已盖戳的 HTML，否则会再漂移。`terminal.html` 在 VPS nginx 上做 301。
+- 现网常用发布脚本：`python deploy/quantsite/_deploy_marquee_flex.py`（SFTP 推 CSS/JS/HTML → `/var/www/html`，并热更 `tg_engine.py` + 重启 `tg-bot` / `quant-hub`）。`QA_RESTAMP=1` 时用 **UTC 时间 + git short SHA** 统一替换各 HTML 本地 CSS/JS 的 `?v=`，写入 `asset-query`。GitHub Pages 必须提交同一批已盖戳的 HTML。`terminal.html` 在 VPS nginx 上做 301。
 
-**只 push GitHub 不等于线上一定更新。** 用户要「发布」时通常要：commit → `git push origin main` → 跑 VPS deploy。远程常有 `data/signals.json` / `live_feed.json` 自动提交，pull 用 merge，禁止 force push。
+**只 push GitHub 不等于线上一定更新。** 用户要「发布」时通常要：commit → `git push origin main` → 跑 VPS deploy。远程常有 `data/signals.json` / `live_feed.json` / `plaza_live_registry.json` / `leaderboard.json` 自动提交，pull 用 rebase/merge，禁止 force push。
 
 ### 第三套：Cloudflare Worker
 
@@ -71,6 +72,27 @@ QuantAlpha 是一套**加密量化研究终端 + 变现闭环**，面向独立�
 **已修过的坑：** Binance `miniTicker` 没有 24h 涨跌幅 `P`，会把百分比写成 `0.00%`，再被全局 `lastTickAt` 停掉 REST，冷门币假死。现用 `@ticker` + 开盘价计算百分比 + 持续 REST，且只闪涨跌幅/箭头，不闪胶囊背景和币名。
 
 VPS：`tg_engine.py` 写直播带；`pipeline.py` / `llm_pipeline/` 生成 AI 策略 SVG；`calc_rankings.py` 写 `leaderboard.json`。
+
+### 策略广场 ↔ Live（必须 1:1）
+
+- **唯一 ID 源**：`tg_engine.frontend_strategy_specs()`（45 条：`dual`…`hg` + `strat-001`…`strat-030`），必须与 `js/engine-list.js` 的 `QA_ENGINE_LIST` 字节级一致。
+- Live 3h 簿（`build_live_feed_matrix`）与 TG 扫描矩阵（`STRATEGY_MATRIX`）都从这张表展开；扫描 TF = `15m` + `1h` → **90** 个 scan slot。
+- 每轮 `cycle()` 调用 `refresh_strategy_matrix()` + `write_plaza_live_registry()`；公开校验：https://quantalpha.space/plaza_live_registry.json（`sync=1:1`，`plaza_count=45`）。
+- **上一套进一套**：在 `frontend_strategy_specs()` 追加一行 + 同步改 `js/engine-list.js` → 部署并重启 `tg-bot` → 下一轮 poll 自动进 live。不要再维护旧的 `ema_12_26_*` 族矩阵。
+- 信号时间戳用 **K 线收盘**（`bar_close_ts` = open + interval），跳过未收盘 bar；否则相对墙钟会系统性偏约一个周期（曾误判为「信号晚 3 分钟」）。
+
+### 直播语音（TTS）
+
+- 前端：`js/edge-speak.js`、`js/live-room.js`、`js/voice-templates.js`（zh-CN / EN / zh-Hant 文案；`FORCE_SERVER_TTS`）。
+- Hub：`hub/tts.py` — Edge → 备选 Edge → Google TTS；解锁用 `window.globalTTSAudio` + GET `/api/tts/speak?...` 挂 `<audio src>`（避免 fetch 后丢失用户手势）。
+- 语速约：zh-CN `+14%`，EN `+16%`，zh-Hant `+17%`。
+
+### 排行榜 + 运维告警（TG）
+
+- `scripts/ops_watch.py`：每小时 cron → `ADMIN_CHAT_ID`。`leaderboard.json` **mtime > 36h** 会发 `⚠️ VPS 告警 · leaderboard.json 超过 36 小时未刷新`；恢复发 `✅ VPS 已恢复正常`。还查 `tg-bot` / `quant-hub`、`live_feed` 延迟、Hub `/health`、官网可达。
+- 日更：`0 0 * * * /root/quantsite/scripts/daily_desk.sh` → `calc_rankings.py --days 60 --full` → 写 `/root/quantsite/leaderboard.json` **且必须** 写 `/var/www/html/leaderboard.json` + `git_sync` 推 Pages。日志：`/var/log/quant-daily-desk.log`；旧直跑日志曾是 `/root/quantsite/cron_calc.log`。
+- **坑（2026-08-25 已踩）**：根目录算出新榜但没进 www/Pages → ops 告警、公网仍旧。处理：拷贝最新 → www + `sync_to_github(['leaderboard.json'])`，并确认 crontab 用 `daily_desk.sh`（不要裸跑 `--hero-scan` 挡主路径）。`--hero-scan` 是可选加重任务，可单独跑，勿默认塞进午夜主线。
+- AI 挖矿：`0 2,8,14,20 * * * run_pipeline_cron.sh`。
 
 ---
 
@@ -147,9 +169,11 @@ CSS 加载顺序（冲突源）：
 - 顶栏/跑马灯：`js/nav.js`、`js/binance-feed.js`
 - 文案：`i18n.js`、`js/i18n-boot.js`（缺 key 会把 key 名渲染出来，例如曾出现 `footSubscribe`、`BBUTILSTATUS`）
 - 登录：`js/identity.js`、`js/member.js`、`app.js`
-- 直播：`js/live-room.js`、`css/live-room.css`
-- 广场：`js/plaza-ai.js`、`js/terminal.js`
-- 配置：`config.js`（钱包、apiBase、inviteNeed）
+- 直播：`js/live-room.js`、`css/live-room.css`、`js/edge-speak.js`、`js/voice-templates.js`
+- 广场：`js/plaza-ai.js`、`js/terminal.js`、`js/engine-list.js`（45 ID 权威列表）
+- 引擎：`deploy/quantsite/tg_engine.py`（广场规格 / live 矩阵 / 胶带）、`deploy/quantsite/calc_rankings.py`
+- 运维：`scripts/ops_watch.py`、`scripts/daily_desk.sh`、`utils/git_sync.py`
+- 配置：`config.js`（钱包、apiBase、hubApiBase、inviteNeed）
 - 发布：`deploy/quantsite/_deploy_marquee_flex.py`
 
 PowerShell 注意：不要用 bash `&&` / heredoc；用 `;` 或临时 `.py`。
@@ -168,13 +192,19 @@ PowerShell 注意：不要用 bash `&&` / heredoc；用 `;` 或临时 `.py`。
 8. QUANT.ALPHA 上方白/灰条 → 全黑。
 9. 币价框改直角。
 10. 「直播作战室」的 `>` 与其它菜单项右对齐。
+11. Live 语音：广告能播、信号不播 → 用户手势丢失；改服务端 TTS + `<audio src>`。
+12. 信号「晚约 3 分钟」→ `bar_ts` 用开盘时刻；改为收盘戳 + `POLL_SEC=15`。
+13. 策略广场 1:1 进 live + 注册表 `plaza_live_registry.json`；后面上一套进一套。
+14. TG `VPS 告警 · leaderboard.json`：www/Pages 未吃到 VPS 新榜；已发布并改回 `daily_desk.sh` 午夜任务。
 
 ---
 
 ## 助手做事方式
 
 - 改 UI 必须用浏览器（Chrome DevTools MCP 命名空间 `project-0-QuantSite-chrome-devtools`）点过主路径，不要只截一张图。
-- 用户说「更改发布」= commit + push GitHub + VPS deploy。
+- 用户说「更改发布 / 更新并发布」= commit + push GitHub + VPS deploy（常用 `_deploy_marquee_flex.py`，需要刷缓存时 `QA_RESTAMP=1`）。
 - 用户说「明天再发布也行」= 可以只改本地并 commit，push/deploy 可后补。
+- 用户说「更新 MD」= 更新本文件 `QUANT-SITE-BRIEF.md`，把现网结论写清楚给下一任助手。
 - 不要 force push；不要提交 `.env`。
-- 远程常自动改 `live_feed.json`，先 `git pull` 再 push。
+- 远程常自动改 `live_feed.json` / `plaza_live_registry.json` / `leaderboard.json`，先 `git pull --rebase` 再 push。
+- 优先中文回复；PowerShell 下复杂补丁用临时 `.py`，不要挤一行。
