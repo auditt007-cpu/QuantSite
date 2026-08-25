@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-25T21:25:52.803327+00:00",
+  "updated_at": "2026-08-25T21:50:21.766968+00:00",
   "status": "BACKTEST_PRERENDER",
   "strategies": [
     {
@@ -2354,49 +2354,55 @@
       "slot": true,
       "status": "BACKTEST_READY",
       "strategy_type": "GRID",
-      "subtype": "FIBO_DCA_GRID",
-      "title": "DOGE·時序動量幾何DCA網格 V5.3",
-      "name": "DOGE·時序動量幾何DCA網格 V5.3",
-      "symbol": "DOGE/USDT",
+      "subtype": "BASIS_FUNDING_GRID",
+      "title": "AVAX·統計套利基差對沖網格 V4.9",
+      "name": "AVAX·統計套利基差對沖網格 V4.9",
+      "symbol": "AVAX/USDT",
       "symbols": [
-        "DOGEUSDT"
+        "AVAXUSDT"
       ],
       "timeframe": "15m",
       "interval": "15m",
       "period_days": 60,
       "backtest_days": 60,
       "grid_params": {
-        "leverage": 5,
-        "grids_count": 60,
-        "grid_mode": "geometric",
-        "profit_per_grid_pct": 0.55
+        "lower_price": 6.76844,
+        "upper_price": 7.94556,
+        "grids_count": 40,
+        "grid_mode": "arithmetic",
+        "leverage": 3.0,
+        "profit_per_grid_pct": 0.45,
+        "atr_multiplier": null,
+        "mode": "spot_long_perp_short_1x"
+      },
+      "params": {
+        "leverage": 3,
+        "profit_per_grid_pct": 0.45
       },
       "metrics": {
-        "backtest_apy_pct": 77.5,
-        "max_drawdown_pct": -1.2,
-        "win_rate_pct": 82.4,
-        "daily_turnover_rate": 39.5,
-        "daily_turnover": 39.5,
-        "sharpe_ratio": 4.38,
-        "profit_factor": 2.88,
-        "return_pct": 0.1274,
+        "backtest_apy_pct": 980.0,
+        "max_drawdown_pct": -0.29,
+        "daily_turnover_rate": 39.4,
+        "daily_turnover": 39.4,
+        "sharpe_ratio": 93.708,
+        "win_rate_pct": 88.5,
+        "profit_factor": 45.356,
+        "return_pct": 2.4058,
         "period_days": 60,
         "metrics_source": "backtest_60d",
         "disclaimer": "基於 60 日回測數據"
       },
-      "sharpe": 4.38,
-      "max_drawdown": -0.012,
-      "return_pct": 0.1274,
-      "profit_factor": 2.88,
-      "win_rate": 0.8240000000000001,
-      "trades": 1106,
+      "sharpe": 93.708,
+      "max_drawdown": -0.0029,
+      "return_pct": 2.4058,
+      "profit_factor": 45.356,
+      "win_rate": 0.8854,
+      "trades": 1770,
       "chart": "/static/charts/strat-029.svg",
       "chart_url": "/static/charts/strat-029.svg",
-      "copy": "DOGE·時序動量幾何DCA網格 V5.3 · DOGEUSDT 高頻網格 · 回測 APY 77.5% · 日換手 39.5 · 手續費返傭導向",
-      "principle": "賽馬篩選網格 · 基於 60 日回測預渲染 · Live 掃描同步中",
       "monetization": "trading_volume_rebate",
-      "cleaned_at": "2026-08-25T14:13:11Z",
-      "disclaimer": "基於 60 日回測數據"
+      "replaced_at": "2026-08-25T21:50:21Z",
+      "copy": "AVAX·統計套利基差對沖網格 V4.9 · AVAXUSDT 高換手網格 · 手續費返傭導向"
     },
     {
       "id": "strat-030",
