@@ -11,12 +11,12 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#09090b">
   <title>QUANT ALPHA · 網格機器人</title>
-  <link rel="stylesheet" href="./styles.css?v=202608251308-be4a65b" />
-  <link rel="stylesheet" href="./css/mobile-global.css?v=202608251308-be4a65b" />
-  <link rel="stylesheet" href="./css/mobile-subpages.css?v=202608251308-be4a65b" />
-  <link rel="stylesheet" href="./css/bots.css?v=202608251308-be4a65b" />
-  <link rel="stylesheet" href="./css/bloomberg-system.css?v=202608251308-be4a65b" />
-  <link rel="stylesheet" href="./css/bloomberg-dark.css?v=202608251308-be4a65b" />
+  <link rel="stylesheet" href="./styles.css?v=202608252235-botm" />
+  <link rel="stylesheet" href="./css/mobile-global.css?v=202608252235-botm" />
+  <link rel="stylesheet" href="./css/mobile-subpages.css?v=202608252235-botm" />
+  <link rel="stylesheet" href="./css/bots.css?v=202608252235-botm" />
+  <link rel="stylesheet" href="./css/bloomberg-system.css?v=202608252235-botm" />
+  <link rel="stylesheet" href="./css/bloomberg-dark.css?v=202608252235-botm" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
@@ -58,23 +58,83 @@
   </div>
   <div class="wrap wide">
     <header class="bots-hero">
-      <p class="bots-kicker" data-i18n="botKicker">GRID TRADING BOTS</p>
-      <h1 data-i18n="botTitle">網格機器人</h1>
+      <div class="bots-hero-row">
+        <div>
+          <p class="bots-kicker" data-i18n="botKicker">GRID TRADING BOTS</p>
+          <h1 data-i18n="botTitle">網格機器人</h1>
+        </div>
+        <span class="bots-hero-sub" data-i18n="botLeadShort">免登入 · 本地回測</span>
+      </div>
       <p class="bots-lead" data-i18n="botLead">免登入即可調參，於瀏覽器本機秒級回測；滿意後再託管至雲端節點，全日自動掛單。</p>
     </header>
 
     <section class="bot-console" aria-label="Grid sandbox">
+      <div class="bot-stats" id="botStats">
+        <div class="bot-kpis" id="botKpis">
+          <div class="bot-kpi">
+            <div class="bot-kpi-lab" data-i18n="botApy">區間報酬率</div>
+            <div class="bot-kpi-val is-up" id="botApy">—</div>
+          </div>
+          <div class="bot-kpi">
+            <div class="bot-kpi-lab" data-i18n="botTrades">區間套利次數</div>
+            <div class="bot-kpi-val" id="botTrades">—</div>
+          </div>
+          <div class="bot-kpi">
+            <div class="bot-kpi-lab" data-i18n="botSharpe">夏普比率</div>
+            <div class="bot-kpi-val is-gold" id="botSharpe">—</div>
+          </div>
+          <div class="bot-kpi">
+            <div class="bot-kpi-lab" data-i18n="botDd">最大回撤</div>
+            <div class="bot-kpi-val is-down" id="botDd">—</div>
+          </div>
+        </div>
+
+        <div class="bot-chart-card">
+          <div class="bot-chart-head">
+            <h2 data-i18n="botCurve">累積回測收益曲線</h2>
+            <span class="bot-chart-legend muted">
+              <span class="bot-leg"><i class="bot-dot up"></i><span data-i18n="botLegFill">網格成交</span></span>
+              <span class="bot-leg"><i class="bot-dot band"></i><span data-i18n="botLegBand">網格帶</span></span>
+            </span>
+          </div>
+          <div class="bot-chart-toolbar" id="botChartToolbar">
+            <button type="button" class="bot-chart-zoom-btn" id="botChartZoomIn" aria-label="Zoom in">＋</button>
+            <button type="button" class="bot-chart-zoom-btn" id="botChartZoomOut" aria-label="Zoom out">－</button>
+            <button type="button" class="bot-chart-zoom-btn ghost" id="botChartZoomReset" data-i18n="botChartReset">重置</button>
+            <span class="bot-chart-zoom-hint muted" data-i18n="botChartZoomHint">滾輪或按鈕縮放 · 雙指捏合 · 點擊三角看詳情</span>
+          </div>
+          <div class="bot-chart-wrap" id="botChartWrap">
+            <canvas id="botChart" width="640" height="260" aria-label="Equity curve"></canvas>
+            <div class="bot-trade-tip" id="botTradeTip" hidden role="status"></div>
+          </div>
+          <p class="bot-chart-hint muted" data-i18n="botChartHint">灰色區間為價格超出網格帶；點擊買賣三角查看成交詳情</p>
+        </div>
+        <p class="bot-note" data-i18n="botDisc">回測於瀏覽器本地完成，含約 4bps 單邊成本假設。歷史結果不代表未來實盤收益。</p>
+      </div>
+
       <div class="bot-panel">
-        <h2 data-i18n="botPanel">互動調參</h2>
-        <div class="bot-field bot-field-row">
-          <label for="botSymbol" data-i18n="botSymbol">標的</label>
-          <select id="botSymbol">
-            <option value="BTCUSDT">BTC/USDT</option>
-            <option value="ETHUSDT">ETH/USDT</option>
-            <option value="SOLUSDT">SOL/USDT</option>
-            <option value="BNBUSDT">BNB/USDT</option>
-            <option value="XRPUSDT">XRP/USDT</option>
-          </select>
+        <h2 class="bot-panel-title" data-i18n="botPanel">互動調參</h2>
+        <div class="bot-field bot-field-row bot-sym-lev">
+          <div class="bot-sym-block">
+            <label for="botSymbol" data-i18n="botSymbol">標的</label>
+            <select id="botSymbol">
+              <option value="BTCUSDT">BTC/USDT</option>
+              <option value="ETHUSDT">ETH/USDT</option>
+              <option value="SOLUSDT">SOL/USDT</option>
+              <option value="BNBUSDT">BNB/USDT</option>
+              <option value="XRPUSDT">XRP/USDT</option>
+            </select>
+          </div>
+          <div class="bot-lev-block">
+            <span data-i18n="botLev">槓桿</span>
+            <div class="bot-chips" role="group">
+              <button type="button" class="bot-lev is-on" data-lev="1" data-i18n="botSpot1">現貨</button>
+              <button type="button" class="bot-lev" data-lev="3">3x</button>
+              <button type="button" class="bot-lev" data-lev="5">5x</button>
+              <button type="button" class="bot-lev" data-lev="7">7x</button>
+              <button type="button" class="bot-lev" data-lev="10">10x</button>
+            </div>
+          </div>
         </div>
         <div class="bot-band-row">
           <div class="bot-field">
@@ -93,16 +153,6 @@
             <span id="botGridsOut">50</span>
           </div>
         </div>
-        <div class="bot-field">
-          <span data-i18n="botLev">槓桿倍數</span>
-          <div class="bot-chips" role="group">
-            <button type="button" class="bot-lev is-on" data-lev="1" data-i18n="botSpot1">現貨 1x</button>
-            <button type="button" class="bot-lev" data-lev="3" data-i18n="botFut3">合約 3x</button>
-            <button type="button" class="bot-lev" data-lev="5" data-i18n="botFut5">合約 5x</button>
-            <button type="button" class="bot-lev" data-lev="7" data-i18n="botFut7">合約 7x</button>
-            <button type="button" class="bot-lev" data-lev="10" data-i18n="botFut10">合約 10x</button>
-          </div>
-        </div>
         <div class="bot-field bot-compact-row">
           <div>
             <span data-i18n="botPeriod">回測週期</span>
@@ -115,65 +165,33 @@
           <div>
             <span data-i18n="botGridType">網格類型</span>
             <div class="bot-chips" role="group">
-              <button type="button" class="bot-mode is-on" data-mode="arith" data-i18n="botArith">等差網格</button>
-              <button type="button" class="bot-mode" data-mode="geo" data-i18n="botGeo">等比網格</button>
+              <button type="button" class="bot-mode is-on" data-mode="arith" data-i18n="botArith">等差</button>
+              <button type="button" class="bot-mode" data-mode="geo" data-i18n="botGeo">等比</button>
             </div>
           </div>
         </div>
 
         <div class="bot-ai-lab" id="botAiLab">
           <label class="bot-ai-lab-label" for="botAiPrompt" data-i18n="botAiLabel">AI 調參（可選）</label>
-          <textarea id="botAiPrompt" rows="2" data-ph="botAiPh" placeholder="例如：幫我把 ETH 做成 5 倍、80 格的震盪網格…"></textarea>
-          <div class="bot-ai-chips" id="botAiChips">
+          <div class="bot-ai-short">
+            <textarea id="botAiPrompt" rows="2" data-ph="botAiPh" placeholder="例如：幫我把 ETH 做成 5 倍、80 格的震盪網格…"></textarea>
+            <button type="button" class="bot-btn bot-ai-go" id="botAiGo" data-i18n="botAiGo">AI 調參</button>
+          </div>
+          <div class="bot-ai-row">
+            <span class="bot-ai-quota" id="botAiQuota" aria-live="polite"></span>
+          </div>
+          <div class="bot-ai-chips preset-scroll" id="botAiChips">
             <button type="button" class="bot-ai-chip" data-fill-key="botAiChip1Fill" data-i18n="botAiChip1">震盪市密網</button>
             <button type="button" class="bot-ai-chip" data-fill-key="botAiChip2Fill" data-i18n="botAiChip2">寬幅防破</button>
             <button type="button" class="bot-ai-chip" data-fill-key="botAiChip3Fill" data-i18n="botAiChip3">高槓桿波動</button>
           </div>
-          <div class="bot-ai-row">
-            <button type="button" class="bot-btn bot-ai-go" id="botAiGo" data-i18n="botAiGo">[ AI 幫我調參 ]</button>
-            <span class="bot-ai-quota" id="botAiQuota" aria-live="polite"></span>
-          </div>
         </div>
 
         <div class="bot-actions">
-          <button type="button" class="bot-btn" id="botRun" data-i18n="botRun">[ 立即執行回測 (Run Backtest) ]</button>
-          <button type="button" class="bot-btn ghost" id="botDeploy" data-i18n="botDeployBtn">[ 一鍵將此參數部署至實盤 ]</button>
+          <button type="button" class="bot-btn" id="botRun" data-i18n="botRun">[ 立即執行回測 ]</button>
+          <button type="button" class="bot-btn ghost" id="botDeploy" data-i18n="botDeployBtn">[ 部署至實盤 ]</button>
         </div>
         <p class="bot-status" id="botStatus"></p>
-      </div>
-
-      <div class="bot-stats" id="botStats">
-        <h2 data-i18n="botCurve">累積回測收益曲線</h2>
-        <div class="bot-kpis">
-          <div class="bot-kpi">
-            <div class="bot-kpi-lab" data-i18n="botApy">區間報酬率</div>
-            <div class="bot-kpi-val" id="botApy">—</div>
-          </div>
-          <div class="bot-kpi">
-            <div class="bot-kpi-lab" data-i18n="botTrades">區間套利次數</div>
-            <div class="bot-kpi-val" id="botTrades">—</div>
-          </div>
-          <div class="bot-kpi">
-            <div class="bot-kpi-lab" data-i18n="botSharpe">夏普比率 (Sharpe)</div>
-            <div class="bot-kpi-val" id="botSharpe">—</div>
-          </div>
-          <div class="bot-kpi">
-            <div class="bot-kpi-lab" data-i18n="botDd">最大回撤</div>
-            <div class="bot-kpi-val" id="botDd">—</div>
-          </div>
-        </div>
-        <div class="bot-chart-toolbar" id="botChartToolbar">
-          <button type="button" class="bot-chart-zoom-btn" id="botChartZoomIn" aria-label="Zoom in">＋</button>
-          <button type="button" class="bot-chart-zoom-btn" id="botChartZoomOut" aria-label="Zoom out">－</button>
-          <button type="button" class="bot-chart-zoom-btn ghost" id="botChartZoomReset" data-i18n="botChartReset">重置</button>
-          <span class="bot-chart-zoom-hint muted" data-i18n="botChartZoomHint">滾輪或按鈕縮放 · 雙指捏合 · 點擊三角看詳情</span>
-        </div>
-        <div class="bot-chart-wrap" id="botChartWrap">
-          <canvas id="botChart" width="640" height="260" aria-label="Equity curve"></canvas>
-          <div class="bot-trade-tip" id="botTradeTip" hidden role="status"></div>
-        </div>
-        <p class="bot-chart-hint muted" data-i18n="botChartHint">灰色區間為價格超出網格帶；點擊買賣三角查看成交詳情</p>
-        <p class="bot-note" data-i18n="botDisc">回測於瀏覽器本地完成，含約 4bps 單邊成本假設。歷史結果不代表未來實盤收益。</p>
 
         <section class="bot-presets bot-presets-inline" aria-label="Grid return TOP 3">
           <h2 data-i18n="botPresets">網格策略收益率 TOP 3</h2>
@@ -224,17 +242,17 @@
   </div>
 
   <div class="toast" id="toast"></div>
-  <script src="./js/binance-feed.js?v=202608251308-be4a65b"></script>
-  <script src="./js/offline-klines.js?v=202608251308-be4a65b"></script>
-  <script src="./js/nav.js?v=202608251308-be4a65b"></script>
-  <script src="./config.js?v=202608251308-be4a65b"></script>
-  <script src="./js/meta-events.js?v=202608251308-be4a65b"></script>
-  <script src="./i18n.js?v=202608251308-be4a65b"></script>
-  <script src="./js/i18n-boot.js?v=202608251308-be4a65b"></script>
-  <script src="./js/identity.js?v=202608251308-be4a65b"></script>
-  <script src="./js/compliance.js?v=202608251308-be4a65b"></script>
-  <script src="./js/lead-bind.js?v=202608251308-be4a65b"></script>
-  <script src="./js/money.js?v=202608251308-be4a65b"></script>
-  <script src="./js/grid-backtest.js?v=202608251308-be4a65b"></script>
+  <script src="./js/binance-feed.js?v=202608252235-botm"></script>
+  <script src="./js/offline-klines.js?v=202608252235-botm"></script>
+  <script src="./js/nav.js?v=202608252235-botm"></script>
+  <script src="./config.js?v=202608252235-botm"></script>
+  <script src="./js/meta-events.js?v=202608252235-botm"></script>
+  <script src="./i18n.js?v=202608252235-botm"></script>
+  <script src="./js/i18n-boot.js?v=202608252235-botm"></script>
+  <script src="./js/identity.js?v=202608252235-botm"></script>
+  <script src="./js/compliance.js?v=202608252235-botm"></script>
+  <script src="./js/lead-bind.js?v=202608252235-botm"></script>
+  <script src="./js/money.js?v=202608252235-botm"></script>
+  <script src="./js/grid-backtest.js?v=202608252235-botm"></script>
 </body>
 </html>
