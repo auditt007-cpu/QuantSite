@@ -47,7 +47,7 @@
         <a class="nav-link" href="./about.html" data-i18n="navAbout">[ 關於我們 ]</a>
         <div class="lang-pills" role="group" aria-label="Language">
           <button type="button" data-lang="zh-CN">简体中文</button>
-          <button type="button" data-lang="zh-Hant">繁體中文（台灣）</button>
+          <button type="button" data-lang="zh-Hant">繁體（台灣）</button>
           <button type="button" data-lang="en">EN-US</button>
         </div>
       </div>
@@ -67,7 +67,6 @@
 <div class="mobile-view-tabs" id="mobileViewTabs" role="tablist">
       <button type="button" class="mv-tab is-active" data-view="strategies" data-i18n="mvTabStrategies">核心監控 / 策略</button>
       <button type="button" class="mv-tab" data-view="leaderboard" data-i18n="mvTabLeaderboard">收益 TOP 5</button>
-      <button type="button" class="mv-tab" data-view="news" data-i18n="mvTabNews">7x24 快訊</button>
     </div>
     <div class="editorial-grid">
       <div class="editorial-main">
@@ -296,7 +295,7 @@ Upper = Mid + k · ATR_n , Lower = Mid − k · ATR_n</pre>
           <p class="muted lb-period-note" data-lb-period></p>
           <ol class="week-list" data-week-board></ol>
         </section>
-        <section class="rail-block flash-desk mv-panel-news">
+        <section class="rail-block flash-desk mv-panel-news" hidden aria-hidden="true">
           <div class="kicker" data-i18n="flashKicker">FLASH NEWS</div>
           <h3 class="rail-h" data-i18n="flashTitle">7x24 即時快訊</h3>
           <ul class="flash-list" id="flashNews" aria-live="polite"></ul>

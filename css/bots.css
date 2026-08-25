@@ -263,9 +263,11 @@ body.bots-page .wrap {
 .bot-kpi-val.is-down { color: #c2410c; }
 
 .bot-chart-wrap {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
   border: 1px solid #e2e2e2;
   border-radius: 4px;
-  height: 260px;
   background: #fafafa;
 }
 
@@ -273,6 +275,50 @@ body.bots-page .wrap {
   display: block;
   width: 100%;
   height: 260px;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.bot-chart-hint {
+  font-size: 11px;
+  margin: 6px 0 0;
+  line-height: 1.4;
+}
+
+.bot-trade-tip {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  max-width: calc(100% - 16px);
+  padding: 8px 10px;
+  border: 1px solid #000;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.96);
+  font-size: 11px;
+  line-height: 1.45;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  z-index: 3;
+  pointer-events: none;
+}
+
+.bot-trade-tip.show {
+  pointer-events: auto;
+}
+
+.bot-preset-select-row {
+  display: none;
+  margin-bottom: 8px;
+}
+
+.bot-preset-select {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid #000;
+  border-radius: 4px;
+  padding: 0 10px;
+  font-size: 13px;
+  font-weight: 600;
+  background: #fff;
 }
 
 .bot-presets-inline {
@@ -419,6 +465,9 @@ body.bots-page .wrap {
   .bot-stats {
     order: -1;
   }
+  .bot-panel {
+    order: 1;
+  }
   .bot-kpis {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 6px;
@@ -434,7 +483,13 @@ body.bots-page .wrap {
   }
   .bot-chart-wrap,
   .bot-chart-wrap canvas {
-    height: 200px;
+    height: 220px;
+    max-height: 220px;
+    overflow: hidden;
+  }
+  .bot-chart-wrap {
+    touch-action: none;
+    overscroll-behavior: contain;
   }
   .bot-compact-row,
   .bot-band-row {
@@ -446,16 +501,18 @@ body.bots-page .wrap {
   .bot-presets-inline {
     margin-top: 10px;
   }
-  .bot-preset-grid {
+  .bot-preset-select-row {
     display: flex;
-    overflow-x: auto;
-    gap: 8px;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 4px;
+    flex-direction: column;
+    gap: 4px;
   }
-  .bot-card {
-    min-width: 240px;
-    flex: 0 0 240px;
+  .bot-preset-grid {
+    display: none;
+  }
+  .bot-ai-lab textarea {
+    min-height: 56px;
+    height: 56px;
+    resize: vertical;
   }
   .bot-actions {
     position: sticky;

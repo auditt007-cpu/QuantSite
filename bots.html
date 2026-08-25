@@ -164,11 +164,22 @@
         </div>
         <div class="bot-chart-wrap">
           <canvas id="botChart" width="640" height="260" aria-label="Equity curve"></canvas>
+          <div class="bot-trade-tip" id="botTradeTip" hidden role="status"></div>
         </div>
+        <p class="bot-chart-hint muted" data-i18n="botChartHint">灰色區間為價格超出網格帶；點擊買賣三角查看成交詳情</p>
         <p class="bot-note" data-i18n="botDisc">回測於瀏覽器本地完成，含約 4bps 單邊成本假設。歷史結果不代表未來實盤收益。</p>
 
         <section class="bot-presets bot-presets-inline" aria-label="Recommended grids">
           <h2 data-i18n="botPresets">經典推薦模型</h2>
+          <div class="bot-field bot-preset-select-row">
+            <label for="botPresetSelect" data-i18n="botPresetPick">選擇推薦模型</label>
+            <select id="botPresetSelect" class="bot-preset-select">
+              <option value="" data-i18n="botPresetNone">— 手動調參 —</option>
+              <option value="eth">ETH 智能震盪網格 (5x)</option>
+              <option value="btc">BTC 寬幅防破網格 (3x)</option>
+              <option value="sol">SOL 突破動量網格 (7x)</option>
+            </select>
+          </div>
           <div class="bot-preset-grid">
             <article class="bot-card">
               <h3>ETH 智能震盪網格 (5x 槓桿)</h3>

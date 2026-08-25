@@ -79,6 +79,10 @@ body.nav-drawer-open .site-sticky-chrome {
     padding: 0 12px;
   }
 
+  .bb-util-mark {
+    display: none !important;
+  }
+
 body.live-page .live-sticky-chrome,
 body .site-sticky-chrome {
   z-index: 100;
@@ -150,6 +154,12 @@ body.has-bb-util .site-sticky-chrome {
     width: 100%;
     flex-basis: 100%;
     order: 99;
+  }
+
+  .topbar .nav-end {
+    position: relative;
+    z-index: 10071 !important;
+    pointer-events: auto !important;
   }
 
   .topbar.nav-open .nav-actions a,
@@ -230,6 +240,14 @@ body.has-bb-util .site-sticky-chrome {
     min-height: 36px;
     padding: 6px 12px;
     font-size: 13px;
+  }
+
+  body.plaza-page .term-tabs.term-tabs-mobile-select {
+    display: block !important;
+    flex-wrap: wrap !important;
+    overflow: visible !important;
+    white-space: normal !important;
+    padding: 0 !important;
   }
 
   /* ---- Chart controls: document flow (terminal + live) ---- */
@@ -370,7 +388,7 @@ body.has-bb-util .site-sticky-chrome {
   height: 40px;
   min-height: 40px;
   line-height: 40px;
-  transform: none;
+  will-change: transform;
   animation: qaTickerMarquee 60s linear infinite;
 }
 

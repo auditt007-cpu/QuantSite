@@ -70,6 +70,7 @@
     let buys = 0;
     const eq = [];
     const marks = [];
+    const bandActive = [];
     let peak = 1;
     let mdd = 0;
 
@@ -83,7 +84,7 @@
         idx += 1;
         const mid = L[idx];
         const u = mid > 0 ? ((px - mid) / mid) * lot * 0.35 : 0;
-        marks.push({ t: tSec, kind: "sell", v: Math.max(0.05, 1 + realized + u) });
+        marks.push({ t: tSec, kind: "sell", v: Math.max(0.05, 1 + realized + u), px: px, level: L[idx], grid: idx + 1 });
       }
       while (idx > target && idx > 0) {
         realized -= lot * 2 * FEE * 0.5;
@@ -91,7 +92,7 @@
         idx -= 1;
         const mid = L[idx];
         const u = mid > 0 ? ((px - mid) / mid) * lot * 0.35 : 0;
-        marks.push({ t: tSec, kind: "buy", v: Math.max(0.05, 1 + realized + u) });
+        marks.push({ t: tSec, kind: "buy", v: Math.max(0.05, 1 + realized + u), px: px, level: L[idx], grid: idx + 1 });
       }
       const mid = L[idx];
       const u = mid > 0 ? ((px - mid) / mid) * lot * 0.35 : 0;
@@ -104,6 +105,10 @@
 
     let prev = bars[0].close;
     eq.push({ t: bars[0].time, v: 1 });
+    bandActive.push({
+      t: bars[0].time,
+      active: bars[0].close >= lower && bars[0].close <= upper,
+    });
     for (let i = 1; i < bars.length; i += 1) {
       const bar = bars[i];
       const path = [prev, bar.low, bar.high, bar.close];
@@ -114,6 +119,8 @@
         nav = applyTo(nearestIdx(L, px), px, bar.time);
       }
       eq.push({ t: bar.time, v: nav });
+      const inBand = bar.close >= lower && bar.close <= upper;
+      bandActive.push({ t: bar.time, active: inBand });
       prev = bar.close;
     }
 
@@ -148,6 +155,8 @@
       mdd: Math.abs(mdd),
       equity: eq,
       marks: marks,
+      bandActive: bandActive,
+      band: { lower: lower, upper: upper },
       days: days,
       last: last,
     };
@@ -195,7 +204,7 @@
     return m + "/" + day;
   }
 
-  function drawEquity(canvas, eq, marks) {
+  function drawEquity(canvas, eq, marks, bandActive) {
     if (!canvas || !eq || eq.length < 2) return;
     const dpr = Math.min(2, root.devicePixelRatio || 1);
     const w = Math.max(280, canvas.clientWidth || 640);
@@ -222,6 +231,41 @@
     const yAt = function (v) {
       return pad.t + (1 - (v - mn) / (mx - mn)) * plotH;
     };
+    const t0 = eq[0].t;
+    const t1 = eq[eq.length - 1].t;
+    const span = Math.max(1, t1 - t0);
+    const xAtTime = function (sec) {
+      return pad.l + ((sec - t0) / span) * plotW;
+    };
+
+    const idleLabel = t("botIdleBand", "此時間段未觸發策略");
+    const bands = Array.isArray(bandActive) ? bandActive : [];
+    if (bands.length) {
+      let segStart = null;
+      const flushSeg = function (endT) {
+        if (segStart == null) return;
+        const x0 = xAtTime(segStart);
+        const x1 = xAtTime(endT);
+        ctx.fillStyle = "rgba(160,160,160,0.14)";
+        ctx.fillRect(x0, pad.t, Math.max(2, x1 - x0), plotH);
+        if (x1 - x0 > 36) {
+          ctx.save();
+          ctx.fillStyle = "#999";
+          ctx.font = "9px JetBrains Mono, ui-monospace, monospace";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(idleLabel, (x0 + x1) / 2, pad.t + plotH / 2);
+          ctx.restore();
+        }
+        segStart = null;
+      };
+      for (let i = 0; i < bands.length; i += 1) {
+        const on = !!bands[i].active;
+        if (!on && segStart == null) segStart = bands[i].t;
+        if (on && segStart != null) flushSeg(bands[i].t);
+      }
+      if (segStart != null) flushSeg(bands[bands.length - 1].t);
+    }
 
     ctx.strokeStyle = "#e2e2e2";
     ctx.lineWidth = 1;
@@ -267,14 +311,10 @@
     ctx.lineCap = "round";
     ctx.stroke();
 
-    const t0 = eq[0].t;
-    const t1 = eq[eq.length - 1].t;
-    const span = Math.max(1, t1 - t0);
     const markList = Array.isArray(marks) ? marks : [];
-    const step = Math.max(1, Math.floor(markList.length / 48));
-    for (let i = 0; i < markList.length; i += step) {
-      const m = markList[i];
-      const x = pad.l + ((m.t - t0) / span) * plotW;
+    const hitMarks = [];
+    markList.forEach(function (m, idx) {
+      const x = xAtTime(m.t);
       const y = yAt(m.v);
       ctx.beginPath();
       if (m.kind === "buy") {
@@ -290,13 +330,99 @@
       }
       ctx.closePath();
       ctx.fill();
-    }
+      hitMarks.push({ x: x, y: y, r: 10, mark: m, idx: idx });
+    });
 
     const last = eq[eq.length - 1];
     ctx.beginPath();
     ctx.arc(xAt(eq.length - 1), yAt(last.v), 3, 0, Math.PI * 2);
     ctx.fillStyle = col;
     ctx.fill();
+
+    canvas._qaMarkHits = hitMarks;
+    canvas._qaPlot = { pad: pad, w: w, h: h };
+  }
+
+  function showTradeDetail(mark) {
+    if (!mark) return;
+    const box = $("botTradeTip");
+    if (!box) return;
+    const side =
+      mark.kind === "buy"
+        ? t("botTradeBuy", "買入")
+        : t("botTradeSell", "賣出");
+    const when = fmtAxisDate(mark.t);
+    const px =
+      mark.px != null && Number.isFinite(Number(mark.px))
+        ? Number(mark.px).toLocaleString("en-US", { maximumFractionDigits: 4 })
+        : "—";
+    const lvl =
+      mark.level != null && Number.isFinite(Number(mark.level))
+        ? Number(mark.level).toLocaleString("en-US", { maximumFractionDigits: 4 })
+        : "—";
+    const ret = mark.v != null ? ((mark.v - 1) * 100).toFixed(2) + "%" : "—";
+    box.innerHTML =
+      "<strong>" +
+      side +
+      "</strong> · " +
+      when +
+      "<br><span>" +
+      t("botTradePx", "成交價") +
+      ": " +
+      px +
+      "</span><br><span>" +
+      t("botTradeGrid", "網格價") +
+      ": " +
+      lvl +
+      "</span><br><span>" +
+      t("botTradeNav", "累積收益") +
+      ": " +
+      ret +
+      "</span>";
+    box.hidden = false;
+    box.classList.add("show");
+  }
+
+  function bindChartMarks() {
+    const canvas = $("botChart");
+    const tip = $("botTradeTip");
+    if (!canvas || canvas.getAttribute("data-mark-bound") === "1") return;
+    canvas.setAttribute("data-mark-bound", "1");
+    function pickMark(ev) {
+      const hits = canvas._qaMarkHits;
+      if (!hits || !hits.length) return null;
+      const rect = canvas.getBoundingClientRect();
+      const sx = ((ev.clientX - rect.left) / rect.width) * (canvas._qaPlot && canvas._qaPlot.w ? canvas._qaPlot.w : rect.width);
+      const sy = ((ev.clientY - rect.top) / rect.height) * (canvas._qaPlot && canvas._qaPlot.h ? canvas._qaPlot.h : rect.height);
+      let best = null;
+      let bestD = Infinity;
+      hits.forEach(function (h) {
+        const d = Math.hypot(h.x - sx, h.y - sy);
+        if (d < h.r + 6 && d < bestD) {
+          bestD = d;
+          best = h;
+        }
+      });
+      return best;
+    }
+    canvas.addEventListener("click", function (ev) {
+      const hit = pickMark(ev);
+      if (hit) showTradeDetail(hit.mark);
+      else if (tip) {
+        tip.hidden = true;
+        tip.classList.remove("show");
+      }
+    });
+    document.addEventListener(
+      "click",
+      function (ev) {
+        if (!tip || tip.hidden) return;
+        if (ev.target === canvas || tip.contains(ev.target)) return;
+        tip.hidden = true;
+        tip.classList.remove("show");
+      },
+      true
+    );
   }
 
   function readForm() {
@@ -361,7 +487,7 @@
       dd.textContent = (res.mdd * 100).toFixed(1) + "%";
       dd.className = "bot-kpi-val is-down";
     }
-    drawEquity($("botChart"), res.equity, res.marks);
+    drawEquity($("botChart"), res.equity, res.marks, res.bandActive);
   }
 
   function vibrateLite() {
@@ -689,7 +815,10 @@
     if (dep) dep.addEventListener("click", openDeployModal);
     document.querySelectorAll("[data-bot-preset]").forEach(function (b) {
       b.addEventListener("click", function () {
-        loadPreset(b.getAttribute("data-bot-preset"));
+        const id = b.getAttribute("data-bot-preset");
+        loadPreset(id);
+        const sel = $("botPresetSelect");
+        if (sel && id) sel.value = id;
       });
     });
     document.querySelectorAll("[data-bot-deploy]").forEach(function (b) {
@@ -746,7 +875,19 @@
     }
     paintAiQuota();
     root.addEventListener("quant-lang", paintAiQuota);
+    bindChartMarks();
+    bindPresetSelect();
     seedBandFromSpot().then(runBacktest);
+  }
+
+  function bindPresetSelect() {
+    const sel = $("botPresetSelect");
+    if (!sel || sel.getAttribute("data-bound") === "1") return;
+    sel.setAttribute("data-bound", "1");
+    sel.addEventListener("change", function () {
+      const id = sel.value;
+      if (id) loadPreset(id);
+    });
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", bind);

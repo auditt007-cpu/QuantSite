@@ -26,9 +26,8 @@
     function setView(view) {
       document.body.setAttribute("data-mv-view", view);
       buttons.forEach((b) => b.classList.toggle("is-active", b.getAttribute("data-view") === view));
-      if (view === "leaderboard" || view === "news") {
+      if (view === "leaderboard") {
         root.dispatchEvent(new CustomEvent("qa-leaderboard-ready"));
-        if (root.__qaRefreshNews) root.__qaRefreshNews();
       }
       try {
         window.scrollTo({ top: tabs.getBoundingClientRect().top + window.scrollY - 8, behavior: "smooth" });

@@ -96,6 +96,81 @@
     });
   }
 
+  function langCode() {
+    const raw = localStorage.getItem("quant_lang") || localStorage.getItem("user_lang") || "en";
+    if (raw === "zh-Hans" || raw === "zh-CN") return "zh-CN";
+    if (raw === "zh-Hant" || raw === "zh-TW") return "zh-Hant";
+    return "en";
+  }
+
+  function modelName(row) {
+    if (!row) return "—";
+    const code = langCode();
+    if (code === "en") return row.name_en || row.engine || row.id || "—";
+    return row.name_zh || row.name_en || row.engine || row.id || "—";
+  }
+
+  function roiOfRow(row) {
+    if (!row) return NaN;
+    if (Number.isFinite(Number(row.roi_pct))) return Number(row.roi_pct);
+    const frac = Number(row.net_profit_pct);
+    if (Number.isFinite(frac)) return frac * 100;
+    return NaN;
+  }
+
+  function paintWeekBoard(lb) {
+    const boards = document.querySelectorAll("[data-week-board]");
+    if (!boards.length) return;
+    let top = [];
+    if (lb && Array.isArray(lb.pnl_board) && lb.pnl_board.length) {
+      top = lb.pnl_board.slice().sort((a, b) => roiOfRow(b) - roiOfRow(a)).slice(0, 5);
+    } else if (lb && lb.by_engine) {
+      top = Object.keys(lb.by_engine)
+        .map((k) => lb.by_engine[k])
+        .filter((r) => Number(r.trades) >= 5)
+        .sort((a, b) => roiOfRow(b) - roiOfRow(a))
+        .slice(0, 5);
+    }
+    const html = top.length
+      ? top
+          .map((r, i) => {
+            const roi = roiOfRow(r);
+            const up = roi >= 0;
+            const id = r.engine || r.id || "";
+            return (
+              '<li><button type="button" class="week-row" data-open-week="' +
+              id +
+              '"><b>' +
+              (i + 1) +
+              "</b><span>" +
+              modelName(r) +
+              '</span><em class="' +
+              (up ? "up" : "down") +
+              '">' +
+              (up ? "+" : "") +
+              roi.toFixed(1) +
+              "%</em></button></li>"
+            );
+          })
+          .join("")
+      : '<li class="muted week-empty">' + t("weekBoardEmpty") + "</li>";
+    boards.forEach((el) => {
+      el.innerHTML = html;
+    });
+  }
+
+  function bindWeekBoardClicks() {
+    if (document.documentElement.dataset.weekBoardBound === "1") return;
+    document.documentElement.dataset.weekBoardBound = "1";
+    document.addEventListener("click", (ev) => {
+      const btn = ev.target.closest && ev.target.closest("[data-open-week]");
+      if (!btn) return;
+      const id = btn.getAttribute("data-open-week");
+      if (!id) return;
+      location.href = "./strategies.html?strategy=" + encodeURIComponent(id);
+    });
+  }
+
   async function loadLeaderboard() {
     if (leaderboardReady) return leaderboardReady;
     leaderboardReady = (async () => {
@@ -534,6 +609,33 @@
   function renderTabs() {
     const defs = buildTabDefs();
     if (!tabsEl) return;
+    const mobile = window.matchMedia && window.matchMedia("(max-width: 768px)").matches;
+    if (mobile) {
+      tabsEl.classList.add("term-tabs-mobile-select");
+      tabsEl.innerHTML =
+        '<label class="term-tabs-select-wrap">' +
+        '<span class="term-tabs-select-lab" data-i18n="termFilterLabel">策略分類</span>' +
+        '<select id="termTabsSelect" class="term-tabs-select" aria-label="Strategy category">' +
+        defs
+          .map((tb) => {
+            const on = tb.id === activeFilter;
+            const plain = String(tb.label).replace(/<[^>]+>/g, "").trim();
+            return '<option value="' + tb.id + '"' + (on ? " selected" : "") + ">" + plain + "</option>";
+          })
+          .join("") +
+        "</select></label>";
+      const sel = document.getElementById("termTabsSelect");
+      if (sel && sel.getAttribute("data-bound") !== "1") {
+        sel.setAttribute("data-bound", "1");
+        sel.addEventListener("change", () => {
+          activeFilter = sel.value;
+          pageN = PAGE;
+          applyFilter();
+        });
+      }
+      return;
+    }
+    tabsEl.classList.remove("term-tabs-mobile-select");
     tabsEl.innerHTML = defs
       .map((tb) => {
         const on = tb.id === activeFilter;
@@ -606,16 +708,32 @@
   paintPlazaCount();
   focusStrategyFromQuery();
   window.addEventListener("quant-lang", () => {
-    if (window.QALeaderboard) paintLeaderboardMeta(window.QALeaderboard);
+    if (window.QALeaderboard) {
+      paintLeaderboardMeta(window.QALeaderboard);
+      paintWeekBoard(window.QALeaderboard);
+    }
     renderTabs();
     paintGrid();
     paintPlazaCount();
+  });
+
+  bindWeekBoardClicks();
+
+  window.addEventListener("qa-leaderboard-ready", () => {
+    if (window.QALeaderboard) paintWeekBoard(window.QALeaderboard);
+  });
+
+  let tabResizeTimer = null;
+  window.addEventListener("resize", () => {
+    clearTimeout(tabResizeTimer);
+    tabResizeTimer = setTimeout(renderTabs, 120);
   });
 
   loadLeaderboard().then((lb) => {
     if (lb && lb.by_engine) {
       window.QALeaderboard = lb;
       paintLeaderboardMeta(lb);
+      paintWeekBoard(lb);
       paintGrid();
       window.dispatchEvent(new CustomEvent("qa-leaderboard-ready"));
     }

@@ -55,9 +55,15 @@
     bar.setAttribute("data-ticker-bound", "1");
     bar.addEventListener("mouseenter", pause);
     bar.addEventListener("mouseleave", resume);
-    bar.addEventListener("touchstart", pause, { passive: true });
-    bar.addEventListener("touchend", resume, { passive: true });
-    bar.addEventListener("touchcancel", resume, { passive: true });
+    bar.addEventListener(
+      "touchstart",
+      function () {
+        pause();
+        if (pauseTimer) clearTimeout(pauseTimer);
+        pauseTimer = setTimeout(resume, 1200);
+      },
+      { passive: true }
+    );
   }
 
   function restartTickerAnimation() {
@@ -95,7 +101,7 @@
     return (
       '<div class="lang-pills bb-lang-pills" role="group" aria-label="Language">' +
       '<button type="button" data-lang="zh-CN">简体中文</button>' +
-      '<button type="button" data-lang="zh-Hant">繁體中文（台灣）</button>' +
+      '<button type="button" data-lang="zh-Hant">繁體（台灣）</button>' +
       '<button type="button" data-lang="en">EN-US</button>' +
       "</div>"
     );
@@ -227,11 +233,15 @@
 
   if (toggle && bar) {
     ensureNavBackdrop();
+    let toggleLock = 0;
     function toggleNav(ev) {
       if (ev) {
         ev.preventDefault();
         ev.stopPropagation();
       }
+      const now = Date.now();
+      if (now - toggleLock < 400) return;
+      toggleLock = now;
       const willOpen = !bar.classList.contains("nav-open");
       if (willOpen) {
         bar.classList.add("nav-open");
@@ -242,17 +252,9 @@
         toggle.setAttribute("aria-expanded", "true");
       } else {
         closeNavDrawer();
-        toggle.setAttribute("aria-expanded", "false");
       }
     }
     toggle.addEventListener("click", toggleNav, true);
-    toggle.addEventListener(
-      "pointerup",
-      function (ev) {
-        if (ev.pointerType === "touch") toggleNav(ev);
-      },
-      true
-    );
     document.querySelectorAll(".nav-actions a, .nav-actions button").forEach((el) => {
       el.addEventListener(
         "click",
@@ -421,6 +423,7 @@
     if (!document.hidden) {
       ensureTickerMarquee();
       restartTickerAnimation();
+      document.querySelectorAll(".ticker-bar.is-paused").forEach((bar) => bar.classList.remove("is-paused"));
       refreshTicker();
     }
   });
