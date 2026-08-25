@@ -1,8 +1,52 @@
 {
-  "updated_at": "2026-08-25T06:06:05Z",
+  "updated_at": "2026-08-25T06:08:15Z",
   "venue": "coinbase",
   "poll_sec": 5,
   "exec_log": [
+    {
+      "kind": "batch",
+      "name_zh": "MACD信號交叉",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787637970,
+      "bar_ts": 1787637600,
+      "event": "open",
+      "strategy_id": "macd_s_15m_21",
+      "symbols": [
+        {
+          "symbol": "ETHUSDT",
+          "price": 2509.46,
+          "sl_pct": -0.32690487196448925,
+          "tp_pct": 0.6538097040797544,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "MACD柱翻轉",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787637969,
+      "bar_ts": 1787637600,
+      "event": "open",
+      "strategy_id": "macd_h_15m_19",
+      "symbols": [
+        {
+          "symbol": "ETHUSDT",
+          "price": 2509.46,
+          "sl_pct": -0.32690487196448925,
+          "tp_pct": 0.6538097040797544,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
     {
       "kind": "batch",
       "name_zh": "量均突破",
@@ -718,69 +762,9 @@
         }
       ],
       "strategy_count": 6
-    },
-    {
-      "kind": "batch",
-      "name_zh": "布林回歸1.6",
-      "interval": "1h",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787637642,
-      "bar_ts": 1787634000,
-      "event": "close",
-      "strategy_id": "strat-029",
-      "symbols": [
-        {
-          "symbol": "AVAXUSDT",
-          "price": 7.672,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.64
-        },
-        {
-          "symbol": "LINKUSDT",
-          "price": 11.805,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.48
-        },
-        {
-          "symbol": "XRPUSDT",
-          "price": 1.5188,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.38
-        }
-      ],
-      "strategy_count": 3
-    },
-    {
-      "kind": "batch",
-      "name_zh": "肯特納快",
-      "interval": "1h",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787637642,
-      "bar_ts": 1787634000,
-      "event": "open",
-      "strategy_id": "strat-025",
-      "symbols": [
-        {
-          "symbol": "BNBUSDT",
-          "price": 716.33,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
     }
   ],
-  "exec_log_raw_count": 189,
+  "exec_log_raw_count": 191,
   "signal_count": 76,
   "symbols": [
     "BTCUSDT",
