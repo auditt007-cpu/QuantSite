@@ -1,6 +1,37 @@
 {
-  "updated_at": "2026-08-24T18:01:06.989670+00:00",
+  "updated_at": "2026-08-25T12:02:24.491753+00:00",
   "strategies": [
+    {
+      "id": "ai_1787659339",
+      "title": "AI ROC 動能",
+      "name": "AI ROC 動能",
+      "sharpe": 2.224,
+      "max_drawdown": 0.0392,
+      "profit_factor": 14.064,
+      "return_pct": 0.0924,
+      "trades": 33,
+      "params": {
+        "rsi_period": 12,
+        "roc_period": 4,
+        "sma_period": 30
+      },
+      "copy": "这套加密货币量化策略基于RSI、ROC和均线指标组合,历史回测显示9.2%的收益率。策略在BTC、ETH和SOL三个主流币种上运行,Sharpe比率2.22,最大回撤仅3.92%。参数设置方面,采用12周期RSI、4周期ROC和30日均线进行多空判断,33次交易的盈亏比达到14.06。策略通过多因子过滤,在控制风险前提下捕捉趋势机会,适合稳健型投资者。需注意过往表现不代表未来收益,市场环境变化可能影响策略效果。",
+      "chart": "/static/charts/ai_1787659339.svg",
+      "chart_url": "/static/charts/ai_1787659339.svg",
+      "metrics": {
+        "sharpe": 2.224,
+        "max_drawdown": 0.0392,
+        "profit_factor": 14.064,
+        "return_pct": 0.0924
+      },
+      "symbols": [
+        "BTCUSDT",
+        "ETHUSDT",
+        "SOLUSDT"
+      ],
+      "interval": "1h",
+      "code": "PARAMS = {\n    \"rsi_period\": {\"low\": 10, \"high\": 30, \"step\": 2, \"kind\": \"period\"},\n    \"roc_period\": {\"low\": 3, \"high\": 12, \"step\": 1, \"kind\": \"period\"},\n    \"sma_period\": {\"low\": 20, \"high\": 60, \"step\": 5, \"kind\": \"period\"}\n}\n\ndef generate_signals(df, rsi_period=14, roc_period=5, sma_period=30):\n    close = df['close']\n    \n    # RSI\n    delta = close.diff()\n    gain = delta.clip(lower=0)\n    loss = -delta.clip(upper=0)\n    avg_gain = gain.ewm(alpha=1/rsi_period, adjust=False).mean()\n    avg_loss = loss.ewm(alpha=1/rsi_period, adjust=False).mean()\n    rs = avg_gain / avg_loss\n    rsi = 100 - (100 / (1 + rs))\n    \n    # ROC\n    roc = (close - close.shift(roc_period)) / close.shift(roc_period) * 100\n    \n    # SMA\n    sma = close.rolling(sma_period).mean()\n    \n    # Signals\n    buy_condition = (rsi < 30) & (roc < -5) & (close < sma)\n    sell_condition = (rsi > 70) & (roc > 5) & (close > sma)\n    \n    signals = np.where(buy_condition, 1, np.where(sell_condition, -1, 0))\n    return pd.Series(signals, index=df.index)"
+    },
     {
       "id": "ai_1787594457",
       "title": "AI 時序研究 594457",
@@ -1519,45 +1550,6 @@
         "return_pct": -0.04,
         "profit_factor": 1.008,
         "trades": 440
-      },
-      "family": "trend",
-      "tags": [],
-      "listed": true
-    },
-    {
-      "id": "strat_hull_ma_01",
-      "title": "Hull均線低延遲跟蹤",
-      "name": "Hull均線低延遲跟蹤",
-      "category": "量化經典",
-      "engine": "strat_hull_ma_01",
-      "description": "本策略「Hull均線低延遲跟蹤」Hull MA降低傳統均線滯後，轉折更早。模型部署於BTC等主流交易對的15M週期，開倉必須同時滿足方向與風險過濾，平倉以移動止盈或反向信號為準。歷史回測勝率約54.8%，抗震穩健度3.70，最大回跌約7.1。實盤K線回測更新：勝率約50.1%，抗震穩健度-0.03，最大回跌約35.0%，樣本收益約-7.5%。歷史績效不代表未來。",
-      "copy": "本策略「Hull均線低延遲跟蹤」Hull MA降低傳統均線滯後，轉折更早。模型部署於BTC等主流交易對的15M週期，開倉必須同時滿足方向與風險過濾，平倉以移動止盈或反向信號為準。歷史回測勝率約54.8%，抗震穩健度3.70，最大回跌約7.1。實盤K線回測更新：勝率約50.1%，抗震穩健度-0.03，最大回跌約35.0%，樣本收益約-7.5%。歷史績效不代表未來。",
-      "symbol": "BTCUSDT",
-      "symbols": [
-        "BTCUSDT",
-        "ETHUSDT",
-        "SOLUSDT"
-      ],
-      "timeframe": "15m",
-      "interval": "15m",
-      "sharpe": -0.034,
-      "robustness": -0.034,
-      "win_rate": 0.5012222222222222,
-      "max_drawdown": 0.35,
-      "return_pct": -0.0748,
-      "profit_factor": 0.97,
-      "trades": 480,
-      "chart": "./static/charts/ai_strat_hull_ma_01.svg",
-      "chart_url": "./static/charts/ai_strat_hull_ma_01.svg",
-      "chart_svg": "./static/charts/ai_strat_hull_ma_01.svg",
-      "metrics": {
-        "win_rate": 50.1,
-        "robustness": -0.034,
-        "sharpe": -0.034,
-        "max_drawdown": 0.35,
-        "return_pct": -0.0748,
-        "profit_factor": 0.97,
-        "trades": 480
       },
       "family": "trend",
       "tags": [],
