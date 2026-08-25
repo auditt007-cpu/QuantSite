@@ -1,8 +1,134 @@
 {
-  "updated_at": "2026-08-25T05:24:34Z",
+  "updated_at": "2026-08-25T05:26:43Z",
   "venue": "coinbase",
   "poll_sec": 5,
   "exec_log": [
+    {
+      "kind": "batch",
+      "name_zh": "複合動能確認",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "空頭平倉翻多 (BUY)",
+      "logged_at": 1787635545,
+      "bar_ts": 1787634900,
+      "event": "open",
+      "strategy_id": "combo_15m_41",
+      "symbols": [
+        {
+          "symbol": "ARBUSDT",
+          "price": 0.0999,
+          "sl_pct": -0.08708708708709083,
+          "tp_pct": 0.17417417417416775,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "複合動能確認",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787635544,
+      "bar_ts": 1787634900,
+      "event": "close",
+      "strategy_id": "combo_15m_41",
+      "symbols": [
+        {
+          "symbol": "APTUSDT",
+          "price": 0.619,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.9787928221859716
+        },
+        {
+          "symbol": "ARBUSDT",
+          "price": 0.0999,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -1.1543134872418004
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
+      "name_zh": "ROC20動能",
+      "interval": "1h",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787635478,
+      "bar_ts": 1787634000,
+      "event": "open",
+      "strategy_id": "roc20_1h_32",
+      "symbols": [
+        {
+          "symbol": "DOGEUSDT",
+          "price": 0.09189,
+          "sl_pct": -1.3233213624986342,
+          "tp_pct": 2.646642724997283,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "複合動能確認",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "多頭平倉翻空 (SELL)",
+      "logged_at": 1787635477,
+      "bar_ts": 1787634900,
+      "event": "open",
+      "strategy_id": "combo_15m_41",
+      "symbols": [
+        {
+          "symbol": "ARBUSDT",
+          "price": 0.09876,
+          "sl_pct": -0.6672742000809972,
+          "tp_pct": 1.3345484001620085,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "複合動能確認",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787635476,
+      "bar_ts": 1787634900,
+      "event": "close",
+      "strategy_id": "combo_15m_41",
+      "symbols": [
+        {
+          "symbol": "ARBUSDT",
+          "price": 0.09876,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -1.1411411411411432
+        },
+        {
+          "symbol": "APTUSDT",
+          "price": 0.613,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.9693053311793223
+        }
+      ],
+      "strategy_count": 2
+    },
     {
       "kind": "batch",
       "name_zh": "樞軸點突破",
@@ -19,28 +145,6 @@
           "price": 714.2,
           "sl_pct": -0.6505921310557248,
           "tp_pct": 1.3011841220946638,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "複合動能確認",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787635351,
-      "bar_ts": 1787634900,
-      "event": "open",
-      "strategy_id": "combo_15m_41",
-      "symbols": [
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.0999,
-          "sl_pct": -0.08708708708709083,
-          "tp_pct": 0.17417417417416775,
           "event": "open",
           "pnl_pct": null
         }
@@ -71,66 +175,6 @@
     },
     {
       "kind": "batch",
-      "name_zh": "複合動能確認",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787635351,
-      "bar_ts": 1787634900,
-      "event": "close",
-      "strategy_id": "combo_15m_41",
-      "symbols": [
-        {
-          "symbol": "APTUSDT",
-          "price": 0.613,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.9693053311793223
-        },
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.09876,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -1.1411411411411432
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "複合動能確認",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787635350,
-      "bar_ts": 1787634900,
-      "event": "close",
-      "strategy_id": "combo_15m_41",
-      "symbols": [
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.0999,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -1.1543134872418004
-        },
-        {
-          "symbol": "APTUSDT",
-          "price": 0.619,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.9787928221859716
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
       "name_zh": "RSI超賣超買交叉",
       "interval": "1h",
       "side": "SHORT",
@@ -145,28 +189,6 @@
           "price": 101.06,
           "sl_pct": -1.581352661785071,
           "tp_pct": 3.1627053235701563,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "複合動能確認",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787635288,
-      "bar_ts": 1787634900,
-      "event": "open",
-      "strategy_id": "combo_15m_41",
-      "symbols": [
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.09876,
-          "sl_pct": -0.6672742000809972,
-          "tp_pct": 1.3345484001620085,
           "event": "open",
           "pnl_pct": null
         }
@@ -452,7 +474,7 @@
       "strategy_count": 1
     }
   ],
-  "exec_log_raw_count": 25,
+  "exec_log_raw_count": 31,
   "signal_count": 63,
   "symbols": [
     "BTCUSDT",
