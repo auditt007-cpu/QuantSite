@@ -71,7 +71,20 @@ QuantAlpha 是一套**加密量化研究终端 + 变现闭环**，面向独立�
 
 **已修过的坑：** Binance `miniTicker` 没有 24h 涨跌幅 `P`，会把百分比写成 `0.00%`，再被全局 `lastTickAt` 停掉 REST，冷门币假死。现用 `@ticker` + 开盘价计算百分比 + 持续 REST，且只闪涨跌幅/箭头，不闪胶囊背景和币名。
 
-VPS：`tg_engine.py` 写直播带；`pipeline.py` / `llm_pipeline/` 生成 AI 策略 SVG；`calc_rankings.py` 写 `leaderboard.json`。
+VPS：`tg_engine.py` 写直播带；`pipeline.py` / `llm_pipeline/` 现为 **HF Grid Engine**（手续费返佣挖矿，仅 5 类网格）；`calc_rankings.py` 写 `leaderboard.json`。
+
+### 变现底层逻辑（Trading Volume 返佣）
+
+最大化 **每日交易换手（Volume Turnover）**，用动态自适应网格防单边暴毙，延长客户 **LTV**。AI 挖矿不得再产出随意 EMA/RSI 方向策略，必须锚定下列 5 类：
+
+1. `DYNAMIC_ATR_GRID` — ATR 动态间距自适应网格  
+2. `BASIS_FUNDING_GRID` — 现货+永续资金费率对冲网格  
+3. `BOLLINGER_SQUEEZE_GRID` — 布林挤压高频网格  
+4. `FIBO_DCA_GRID` — 斐波那契/几何 DCA 网格  
+5. `PAIRS_COINT_GRID` — 协整配对统计套利网格  
+
+参数基准：标的 `ETH/SOL/DOGE/AVAX`；杠杆 `3x–7x`（禁 >10x）；单格净利 `0.4%–0.8%`；目标胜率 `82%–92%`；区间外溢 `5%` 硬风控。实现：`llm_pipeline/grid_models.py`；入口：`pipeline.py`；cron：`0 2,8,14,20 run_pipeline_cron.sh`。产物 JSON 含 `strategy_type=GRID`、`subtype`、`grid_params`、`metrics`（APY/DD/日换手/夏普/胜率），写入 `strategies.json` + SVG，并 `git_sync` 推 Pages。  
+**与广场 1:1：** 挖矿默认进 `strategies.json`（bots/strategies 渲染）。若升格进 live 广场，必须追加 `frontend_strategy_specs()` + `engine-list.js`（同一套注册机制），禁止另起一套 ID。
 
 ### 策略广场 ↔ Live（已 1:1，勿写成两套矩阵）
 
