@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-26T05:07:53Z",
+  "updated_at": "2026-08-26T05:10:54Z",
   "period_hours": 3,
   "poll_sec": 5,
   "scan_tf": "15m+1h",
@@ -632,6 +632,50 @@
   ],
   "closed_signals_3h": [],
   "exec_log": [
+    {
+      "kind": "batch",
+      "name_zh": "5m動能微破",
+      "interval": "5m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787721055,
+      "bar_ts": 1787720700,
+      "event": "open",
+      "strategy_id": "hb-roc5",
+      "symbols": [
+        {
+          "symbol": "PEPEUSDT",
+          "price": 3.82e-06,
+          "sl_pct": -4.712041884816753,
+          "tp_pct": 4.712041884816753,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "布林微破",
+      "interval": "5m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787721054,
+      "bar_ts": 1787720700,
+      "event": "open",
+      "strategy_id": "hb-bb5",
+      "symbols": [
+        {
+          "symbol": "BTCUSDT",
+          "price": 78801.0,
+          "sl_pct": -0.15357104859075585,
+          "tp_pct": 0.3071420971815117,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
     {
       "kind": "batch",
       "name_zh": "布林微破",
@@ -1707,74 +1751,6 @@
         }
       ],
       "strategy_count": 4
-    },
-    {
-      "kind": "batch",
-      "name_zh": "MACD信號交叉",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787720520,
-      "bar_ts": 1787719500,
-      "event": "close",
-      "strategy_id": "sf",
-      "symbols": [
-        {
-          "symbol": "RENDERUSDT",
-          "price": 1.5138,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.006605456106743443
-        },
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.0928,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.4329004329004303
-        },
-        {
-          "symbol": "AAVEUSDT",
-          "price": 126.81,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.08681925808997587
-        },
-        {
-          "symbol": "BTCUSDT",
-          "price": 78819.84,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.23842601188619536
-        }
-      ],
-      "strategy_count": 4
-    },
-    {
-      "kind": "batch",
-      "name_zh": "MACD柱翻轉",
-      "interval": "1h",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787720504,
-      "bar_ts": 1787716800,
-      "event": "close",
-      "strategy_id": "strat-018",
-      "symbols": [
-        {
-          "symbol": "BNBUSDT",
-          "price": 694.31,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.2757709377648296
-        }
-      ],
-      "strategy_count": 1
     }
   ],
   "exec_log_raw_count": 200
