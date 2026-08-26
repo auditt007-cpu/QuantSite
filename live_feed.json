@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-26T15:37:01Z",
+  "updated_at": "2026-08-26T15:38:35Z",
   "period_hours": 3,
   "poll_sec": 5,
   "scan_tf": "15m+1h",
@@ -1138,6 +1138,58 @@
   "exec_log": [
     {
       "kind": "batch",
+      "name_zh": "布林微破",
+      "interval": "5m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787758716,
+      "bar_ts": 1787758500,
+      "event": "open",
+      "strategy_id": "hb-bb5",
+      "symbols": [
+        {
+          "symbol": "ETHUSDT",
+          "price": 2445.12,
+          "sl_pct": -0.3167116133359634,
+          "tp_pct": 0.6334232675696917,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "5m動能微破",
+      "interval": "5m",
+      "side": "SHORT",
+      "action": "多頭平倉翻空 (SELL)",
+      "logged_at": 1787758715,
+      "bar_ts": 1787758500,
+      "event": "open",
+      "strategy_id": "hb-roc5",
+      "symbols": [
+        {
+          "symbol": "BTCUSDT",
+          "price": 77951.72,
+          "sl_pct": -0.26079271246356095,
+          "tp_pct": 0.5215854249271219,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "price": 0.08444,
+          "sl_pct": -0.5021316911416317,
+          "tp_pct": 1.0030791094268126,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
       "name_zh": "Dual Thrust快",
       "interval": "15m",
       "side": "LONG",
@@ -1287,28 +1339,6 @@
         }
       ],
       "strategy_count": 3
-    },
-    {
-      "kind": "batch",
-      "name_zh": "5m動能微破",
-      "interval": "5m",
-      "side": "SHORT",
-      "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787758516,
-      "bar_ts": 1787758500,
-      "event": "open",
-      "strategy_id": "hb-roc5",
-      "symbols": [
-        {
-          "symbol": "DOGEUSDT",
-          "price": 0.08444,
-          "sl_pct": -0.5021316911416317,
-          "tp_pct": 1.0030791094268126,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
     },
     {
       "kind": "batch",
@@ -1969,36 +1999,6 @@
         }
       ],
       "strategy_count": 3
-    },
-    {
-      "kind": "batch",
-      "name_zh": "成交量價差VSA",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787758150,
-      "bar_ts": 1787757300,
-      "event": "open",
-      "strategy_id": "strat-005",
-      "symbols": [
-        {
-          "symbol": "AVAXUSDT",
-          "price": 7.205,
-          "sl_pct": -0.3997224149895958,
-          "tp_pct": 0.7994448299791793,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "ONDOUSDT",
-          "price": 0.35775,
-          "sl_pct": -0.8908455625436745,
-          "tp_pct": 1.781970649895168,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 2
     }
   ],
   "exec_log_raw_count": 200
