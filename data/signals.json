@@ -1,8 +1,52 @@
 {
-  "updated_at": "2026-08-26T05:39:06Z",
+  "updated_at": "2026-08-26T05:40:47Z",
   "venue": "coinbase",
   "poll_sec": 5,
   "exec_log": [
+    {
+      "kind": "batch",
+      "name_zh": "布林微破",
+      "interval": "5m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787722848,
+      "bar_ts": 1787722500,
+      "event": "open",
+      "strategy_id": "hb-bb5",
+      "symbols": [
+        {
+          "symbol": "SOLUSDT",
+          "price": 97.08,
+          "sl_pct": -0.2772960444993824,
+          "tp_pct": 0.5545920889987648,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "5m動能微破",
+      "interval": "5m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787722847,
+      "bar_ts": 1787722500,
+      "event": "open",
+      "strategy_id": "hb-roc5",
+      "symbols": [
+        {
+          "symbol": "ETHUSDT",
+          "price": 2463.86,
+          "sl_pct": -0.19734639955191416,
+          "tp_pct": 0.39469279910384675,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
     {
       "kind": "batch",
       "name_zh": "布林微破",
@@ -721,50 +765,6 @@
           "price": 11.372,
           "sl_pct": -0.5034910306014764,
           "tp_pct": 1.0069820612029527,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "短周期動量交叉",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787722223,
-      "bar_ts": 1787721300,
-      "event": "open",
-      "strategy_id": "qe",
-      "symbols": [
-        {
-          "symbol": "LINKUSDT",
-          "price": 11.372,
-          "sl_pct": -0.5034910306014764,
-          "tp_pct": 1.0069820612029527,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "EMA多周期共振",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787722223,
-      "bar_ts": 1787721300,
-      "event": "open",
-      "strategy_id": "ribbon",
-      "symbols": [
-        {
-          "symbol": "AAVEUSDT",
-          "price": 127.44,
-          "sl_pct": -0.5859730069052095,
-          "tp_pct": 1.1719452291274328,
           "event": "open",
           "pnl_pct": null
         }
