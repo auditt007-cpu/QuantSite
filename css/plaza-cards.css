@@ -426,28 +426,27 @@ body.plaza-page .market-grid {
 }
 
 #aiStratModal .plaza-tape-head {
-  font-size: 13px;
-  font-weight: 600;
-  color: #0f172a;
-  margin: 12px 0 6px;
+  display: none;
 }
 
 #aiStratModal .plaza-tape {
   margin: 10px 0 8px;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   max-height: 360px;
   border: 1px solid #e2e8f0;
 }
 
 #aiStratModal .plaza-tape table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   font-size: 12px;
 }
 
 #aiStratModal .plaza-tape th,
 #aiStratModal .plaza-tape td {
-  padding: 5px 8px;
+  padding: 5px 4px;
   border-bottom: 1px solid #e2e8f0;
   text-align: right;
   white-space: nowrap;
@@ -455,6 +454,7 @@ body.plaza-page .market-grid {
 
 #aiStratModal .plaza-tape th:first-child,
 #aiStratModal .plaza-tape td:first-child {
+  width: 31%;
   text-align: left;
   font-family: ui-monospace, Consolas, monospace;
   font-size: 11px;

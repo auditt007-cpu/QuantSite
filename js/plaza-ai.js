@@ -9,11 +9,10 @@
 #aiStratModal .plaza-explain{font-size:13px;line-height:1.65;color:#334155;margin:12px 0}
 #aiStratModal .plaza-explain p{margin:0 0 10px}
 #aiStratModal .plaza-fee-note{font-size:12px;line-height:1.55;color:#334155;background:#f8fafc;border:1px solid #e2e8f0;padding:10px 12px;margin:14px 0 12px}
-#aiStratModal .plaza-tape{margin:10px 0 8px;overflow:auto;max-height:360px;border:1px solid #e2e8f0}
-#aiStratModal .plaza-tape-head{font-size:13px;font-weight:600;color:#0f172a;margin:12px 0 6px}
-#aiStratModal .plaza-tape table{width:100%;border-collapse:collapse;font-size:12px}
-#aiStratModal .plaza-tape th,#aiStratModal .plaza-tape td{padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:right;white-space:nowrap}
-#aiStratModal .plaza-tape th:first-child,#aiStratModal .plaza-tape td:first-child{text-align:left;font-family:ui-monospace,Consolas,monospace;font-size:11px;font-variant-numeric:tabular-nums}
+#aiStratModal .plaza-tape{margin:10px 0 8px;overflow-x:hidden;overflow-y:auto;max-height:360px;border:1px solid #e2e8f0}
+#aiStratModal .plaza-tape table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:12px}
+#aiStratModal .plaza-tape th,#aiStratModal .plaza-tape td{padding:5px 4px;border-bottom:1px solid #e2e8f0;text-align:right;white-space:nowrap}
+#aiStratModal .plaza-tape th:first-child,#aiStratModal .plaza-tape td:first-child{width:31%;text-align:left;font-family:ui-monospace,Consolas,monospace;font-size:11px;font-variant-numeric:tabular-nums}
 #aiStratModal .plaza-tape th:nth-child(2),#aiStratModal .plaza-tape td:nth-child(2){text-align:left;font-family:inherit;font-size:12px}
 #aiStratModal .plaza-tape .is-up{color:#0f7b3a}
 #aiStratModal .plaza-tape .is-down{color:#c2410c}
@@ -481,18 +480,17 @@
   function fmtFillTs(ms) {
     const z = new Date(Number(ms) + 8 * 3600000);
     if (!Number.isFinite(z.getTime())) return "—";
+    const yy = String(z.getUTCFullYear()).slice(-2);
     return (
-      z.getUTCFullYear() +
-      "-" +
+      yy +
+      "/" +
       pad2(z.getUTCMonth() + 1) +
-      "-" +
+      "/" +
       pad2(z.getUTCDate()) +
       " " +
       pad2(z.getUTCHours()) +
       ":" +
-      pad2(z.getUTCMinutes()) +
-      ":" +
-      pad2(z.getUTCSeconds())
+      pad2(z.getUTCMinutes())
     );
   }
 
@@ -644,7 +642,7 @@
     const rt = String(FEE_SIDE_BPS * 2);
     return t(
       "mktFeeNote",
-      "記帳規則：盈虧按 0 手續費入帳，與上方回測累積同一套算法。參考手續費單邊 {bps} bps（萬分之{bps}），往返約 {rt} bps；只列在旁邊，未從記帳列扣除。有人說量化是在吃手續費，所以把費率攤開寫，方便對照。"
+      "記帳規則：盈虧按 0 手續費入帳，與上方回測累積同一套算法。參考手續費單邊 {bps} bps（萬分之{bps}），往返約 {rt} bps；只列在旁邊，未從記帳列扣除。"
     )
       .replace(/\{bps\}/g, bps)
       .replace("{rt}", rt);
@@ -684,9 +682,7 @@
         "</td></tr>";
     });
     return (
-      '<div class="plaza-tape-head">' +
-      t("mktTapeHead", "成交明細") +
-      "</div><table><caption>" +
+      "<table><caption>" +
       caption +
       "</caption><thead><tr><th>" +
       t("mktTapeTime", "採集時間") +
@@ -695,9 +691,9 @@
       "</th><th>" +
       t("mktTapeResult", "結果") +
       "</th><th>" +
-      t("mktTapeBooked", "記帳盈虧") +
+      t("mktTapeBooked", "盈虧") +
       "</th><th>" +
-      t("mktTapeFee", "參考手續費") +
+      t("mktTapeFee", "手續費") +
       "</th></tr></thead><tbody>" +
       body +
       "</tbody></table>"
