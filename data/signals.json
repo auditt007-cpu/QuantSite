@@ -1,8 +1,52 @@
 {
-  "updated_at": "2026-08-26T05:32:04Z",
+  "updated_at": "2026-08-26T05:34:34Z",
   "venue": "coinbase",
   "poll_sec": 5,
   "exec_log": [
+    {
+      "kind": "batch",
+      "name_zh": "5m動能微破",
+      "interval": "5m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787722475,
+      "bar_ts": 1787721900,
+      "event": "open",
+      "strategy_id": "hb-roc5",
+      "symbols": [
+        {
+          "symbol": "PEPEUSDT",
+          "price": 3.84e-06,
+          "sl_pct": -4.166666666666671,
+          "tp_pct": 4.166666666666671,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "布林微破",
+      "interval": "5m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787722474,
+      "bar_ts": 1787721900,
+      "event": "open",
+      "strategy_id": "hb-bb5",
+      "symbols": [
+        {
+          "symbol": "BTCUSDT",
+          "price": 79007.5,
+          "sl_pct": -0.1813513653767116,
+          "tp_pct": 0.36270273075340476,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
     {
       "kind": "batch",
       "name_zh": "多周期動量",
@@ -731,50 +775,6 @@
           "tp_pct": null,
           "event": "close",
           "pnl_pct": -0.5523118194729391
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "量價突破",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787722223,
-      "bar_ts": 1787721300,
-      "event": "close",
-      "strategy_id": "strat-021",
-      "symbols": [
-        {
-          "symbol": "DOGEUSDT",
-          "price": 0.08664,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.21881838074399354
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "量均突破",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787722223,
-      "bar_ts": 1787721300,
-      "event": "close",
-      "strategy_id": "strat-010",
-      "symbols": [
-        {
-          "symbol": "DOGEUSDT",
-          "price": 0.08664,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.21881838074399354
         }
       ],
       "strategy_count": 1
