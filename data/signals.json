@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-26T15:27:35Z",
+  "updated_at": "2026-08-26T15:29:07Z",
   "venue": "coinbase",
   "poll_sec": 5,
   "exec_log": [
@@ -9,7 +9,7 @@
       "interval": "15m",
       "side": "SHORT",
       "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787758042,
+      "logged_at": 1787758116,
       "bar_ts": 1787757300,
       "event": "open",
       "strategy_id": "strat-021",
@@ -31,7 +31,7 @@
       "interval": "15m",
       "side": "SHORT",
       "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787758041,
+      "logged_at": 1787758115,
       "bar_ts": 1787757300,
       "event": "open",
       "strategy_id": "strat-010",
@@ -53,7 +53,7 @@
       "interval": "15m",
       "side": "SHORT",
       "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787758040,
+      "logged_at": 1787758114,
       "bar_ts": 1787757300,
       "event": "open",
       "strategy_id": "strat-005",
@@ -75,7 +75,7 @@
       "interval": "15m",
       "side": "LONG",
       "action": "多頭開倉 (BUY)",
-      "logged_at": 1787758041,
+      "logged_at": 1787758115,
       "bar_ts": 1787757300,
       "event": "close",
       "strategy_id": "strat-021",
@@ -97,7 +97,7 @@
       "interval": "15m",
       "side": "LONG",
       "action": "多頭開倉 (BUY)",
-      "logged_at": 1787758040,
+      "logged_at": 1787758114,
       "bar_ts": 1787757300,
       "event": "close",
       "strategy_id": "strat-010",
@@ -119,7 +119,7 @@
       "interval": "15m",
       "side": "LONG",
       "action": "多頭開倉 (BUY)",
-      "logged_at": 1787758039,
+      "logged_at": 1787758113,
       "bar_ts": 1787757300,
       "event": "close",
       "strategy_id": "strat-005",
@@ -141,24 +141,24 @@
       "interval": "15m",
       "side": "LONG",
       "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787757950,
+      "logged_at": 1787758061,
       "bar_ts": 1787757300,
       "event": "open",
       "strategy_id": "strat-021",
       "symbols": [
         {
-          "symbol": "BNBUSDT",
-          "price": 694.19,
-          "sl_pct": -0.29807315000216633,
-          "tp_pct": 0.5961461559515358,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
           "symbol": "AVAXUSDT",
           "price": 7.205,
           "sl_pct": -0.3997224149895958,
           "tp_pct": 0.7994448299791793,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "BNBUSDT",
+          "price": 694.19,
+          "sl_pct": -0.29807315000216633,
+          "tp_pct": 0.5961461559515358,
           "event": "open",
           "pnl_pct": null
         },
@@ -187,11 +187,19 @@
       "interval": "15m",
       "side": "LONG",
       "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787757949,
+      "logged_at": 1787758060,
       "bar_ts": 1787757300,
       "event": "open",
       "strategy_id": "strat-010",
       "symbols": [
+        {
+          "symbol": "AVAXUSDT",
+          "price": 7.205,
+          "sl_pct": -0.3997224149895958,
+          "tp_pct": 0.7994448299791793,
+          "event": "open",
+          "pnl_pct": null
+        },
         {
           "symbol": "BNBUSDT",
           "price": 694.19,
@@ -200,6 +208,28 @@
           "event": "open",
           "pnl_pct": null
         },
+        {
+          "symbol": "ONDOUSDT",
+          "price": 0.35775,
+          "sl_pct": -0.8908455625436745,
+          "tp_pct": 1.781970649895168,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 3
+    },
+    {
+      "kind": "batch",
+      "name_zh": "成交量價差VSA",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "空頭平倉翻多 (BUY)",
+      "logged_at": 1787758059,
+      "bar_ts": 1787757300,
+      "event": "open",
+      "strategy_id": "strat-005",
+      "symbols": [
         {
           "symbol": "AVAXUSDT",
           "price": 7.205,
@@ -217,45 +247,7 @@
           "pnl_pct": null
         }
       ],
-      "strategy_count": 3
-    },
-    {
-      "kind": "batch",
-      "name_zh": "布林均值回歸",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787757950,
-      "bar_ts": 1787757300,
-      "event": "open",
-      "strategy_id": "sn",
-      "symbols": [
-        {
-          "symbol": "BNBUSDT",
-          "price": 694.19,
-          "sl_pct": -0.29807315000216633,
-          "tp_pct": 0.5961461559515358,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "SOLUSDT",
-          "price": 95.61,
-          "sl_pct": -0.6233762158769925,
-          "tp_pct": 1.2467534776696967,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "ETHUSDT",
-          "price": 2441.24,
-          "sl_pct": -0.4653160688830203,
-          "tp_pct": 0.9306321377660591,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 3
+      "strategy_count": 2
     },
     {
       "kind": "batch",
@@ -263,19 +255,11 @@
       "interval": "15m",
       "side": "SHORT",
       "action": "空頭開倉 (SELL)",
-      "logged_at": 1787757949,
+      "logged_at": 1787758060,
       "bar_ts": 1787757300,
       "event": "close",
       "strategy_id": "strat-021",
       "symbols": [
-        {
-          "symbol": "BNBUSDT",
-          "price": 694.19,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.04035105417130268
-        },
         {
           "symbol": "AVAXUSDT",
           "price": 7.205,
@@ -283,6 +267,14 @@
           "tp_pct": null,
           "event": "close",
           "pnl_pct": -0.06944444444444296
+        },
+        {
+          "symbol": "BNBUSDT",
+          "price": 694.19,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.04035105417130268
         },
         {
           "symbol": "NEARUSDT",
@@ -333,19 +325,11 @@
       "interval": "15m",
       "side": "SHORT",
       "action": "空頭開倉 (SELL)",
-      "logged_at": 1787757948,
+      "logged_at": 1787758059,
       "bar_ts": 1787757300,
       "event": "close",
       "strategy_id": "strat-010",
       "symbols": [
-        {
-          "symbol": "BNBUSDT",
-          "price": 694.19,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.04035105417130268
-        },
         {
           "symbol": "AVAXUSDT",
           "price": 7.205,
@@ -353,6 +337,14 @@
           "tp_pct": null,
           "event": "close",
           "pnl_pct": -0.06944444444444296
+        },
+        {
+          "symbol": "BNBUSDT",
+          "price": 694.19,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.04035105417130268
         },
         {
           "symbol": "NEARUSDT",
@@ -401,39 +393,9 @@
       "kind": "batch",
       "name_zh": "成交量價差VSA",
       "interval": "15m",
-      "side": "LONG",
-      "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787757932,
-      "bar_ts": 1787757300,
-      "event": "open",
-      "strategy_id": "strat-005",
-      "symbols": [
-        {
-          "symbol": "AVAXUSDT",
-          "price": 7.205,
-          "sl_pct": -0.3997224149895958,
-          "tp_pct": 0.7994448299791793,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "ONDOUSDT",
-          "price": 0.35775,
-          "sl_pct": -0.8908455625436745,
-          "tp_pct": 1.781970649895168,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "成交量價差VSA",
-      "interval": "15m",
       "side": "SHORT",
       "action": "空頭開倉 (SELL)",
-      "logged_at": 1787757931,
+      "logged_at": 1787758058,
       "bar_ts": 1787757300,
       "event": "close",
       "strategy_id": "strat-005",
@@ -488,6 +450,44 @@
         }
       ],
       "strategy_count": 6
+    },
+    {
+      "kind": "batch",
+      "name_zh": "布林均值回歸",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787757950,
+      "bar_ts": 1787757300,
+      "event": "open",
+      "strategy_id": "sn",
+      "symbols": [
+        {
+          "symbol": "BNBUSDT",
+          "price": 694.19,
+          "sl_pct": -0.29807315000216633,
+          "tp_pct": 0.5961461559515358,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "SOLUSDT",
+          "price": 95.61,
+          "sl_pct": -0.6233762158769925,
+          "tp_pct": 1.2467534776696967,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "ETHUSDT",
+          "price": 2441.24,
+          "sl_pct": -0.4653160688830203,
+          "tp_pct": 0.9306321377660591,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 3
     },
     {
       "kind": "batch",
