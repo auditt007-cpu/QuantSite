@@ -1,24 +1,24 @@
 {
-  "updated_at": "2026-08-26T10:13:12Z",
+  "updated_at": "2026-08-26T10:14:51Z",
   "venue": "coinbase",
   "poll_sec": 5,
   "exec_log": [
     {
       "kind": "batch",
-      "name_zh": "複合動能B",
-      "interval": "1h",
+      "name_zh": "量價突破",
+      "interval": "15m",
       "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787739115,
-      "bar_ts": 1787731200,
+      "action": "空頭平倉翻多 (BUY)",
+      "logged_at": 1787739278,
+      "bar_ts": 1787737500,
       "event": "open",
-      "strategy_id": "strat-026",
+      "strategy_id": "strat-021",
       "symbols": [
         {
-          "symbol": "DOGEUSDT",
-          "price": 0.08661,
-          "sl_pct": null,
-          "tp_pct": null,
+          "symbol": "SUIUSDT",
+          "price": 0.7539,
+          "sl_pct": -0.5982225759384553,
+          "tp_pct": 1.1964451518769106,
           "event": "open",
           "pnl_pct": null
         }
@@ -27,22 +27,526 @@
     },
     {
       "kind": "batch",
+      "name_zh": "量均突破",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "空頭平倉翻多 (BUY)",
+      "logged_at": 1787739277,
+      "bar_ts": 1787737500,
+      "event": "open",
+      "strategy_id": "strat-010",
+      "symbols": [
+        {
+          "symbol": "SUIUSDT",
+          "price": 0.7539,
+          "sl_pct": -0.5982225759384553,
+          "tp_pct": 1.1964451518769106,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "成交量價差VSA",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "空頭平倉翻多 (BUY)",
+      "logged_at": 1787739276,
+      "bar_ts": 1787737500,
+      "event": "open",
+      "strategy_id": "strat-005",
+      "symbols": [
+        {
+          "symbol": "SUIUSDT",
+          "price": 0.7539,
+          "sl_pct": -0.5982225759384553,
+          "tp_pct": 1.1964451518769106,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "price": 0.08595,
+          "sl_pct": -0.35253054101221376,
+          "tp_pct": 0.703897614892389,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
+      "name_zh": "量價突破",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787739277,
+      "bar_ts": 1787737500,
+      "event": "close",
+      "strategy_id": "strat-021",
+      "symbols": [
+        {
+          "symbol": "SUIUSDT",
+          "price": 0.7539,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.4128929142248257
+        },
+        {
+          "symbol": "ADAUSDT",
+          "price": 0.20887,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.5245933198575453
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "price": 0.08595,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": 0.08137642408742225
+        },
+        {
+          "symbol": "ARBUSDT",
+          "price": 0.09193,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": 0.16290182450043156
+        }
+      ],
+      "strategy_count": 4
+    },
+    {
+      "kind": "batch",
+      "name_zh": "量均突破",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787739276,
+      "bar_ts": 1787737500,
+      "event": "close",
+      "strategy_id": "strat-010",
+      "symbols": [
+        {
+          "symbol": "SUIUSDT",
+          "price": 0.7539,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.4128929142248257
+        },
+        {
+          "symbol": "ADAUSDT",
+          "price": 0.20887,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.5245933198575453
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "price": 0.08595,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": 0.08137642408742225
+        },
+        {
+          "symbol": "ARBUSDT",
+          "price": 0.09193,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": 0.16290182450043156
+        }
+      ],
+      "strategy_count": 4
+    },
+    {
+      "kind": "batch",
+      "name_zh": "成交量價差VSA",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787739275,
+      "bar_ts": 1787737500,
+      "event": "close",
+      "strategy_id": "strat-005",
+      "symbols": [
+        {
+          "symbol": "SUIUSDT",
+          "price": 0.7539,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.4128929142248257
+        },
+        {
+          "symbol": "ADAUSDT",
+          "price": 0.20887,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.5245933198575453
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "price": 0.08595,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": 0.08137642408742225
+        },
+        {
+          "symbol": "ARBUSDT",
+          "price": 0.09193,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": 0.16290182450043156
+        }
+      ],
+      "strategy_count": 4
+    },
+    {
+      "kind": "batch",
+      "name_zh": "量價突破",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "多頭平倉翻空 (SELL)",
+      "logged_at": 1787739260,
+      "bar_ts": 1787737500,
+      "event": "open",
+      "strategy_id": "strat-021",
+      "symbols": [
+        {
+          "symbol": "SUIUSDT",
+          "price": 0.7508,
+          "sl_pct": -0.3224560468833253,
+          "tp_pct": 0.6449120937666506,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "量均突破",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "多頭平倉翻空 (SELL)",
+      "logged_at": 1787739259,
+      "bar_ts": 1787737500,
+      "event": "open",
+      "strategy_id": "strat-010",
+      "symbols": [
+        {
+          "symbol": "SUIUSDT",
+          "price": 0.7508,
+          "sl_pct": -0.3224560468833253,
+          "tp_pct": 0.6449120937666506,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "成交量價差VSA",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "多頭平倉翻空 (SELL)",
+      "logged_at": 1787739258,
+      "bar_ts": 1787737500,
+      "event": "open",
+      "strategy_id": "strat-005",
+      "symbols": [
+        {
+          "symbol": "SUIUSDT",
+          "price": 0.7508,
+          "sl_pct": -0.3224560468833253,
+          "tp_pct": 0.6449120937666506,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "量價突破",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787739259,
+      "bar_ts": 1787737500,
+      "event": "close",
+      "strategy_id": "strat-021",
+      "symbols": [
+        {
+          "symbol": "SUIUSDT",
+          "price": 0.7508,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.41119511871600894
+        },
+        {
+          "symbol": "ADAUSDT",
+          "price": 0.20778,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.5218556997175313
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
+      "name_zh": "量均突破",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787739258,
+      "bar_ts": 1787737500,
+      "event": "close",
+      "strategy_id": "strat-010",
+      "symbols": [
+        {
+          "symbol": "SUIUSDT",
+          "price": 0.7508,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.41119511871600894
+        },
+        {
+          "symbol": "ADAUSDT",
+          "price": 0.20778,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.5218556997175313
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
+      "name_zh": "成交量價差VSA",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787739257,
+      "bar_ts": 1787737500,
+      "event": "close",
+      "strategy_id": "strat-005",
+      "symbols": [
+        {
+          "symbol": "SUIUSDT",
+          "price": 0.7508,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.41119511871600894
+        },
+        {
+          "symbol": "ADAUSDT",
+          "price": 0.20778,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.5218556997175313
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
+      "name_zh": "複合動能B",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "多頭平倉翻空 (SELL)",
+      "logged_at": 1787739215,
+      "bar_ts": 1787737500,
+      "event": "open",
+      "strategy_id": "strat-026",
+      "symbols": [
+        {
+          "symbol": "INJUSDT",
+          "price": 5.497,
+          "sl_pct": -0.5866108786610839,
+          "tp_pct": 1.1732217573221677,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "ARBUSDT",
+          "price": 0.09193,
+          "sl_pct": -0.41770912650929565,
+          "tp_pct": 0.8354182530185913,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
+      "name_zh": "複合動能",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "多頭平倉翻空 (SELL)",
+      "logged_at": 1787739216,
+      "bar_ts": 1787737500,
+      "event": "open",
+      "strategy_id": "strat-011",
+      "symbols": [
+        {
+          "symbol": "INJUSDT",
+          "price": 5.497,
+          "sl_pct": -0.5866108786610839,
+          "tp_pct": 1.1732217573221677,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "ARBUSDT",
+          "price": 0.09193,
+          "sl_pct": -0.41770912650929565,
+          "tp_pct": 0.8354182530185913,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
+      "name_zh": "複合動能B",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787739215,
+      "bar_ts": 1787737500,
+      "event": "close",
+      "strategy_id": "strat-026",
+      "symbols": [
+        {
+          "symbol": "INJUSDT",
+          "price": 5.497,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -1.4344629729245126
+        },
+        {
+          "symbol": "ARBUSDT",
+          "price": 0.09193,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -2.40976645435245
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
+      "name_zh": "複合動能",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787739214,
+      "bar_ts": 1787737500,
+      "event": "close",
+      "strategy_id": "strat-011",
+      "symbols": [
+        {
+          "symbol": "INJUSDT",
+          "price": 5.497,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -1.4344629729245126
+        },
+        {
+          "symbol": "ARBUSDT",
+          "price": 0.09193,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -2.40976645435245
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
+      "name_zh": "複合動能B",
+      "interval": "1h",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787739211,
+      "bar_ts": 1787734800,
+      "event": "close",
+      "strategy_id": "strat-026",
+      "symbols": [
+        {
+          "symbol": "DOGEUSDT",
+          "price": 0.08592,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.8
+        },
+        {
+          "symbol": "AVAXUSDT",
+          "price": 7.288,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -1.4735703663647424
+        },
+        {
+          "symbol": "SUIUSDT",
+          "price": 0.7539,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -1.54
+        }
+      ],
+      "strategy_count": 3
+    },
+    {
+      "kind": "batch",
       "name_zh": "肯特納快",
       "interval": "1h",
       "side": "SHORT",
       "action": "空頭開倉 (SELL)",
-      "logged_at": 1787739115,
+      "logged_at": 1787739211,
       "bar_ts": 1787734800,
-      "event": "open",
+      "event": "close",
       "strategy_id": "strat-025",
       "symbols": [
         {
           "symbol": "DOGEUSDT",
-          "price": 0.08633,
+          "price": 0.08592,
           "sl_pct": null,
           "tp_pct": null,
-          "event": "open",
-          "pnl_pct": null
+          "event": "close",
+          "pnl_pct": 0.47
         }
       ],
       "strategy_count": 1
@@ -53,18 +557,18 @@
       "interval": "1h",
       "side": "SHORT",
       "action": "空頭開倉 (SELL)",
-      "logged_at": 1787739115,
+      "logged_at": 1787739211,
       "bar_ts": 1787734800,
-      "event": "close",
+      "event": "open",
       "strategy_id": "strat-017",
       "symbols": [
         {
           "symbol": "DOGEUSDT",
-          "price": 0.08595,
+          "price": 0.08641,
           "sl_pct": null,
           "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.76
+          "event": "open",
+          "pnl_pct": null
         }
       ],
       "strategy_count": 1
@@ -74,45 +578,15 @@
       "name_zh": "ROC20動能",
       "interval": "1h",
       "side": "SHORT",
-      "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787739115,
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787739211,
       "bar_ts": 1787734800,
-      "event": "open",
+      "event": "close",
       "strategy_id": "strat-014",
       "symbols": [
         {
           "symbol": "BTCUSDT",
-          "price": 78697.07,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "RENDERUSDT",
-          "price": 1.4967,
-          "sl_pct": -1.5325716576468313,
-          "tp_pct": 3.065210128950354,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "EMA快線交叉",
-      "interval": "1h",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787739115,
-      "bar_ts": 1787734800,
-      "event": "close",
-      "strategy_id": "strat-012",
-      "symbols": [
-        {
-          "symbol": "BTCUSDT",
-          "price": 78438.84,
+          "price": 78434.75,
           "sl_pct": null,
           "tp_pct": null,
           "event": "close",
@@ -123,18 +597,18 @@
     },
     {
       "kind": "batch",
-      "name_zh": "複合動能",
+      "name_zh": "EMA快線交叉",
       "interval": "1h",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787739115,
-      "bar_ts": 1787731200,
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787739211,
+      "bar_ts": 1787734800,
       "event": "open",
-      "strategy_id": "strat-011",
+      "strategy_id": "strat-012",
       "symbols": [
         {
-          "symbol": "DOGEUSDT",
-          "price": 0.08661,
+          "symbol": "BTCUSDT",
+          "price": 78696.38,
           "sl_pct": null,
           "tp_pct": null,
           "event": "open",
@@ -145,22 +619,60 @@
     },
     {
       "kind": "batch",
+      "name_zh": "複合動能",
+      "interval": "1h",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787739211,
+      "bar_ts": 1787734800,
+      "event": "close",
+      "strategy_id": "strat-011",
+      "symbols": [
+        {
+          "symbol": "DOGEUSDT",
+          "price": 0.08592,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.8
+        },
+        {
+          "symbol": "AVAXUSDT",
+          "price": 7.288,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -1.4735703663647424
+        },
+        {
+          "symbol": "SUIUSDT",
+          "price": 0.7539,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -1.54
+        }
+      ],
+      "strategy_count": 3
+    },
+    {
+      "kind": "batch",
       "name_zh": "肯特納通道",
       "interval": "1h",
       "side": "SHORT",
       "action": "空頭開倉 (SELL)",
-      "logged_at": 1787739115,
+      "logged_at": 1787739211,
       "bar_ts": 1787734800,
-      "event": "open",
+      "event": "close",
       "strategy_id": "strat-008",
       "symbols": [
         {
           "symbol": "DOGEUSDT",
-          "price": 0.08633,
+          "price": 0.08592,
           "sl_pct": null,
           "tp_pct": null,
-          "event": "open",
-          "pnl_pct": null
+          "event": "close",
+          "pnl_pct": 0.47
         }
       ],
       "strategy_count": 1
@@ -171,553 +683,25 @@
       "interval": "1h",
       "side": "SHORT",
       "action": "空頭開倉 (SELL)",
-      "logged_at": 1787739115,
+      "logged_at": 1787739211,
       "bar_ts": 1787734800,
-      "event": "open",
+      "event": "close",
       "strategy_id": "qk",
       "symbols": [
         {
           "symbol": "DOGEUSDT",
-          "price": 0.08633,
+          "price": 0.08592,
           "sl_pct": null,
           "tp_pct": null,
-          "event": "open",
-          "pnl_pct": null
+          "event": "close",
+          "pnl_pct": 0.47
         }
       ],
       "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "ATR波動網格",
-      "interval": "1h",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787739115,
-      "bar_ts": 1787734800,
-      "event": "open",
-      "strategy_id": "atr",
-      "symbols": [
-        {
-          "symbol": "DOGEUSDT",
-          "price": 0.08633,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "複合動能B",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787739100,
-      "bar_ts": 1787737500,
-      "event": "open",
-      "strategy_id": "strat-026",
-      "symbols": [
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.0942,
-          "sl_pct": -0.03397027600849708,
-          "tp_pct": 0.06687898089171296,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "INJUSDT",
-          "price": 5.577,
-          "sl_pct": -0.08093957324727186,
-          "tp_pct": 0.1618612157073637,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "複合動能",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787739101,
-      "bar_ts": 1787737500,
-      "event": "open",
-      "strategy_id": "strat-011",
-      "symbols": [
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.0942,
-          "sl_pct": -0.03397027600849708,
-          "tp_pct": 0.06687898089171296,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "INJUSDT",
-          "price": 5.577,
-          "sl_pct": -0.08093957324727186,
-          "tp_pct": 0.1618612157073637,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "複合動能B",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787739100,
-      "bar_ts": 1787737500,
-      "event": "close",
-      "strategy_id": "strat-026",
-      "symbols": [
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.0942,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -2.469270096812801
-        },
-        {
-          "symbol": "INJUSDT",
-          "price": 5.577,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -1.4553392759687116
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "複合動能",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787739099,
-      "bar_ts": 1787737500,
-      "event": "close",
-      "strategy_id": "strat-011",
-      "symbols": [
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.0942,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -2.469270096812801
-        },
-        {
-          "symbol": "INJUSDT",
-          "price": 5.577,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -1.4553392759687116
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "複合動能",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787739085,
-      "bar_ts": 1787737500,
-      "event": "open",
-      "strategy_id": "strat-011",
-      "symbols": [
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.09193,
-          "sl_pct": -0.41770912650929565,
-          "tp_pct": 0.8354182530185913,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "INJUSDT",
-          "price": 5.497,
-          "sl_pct": -0.5866108786610839,
-          "tp_pct": 1.1732217573221677,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "樞軸快線",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787739086,
-      "bar_ts": 1787737500,
-      "event": "close",
-      "strategy_id": "strat-030",
-      "symbols": [
-        {
-          "symbol": "ADAUSDT",
-          "price": 0.20778,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.5218556997175313
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "複合動能B",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787739085,
-      "bar_ts": 1787737500,
-      "event": "close",
-      "strategy_id": "strat-026",
-      "symbols": [
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.09193,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -2.40976645435245
-        },
-        {
-          "symbol": "INJUSDT",
-          "price": 5.497,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -1.4344629729245126
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "量價突破",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787739084,
-      "bar_ts": 1787737500,
-      "event": "close",
-      "strategy_id": "strat-021",
-      "symbols": [
-        {
-          "symbol": "SUIUSDT",
-          "price": 0.7539,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.4128929142248257
-        },
-        {
-          "symbol": "ADAUSDT",
-          "price": 0.20887,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.5245933198575453
-        },
-        {
-          "symbol": "DOGEUSDT",
-          "price": 0.08595,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.08137642408742225
-        },
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.09193,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.16290182450043156
-        },
-        {
-          "symbol": "LINKUSDT",
-          "price": 11.27,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.2919578872865721
-        }
-      ],
-      "strategy_count": 5
-    },
-    {
-      "kind": "batch",
-      "name_zh": "量價突破",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787739085,
-      "bar_ts": 1787737500,
-      "event": "close",
-      "strategy_id": "strat-021",
-      "symbols": [
-        {
-          "symbol": "ADAUSDT",
-          "price": 0.20778,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.5218556997175313
-        },
-        {
-          "symbol": "SUIUSDT",
-          "price": 0.7508,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.41119511871600894
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "複合動能",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787739084,
-      "bar_ts": 1787737500,
-      "event": "close",
-      "strategy_id": "strat-011",
-      "symbols": [
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.09193,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -2.40976645435245
-        },
-        {
-          "symbol": "INJUSDT",
-          "price": 5.497,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -1.4344629729245126
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "量均突破",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787739083,
-      "bar_ts": 1787737500,
-      "event": "close",
-      "strategy_id": "strat-010",
-      "symbols": [
-        {
-          "symbol": "SUIUSDT",
-          "price": 0.7539,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.4128929142248257
-        },
-        {
-          "symbol": "ADAUSDT",
-          "price": 0.20887,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.5245933198575453
-        },
-        {
-          "symbol": "DOGEUSDT",
-          "price": 0.08595,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.08137642408742225
-        },
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.09193,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.16290182450043156
-        },
-        {
-          "symbol": "LINKUSDT",
-          "price": 11.27,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.2919578872865721
-        }
-      ],
-      "strategy_count": 5
-    },
-    {
-      "kind": "batch",
-      "name_zh": "量均突破",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787739084,
-      "bar_ts": 1787737500,
-      "event": "close",
-      "strategy_id": "strat-010",
-      "symbols": [
-        {
-          "symbol": "ADAUSDT",
-          "price": 0.20778,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.5218556997175313
-        },
-        {
-          "symbol": "SUIUSDT",
-          "price": 0.7508,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.41119511871600894
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "樞軸點",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787739083,
-      "bar_ts": 1787737500,
-      "event": "close",
-      "strategy_id": "strat-009",
-      "symbols": [
-        {
-          "symbol": "ADAUSDT",
-          "price": 0.20778,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.5218556997175313
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "成交量價差VSA",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787739082,
-      "bar_ts": 1787737500,
-      "event": "close",
-      "strategy_id": "strat-005",
-      "symbols": [
-        {
-          "symbol": "SUIUSDT",
-          "price": 0.7539,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.4128929142248257
-        },
-        {
-          "symbol": "ADAUSDT",
-          "price": 0.20887,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.5245933198575453
-        },
-        {
-          "symbol": "DOGEUSDT",
-          "price": 0.08595,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.08137642408742225
-        },
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.09193,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.16290182450043156
-        },
-        {
-          "symbol": "LINKUSDT",
-          "price": 11.27,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.2919578872865721
-        }
-      ],
-      "strategy_count": 5
-    },
-    {
-      "kind": "batch",
-      "name_zh": "成交量價差VSA",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787739083,
-      "bar_ts": 1787737500,
-      "event": "close",
-      "strategy_id": "strat-005",
-      "symbols": [
-        {
-          "symbol": "ADAUSDT",
-          "price": 0.20778,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.5218556997175313
-        },
-        {
-          "symbol": "SUIUSDT",
-          "price": 0.7508,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.41119511871600894
-        }
-      ],
-      "strategy_count": 2
     }
   ],
   "exec_log_raw_count": 200,
-  "signal_count": 103,
+  "signal_count": 98,
   "symbols": [
     "BTCUSDT",
     "ETHUSDT",
