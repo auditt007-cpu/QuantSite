@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-26T11:46:06Z",
+  "updated_at": "2026-08-26T11:47:55Z",
   "period_hours": 3,
   "poll_sec": 5,
   "scan_tf": "15m+1h",
@@ -1402,6 +1402,126 @@
   "exec_log": [
     {
       "kind": "batch",
+      "name_zh": "Dual Thrust",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "多頭平倉翻空 (SELL)",
+      "logged_at": 1787744853,
+      "bar_ts": 1787743800,
+      "event": "open",
+      "strategy_id": "hg",
+      "symbols": [
+        {
+          "symbol": "APTUSDT",
+          "price": 0.5623,
+          "sl_pct": -0.5098701760625917,
+          "tp_pct": 1.019562511115061,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "Dual Thrust快",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "多頭平倉翻空 (SELL)",
+      "logged_at": 1787744854,
+      "bar_ts": 1787743800,
+      "event": "open",
+      "strategy_id": "strat-020",
+      "symbols": [
+        {
+          "symbol": "APTUSDT",
+          "price": 0.5623,
+          "sl_pct": -0.5098701760625917,
+          "tp_pct": 1.019562511115061,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "Dual Thrust",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787744853,
+      "bar_ts": 1787743800,
+      "event": "close",
+      "strategy_id": "hg",
+      "symbols": [
+        {
+          "symbol": "APTUSDT",
+          "price": 0.5623,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.05332385353714308
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "price": 0.08625,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.26595744680851985
+        },
+        {
+          "symbol": "BTCUSDT",
+          "price": 78460.29,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.20205003514412118
+        }
+      ],
+      "strategy_count": 3
+    },
+    {
+      "kind": "batch",
+      "name_zh": "Dual Thrust快",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787744852,
+      "bar_ts": 1787743800,
+      "event": "close",
+      "strategy_id": "strat-020",
+      "symbols": [
+        {
+          "symbol": "APTUSDT",
+          "price": 0.5623,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.05332385353714308
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "price": 0.08625,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.26595744680851985
+        },
+        {
+          "symbol": "BTCUSDT",
+          "price": 78460.29,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.20205003514412118
+        }
+      ],
+      "strategy_count": 3
+    },
+    {
+      "kind": "batch",
       "name_zh": "ROC動能",
       "interval": "15m",
       "side": "SHORT",
@@ -1810,36 +1930,6 @@
     },
     {
       "kind": "batch",
-      "name_zh": "Dual Thrust",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787744731,
-      "bar_ts": 1787743800,
-      "event": "close",
-      "strategy_id": "hg",
-      "symbols": [
-        {
-          "symbol": "DOGEUSDT",
-          "price": 0.08625,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.26595744680851985
-        },
-        {
-          "symbol": "BTCUSDT",
-          "price": 78460.29,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.20205003514412118
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
       "name_zh": "樞軸點突破",
       "interval": "15m",
       "side": "LONG",
@@ -1941,88 +2031,6 @@
         }
       ],
       "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "RSI超賣修復",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787744731,
-      "bar_ts": 1787743800,
-      "event": "close",
-      "strategy_id": "strat-016",
-      "symbols": [
-        {
-          "symbol": "BNBUSDT",
-          "price": 703.18,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.8056654624691789
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "ROC20動能",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787744731,
-      "bar_ts": 1787743800,
-      "event": "close",
-      "strategy_id": "strat-014",
-      "symbols": [
-        {
-          "symbol": "AVAXUSDT",
-          "price": 7.34,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.6227998916869789
-        },
-        {
-          "symbol": "DOGEUSDT",
-          "price": 0.08625,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.8506724910909351
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "EMA8/21",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787744730,
-      "bar_ts": 1787743800,
-      "event": "close",
-      "strategy_id": "strat-022",
-      "symbols": [
-        {
-          "symbol": "ONDOUSDT",
-          "price": 0.36554,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.7035558090891905
-        },
-        {
-          "symbol": "AVAXUSDT",
-          "price": 7.34,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.7974050547371289
-        }
-      ],
-      "strategy_count": 2
     }
   ],
   "exec_log_raw_count": 200
