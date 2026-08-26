@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-26T02:03:56.455069+00:00",
+  "updated_at": "2026-08-26T02:25:53.563016+00:00",
   "status": "BACKTEST_PRERENDER",
   "strategies": [
     {
@@ -2500,49 +2500,56 @@
       "slot": true,
       "status": "BACKTEST_READY",
       "strategy_type": "GRID",
-      "subtype": "PAIRS_COINT_GRID",
-      "title": "AVAX·統計套利協整配對網格 V2.4",
-      "name": "AVAX·統計套利協整配對網格 V2.4",
-      "symbol": "AVAX/USDT",
+      "subtype": "FIBO_DCA_GRID",
+      "title": "SOL·時序動量幾何DCA網格 V3.7",
+      "name": "SOL·時序動量幾何DCA網格 V3.7",
+      "symbol": "SOL/USDT",
       "symbols": [
-        "AVAXUSDT"
+        "SOLUSDT"
       ],
       "timeframe": "15m",
       "interval": "15m",
-      "period_days": 30,
-      "backtest_days": 30,
+      "period_days": 60,
+      "backtest_days": 60,
       "grid_params": {
-        "leverage": 5,
-        "grids_count": 60,
+        "lower_price": 67.5355,
+        "upper_price": 103.938,
+        "grids_count": 32,
         "grid_mode": "geometric",
-        "profit_per_grid_pct": 0.55
+        "leverage": 3.0,
+        "profit_per_grid_pct": 0.45,
+        "atr_multiplier": null,
+        "geo_ratio": 1.2
+      },
+      "params": {
+        "leverage": 3,
+        "profit_per_grid_pct": 0.45,
+        "geo_ratio": 1.2
       },
       "metrics": {
-        "backtest_apy_pct": 75.6,
-        "max_drawdown_pct": -2.2,
-        "win_rate_pct": 92.9,
-        "daily_turnover_rate": 42.4,
-        "daily_turnover": 42.4,
-        "sharpe_ratio": 5.13,
-        "profit_factor": 2.07,
-        "return_pct": 0.1243,
-        "period_days": 30,
+        "backtest_apy_pct": 156.6,
+        "max_drawdown_pct": -0.06,
+        "daily_turnover_rate": 7.7,
+        "daily_turnover": 7.7,
+        "sharpe_ratio": 43.669,
+        "win_rate_pct": 89.7,
+        "profit_factor": 34.279,
+        "return_pct": 0.1231,
+        "period_days": 60,
         "metrics_source": "backtest_60d",
-        "disclaimer": "基於 30 日回測數據"
+        "disclaimer": "基於 60 日回測數據"
       },
-      "sharpe": 5.13,
-      "max_drawdown": -0.022000000000000002,
-      "return_pct": 0.1243,
-      "profit_factor": 2.07,
-      "win_rate": 0.929,
-      "trades": 811,
+      "sharpe": 43.669,
+      "max_drawdown": -0.0006,
+      "return_pct": 0.1231,
+      "profit_factor": 34.279,
+      "win_rate": 0.8972,
+      "trades": 345,
       "chart": "/static/charts/strat-030.svg",
       "chart_url": "/static/charts/strat-030.svg",
-      "copy": "AVAX·統計套利協整配對網格 V2.4 · AVAXUSDT 高頻網格 · 回測 APY 75.6% · 日換手 42.4 · 手續費返傭導向",
-      "principle": "賽馬篩選網格 · 基於 60 日回測預渲染 · Live 掃描同步中",
       "monetization": "trading_volume_rebate",
-      "cleaned_at": "2026-08-25T14:13:11Z",
-      "disclaimer": "基於 30 日回測數據"
+      "replaced_at": "2026-08-26T02:25:53Z",
+      "copy": "SOL·時序動量幾何DCA網格 V3.7 · SOLUSDT 高換手網格 · 手續費返傭導向"
     },
     {
       "id": "ai_grid_dynamic_662647",
