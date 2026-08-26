@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-26T15:43:09Z",
+  "updated_at": "2026-08-26T15:44:40Z",
   "period_hours": 3,
   "poll_sec": 5,
   "scan_tf": "15m+1h",
@@ -1138,15 +1138,45 @@
   "exec_log": [
     {
       "kind": "batch",
+      "name_zh": "布林微破",
+      "interval": "5m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787758992,
+      "bar_ts": 1787758800,
+      "event": "open",
+      "strategy_id": "hb-bb5",
+      "symbols": [
+        {
+          "symbol": "ONDOUSDT",
+          "price": 0.35921,
+          "sl_pct": -0.5047186882324973,
+          "tp_pct": 1.0091589877787492,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
       "name_zh": "5m動能微破",
       "interval": "5m",
       "side": "LONG",
       "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787758809,
+      "logged_at": 1787758991,
       "bar_ts": 1787758800,
       "event": "open",
       "strategy_id": "hb-roc5",
       "symbols": [
+        {
+          "symbol": "SOLUSDT",
+          "price": 95.9,
+          "sl_pct": -0.40042544316997764,
+          "tp_pct": 0.8008508863399256,
+          "event": "open",
+          "pnl_pct": null
+        },
         {
           "symbol": "DOGEUSDT",
           "price": 0.08445,
@@ -1156,7 +1186,7 @@
           "pnl_pct": null
         }
       ],
-      "strategy_count": 1
+      "strategy_count": 2
     },
     {
       "kind": "batch",
@@ -1942,28 +1972,6 @@
           "tp_pct": 1.0084809090020175,
           "event": "open",
           "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "布林回歸1.6",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787758207,
-      "bar_ts": 1787758200,
-      "event": "close",
-      "strategy_id": "strat-029",
-      "symbols": [
-        {
-          "symbol": "ETHUSDT",
-          "price": 2454.56,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.0024443702080136818
         }
       ],
       "strategy_count": 1
