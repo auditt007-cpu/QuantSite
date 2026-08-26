@@ -11,12 +11,18 @@
 #aiStratModal .plaza-fee-note{font-size:12px;line-height:1.55;color:#334155;background:#f8fafc;border:1px solid #e2e8f0;padding:10px 12px;margin:14px 0 12px}
 #aiStratModal .plaza-tape{margin:10px 0 8px;overflow-x:hidden;overflow-y:auto;max-height:360px;border:1px solid #e2e8f0}
 #aiStratModal .plaza-tape table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:12px}
-#aiStratModal .plaza-tape th,#aiStratModal .plaza-tape td{padding:5px 4px;border-bottom:1px solid #e2e8f0;text-align:right;white-space:nowrap}
-#aiStratModal .plaza-tape th:first-child,#aiStratModal .plaza-tape td:first-child{width:31%;text-align:left;font-family:ui-monospace,Consolas,monospace;font-size:11px;font-variant-numeric:tabular-nums}
-#aiStratModal .plaza-tape th:nth-child(2),#aiStratModal .plaza-tape td:nth-child(2){text-align:left;font-family:inherit;font-size:12px}
+#aiStratModal .plaza-tape col.col-time{width:34%}
+#aiStratModal .plaza-tape col.col-side{width:13%}
+#aiStratModal .plaza-tape col.col-result{width:14%}
+#aiStratModal .plaza-tape col.col-pnl{width:20%}
+#aiStratModal .plaza-tape col.col-fee{width:19%}
+#aiStratModal .plaza-tape th,#aiStratModal .plaza-tape td{padding:5px 4px;border-bottom:1px solid #e2e8f0;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#aiStratModal .plaza-tape th:first-child,#aiStratModal .plaza-tape td:first-child{text-align:left;font-family:ui-monospace,Consolas,monospace;font-size:11px;font-variant-numeric:tabular-nums}
+#aiStratModal .plaza-tape th:nth-child(2),#aiStratModal .plaza-tape td:nth-child(2){text-align:center;font-family:inherit;font-size:11px;font-weight:700;letter-spacing:0.02em}
+#aiStratModal .plaza-tape th:nth-child(3),#aiStratModal .plaza-tape td:nth-child(3){text-align:center}
 #aiStratModal .plaza-tape .is-up{color:#0f7b3a}
 #aiStratModal .plaza-tape .is-down{color:#c2410c}
-#aiStratModal .plaza-tape caption{caption-side:top;text-align:left;font-size:12px;color:#64748b;padding:8px 8px 6px}
+#aiStratModal .plaza-tape caption{caption-side:top;text-align:left;font-size:12px;color:#64748b;padding:8px 8px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #aiStratModal #aiStratTitle{color:#0f172a}
 #aiStratModal #aiStratMeta{color:#64748b}
 `;
@@ -477,21 +483,32 @@
     return n < 10 ? "0" + n : String(n);
   }
 
-  function fmtFillTs(ms) {
+  function fmtFillTs(ms, compact) {
     const z = new Date(Number(ms) + 8 * 3600000);
     if (!Number.isFinite(z.getTime())) return "—";
     const yy = String(z.getUTCFullYear()).slice(-2);
-    return (
-      yy +
-      "/" +
+    const md =
       pad2(z.getUTCMonth() + 1) +
       "/" +
       pad2(z.getUTCDate()) +
       " " +
       pad2(z.getUTCHours()) +
       ":" +
-      pad2(z.getUTCMinutes())
-    );
+      pad2(z.getUTCMinutes());
+    if (compact) return md;
+    return yy + "/" + md;
+  }
+
+  function tapeSideShort(side) {
+    const buy = t("mktTapeBuy", "BUY");
+    const sell = t("mktTapeSell", "SELL");
+    if (side === buy) return t("mktTapeBuyShort", "买");
+    if (side === sell) return t("mktTapeSellShort", "卖");
+    return side;
+  }
+
+  function tapeCompact() {
+    return root.matchMedia && root.matchMedia("(max-width:767px)").matches;
   }
 
   function fillTimestamps(n, days, rng) {
@@ -658,17 +675,18 @@
       return '<p class="muted" style="margin:0;padding:8px">' + msg + "</p>";
     }
     const cap = TAPE_CAPITAL.toLocaleString("en-US");
-    const caption = t("mktTapeCaption", "成交明細，按採集時間逐筆。名義本金 {cap} USDT。")
-      .replace("{cap}", cap);
+    const caption = t("mktTapeCaption", "逐笔明细 · 本金 {cap} U").replace("{cap}", cap);
+    const compact = tapeCompact();
     let body = "";
     tape.rows.forEach(function (r) {
       const cls = r.win ? "is-up" : "is-down";
       const result = r.win ? t("mktTapeWin", "賺") : t("mktTapeLoss", "虧");
+      const side = compact ? tapeSideShort(r.side) : r.side;
       body +=
         "<tr><td>" +
-        fmtFillTs(r.ts) +
+        fmtFillTs(r.ts, compact) +
         "</td><td>" +
-        r.side +
+        side +
         '</td><td class="' +
         cls +
         '">' +
@@ -684,7 +702,7 @@
     return (
       "<table><caption>" +
       caption +
-      "</caption><thead><tr><th>" +
+      '</caption><colgroup><col class="col-time"><col class="col-side"><col class="col-result"><col class="col-pnl"><col class="col-fee"></colgroup><thead><tr><th>' +
       t("mktTapeTime", "採集時間") +
       "</th><th>" +
       t("mktTapeSide", "方向") +

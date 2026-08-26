@@ -5,9 +5,9 @@
   const CACHE = {};
   const AI_QUOTA_KEY = "qa_bot_ai_quota";
   const PRESETS = {
-    eth: { symbol: "ETHUSDT", lowerMult: 0.82, upperMult: 1.18, grids: 80, leverage: 5, geo: false, days: 30 },
-    btc: { symbol: "BTCUSDT", lowerMult: 0.72, upperMult: 1.28, grids: 40, leverage: 3, geo: false, days: 90 },
-    sol: { symbol: "SOLUSDT", lowerMult: 0.78, upperMult: 1.22, grids: 110, leverage: 7, geo: true, days: 30 },
+    btc1: { symbol: "BTCUSDT", lowerMult: 0.88, upperMult: 1.12, grids: 80, leverage: 5, geo: false, days: 30 },
+    btc2: { symbol: "BTCUSDT", lowerMult: 0.72, upperMult: 1.28, grids: 40, leverage: 3, geo: false, days: 90 },
+    btc3: { symbol: "BTCUSDT", lowerMult: 0.82, upperMult: 1.18, grids: 100, leverage: 7, geo: true, days: 30 },
   };
   const DYNAMIC_PRESETS = {};
 
@@ -977,17 +977,26 @@
   }
 
   let modeHintT = 0;
+  let modeHintFadeT = 0;
   function flashModeHint(geo) {
     const el = $("botModeHint");
     if (!el) return;
-    el.hidden = false;
     el.textContent = geo
       ? t("botGeoHint", "越往上，每一格隔得越寬")
       : t("botArithHint", "每一格隔開的價錢一樣多");
     clearTimeout(modeHintT);
+    clearTimeout(modeHintFadeT);
+    el.hidden = false;
+    el.classList.remove("is-hide");
+    el.classList.add("is-show");
     modeHintT = setTimeout(function () {
-      el.hidden = true;
-    }, 3200);
+      el.classList.remove("is-show");
+      el.classList.add("is-hide");
+      modeHintFadeT = setTimeout(function () {
+        el.hidden = true;
+        el.classList.remove("is-hide");
+      }, 280);
+    }, 2800);
   }
 
   const kpiPrev = { apy: null, trades: null, sharpe: null, mdd: null };
@@ -1189,6 +1198,14 @@
     sel.value = v;
   }
 
+  function bandPricesOk(lo, hi, symbol) {
+    if (!(lo > 0) || !(hi > lo)) return false;
+    const s = String(symbol || "").toUpperCase();
+    if (s.includes("BTC")) return lo > 5000 && hi < 500000;
+    if (s.includes("ETH")) return lo > 100 && hi < 20000;
+    return hi / lo < 50;
+  }
+
   function loadPreset(id) {
     const p = DYNAMIC_PRESETS[id] || PRESETS[id];
     if (!p) return;
@@ -1204,8 +1221,12 @@
     loadBars(p.symbol, daysOverride).then(function (bars) {
       const px = bars.length ? Number(bars[bars.length - 1].close) : 0;
       if (px > 0) {
-        const lo = Number.isFinite(p.lower) ? p.lower : px * p.lowerMult;
-        const hi = Number.isFinite(p.upper) ? p.upper : px * p.upperMult;
+        let lo = Number.isFinite(p.lower) ? p.lower : px * p.lowerMult;
+        let hi = Number.isFinite(p.upper) ? p.upper : px * p.upperMult;
+        if (!bandPricesOk(lo, hi, p.symbol)) {
+          lo = px * (p.lowerMult || 0.85);
+          hi = px * (p.upperMult || 1.15);
+        }
         if ($("botLower")) {
           $("botLower").value = Number(lo).toFixed(px >= 100 ? 1 : 4);
           $("botLower").setAttribute("data-lock", "1");
@@ -1255,15 +1276,14 @@
     });
     const top = (rows || []).slice(0, 3);
     if (!top.length) {
-      // Fallback: classic eth/btc/sol presets
-      ["eth", "btc", "sol"].forEach(function (id) {
+      ["btc1", "btc2", "btc3"].forEach(function (id) {
         const p = PRESETS[id];
-        DYNAMIC_PRESETS[id] = Object.assign({ title: id.toUpperCase() + " grid" }, p);
+        DYNAMIC_PRESETS[id] = Object.assign({ title: "BTC grid" }, p);
       });
       top.push(
-        { id: "eth", title: "ETH 智能震盪網格", return_pct: null, _fallback: "eth" },
-        { id: "btc", title: "BTC 寬幅防破網格", return_pct: null, _fallback: "btc" },
-        { id: "sol", title: "SOL 突破動量網格", return_pct: null, _fallback: "sol" }
+        { id: "btc1", title: "BTC 震盪密網", return_pct: null, _fallback: "btc1" },
+        { id: "btc2", title: "BTC 寬幅防破網格", return_pct: null, _fallback: "btc2" },
+        { id: "btc3", title: "BTC 等比波動網格", return_pct: null, _fallback: "btc3" }
       );
     }
     const cards = [];
@@ -1271,14 +1291,14 @@
     top.forEach(function (row, i) {
       const pid = row._fallback || "g" + i;
       const gp = row.grid_params || {};
-      const symRaw = String(row.symbol || gp.symbol || "ETH/USDT");
+      const symRaw = String(row.symbol || gp.symbol || "BTC/USDT");
       const symbol = symRaw.replace("/", "").replace("-", "");
       const lev = clamp(Number(gp.leverage) || 5, 1, 10);
       const grids = clamp(Number(gp.grids_count) || 60, 20, 150);
       const geo = String(gp.grid_mode || "").toLowerCase() === "geometric";
       const days = clamp(Number(row.period_days) || Number(row.backtest_days) || Number(row.metrics && row.metrics.period_days) || 30, 7, 90);
       const preset = {
-        symbol: /USDT$/i.test(symbol) ? symbol : symbol + "USDT",
+        symbol: "BTCUSDT",
         leverage: lev,
         grids: grids,
         geo: geo,
@@ -1287,11 +1307,11 @@
         upperMult: 1.15,
         title: row.title || row.name || row.subtype || pid,
       };
-      if (Number.isFinite(Number(gp.lower_price)) && Number(gp.lower_price) > 0) {
-        preset.lower = Number(gp.lower_price);
-      }
-      if (Number.isFinite(Number(gp.upper_price)) && Number(gp.upper_price) > 0) {
-        preset.upper = Number(gp.upper_price);
+      const lo = Number(gp.lower_price);
+      const hi = Number(gp.upper_price);
+      if (bandPricesOk(lo, hi, preset.symbol)) {
+        preset.lower = lo;
+        preset.upper = hi;
       }
       if (row._fallback && PRESETS[row._fallback]) {
         Object.assign(preset, PRESETS[row._fallback]);

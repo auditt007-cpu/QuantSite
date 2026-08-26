@@ -87,6 +87,7 @@ body.bots-page .wrap {
 }
 
 .bot-m-band {
+  position: relative;
   flex-direction: column;
   align-items: stretch;
 }
@@ -154,65 +155,82 @@ body.bots-page .wrap {
 }
 
 .bot-m-grids-val {
-  font-size: 14px;
-  font-weight: 800;
-  display: inline-flex;
-  flex-direction: column;
-  align-items: flex-start;
-  line-height: 1.1;
-  transform: none;
+  display: inline-grid;
+  grid-template-columns: auto auto auto;
+  column-gap: 3px;
+  row-gap: 1px;
+  align-items: baseline;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
 }
 
-.bot-m-grids-line {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 2px;
-  line-height: 1.1;
+.bot-m-grids-line,
+.bot-grid-step {
+  display: contents;
+}
+
+.bot-m-grids-pad {
+  display: block;
+}
+
+#botGridsOut,
+#botGridStep {
+  text-align: right;
+  min-width: 2.4em;
+  font-size: 14px;
+  font-weight: 800;
 }
 
 .bot-m-grids-val small {
-  font-size: 12px;
-  font-weight: 500;
-  color: #666;
-  line-height: 1;
-}
-
-.bot-grid-step {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 4px;
-  margin-top: 2px;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 500;
   color: #64748b;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.1;
-  white-space: nowrap;
+  line-height: 1;
 }
 
 .bot-grid-step-lab {
   font-size: 10px;
   font-weight: 500;
   color: #94a3b8;
+  line-height: 1;
 }
 
-.bot-m-type {
-  position: relative;
+.bot-grid-step-u {
+  font-size: 10px;
+  font-weight: 600;
+  color: #94a3b8;
 }
 
 .bot-mode-hint {
   position: absolute;
-  left: 0;
-  right: 0;
-  top: calc(100% - 2px);
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%) translateY(6px);
   margin: 0;
-  z-index: 4;
+  z-index: 6;
   font-size: 11px;
   font-weight: 600;
-  color: #334155;
-  background: #fff;
+  color: #64748b;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(0, 168, 107, 0.18);
+  border-radius: 4px;
+  padding: 6px 10px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.1);
   pointer-events: none;
   line-height: 1.35;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.28s ease, transform 0.28s ease;
+}
+
+.bot-mode-hint.is-show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.bot-mode-hint.is-hide {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-4px);
 }
 
 .bot-mode-hint[hidden] {
@@ -287,7 +305,43 @@ body.bots-page .wrap {
   grid-template-columns: minmax(280px, 400px) 1fr;
   gap: 16px;
   padding: 16px 0 8px;
-  align-items: start;
+  align-items: stretch;
+}
+
+@media (min-width: 901px) {
+  .bot-stats,
+  .bot-panel {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .bot-stats-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .bot-chart-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .bot-chart-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 260px;
+  }
+
+  .bot-chart-wrap canvas {
+    flex: 1;
+    height: auto;
+    min-height: 260px;
+  }
 }
 
 .bot-panel {
@@ -463,10 +517,15 @@ body.bots-page .wrap {
 }
 
 .bot-lev.is-on,
-.bot-days.is-on,
-.bot-mode.is-on {
+.bot-days.is-on {
   background: #000;
   color: #fff;
+}
+
+.bot-mode.is-on {
+  background: rgba(0, 168, 107, 0.1);
+  color: #007a50;
+  border-color: rgba(0, 168, 107, 0.22);
 }
 
 .bot-ai-lab {
@@ -1134,11 +1193,19 @@ body.bots-page .wrap {
   }
 
   .bot-m-band {
+    position: relative;
     flex-wrap: wrap;
     flex-direction: column;
     align-items: stretch;
     gap: 4px;
   }
+
+  .bot-mode-hint {
+    bottom: 6px;
+    font-size: 10px;
+    padding: 5px 8px;
+  }
+
   .bot-m-band-head {
     width: 100%;
   }
@@ -1227,11 +1294,18 @@ body.bots-page .wrap {
     font-size: 13px;
     font-weight: 700;
     color: #1a1d26;
-    min-width: 3.2em;
     transform: none;
-    align-items: flex-start;
   }
-  .bot-m-grids-val small {
+
+  #botGridsOut,
+  #botGridStep {
+    font-size: 13px;
+    font-weight: 700;
+    min-width: 2.2em;
+  }
+
+  .bot-m-grids-val small,
+  .bot-grid-step-u {
     color: rgba(26, 29, 38, 0.28);
   }
   .bot-grids-range {
