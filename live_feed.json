@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-26T15:10:16Z",
+  "updated_at": "2026-08-26T15:13:03Z",
   "period_hours": 3,
   "poll_sec": 5,
   "scan_tf": "15m+1h",
@@ -1142,11 +1142,19 @@
       "interval": "5m",
       "side": "LONG",
       "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787757003,
+      "logged_at": 1787757184,
       "bar_ts": 1787757000,
       "event": "open",
       "strategy_id": "hb-bb5",
       "symbols": [
+        {
+          "symbol": "ETHUSDT",
+          "price": 2442.38,
+          "sl_pct": -0.3002238799859221,
+          "tp_pct": 0.6004477190281606,
+          "event": "open",
+          "pnl_pct": null
+        },
         {
           "symbol": "DOGEUSDT",
           "price": 0.08453,
@@ -1164,7 +1172,29 @@
           "pnl_pct": null
         }
       ],
-      "strategy_count": 2
+      "strategy_count": 3
+    },
+    {
+      "kind": "batch",
+      "name_zh": "5m動能微破",
+      "interval": "5m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787757183,
+      "bar_ts": 1787757000,
+      "event": "open",
+      "strategy_id": "hb-roc5",
+      "symbols": [
+        {
+          "symbol": "BTCUSDT",
+          "price": 77924.58,
+          "sl_pct": -0.2790156469242548,
+          "tp_pct": 0.5580312938484908,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
     },
     {
       "kind": "batch",
@@ -1769,28 +1799,6 @@
         }
       ],
       "strategy_count": 3
-    },
-    {
-      "kind": "batch",
-      "name_zh": "布林回歸1.6",
-      "interval": "1h",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787756404,
-      "bar_ts": 1787752800,
-      "event": "close",
-      "strategy_id": "strat-029",
-      "symbols": [
-        {
-          "symbol": "BNBUSDT",
-          "price": 693.91,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 1.16
-        }
-      ],
-      "strategy_count": 1
     }
   ],
   "exec_log_raw_count": 200
