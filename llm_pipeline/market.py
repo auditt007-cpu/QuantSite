@@ -29,15 +29,21 @@ def _http_json(url: str) -> object:
         return json.loads(resp.read().decode("utf-8"))
 
 
-def fetch_ohlcv_ccxt(exchange_id: str, symbol: str, timeframe: str, since_ms: int) -> pd.DataFrame:
+def fetch_ohlcv_ccxt(exchange_id: str, symbol: str, timeframe: str = "1h", since_ms: int = 0) -> pd.DataFrame:
     import ccxt
 
     klass = getattr(ccxt, exchange_id)
     ex = klass({"enableRateLimit": True, "options": {"defaultType": "spot"}})
+    # Map common timeframe labels to exchange-specific formats
+    bybit_tf = {"15m": "15", "1h": "60", "4h": "240", "1d": "D"}
     out: List = []
     since = since_ms
     while True:
-        batch = ex.fetch_ohlcv(symbol, timeframe=timeframe, since=since, limit=1000)
+        if exchange_id == "bybit":
+            tf_arg = bybit_tf.get(timeframe, timeframe)
+            batch = ex.fetch_ohlcv(symbol, timeframe=timeframe, since=since, limit=1000)
+        else:
+            batch = ex.fetch_ohlcv(symbol, timeframe=timeframe, since=since, limit=1000)
         if not batch:
             break
         out.extend(batch)
@@ -51,7 +57,10 @@ def fetch_ohlcv_ccxt(exchange_id: str, symbol: str, timeframe: str, since_ms: in
     return _to_df(out)
 
 
-def fetch_ohlcv_okx_http(inst: str, bar: str = "1H", since_ms: int = 0) -> pd.DataFrame:
+def fetch_ohlcv_okx_http(inst: str, bar: str = "1H", since_ms: int = 0, timeframe: str = "1h") -> pd.DataFrame:
+    # Map timeframe to OKX bar parameter
+    okx_bar_map = {"15m": "15m", "1h": "1H", "4h": "4H", "1d": "1D"}
+    bar = okx_bar_map.get(timeframe, bar)
     rows: List = []
     after = ""
     while True:
@@ -79,13 +88,14 @@ def fetch_ohlcv_okx_http(inst: str, bar: str = "1H", since_ms: int = 0) -> pd.Da
     return _to_df(rows)
 
 
-def fetch_ohlcv_bybit_http(symbol: str, since_ms: int) -> pd.DataFrame:
+def fetch_ohlcv_bybit_http(symbol: str, since_ms: int, timeframe: str = "1h") -> pd.DataFrame:
+    bybit_interval = {"15m": "15", "1h": "60", "4h": "240", "1d": "D"}.get(timeframe, "60")
     rows: List = []
     end = int(time.time() * 1000)
     while True:
         url = (
-            "https://api.bybit.com/v5/market/kline?category=spot&symbol={0}&interval=60&limit=1000&end={1}"
-        ).format(symbol, end)
+            "https://api.bybit.com/v5/market/kline?category=spot&symbol={0}&interval={1}&limit=1000&end={2}"
+        ).format(symbol, bybit_interval, end)
         data = _http_json(url)
         batch = ((data.get("result") or {}).get("list") or [])
         if not batch:
@@ -106,7 +116,7 @@ def fetch_ohlcv_bybit_http(symbol: str, since_ms: int) -> pd.DataFrame:
     return _to_df(rows)
 
 
-def load_universe(days: int = 180, include_pair_extra: bool = True) -> Dict[str, pd.DataFrame]:
+def load_universe(days: int = 180, include_pair_extra: bool = True, timeframe: str = "1h") -> Dict[str, pd.DataFrame]:
     since = datetime.now(timezone.utc) - timedelta(days=days)
     since_ms = int(since.timestamp() * 1000)
     out: Dict[str, pd.DataFrame] = {}
@@ -117,11 +127,11 @@ def load_universe(days: int = 180, include_pair_extra: bool = True) -> Dict[str,
         last_err = None
         df = None
         sources: List[tuple[str, Callable[[], pd.DataFrame]]] = [
-            ("ccxt-okx", lambda p=pair: fetch_ohlcv_ccxt("okx", p, "1h", since_ms)),
-            ("okx-http", lambda i=inst: fetch_ohlcv_okx_http(i, "1H", since_ms)),
-            ("ccxt-bybit", lambda p=pair: fetch_ohlcv_ccxt("bybit", p, "1h", since_ms)),
-            ("bybit-http", lambda k=key: fetch_ohlcv_bybit_http(k, since_ms)),
-            ("ccxt-binance", lambda p=pair: fetch_ohlcv_ccxt("binance", p, "1h", since_ms)),
+            ("ccxt-okx", lambda p=pair: fetch_ohlcv_ccxt("okx", p, timeframe, since_ms)),
+            ("okx-http", lambda i=inst: fetch_ohlcv_okx_http(i, timeframe=timeframe, since_ms=since_ms)),
+            ("ccxt-bybit", lambda p=pair: fetch_ohlcv_ccxt("bybit", p, timeframe, since_ms)),
+            ("bybit-http", lambda k=key: fetch_ohlcv_bybit_http(k, since_ms, timeframe=timeframe)),
+            ("ccxt-binance", lambda p=pair: fetch_ohlcv_ccxt("binance", p, timeframe, since_ms)),
         ]
         for name, fn in sources:
             try:

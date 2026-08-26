@@ -450,7 +450,89 @@ def passes_commercial(agg: Dict[str, Any], apy_pct: float) -> bool:
 
 
 def mine_best_grid() -> Optional[Dict[str, Any]]:
-    """Light sweep: one subtype × one symbol per call after headroom check."""
+    """Two-tier: real event-driven backtest (15m) first, legacy formula (1h) fallback."""
+    # --- Tier 1: Real backtest ---
+    try:
+        result = _mine_real_grid()
+        if result:
+            log.info("REAL backtest hit gate — using real result")
+            return result
+    except Exception:
+        log.warning("real backtest failed: %s", traceback.format_exc().splitlines()[-1])
+    # --- Tier 2: Legacy model ---
+    log.info("falling back to legacy formula model")
+    return _mine_legacy_grid()
+
+
+def _mine_real_grid() -> Optional[Dict[str, Any]]:
+    """Try real event-driven grid backtest on 15m bars."""
+    from llm_pipeline.backtest_grid import (
+        real_param_combos,
+        passes_real,
+        run_real_subtype,
+    )
+    from llm_pipeline.grid_models import GRID_SYMBOLS, SUBTYPE_IDS
+    from llm_pipeline import market
+
+    wait_for_headroom()
+    days = 60
+    log.info("[REAL] loading 15m universe days=%s", days)
+    universe = market.load_universe(days, include_pair_extra=True, timeframe="15m")
+    gc.collect()
+
+    subtypes = list(SUBTYPE_IDS)
+    symbols = list(GRID_SYMBOLS)
+    random.shuffle(subtypes)
+    random.shuffle(symbols)
+    max_sub = int(os.environ.get("IDLE_MINER_MAX_SUBTYPES") or 2)
+    max_sym = int(os.environ.get("IDLE_MINER_MAX_SYMBOLS") or 1)
+    subtypes = subtypes[:max_sub]
+    symbols = symbols[:max_sym]
+
+    best = None
+    for subtype in subtypes:
+        for sym in symbols if subtype != "PAIRS_COINT_GRID" else ["BTC/USDT"]:
+            wait_for_headroom()
+            log.info("[REAL] mine %s @ %s", subtype, sym)
+            for params in real_param_combos(subtype)[:6]:  # cap combos on 1C1G
+                wait_for_headroom()
+                try:
+                    row = run_real_subtype(subtype, universe, sym, params)
+                except Exception:
+                    log.warning("[REAL] eval fail %s: %s", params, traceback.format_exc().splitlines()[-1])
+                    continue
+                finally:
+                    gc.collect()
+                if not row:
+                    continue
+                agg = row["agg"]
+                eq = row["equity"]
+                span_days = max(
+                    1.0,
+                    (eq.index[-1] - eq.index[0]).total_seconds() / 86400.0 if len(eq) > 1 else float(days),
+                )
+                ret = float(agg.get("return_pct") or 0.0)
+                apy = ((1.0 + ret) ** (365.0 / span_days) - 1.0) * 100.0 if ret > -0.99 else -99.0
+                apy_disp = float(min(apy, 200.0))  # tighter cap for real backtest
+                row["_apy_pct"] = apy_disp
+                row["_params"] = params
+                row["_backtest_type"] = "real"
+                if passes_real(agg):
+                    log.info("[REAL] gate HIT %s %s apy=%.1f dd=%.2f wr=%.1f",
+                             subtype, sym, apy_disp,
+                             float(agg.get("max_drawdown") or 0) * 100,
+                             float(agg.get("win_rate_pct") or 0))
+                    gc.collect()
+                    return row
+                if best is None or apy_disp > best.get("_apy_pct", -999):
+                    best = row
+            gc.collect()
+    # No gate-pass from real — return None to let legacy try
+    return None
+
+
+def _mine_legacy_grid() -> Optional[Dict[str, Any]]:
+    """Legacy formula-based sweep on 1h bars (original system)."""
     from llm_pipeline.grid_models import (
         GRID_SYMBOLS,
         SUBTYPE_IDS,
@@ -585,6 +667,8 @@ def overwrite_slot(
     ret_win = round((apy / 100.0) * (float(period_days) / 365.0), 4)
     if abs(ret_win) > 5.0:
         ret_win = round(2.5 if ret_win > 0 else -0.5, 4)
+    is_real = mined.get("_backtest_type") == "real"
+    apy_cap = 200.0 if is_real else 980.0
     entry = {
         "id": slot_id,
         "engine": slot_id,
@@ -604,7 +688,7 @@ def overwrite_slot(
         "grid_params": gp,
         "params": mined.get("_params") or {},
         "metrics": {
-            "backtest_apy_pct": round(min(apy, 980.0), 1),
+            "backtest_apy_pct": round(min(apy, apy_cap), 1),
             "max_drawdown_pct": dd_pct,
             "daily_turnover_rate": round(float(agg.get("daily_turnover_rate") or 0), 1),
             "daily_turnover": round(float(agg.get("daily_turnover_rate") or 0), 1),
@@ -625,9 +709,12 @@ def overwrite_slot(
         "chart": chart_rel,
         "chart_url": chart_rel,
         "monetization": "trading_volume_rebate",
+        "backtest_engine": "real_event_driven" if is_real else "legacy_formula",
         "replaced_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "copy": "{0} · {1} 高換手網格 · 按方法歸類展示".format(name, compact),
     }
+    if is_real and mined.get("_detail"):
+        entry["backtest_detail"] = mined["_detail"]
     rows = []
     replaced = False
     for row in payload.get("strategies") or []:
