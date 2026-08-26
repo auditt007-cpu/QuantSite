@@ -1,8 +1,60 @@
 {
-  "updated_at": "2026-08-26T14:26:17Z",
+  "updated_at": "2026-08-26T14:28:09Z",
   "venue": "coinbase",
   "poll_sec": 5,
   "exec_log": [
+    {
+      "kind": "batch",
+      "name_zh": "布林微破",
+      "interval": "5m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787754490,
+      "bar_ts": 1787754300,
+      "event": "open",
+      "strategy_id": "hb-bb5",
+      "symbols": [
+        {
+          "symbol": "SOLUSDT",
+          "price": 96.41,
+          "sl_pct": -0.38354942433358136,
+          "tp_pct": 0.7670998859039465,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "5m動能微破",
+      "interval": "5m",
+      "side": "SHORT",
+      "action": "多頭平倉翻空 (SELL)",
+      "logged_at": 1787754489,
+      "bar_ts": 1787754300,
+      "event": "open",
+      "strategy_id": "hb-roc5",
+      "symbols": [
+        {
+          "symbol": "ETHUSDT",
+          "price": 2453.19,
+          "sl_pct": -0.2819581850569978,
+          "tp_pct": 0.5639164108772605,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "BTCUSDT",
+          "price": 78396.88,
+          "sl_pct": -0.24857326337476437,
+          "tp_pct": 0.4971465280250994,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 2
+    },
     {
       "kind": "batch",
       "name_zh": "5m動能微破",
@@ -32,28 +84,6 @@
         }
       ],
       "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "5m動能微破",
-      "interval": "5m",
-      "side": "SHORT",
-      "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787754308,
-      "bar_ts": 1787754300,
-      "event": "open",
-      "strategy_id": "hb-roc5",
-      "symbols": [
-        {
-          "symbol": "BTCUSDT",
-          "price": 78396.88,
-          "sl_pct": -0.24857326337476437,
-          "tp_pct": 0.4971465280250994,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
     },
     {
       "kind": "batch",
@@ -700,60 +730,6 @@
         }
       ],
       "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "量價突破",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787753759,
-      "bar_ts": 1787753700,
-      "event": "close",
-      "strategy_id": "strat-021",
-      "symbols": [
-        {
-          "symbol": "DOGEUSDT",
-          "price": 0.08606,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.4435107376283747
-        },
-        {
-          "symbol": "NEARUSDT",
-          "price": 1.8441,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.49591280653951547
-        },
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.09117,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.8914012392651389
-        },
-        {
-          "symbol": "ONDOUSDT",
-          "price": 0.36271,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.10487676979548793
-        },
-        {
-          "symbol": "BTCUSDT",
-          "price": 78459.03,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.02100900595403378
-        }
-      ],
-      "strategy_count": 5
     }
   ],
   "exec_log_raw_count": 200,
