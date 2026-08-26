@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-26T05:10:54Z",
+  "updated_at": "2026-08-26T05:12:42Z",
   "period_hours": 3,
   "poll_sec": 5,
   "scan_tf": "15m+1h",
@@ -632,6 +632,58 @@
   ],
   "closed_signals_3h": [],
   "exec_log": [
+    {
+      "kind": "batch",
+      "name_zh": "多周期動量",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "多頭平倉翻空 (SELL)",
+      "logged_at": 1787721073,
+      "bar_ts": 1787719500,
+      "event": "open",
+      "strategy_id": "strat-004",
+      "symbols": [
+        {
+          "symbol": "ETHUSDT",
+          "price": 2457.56,
+          "sl_pct": -0.26125099692377696,
+          "tp_pct": 0.5225019938475539,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "多周期動量",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787721072,
+      "bar_ts": 1787719500,
+      "event": "close",
+      "strategy_id": "strat-004",
+      "symbols": [
+        {
+          "symbol": "ETHUSDT",
+          "price": 2457.56,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.34872027767865466
+        },
+        {
+          "symbol": "NEARUSDT",
+          "price": 1.872,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -1.421800947867294
+        }
+      ],
+      "strategy_count": 2
+    },
     {
       "kind": "batch",
       "name_zh": "5m動能微破",
@@ -1616,106 +1668,6 @@
       "bar_ts": 1787719500,
       "event": "close",
       "strategy_id": "strat-018",
-      "symbols": [
-        {
-          "symbol": "RENDERUSDT",
-          "price": 1.5138,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.006605456106743443
-        },
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.0928,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.4329004329004303
-        },
-        {
-          "symbol": "AAVEUSDT",
-          "price": 126.81,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.08681925808997587
-        },
-        {
-          "symbol": "BTCUSDT",
-          "price": 78819.84,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.23842601188619536
-        }
-      ],
-      "strategy_count": 4
-    },
-    {
-      "kind": "batch",
-      "name_zh": "複合動能",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787720520,
-      "bar_ts": 1787719500,
-      "event": "close",
-      "strategy_id": "strat-011",
-      "symbols": [
-        {
-          "symbol": "RENDERUSDT",
-          "price": 1.5138,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.1786777843954685
-        },
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.0928,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.4329004329004303
-        },
-        {
-          "symbol": "AAVEUSDT",
-          "price": 126.81,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.0
-        },
-        {
-          "symbol": "BNBUSDT",
-          "price": 694.16,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.5159367117633603
-        },
-        {
-          "symbol": "BTCUSDT",
-          "price": 78819.84,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.5072474470059978
-        }
-      ],
-      "strategy_count": 5
-    },
-    {
-      "kind": "batch",
-      "name_zh": "MACD動量",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787720519,
-      "bar_ts": 1787719500,
-      "event": "close",
-      "strategy_id": "strat-006",
       "symbols": [
         {
           "symbol": "RENDERUSDT",
