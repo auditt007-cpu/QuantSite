@@ -588,7 +588,7 @@
   const tabsEl = document.getElementById("termTabs");
   const PAGE = 999;
   let pageN = PAGE;
-  let activeFilter = "d60";
+  let activeFilter = "d7";
 
   function strategyPeriodDays(s) {
     const d = Number(
