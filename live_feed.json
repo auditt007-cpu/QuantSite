@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-26T03:40:33Z",
+  "updated_at": "2026-08-26T03:42:05Z",
   "period_hours": 3,
   "poll_sec": 5,
   "scan_tf": "15m+1h",
@@ -730,6 +730,66 @@
   "exec_log": [
     {
       "kind": "batch",
+      "name_zh": "短周期動量交叉",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "多頭平倉翻空 (SELL)",
+      "logged_at": 1787715692,
+      "bar_ts": 1787714100,
+      "event": "open",
+      "strategy_id": "qe",
+      "symbols": [
+        {
+          "symbol": "SOLUSDT",
+          "price": 96.98,
+          "sl_pct": -0.2923499690657798,
+          "tp_pct": 0.5846999381315743,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "AVAXUSDT",
+          "price": 7.364,
+          "sl_pct": -0.39215100488864385,
+          "tp_pct": 0.7843020097772877,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
+      "name_zh": "短周期動量交叉",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787715691,
+      "bar_ts": 1787714100,
+      "event": "close",
+      "strategy_id": "qe",
+      "symbols": [
+        {
+          "symbol": "SOLUSDT",
+          "price": 96.98,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.4209877810863503
+        },
+        {
+          "symbol": "AVAXUSDT",
+          "price": 7.364,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.6610009442870682
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
       "name_zh": "布林微破",
       "interval": "5m",
       "side": "LONG",
@@ -1176,28 +1236,6 @@
     },
     {
       "kind": "batch",
-      "name_zh": "短周期動量交叉",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787715125,
-      "bar_ts": 1787714100,
-      "event": "open",
-      "strategy_id": "qe",
-      "symbols": [
-        {
-          "symbol": "AVAXUSDT",
-          "price": 7.364,
-          "sl_pct": -0.39215100488864385,
-          "tp_pct": 0.7843020097772877,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
       "name_zh": "EMA多周期共振",
       "interval": "15m",
       "side": "SHORT",
@@ -1228,28 +1266,6 @@
       "bar_ts": 1787714100,
       "event": "close",
       "strategy_id": "strat-022",
-      "symbols": [
-        {
-          "symbol": "AVAXUSDT",
-          "price": 7.364,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.6610009442870682
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "短周期動量交叉",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787715124,
-      "bar_ts": 1787714100,
-      "event": "close",
-      "strategy_id": "qe",
       "symbols": [
         {
           "symbol": "AVAXUSDT",
