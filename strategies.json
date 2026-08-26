@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-26T03:25:53.412896+00:00",
+  "updated_at": "2026-08-26T03:52:08.876002+00:00",
   "status": "BACKTEST_PRERENDER",
   "strategies": [
     {
@@ -2348,49 +2348,56 @@
       "slot": true,
       "status": "BACKTEST_READY",
       "strategy_type": "GRID",
-      "subtype": "BASIS_FUNDING_GRID",
-      "title": "ETH·非對稱防守基差對沖網格 V3.1",
-      "name": "ETH·非對稱防守基差對沖網格 V3.1",
+      "subtype": "DYNAMIC_ATR_GRID",
+      "title": "ETH·統計套利波動收割網格 V2.2",
+      "name": "ETH·統計套利波動收割網格 V2.2",
       "symbol": "ETH/USDT",
       "symbols": [
         "ETHUSDT"
       ],
       "timeframe": "15m",
       "interval": "15m",
-      "period_days": 7,
-      "backtest_days": 7,
+      "period_days": 60,
+      "backtest_days": 60,
       "grid_params": {
-        "leverage": 5,
+        "lower_price": 2308.485,
+        "upper_price": 2640.045,
         "grids_count": 60,
         "grid_mode": "geometric",
-        "profit_per_grid_pct": 0.55
+        "leverage": 3.0,
+        "profit_per_grid_pct": 0.45,
+        "atr_multiplier": 1.2
+      },
+      "params": {
+        "leverage": 3,
+        "profit_per_grid_pct": 0.45,
+        "atr_multiplier": 1.2,
+        "grids_count": 60
       },
       "metrics": {
-        "backtest_apy_pct": 55.0,
-        "max_drawdown_pct": -3.4,
-        "win_rate_pct": 90.0,
-        "daily_turnover_rate": 30.7,
-        "daily_turnover": 30.7,
-        "sharpe_ratio": 5.31,
-        "profit_factor": 2.36,
-        "return_pct": 0.0904,
-        "period_days": 7,
+        "backtest_apy_pct": 980.0,
+        "max_drawdown_pct": -2.28,
+        "daily_turnover_rate": 20.9,
+        "daily_turnover": 20.9,
+        "sharpe_ratio": 68.535,
+        "win_rate_pct": 94.0,
+        "profit_factor": 22.907,
+        "return_pct": 0.6522,
+        "period_days": 60,
         "metrics_source": "backtest_60d",
-        "disclaimer": "基於 7 日回測數據"
+        "disclaimer": "基於 60 日回測數據"
       },
-      "sharpe": 5.31,
-      "max_drawdown": -0.034,
-      "return_pct": 0.0904,
-      "profit_factor": 2.36,
-      "win_rate": 0.9,
-      "trades": 1654,
+      "sharpe": 68.535,
+      "max_drawdown": -0.0228,
+      "return_pct": 0.6522,
+      "profit_factor": 22.907,
+      "win_rate": 0.94,
+      "trades": 939,
       "chart": "/static/charts/strat-027.svg",
       "chart_url": "/static/charts/strat-027.svg",
-      "copy": "ETH·非對稱防守基差對沖網格 V3.1 · ETHUSDT 高頻網格 · 回測 APY 55.0% · 日換手 30.7 · 手續費返傭導向",
-      "principle": "賽馬篩選網格 · 基於 60 日回測預渲染 · Live 掃描同步中",
       "monetization": "trading_volume_rebate",
-      "cleaned_at": "2026-08-25T14:13:11Z",
-      "disclaimer": "基於 7 日回測數據"
+      "replaced_at": "2026-08-26T03:52:08Z",
+      "copy": "ETH·統計套利波動收割網格 V2.2 · ETHUSDT 高換手網格 · 手續費返傭導向"
     },
     {
       "id": "strat-028",
