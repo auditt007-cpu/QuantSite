@@ -1,75 +1,10 @@
 (function (root) {
-  const cfg = root.QUANT_CONFIG || {};
-  const FALLBACK = {
+  const EMPTY = {
     period_days: 60,
     initial_capital: 10000,
-    pnl_board: [
-      { engine: "dual", name_zh: "EMA雙均交叉", name_en: "EMA Double Cross", roi_pct: 14.8, profit_factor: 2.4, trades: 42 },
-      { engine: "ribbon", name_zh: "EMA快線交叉", name_en: "EMA Fast Cross", roi_pct: 12.1, profit_factor: 2.1, trades: 55 },
-      { engine: "squeeze", name_zh: "布林擠壓突破", name_en: "BB Squeeze Break", roi_pct: 9.6, profit_factor: 1.9, trades: 38 },
-    ],
-    by_engine: {
-      dual: {
-        engine: "dual",
-        name_zh: "EMA雙均交叉",
-        name_en: "EMA Double Cross",
-        win_rate: 0.714,
-        profit_factor: 2.4,
-        max_drawdown: -0.062,
-        roi_pct: 14.8,
-        net_profit_pct: 0.148,
-        net_pnl_usd: 1480,
-        trades: 42,
-      },
-      ribbon: {
-        engine: "ribbon",
-        name_zh: "EMA快線交叉",
-        name_en: "EMA Fast Cross",
-        win_rate: 0.682,
-        profit_factor: 2.1,
-        max_drawdown: -0.071,
-        roi_pct: 12.1,
-        net_profit_pct: 0.121,
-        net_pnl_usd: 1210,
-        trades: 55,
-      },
-      squeeze: {
-        engine: "squeeze",
-        name_zh: "布林擠壓突破",
-        name_en: "BB Squeeze Break",
-        win_rate: 0.658,
-        profit_factor: 1.9,
-        max_drawdown: -0.085,
-        roi_pct: 9.6,
-        net_profit_pct: 0.096,
-        net_pnl_usd: 960,
-        trades: 38,
-      },
-      atr: {
-        engine: "atr",
-        name_zh: "ATR波動網格",
-        name_en: "ATR Volatility Grid",
-        win_rate: 0.641,
-        profit_factor: 1.8,
-        max_drawdown: -0.054,
-        roi_pct: 8.8,
-        net_profit_pct: 0.088,
-        net_pnl_usd: 880,
-        trades: 61,
-      },
-      rsi: {
-        engine: "rsi",
-        name_zh: "RSI超賣超買交叉",
-        name_en: "RSI Threshold Cross",
-        win_rate: 0.623,
-        profit_factor: 1.7,
-        max_drawdown: -0.079,
-        roi_pct: 7.2,
-        net_profit_pct: 0.072,
-        net_pnl_usd: 720,
-        trades: 47,
-      },
-    },
+    pnl_board: [],
+    wr_board: [],
+    by_engine: {},
   };
 
   function t(key) {
@@ -134,6 +69,95 @@
     const frac = Number(row.net_profit_pct);
     if (Number.isFinite(frac)) return frac * 100;
     return NaN;
+  }
+
+  function asWinRate(n) {
+    const x = Number(n);
+    if (!Number.isFinite(x)) return 0;
+    return x > 1 ? x / 100 : x;
+  }
+
+  function asDrawdown(n) {
+    const x = Number(n);
+    if (!Number.isFinite(x)) return 0;
+    const v = Math.abs(x) > 1.5 ? x / 100 : x;
+    return v > 0 ? -Math.abs(v) : v;
+  }
+
+  function rankScoreOf(row) {
+    const sh = Number(row && row.sharpe);
+    if (Number.isFinite(sh) && sh > 0 && sh <= 10) return sh;
+    return asWinRate(row && row.win_rate);
+  }
+
+  function plazaTitle(row) {
+    const pipe = root.QAPipeline;
+    if (pipe && typeof pipe.publicTitle === "function") return pipe.publicTitle(row);
+    return String((row && (row.title || row.name || row.id)) || "");
+  }
+
+  function isListedPlaza(row) {
+    const pipe = root.QAPipeline;
+    if (pipe && typeof pipe.isLiveListed === "function") return pipe.isLiveListed(row);
+    return Boolean(row && row.id && row.listed !== false && row.listed !== "false");
+  }
+
+  function boardRowFromPlaza(row) {
+    const title = plazaTitle(row);
+    const wr = asWinRate(row.win_rate);
+    const roi = Number(row.return_pct);
+    return {
+      engine: row.id,
+      plaza_id: row.id,
+      name_zh: title,
+      name_en: title,
+      win_rate: wr,
+      win_rate_smooth: wr,
+      rank_score: rankScoreOf(row),
+      eligible: true,
+      profit_factor: Number(row.profit_factor) || 0,
+      max_drawdown: asDrawdown(row.max_drawdown),
+      roi_pct: Number.isFinite(roi) ? roi : 0,
+      net_profit_pct: Number.isFinite(roi) ? (Math.abs(roi) <= 1.5 ? roi : roi / 100) : 0,
+      trades: Number(row.trades) || 0,
+    };
+  }
+
+  function plazaBoardPayload(rows) {
+    const listed = (rows || []).filter(isListedPlaza).map(boardRowFromPlaza);
+    const wr = listed
+      .slice()
+      .sort(function (a, b) {
+        return (b.rank_score || 0) - (a.rank_score || 0);
+      })
+      .slice(0, 10);
+    const pnl = listed
+      .slice()
+      .sort(function (a, b) {
+        return roiOf(b) - roiOf(a);
+      })
+      .slice(0, 10);
+    const by = {};
+    listed.forEach(function (r) {
+      by[r.engine] = r;
+    });
+    const hero = pnl[0] || null;
+    const days = Number(rows && rows[0] && rows[0].period_days) || 60;
+    return {
+      period_days: days,
+      wr_board: wr,
+      pnl_board: pnl,
+      by_engine: by,
+      hero_highlight: hero,
+      source: "plaza",
+    };
+  }
+
+  function fmtRankScore(r) {
+    const score = Number(r && r.rank_score);
+    if (Number.isFinite(score) && score > 1 && score <= 10) return score.toFixed(2);
+    const wrShow = r && r.win_rate_smooth != null ? r.win_rate_smooth : r && r.win_rate;
+    return fmtSharpeFromWr(wrShow);
   }
 
   function rowsFrom(payload) {
@@ -251,6 +275,7 @@
         name_en: r.name_en,
         win_rate: r.win_rate,
         win_rate_smooth: r.win_rate_smooth != null ? r.win_rate_smooth : r.win_rate,
+        rank_score: r.rank_score,
         trades: r.trades,
         max_drawdown: r.max_drawdown,
       }));
@@ -267,7 +292,6 @@
     return top
       .map((r, i) => {
         const dd = Math.abs(r.max_drawdown);
-        const wrShow = r.win_rate_smooth != null ? r.win_rate_smooth : r.win_rate;
         return (
           '<tr data-engine="' +
           r.engine +
@@ -281,7 +305,7 @@
           (r.name_en || "") +
           "</span></td>" +
           '<td class="hb-num is-up">' +
-          fmtSharpeFromWr(wrShow) +
+          fmtRankScore(r) +
           "</td>" +
           '<td class="hb-num">' +
           r.trades +
@@ -356,47 +380,84 @@
     if (pnlBody) pnlBody.innerHTML = pnlRowsHtml(rows, payload);
   }
 
-  async function loadLeaderboard() {
-    const stamp = Date.now();
-    const urls = [
-      cfg.leaderboardUrl || "./leaderboard.json?t=" + stamp,
-      "./leaderboard.json?t=" + stamp,
-      "/leaderboard.json?t=" + stamp,
-    ];
-    for (let i = 0; i < urls.length; i++) {
+  async function loadPlazaBoard() {
+    const pipe = root.QAPipeline;
+    let rows = root.QAPipelineStrategies || [];
+    if (root.QAPipelineReady) {
       try {
-        const res = await fetch(urls[i], { cache: "no-store" });
-        if (!res.ok) continue;
-        const data = await res.json();
-        if (data && data.by_engine) {
-          root.QALeaderboard = data;
-          return data;
-        }
-      } catch {
-        /* try next */
+        const ready = await root.QAPipelineReady;
+        if (Array.isArray(ready) && ready.length) rows = ready;
+      } catch (e) {
+        /* keep rows */
       }
     }
-    return FALLBACK;
+    if (pipe && typeof pipe.fetchRows === "function") {
+      try {
+        const fresh = await pipe.fetchRows();
+        if (Array.isArray(fresh) && fresh.length) {
+          rows = fresh;
+          root.QAPipelineStrategies = fresh;
+        }
+      } catch (e) {
+        /* keep rows */
+      }
+    }
+    const data = plazaBoardPayload(rows);
+    root.QALeaderboard = data;
+    return data && Object.keys(data.by_engine || {}).length ? data : EMPTY;
+  }
+
+  async function openPlazaCard(id) {
+    const pipe = root.QAPipeline;
+    if (!pipe) return;
+    if ((!root.QAPipelineStrategies || !root.QAPipelineStrategies.length) && typeof pipe.fetchRows === "function") {
+      try {
+        root.QAPipelineStrategies = await pipe.fetchRows();
+      } catch (e) {
+        return;
+      }
+    }
+    const hit =
+      typeof pipe.findListed === "function"
+        ? pipe.findListed(id)
+        : (root.QAPipelineStrategies || []).find(function (r) {
+            return r.id === id || r.engine === id;
+          });
+    if (!hit || typeof pipe.openDetail !== "function") return;
+    const card = typeof pipe.toCard === "function" ? pipe.toCard(hit) : hit;
+    pipe.openDetail(card);
   }
 
   function bindClicks() {
     if (document.documentElement.dataset.hbBound === "1") return;
     document.documentElement.dataset.hbBound = "1";
-    document.addEventListener("click", (ev) => {
+    document.addEventListener("click", function (ev) {
       const row = ev.target && ev.target.closest && ev.target.closest("tr[data-engine]");
       if (!row) return;
       const engine = row.getAttribute("data-engine");
       if (!engine) return;
-      location.href = "./strategies.html?strategy=" + encodeURIComponent(engine);
+      ev.preventDefault();
+      openPlazaCard(engine);
+    });
+  }
+
+  function scheduleBoardRefresh() {
+    if (root.__qaHomeBoardTimer) return;
+    root.__qaHomeBoardTimer = setInterval(function () {
+      loadPlazaBoard().then(paint);
+    }, 10 * 60 * 1000);
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "visible") loadPlazaBoard().then(paint);
     });
   }
 
   async function boot() {
     if (!document.getElementById("wrBoardBody")) return;
     bindClicks();
-    const data = await loadLeaderboard();
+    const data = await loadPlazaBoard();
     paint(data);
-    root.addEventListener("quant-lang", () => {
+    scheduleBoardRefresh();
+    root.addEventListener("quant-lang", function () {
       if (root.QAApplyI18n) root.QAApplyI18n();
       paint(root.QALeaderboard || data);
     });

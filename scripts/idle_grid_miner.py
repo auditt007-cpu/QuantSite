@@ -229,8 +229,8 @@ def ensure_plaza_slots(payload: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
             subtype = entry["id"] if isinstance(entry, dict) else str(entry)
         except Exception:
             pass
-        base = ["BTC", "ETH", "SOL", "DOGE", "AVAX"][i % 5]
-        sym = base + "/USDT"
+        base = "BTC"
+        sym = "BTC/USDT"
         name = institutional_name(sym, subtype)
         # Name wins — re-lock symbol from name
         base = str(name).split("·")[0].split("・")[0].strip().upper().replace("USDT", "") or base
@@ -473,12 +473,13 @@ def mine_best_grid() -> Optional[Dict[str, Any]]:
     random.shuffle(subtypes)
     random.shuffle(symbols)
     max_sub = int(os.environ.get("IDLE_MINER_MAX_SUBTYPES") or 2)
-    max_sym = int(os.environ.get("IDLE_MINER_MAX_SYMBOLS") or 2)
+    # Default 1: same method on ETH/SOL/DOGE is not a new strategy.
+    max_sym = int(os.environ.get("IDLE_MINER_MAX_SYMBOLS") or 1)
     subtypes = subtypes[:max_sub]
     symbols = symbols[:max_sym]
 
     for subtype in subtypes:
-        for sym in symbols if subtype != "PAIRS_COINT_GRID" else ["ETH/USDT"]:
+        for sym in symbols if subtype != "PAIRS_COINT_GRID" else ["BTC/USDT"]:
             wait_for_headroom()
             log.info("mine %s @ %s", subtype, sym)
             local_best = None
@@ -561,8 +562,8 @@ def overwrite_slot(
     # Lock symbol to institutional name prefix (never leave BTC when name says DOGE)
     base = str(name).split("·")[0].split("・")[0].strip().upper().replace("USDT", "")
     if not base:
-        raw = str(mined.get("symbol") or "ETH/USDT")
-        base = raw.split("/")[0].split("-")[0].replace("USDT", "").upper() or "ETH"
+        raw = str(mined.get("symbol") or "BTC/USDT")
+        base = raw.split("/")[0].split("-")[0].replace("USDT", "").upper() or "BTC"
     symbol_slash = "{0}/USDT".format(base)
     compact = base + "USDT"
     dd_pct = round(float(agg.get("max_drawdown") or 0) * 100, 2)
@@ -749,7 +750,7 @@ def run_cycle() -> bool:
         return False
 
     wait_for_headroom()
-    name = institutional_name(mined.get("symbol") or "ETH", mined.get("subtype") or "")
+    name = institutional_name(mined.get("symbol") or "BTC/USDT", mined.get("subtype") or "")
     svg_title = "{0} HF grid equity".format(mined.get("subtype") or "GRID")
     try:
         render_slot_svg(victim, mined["equity"], svg_title)

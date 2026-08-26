@@ -14,12 +14,7 @@ JSON_PATH = ROOT / "strategies.json"
 CHART_DIR = ROOT / "static" / "charts"
 
 SYMBOLS = [
-    ["BTCUSDT", "ETHUSDT", "SOLUSDT"],
-    ["ETHUSDT", "BNBUSDT", "SOLUSDT"],
-    ["SOLUSDT", "SUIUSDT", "DOGEUSDT"],
-    ["BTCUSDT", "BNBUSDT", "XRPUSDT"],
-    ["DOGEUSDT", "PEPEUSDT", "SUIUSDT"],
-    ["BTCUSDT", "ETHUSDT", "PEPEUSDT"],
+    ["BTCUSDT"],
 ]
 TFS = ["15m", "1h", "4h"]
 

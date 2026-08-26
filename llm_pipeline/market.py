@@ -7,9 +7,10 @@ from typing import Callable, Dict, List
 
 import pandas as pd
 
-SYMBOLS = ("ETH/USDT", "SOL/USDT", "DOGE/USDT", "AVAX/USDT")
-# BTC kept for PAIRS_COINT_GRID legs (ETH/BTC); not a primary rebate grid book.
-PAIR_EXTRA = ("BTC/USDT",)
+# Primary mining book is BTC only — multi-coin clones of the same subtype are noise.
+SYMBOLS = ("BTC/USDT",)
+# ETH kept solely for PAIRS_COINT_GRID (ETH/BTC spread); not a second plaza book.
+PAIR_EXTRA = ("ETH/USDT",)
 PRIMARY_TIMEFRAME = "15m"
 UA = "QuantSitePipeline/2.0"
 

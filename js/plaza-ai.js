@@ -205,6 +205,69 @@
     return /GRID|網格|网格/.test(blob);
   }
 
+  const DEAD_SYMS = { FETUSDT: true };
+
+  function isLiveListed(row) {
+    if (!row || !row.id) return false;
+    if (row.listed === false || row.listed === "false") return false;
+    const st = String(row.status || "").toUpperCase();
+    if (/DELIST|OFFLINE|ARCHIVED|DISABLED|RETIRED|UNLIST/.test(st)) return false;
+    const sy = String(row.symbol || (row.symbols && row.symbols[0]) || "")
+      .replace(/[/\-\s]/g, "")
+      .toUpperCase();
+    if (DEAD_SYMS[sy] || /^FET/.test(sy)) return false;
+    return true;
+  }
+
+  function findListed(query, symbol) {
+    const rows = (root.QAPipelineStrategies || []).filter(isLiveListed);
+    const q = String(query || "").trim();
+    const qn = q.toLowerCase();
+    if (q) {
+      let hit = rows.find(function (r) {
+        return r.id === q || r.engine === q || String(r.strategy_id || "") === q;
+      });
+      if (hit) return hit;
+      hit = rows.find(function (r) {
+        const title = String(r.title || r.name || "");
+        return title === q || title.toLowerCase() === qn;
+      });
+      if (hit) return hit;
+      hit = rows.find(function (r) {
+        return (r.member_ids || []).indexOf(q) >= 0;
+      });
+      if (hit) return hit;
+    }
+    const sy = String(symbol || "")
+      .replace(/[/\-\s]/g, "")
+      .toUpperCase();
+    if (sy) {
+      const cands = rows.filter(function (r) {
+        const rs = String(r.symbol || (r.symbols && r.symbols[0]) || "")
+          .replace(/[/\-\s]/g, "")
+          .toUpperCase();
+        return rs === sy || rs === sy.replace(/USDT$/, "") + "USDT";
+      });
+      cands.sort(function (a, b) {
+        const ra = windowRatioOf(a);
+        const rb = windowRatioOf(b);
+        return (rb || -999) - (ra || -999);
+      });
+      if (cands[0]) return cands[0];
+    }
+    return null;
+  }
+
+  function closeDetail() {
+    const modal = document.getElementById("aiStratModal");
+    if (modal) modal.classList.remove("show");
+    try {
+      root.dispatchEvent(new CustomEvent("qa-strat-detail-close"));
+    } catch (e) {
+      /* */
+    }
+  }
+
   function leverageOf(row) {
     if (!row) return 1;
     const gp = row.grid_params || row.params || {};
@@ -288,6 +351,11 @@
       const win = pool[0];
       const out = Object.assign({}, win);
       out.cohort = members.length;
+      out.member_ids = members
+        .map(function (m) {
+          return String(m.id || "");
+        })
+        .filter(Boolean);
       out.subtype = win.subtype || (METHOD_FAMILY[String(win.subtype || "").toUpperCase()] ? win.subtype : win.subtype);
       out.title = publicTitle(win);
       out.name = out.title;
@@ -866,7 +934,7 @@
         "</div>";
       document.body.appendChild(wrap);
       wrap.addEventListener("click", function (ev) {
-        if (ev.target === wrap || ev.target.hasAttribute("data-close-ai")) wrap.classList.remove("show");
+        if (ev.target === wrap || ev.target.hasAttribute("data-close-ai")) closeDetail();
       });
     }
     const host = wrap.querySelector(".modal") || wrap;
@@ -1089,7 +1157,7 @@
           raw
             .map(normalizeRow)
             .filter(Boolean)
-            .filter((row) => row.listed !== false && row.listed !== "false")
+            .filter((row) => isLiveListed(row))
         );
       } catch {
         /* try next */
@@ -1311,6 +1379,9 @@
 
   root.QAPipeline = {
     isGridMartin: isGridMartin,
+    isLiveListed: isLiveListed,
+    findListed: findListed,
+    closeDetail: closeDetail,
     toCard: toCard,
     displayName: displayName,
     chartUrl: chartUrl,

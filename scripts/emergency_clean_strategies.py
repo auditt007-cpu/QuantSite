@@ -49,7 +49,8 @@ PLAZA_IDS = [
 
 PREFIXES = ["自適應", "時序動量", "統計套利", "多維共振", "高頻流動性", "非對稱防守"]
 KERNELS = ["波動收割網格", "基差對沖網格", "擠壓套利網格", "幾何DCA網格", "協整配對網格"]
-SYMBOLS = ["BTC", "ETH", "SOL", "DOGE", "AVAX"]
+# One coin per method — multi-alt clones of the same subtype are dropped by hygiene.
+SYMBOLS = ["BTC"]
 SUBTYPES = [
     "DYNAMIC_ATR_GRID",
     "BASIS_FUNDING_GRID",

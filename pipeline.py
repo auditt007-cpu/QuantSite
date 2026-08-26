@@ -180,15 +180,15 @@ async def publish_grid(row: dict) -> None:
 
 
 async def run_once() -> bool:
-    print("[pipeline] HF Grid Engine — loading ETH/SOL/DOGE/AVAX (+BTC pairs) ~120d 1H", flush=True)
+    print("[pipeline] HF Grid Engine — BTC-only books (+ETH for pairs) ~120d 1H", flush=True)
     universe = market.load_universe(120, include_pair_extra=True)
     candidates = []
-    # Round-robin subtypes × symbols
+    # One book per subtype — never fan out the same logic across alts.
     for meta in SUBTYPES:
         subtype = meta["id"]
         symbols = list(GRID_SYMBOLS)
         if subtype == "PAIRS_COINT_GRID":
-            symbols = ["ETH/USDT"]  # pairs resolved inside run_subtype
+            symbols = ["BTC/USDT"]  # legs resolved inside run_subtype (ETH/BTC)
         for sym in symbols:
             print("[pipeline] sweep {0} @ {1}".format(subtype, sym), flush=True)
             row = sweep_subtype(universe, subtype, sym)

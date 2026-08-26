@@ -10,8 +10,8 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 import pandas as pd
 
-# Fee-driven universe (depth + vol); avoid thin books.
-GRID_SYMBOLS = ("ETH/USDT", "SOL/USDT", "DOGE/USDT", "AVAX/USDT")
+# Test / plaza publish: one book only. Same grid logic on alts is not a new method.
+GRID_SYMBOLS = ("BTC/USDT",)
 
 SUBTYPES: List[Dict[str, str]] = [
     {
@@ -54,9 +54,9 @@ PROFIT_PER_GRID_PCT = (0.4, 0.8)
 TARGET_WINRATE_PCT = (82.0, 92.0)
 HARD_STOP_OVERFLOW_PCT = 5.0
 
+# Pairs still need a second leg; primary grid books stay BTC-only.
 PAIR_LEGS = (
     ("ETHUSDT", "BTCUSDT"),
-    ("SOLUSDT", "AVAXUSDT"),
 )
 
 
