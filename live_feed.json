@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-26T02:33:59Z",
+  "updated_at": "2026-08-26T02:37:01Z",
   "period_hours": 3,
   "poll_sec": 5,
   "scan_tf": "15m+1h",
@@ -1198,6 +1198,50 @@
   "exec_log": [
     {
       "kind": "batch",
+      "name_zh": "布林微破",
+      "interval": "5m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787711822,
+      "bar_ts": 1787711400,
+      "event": "open",
+      "strategy_id": "hb-bb5",
+      "symbols": [
+        {
+          "symbol": "SUIUSDT",
+          "price": 0.7654,
+          "sl_pct": -0.3560229945126702,
+          "tp_pct": 0.7119153383851485,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "5m動能微破",
+      "interval": "5m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787711821,
+      "bar_ts": 1787711400,
+      "event": "open",
+      "strategy_id": "hb-roc5",
+      "symbols": [
+        {
+          "symbol": "DOGEUSDT",
+          "price": 0.0869,
+          "sl_pct": -0.26467203682392876,
+          "tp_pct": 0.5293440736478735,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
       "name_zh": "唐奇安14",
       "interval": "15m",
       "side": "LONG",
@@ -2151,82 +2195,6 @@
         }
       ],
       "strategy_count": 3
-    },
-    {
-      "kind": "batch",
-      "name_zh": "唐奇安10",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787711425,
-      "bar_ts": 1787710500,
-      "event": "close",
-      "strategy_id": "strat-015",
-      "symbols": [
-        {
-          "symbol": "APTUSDT",
-          "price": 0.5725,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 3.6195286195286136
-        },
-        {
-          "symbol": "SUIUSDT",
-          "price": 0.7669,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 2.330616403464083
-        },
-        {
-          "symbol": "ETHUSDT",
-          "price": 2467.52,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.4224423516771576
-        },
-        {
-          "symbol": "BTCUSDT",
-          "price": 79221.69,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.31928762415386613
-        }
-      ],
-      "strategy_count": 4
-    },
-    {
-      "kind": "batch",
-      "name_zh": "EMA快線交叉",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787711423,
-      "bar_ts": 1787710500,
-      "event": "close",
-      "strategy_id": "strat-012",
-      "symbols": [
-        {
-          "symbol": "APTUSDT",
-          "price": 0.5725,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 3.1302876480541393
-        },
-        {
-          "symbol": "DOGEUSDT",
-          "price": 0.08688,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.7654836464857271
-        }
-      ],
-      "strategy_count": 2
     }
   ],
   "exec_log_raw_count": 200
