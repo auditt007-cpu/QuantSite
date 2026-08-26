@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-26T12:40:35Z",
+  "updated_at": "2026-08-26T12:42:06Z",
   "period_hours": 3,
   "poll_sec": 5,
   "scan_tf": "15m+1h",
@@ -2066,7 +2066,7 @@
       "interval": "15m",
       "side": "SHORT",
       "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787748003,
+      "logged_at": 1787748057,
       "bar_ts": 1787747400,
       "event": "open",
       "strategy_id": "strat-026",
@@ -2088,7 +2088,7 @@
       "interval": "15m",
       "side": "SHORT",
       "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787748004,
+      "logged_at": 1787748058,
       "bar_ts": 1787747400,
       "event": "open",
       "strategy_id": "strat-011",
@@ -2110,7 +2110,7 @@
       "interval": "15m",
       "side": "LONG",
       "action": "多頭開倉 (BUY)",
-      "logged_at": 1787748003,
+      "logged_at": 1787748057,
       "bar_ts": 1787747400,
       "event": "close",
       "strategy_id": "strat-026",
@@ -2132,7 +2132,7 @@
       "interval": "15m",
       "side": "LONG",
       "action": "多頭開倉 (BUY)",
-      "logged_at": 1787748002,
+      "logged_at": 1787748056,
       "bar_ts": 1787747400,
       "event": "close",
       "strategy_id": "strat-011",
@@ -2144,6 +2144,94 @@
           "tp_pct": null,
           "event": "close",
           "pnl_pct": -1.219126029132356
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "複合動能B",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "空頭平倉翻多 (BUY)",
+      "logged_at": 1787748039,
+      "bar_ts": 1787747400,
+      "event": "open",
+      "strategy_id": "strat-026",
+      "symbols": [
+        {
+          "symbol": "AAVEUSDT",
+          "price": 126.32,
+          "sl_pct": -0.6374010449651585,
+          "tp_pct": 1.2748020899303394,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "複合動能",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "空頭平倉翻多 (BUY)",
+      "logged_at": 1787748040,
+      "bar_ts": 1787747400,
+      "event": "open",
+      "strategy_id": "strat-011",
+      "symbols": [
+        {
+          "symbol": "AAVEUSDT",
+          "price": 126.32,
+          "sl_pct": -0.6374010449651585,
+          "tp_pct": 1.2748020899303394,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "複合動能B",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787748039,
+      "bar_ts": 1787747400,
+      "event": "close",
+      "strategy_id": "strat-026",
+      "symbols": [
+        {
+          "symbol": "AAVEUSDT",
+          "price": 126.32,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -1.2341721429716237
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "複合動能",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787748038,
+      "bar_ts": 1787747400,
+      "event": "close",
+      "strategy_id": "strat-011",
+      "symbols": [
+        {
+          "symbol": "AAVEUSDT",
+          "price": 126.32,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -1.2341721429716237
         }
       ],
       "strategy_count": 1
@@ -2196,94 +2284,6 @@
           "tp_pct": 0.593207942293284,
           "event": "open",
           "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "複合動能",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787747984,
-      "bar_ts": 1787747400,
-      "event": "open",
-      "strategy_id": "strat-011",
-      "symbols": [
-        {
-          "symbol": "AAVEUSDT",
-          "price": 126.32,
-          "sl_pct": -0.6374010449651585,
-          "tp_pct": 1.2748020899303394,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "複合動能B",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787747985,
-      "bar_ts": 1787747400,
-      "event": "open",
-      "strategy_id": "strat-026",
-      "symbols": [
-        {
-          "symbol": "AAVEUSDT",
-          "price": 126.32,
-          "sl_pct": -0.6374010449651585,
-          "tp_pct": 1.2748020899303394,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "複合動能",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787747984,
-      "bar_ts": 1787747400,
-      "event": "close",
-      "strategy_id": "strat-011",
-      "symbols": [
-        {
-          "symbol": "AAVEUSDT",
-          "price": 126.32,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -1.2341721429716237
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "複合動能B",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787747983,
-      "bar_ts": 1787747400,
-      "event": "close",
-      "strategy_id": "strat-026",
-      "symbols": [
-        {
-          "symbol": "AAVEUSDT",
-          "price": 126.32,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -1.2341721429716237
         }
       ],
       "strategy_count": 1
@@ -2725,7 +2725,7 @@
         },
         {
           "symbol": "INJUSDT",
-          "price": 5.453,
+          "price": 5.433,
           "sl_pct": null,
           "tp_pct": null,
           "event": "open",
