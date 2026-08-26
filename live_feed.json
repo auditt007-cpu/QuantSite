@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-26T05:06:00Z",
+  "updated_at": "2026-08-26T05:07:53Z",
   "period_hours": 3,
   "poll_sec": 5,
   "scan_tf": "15m+1h",
@@ -634,6 +634,50 @@
   "exec_log": [
     {
       "kind": "batch",
+      "name_zh": "布林微破",
+      "interval": "5m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787720874,
+      "bar_ts": 1787720400,
+      "event": "open",
+      "strategy_id": "hb-bb5",
+      "symbols": [
+        {
+          "symbol": "PEPEUSDT",
+          "price": 3.82e-06,
+          "sl_pct": -4.712041884816753,
+          "tp_pct": 4.712041884816753,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "5m動能微破",
+      "interval": "5m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787720873,
+      "bar_ts": 1787720400,
+      "event": "open",
+      "strategy_id": "hb-roc5",
+      "symbols": [
+        {
+          "symbol": "NEARUSDT",
+          "price": 1.8663,
+          "sl_pct": -0.27310721748915656,
+          "tp_pct": 0.5461608530246957,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
       "name_zh": "肯特納快",
       "interval": "15m",
       "side": "LONG",
@@ -853,7 +897,7 @@
         },
         {
           "symbol": "NEARUSDT",
-          "price": 1.899,
+          "price": 1.8779,
           "sl_pct": null,
           "tp_pct": null,
           "event": "open",
@@ -1720,50 +1764,6 @@
       "bar_ts": 1787716800,
       "event": "close",
       "strategy_id": "strat-018",
-      "symbols": [
-        {
-          "symbol": "BNBUSDT",
-          "price": 694.31,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.2757709377648296
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "MACD動量",
-      "interval": "1h",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787720505,
-      "bar_ts": 1787716800,
-      "event": "close",
-      "strategy_id": "strat-006",
-      "symbols": [
-        {
-          "symbol": "BNBUSDT",
-          "price": 694.31,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.2757709377648296
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "MACD信號交叉",
-      "interval": "1h",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787720504,
-      "bar_ts": 1787716800,
-      "event": "close",
-      "strategy_id": "sf",
       "symbols": [
         {
           "symbol": "BNBUSDT",
