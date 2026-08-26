@@ -31,7 +31,8 @@
         <div class="logo"></div>
         <div class="brand-text">
           <h1>QUANT.ALPHA</h1>
-          <p class="site-slogan" data-i18n="brandSub">一個沒有感情的量化機器</p>
+          <!-- [PLAIN-TAG] -->
+          <p class="site-slogan" data-i18n="brandSub">一個沒有感情的策略機器</p>
         </div>
       </a>
       <button type="button" class="nav-toggle" id="navToggle" aria-label="選單" data-i18n-aria="ariaMenu">☰</button>
@@ -82,19 +83,23 @@
       <div class="hero-top">
         <div class="hero-row">
           <!-- [REPLACE-TAG] -->
-          <h1 class="hero-h1" data-i18n="heroH1">開源量化工具，助你評估策略的時序Alpha係數與波動捕捉能力</h1>
+          <!-- [PLAIN-TAG] -->
+          <h1 class="hero-h1" data-i18n="heroH1">開源工具，幫你看懂策略賺不賺錢</h1>
           <div class="hero-cta">
             <a id="btnGetStrategy" class="btn-cta pulse lg" href="#" data-community-open="1" target="_blank" rel="noopener" data-get-strategy data-i18n="heroCta">免費看策略信號</a>
           </div>
         </div>
-        <p class="hero-h2" data-i18n="heroH2">公開行情紀錄 · 可自己重跑的歷史回測 · 訂閱信號</p>
+        <!-- [PLAIN-TAG] -->
+        <p class="hero-h2" data-i18n="heroH2">公開行情紀錄 · 可自己重跑的歷史試算 · 訂閱信號</p>
       </div>
       <div class="kpi-row home-kpi" id="homeKpiRow">
         <!-- [REPLACE-TAG] -->
-        <div class="kpi"><span data-i18n="kpiWin">近階段波動捕捉率（時序Alpha）</span><b id="kpiWinVal" class="is-up">—</b><em id="kpiWinName" class="kpi-sub"></em></div>
+        <!-- [PLAIN-TAG] -->
+        <div class="kpi"><span data-i18n="kpiWin">近階段收益率</span><b id="kpiWinVal" class="is-up">—</b><em id="kpiWinName" class="kpi-sub"></em></div>
         <div class="kpi"><span data-i18n="kpiDd">最大回撤（這段最慘虧過多少）</span><b id="kpiDdVal">—</b></div>
         <!-- [REPLACE-TAG] -->
-        <div class="kpi"><span data-i18n="kpiPf">平均對錯比</span><b id="kpiPfVal">—</b></div>
+        <!-- [PLAIN-TAG] -->
+        <div class="kpi"><span data-i18n="kpiPf">平均盈虧比</span><b id="kpiPfVal">—</b></div>
       </div>
       <p class="muted kpi-note" data-i18n="kpiNote">這些數字來自歷史樣本，不代表以後還能賺這麼多</p>
     </section>
@@ -105,7 +110,8 @@
           <header class="hb-head">
             <div>
               <p class="hb-kicker" data-i18n="hbWrKicker">穩</p>
-              <h2 class="hb-title" data-i18n="hbWrTitle">誰更穩（夏普排行）</h2>
+              <!-- [PLAIN-TAG] -->
+              <h2 class="hb-title" data-i18n="hbWrTitle">誰更穩</h2>
             </div>
             <span class="hb-period" id="hbWrPeriod" data-i18n="hbPeriod">近 7 天</span>
           </header>
@@ -131,7 +137,8 @@
             <div>
               <p class="hb-kicker" data-i18n="hbPnlKicker">賺</p>
               <!-- [REPLACE-TAG] -->
-              <h2 class="hb-title" data-i18n="hbPnlTitle">策略Alpha排序（基於回測窗口）</h2>
+              <!-- [PLAIN-TAG] -->
+              <h2 class="hb-title" data-i18n="hbPnlTitle">誰賺得多（收益排行）</h2>
             </div>
             <span class="hb-period" id="hbPnlPeriod" data-i18n="hbPeriodPnl">近 60 天收益</span>
           </header>
@@ -142,9 +149,11 @@
                   <th data-i18n="hbColRank">排名</th>
                   <th data-i18n="hbColModel">策略</th>
                   <!-- [REPLACE-TAG] -->
-                  <th data-i18n="hbColPnl">區間波動捕捉率</th>
+                  <!-- [PLAIN-TAG] -->
+                  <th data-i18n="hbColPnl">區間收益</th>
                   <!-- [REPLACE-TAG] -->
-                  <th data-i18n="hbColPf">對錯比</th>
+                  <!-- [PLAIN-TAG] -->
+                  <th data-i18n="hbColPf">盈虧比</th>
                   <th class="hb-col-go" aria-hidden="true"></th>
                 </tr>
               </thead>
@@ -158,7 +167,8 @@
 
     
     <section class="lab-paper" id="labPaper" aria-label="How backtests work">
-      <h2 class="h2" data-i18n="labPlainTitle">回測是怎麼算的（人話版）</h2>
+      <!-- [PLAIN-TAG] -->
+      <h2 class="h2" data-i18n="labPlainTitle">歷史試算是怎麼算的（人話版）</h2>
       <p class="muted" data-i18n="labPlainLead">我們拿過去一段真實行情，按策略規則一筆筆模擬買賣，看這段時間是賺是虧。歷史成績不代表以後還能同樣賺。</p>
       <article class="paper-block">
         <h3 data-i18n="labPlainH1">1. 震盪時低買高賣</h3>
@@ -167,21 +177,25 @@
       <article class="paper-block">
         <h3 data-i18n="labPlainH2">2. 數字從哪裡來</h3>
         <!-- [REPLACE-TAG] -->
-        <p class="muted" data-i18n="labPlainP2">報酬率是這段回測窗口的累積結果，沒有年化。回撤是這段時間裡從高點掉下去最深的那一截。對錯比是平均賺的比平均虧的大多少。</p>
+        <!-- [PLAIN-TAG] -->
+        <p class="muted" data-i18n="labPlainP2">收益率是這段歷史試算窗口的累積結果，沒有年化。回撤是這段時間裡從高點掉下去最深的那一截。盈虧比是平均賺的比平均虧的大多少。</p>
       </article>
       <article class="paper-block">
         <h3 data-i18n="labPlainH3">3. 記帳怎麼算手續費</h3>
-        <p class="muted" data-i18n="labPlainP3">策略頁展示的盈虧按 0 手續費入帳，方便對照同一套回測。旁邊會另列參考手續費，沒有從盈虧裡扣掉。</p>
+        <!-- [PLAIN-TAG] -->
+        <p class="muted" data-i18n="labPlainP3">策略頁展示的盈虧按 0 手續費入帳，方便對照同一套歷史試算。旁邊會另列參考手續費，沒有從盈虧裡扣掉。</p>
       </article>
     </section>
 
     <!-- [REPLACE-TAG] -->
-    <div class="risk-banner" data-i18n="riskBanner">免責聲明：歷史回測數據不代表未來實盤收益，未計入滑點與手續費。本站信號僅供技術研究與量化編程參考，不構成任何投資建議。使用槓桿倍數進行模擬時，可能因市場極端波動導致本金全部損失，請審慎評估。</div>
+    <!-- [PLAIN-TAG] -->
+    <div class="risk-banner" data-i18n="riskBanner">免責聲明：歷史試算數據不代表未來真錢交易收益，沒算買賣價差和手續費。本站信號僅供技術研究與策略編程參考，不構成任何投資建議。使用槓桿倍數進行模擬時，可能因市場極端波動導致本金全部損失，請審慎評估。</div>
 
     <footer class="site-foot">
       <div class="foot-cta">
         <button type="button" class="foot-cta-btn" data-community-open="1" data-get-strategy data-i18n="footSubscribe">订阅节点数据流</button>
-        <p class="foot-disc" data-i18n="footDisc">QuantAlpha 是獨立的量化研究與演算法編譯工具，不構成任何投資建議。虛擬資產波動劇烈，請嚴格做好部位風控。</p>
+        <!-- [PLAIN-TAG] -->
+        <p class="foot-disc" data-i18n="footDisc">QuantAlpha 是獨立的策略研究和寫程序工具，不是投資建議。幣價漲跌很兇，請自己控制好倉位。</p>
       </div>
       <div class="foot-brand">
         <div class="foot-logo-mark">QUANT.ALPHA</div>

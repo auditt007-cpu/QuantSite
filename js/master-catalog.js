@@ -69,7 +69,8 @@
     },
     {
       id: "sn",
-      name: "RSI 背離脈衝修復 (RSI Divergence Alpha)",
+      // [PLAIN-TAG]
+      name: "RSI 背離脈衝修復 (RSI Divergence 收益)",
       principle: "核心原理：價格更低但 RSI 抬高，或 RSI 從超賣區帶量拐頭，都表示下跌力氣在減。",
       description: "核心原理：價格更低但 RSI 抬高，或 RSI 從超賣區帶量拐頭，都表示下跌力氣在減。觸發條件：出現底背離或 RSI 從 35 下方向上穿越時買入；RSI>58 或跌破均線時賣出。",
       tier: "master",

@@ -806,7 +806,8 @@ async function issueBindCode(env: Bindings, tgId: string) {
 
 function bindWelcome(code: string, _env: Bindings) {
   const lines = [
-    "歡迎來到 QUANT ALPHA 智能量化調度系統。",
+    // [PLAIN-TAG]
+    "歡迎來到 QUANT ALPHA 智能策略調度系統。",
     "",
     "免費公開頻道：https://t.me/quant_alpha_signals",
     "",

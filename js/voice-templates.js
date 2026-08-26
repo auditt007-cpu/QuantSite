@@ -34,25 +34,33 @@
       ],
       TAKE_PROFIT: [
         // [REPLACE-TAG]
-        "{symbol} 目标到位，触发平仓条件，模拟Alpha {pnl} pts。策略执行完成。",
+        // [PLAIN-TAG]
+        "{symbol} 目标到位，触发平仓条件，模拟赚了多少 {pnl} pts。策略执行完成。",
         // [REPLACE-TAG]
-        "结算：{symbol} 触及预设平仓条件，模拟Alpha {pnl} pts。执行纪律良好。",
+        // [PLAIN-TAG]
+        "结算：{symbol} 触及预设平仓条件，模拟赚了多少 {pnl} pts。执行纪律良好。",
         // [REPLACE-TAG]
         "{symbol} 兑现利润 {pnl} pts。这一笔执行合格，继续下一枪。",
         // [REPLACE-TAG]
-        "平仓触发：{symbol} 模拟Alpha {pnl} pts。锁定仿真结果。",
+        // [PLAIN-TAG]
+        "平仓触发：{symbol} 模拟赚了多少 {pnl} pts。锁定仿真结果。",
         // [REPLACE-TAG]
-        "{symbol} 到达预设目标，平仓模拟Alpha {pnl} pts。纪律执行。",
+        // [PLAIN-TAG]
+        "{symbol} 到达预设目标，平仓模拟赚了多少 {pnl} pts。纪律执行。",
         // [REPLACE-TAG]
-        "不错，{symbol} 平仓成交，模拟Alpha {pnl} pts。曲线反映回测数据。",
+        // [PLAIN-TAG]
+        "不错，{symbol} 平仓成交，模拟赚了多少 {pnl} pts。曲线反映历史试算数据。",
         // [REPLACE-TAG]
         "{symbol} 利润回撤前离场，锁定 {pnl} pts。这才是职业做法。",
         // [REPLACE-TAG]
-        "提醒：{symbol} 平仓完成，模拟Alpha {pnl} pts。准备下一次仿真。",
+        // [PLAIN-TAG]
+        "提醒：{symbol} 平仓完成，模拟赚了多少 {pnl} pts。准备下一次仿真。",
         // [REPLACE-TAG]
-        "{symbol} 阶段性目标达成，模拟Alpha {pnl} pts。此段仿真结束。",
+        // [PLAIN-TAG]
+        "{symbol} 阶段性目标达成，模拟赚了多少 {pnl} pts。此段仿真结束。",
         // [REPLACE-TAG]
-        "同步结果：{symbol} 平仓出局，模拟Alpha {pnl} pts。风控与执行仿真完成。",
+        // [PLAIN-TAG]
+        "同步结果：{symbol} 平仓出局，模拟赚了多少 {pnl} pts。风控与执行仿真完成。",
       ],
       STOP_LOSS: [
         "{symbol} 触发止损。认赔离场，本金优先，下一笔再说。",
@@ -146,7 +154,8 @@
         // [REPLACE-TAG]
         "{symbol} 利潤保護成功，鎖定 {pnl} pts，這才是好習慣啦！",
         // [REPLACE-TAG]
-        "同步結果：{symbol} 平倉完成，模擬Alpha {pnl} pts。",
+        // [PLAIN-TAG]
+        "同步結果：{symbol} 平倉完成，模擬賺了多少 {pnl} pts。",
         // [REPLACE-TAG]
         "{symbol} 達標平倉，到手 {pnl} pts，情緒歸零準備下一筆喔！",
       ],

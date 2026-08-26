@@ -381,7 +381,8 @@ if (ta.crossover(close, gridTakeProfit))
     },
     {
       id: "rsi",
-      name: "RSI 極值均值回歸修復 (Mean Reversion Alpha)",
+      // [PLAIN-TAG]
+      name: "RSI 極值均值回歸修復 (Mean Reversion 收益)",
       principle: "核心原理：價格創新低但 RSI 不再創新低，說明下跌力氣在減，容易出現修復。",
       description: "核心原理：價格創新低但 RSI 不再創新低，說明下跌力氣在減，容易出現修復。觸發條件：RSI 從 30 以下回升或出現底背離時買入；RSI 從 70 以上回落時賣出。",
       pine: PINE.rsi,

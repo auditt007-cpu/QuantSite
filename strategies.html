@@ -32,7 +32,8 @@
         <div class="logo"></div>
         <div class="brand-text">
           <h1>QUANT.ALPHA</h1>
-          <p class="site-slogan" data-i18n="brandSub">一個沒有感情的量化機器</p>
+          <!-- [PLAIN-TAG] -->
+          <p class="site-slogan" data-i18n="brandSub">一個沒有感情的策略機器</p>
         </div>
       </a>
       <div class="nav-end">
@@ -68,7 +69,8 @@
     <section class="desk plaza-intro mv-panel-strategies">
       <div class="kicker desk-only">STRATEGY PLAZA</div>
       <h2 class="h2" data-i18n="termDesk">策略榜</h2>
-      <p class="muted desk-only" data-i18n="mktLead">按方法歸類 · 寫明適用行情與回測天數 · 不作年化</p>
+      <!-- [PLAIN-TAG] -->
+      <p class="muted desk-only" data-i18n="mktLead">按方法分類 · 寫清楚適合什麼行情 · 試算了幾天 · 不吹成一年</p>
       <p class="open-src desk-only" data-i18n="openSrc">方法公開可查 · 也可導入 TradingView 自己驗證</p>
       <p class="muted" id="plazaCount"></p>
     </section>
@@ -80,8 +82,10 @@
         <div class="market-grid" id="gridAll"></div>
         <button type="button" class="btn ghost grid-more" id="gridMore" hidden data-i18n="gridMore">載入更多策略</button>
         <section class="lab-paper" id="labPaper" aria-label="Quantitative methods">
-      <h2 class="h2">PyQuant Lab · 開源統計套利與時序回測框架</h2>
-      <p class="muted">本頁為研究終端技術說明。以下公式與協議適用於所有訪客（單套 DOM，無分流）。歷史回測不代表未來結果。</p>
+      <!-- [PLAIN-TAG] -->
+      <h2 class="h2">PyQuant Lab · 用大白話做的策略試算說明</h2>
+      <!-- [PLAIN-TAG] -->
+      <p class="muted">這頁是給想搞懂原理的人看的。下面公式所有人看到同一套。歷史試算不代表以後還能賺。</p>
       <article class="paper-block">
         <h3>1. Ornstein–Uhlenbeck 均值回歸</h3>
         <pre class="paper-math">dX_t = θ(μ − X_t) dt + σ dW_t
@@ -101,26 +105,30 @@ x̂_{k|k} = x̂_{k|k−1} + K_k (z_k − H x̂_{k|k−1})</pre>
         <pre class="paper-math">TR_t = max(H_t−L_t, |H_t−C_{t−1}|, |L_t−C_{t−1}|)
 ATR_n = EMA(TR, n)
 Upper = Mid + k · ATR_n , Lower = Mid − k · ATR_n</pre>
-        <p class="muted">回測破位觸發點位為基準參考價格，非交易建議。</p>
+        <!-- [PLAIN-TAG] -->
+        <p class="muted">歷史試算破位觸發點位為基準參考價格，非交易建議。</p>
       </article>
       <article class="paper-block">
         <h3>4. 文檔協議</h3>
         <ul class="muted paper-list">
           <li>信號函數介面：<code>generate_signals(df) → Series[-1,0,1]</code></li>
-          <li>回測費用模型：換倉手續費 4 bps（可配置）</li>
+          <!-- [PLAIN-TAG] -->
+          <li>歷史試算費用模型：換一次倉手續費約萬分之四（可改）</li>
           <li>披露：樣本統計僅供研究；虛擬資產波動劇烈</li>
         </ul>
       </article>
     </section>
         <!-- [REPLACE-TAG] -->
-        <p class="disc-foot" data-i18n="discFoot">歷史回測數據不代表未來實盤收益，未計入滑點與手續費。本站信號僅供技術研究，不構成投資建議。使用槓桿倍數進行模擬時，可能因市場極端波動導致本金全部損失，請審慎評估。</p>
+        <!-- [PLAIN-TAG] -->
+        <p class="disc-foot" data-i18n="discFoot">歷史試算數據不代表未來真錢交易收益，沒算買賣價差和手續費。本站信號僅供技術研究，不構成投資建議。使用槓桿倍數進行模擬時，可能因市場極端波動導致本金全部損失，請審慎評估。</p>
         <p class="disc-mini" data-i18n="discMini">僅供數據研究</p>
       </section>
     </div>
 
     <div id="viewBacktest" hidden>
       <div id="btLoading" class="bt-loading" hidden aria-live="polite">
-        <p data-i18n="btLoading">正在載入 K 線與回測引擎…</p>
+        <!-- [PLAIN-TAG] -->
+        <p data-i18n="btLoading">正在載入 K 線與歷史試算引擎…</p>
       </div>
       <button type="button" class="btn-back-list action-btn" id="btnBackList" data-i18n="backList">＜ 返回策略列表</button>
       <section class="lab-flow">
@@ -137,7 +145,8 @@ Upper = Mid + k · ATR_n , Lower = Mid − k · ATR_n</pre>
             </select>
           </label>
           <label class="bt-param">
-            <span class="exec-label" data-i18n="lookback">回測時間區間</span>
+            <!-- [PLAIN-TAG] -->
+            <span class="exec-label" data-i18n="lookback">歷史試算時間區間</span>
             <select id="btLookback" class="bt-lookback-native">
               <option value="1" data-i18n="look1d">1天</option>
               <option value="3" data-i18n="look3d">3天</option>
@@ -163,7 +172,8 @@ Upper = Mid + k · ATR_n , Lower = Mid − k · ATR_n</pre>
 
         <div class="exec-bar">
           <p class="engine-chip" id="engineChip" aria-live="polite"></p>
-          <button class="btn-cta gm-btn action-btn exec-run" id="btnRun" data-i18n="gmRun">執行回測</button>
+          <!-- [PLAIN-TAG] -->
+          <button class="btn-cta gm-btn action-btn exec-run" id="btnRun" data-i18n="gmRun">執行歷史試算</button>
           <div class="risk-banner" id="masterGate" hidden></div>
         </div>
 
@@ -205,7 +215,8 @@ Upper = Mid + k · ATR_n , Lower = Mid − k · ATR_n</pre>
                 </div>
                 <div class="bbg-metric-cell">
                   <!-- [REPLACE-TAG] -->
-                  <span class="bbg-metric-title" data-i18n="statPf">對錯比</span>
+                  <!-- [PLAIN-TAG] -->
+                  <span class="bbg-metric-title" data-i18n="statPf">盈虧比</span>
                   <span class="bbg-metric-number bbg-bright-white" id="mPf">—</span>
                   <p class="bbg-human-sub" id="mPfSub"></p>
                 </div>
@@ -227,7 +238,8 @@ Upper = Mid + k · ATR_n , Lower = Mid − k · ATR_n</pre>
                 <span data-i18n="lblMaxDd">最大回撤</span> <strong id="navDd" class="bbg-loss-text">0.0 pts</strong>
                 <span class="bbg-human-sub bbg-human-sub-inline" id="navDdSub"></span>
               </div>
-              <div class="bbg-strip-item"><span data-i18n="lblPeriod">回測用時</span> <strong id="navDur" class="bbg-win-text">30 DAYS</strong></div>
+              <!-- [PLAIN-TAG] -->
+              <div class="bbg-strip-item"><span data-i18n="lblPeriod">歷史試算用時</span> <strong id="navDur" class="bbg-win-text">30 DAYS</strong></div>
             </div>
             <div class="bbg-trades-section">
               <div class="bbg-section-header">
@@ -242,7 +254,8 @@ Upper = Mid + k · ATR_n , Lower = Mid − k · ATR_n</pre>
               <span id="bbgFooterMeta">TIMEFRAME: — · SAMPLES: —</span>
             </div>
           </div>
-          <p class="muted sample-hint desk-only" id="sampleHint" data-i18n="btAwaitRun">設定幣種、周期與回測區間後，點擊「執行回測」</p>
+          <!-- [PLAIN-TAG] -->
+          <p class="muted sample-hint desk-only" id="sampleHint" data-i18n="btAwaitRun">設定幣種、周期與歷史試算區間後，點擊「執行歷史試算」</p>
           <div class="perf-block">
             <h3 class="zone-title" data-i18n="gmEquity">淨值曲線</h3>
             <div class="chart-frame-rel">
@@ -273,7 +286,8 @@ Upper = Mid + k · ATR_n , Lower = Mid − k · ATR_n</pre>
             <article class="trust-card">
               <h4 data-i18n="trustLocalTitle">純本地計算 (Zero-Custody Engine)</h4>
               <!-- [REPLACE-TAG] -->
-              <p data-i18n="trustLocalBody">回測邏輯與參數 100 pts 於本地瀏覽器運算，絕不索取用戶 API 交易密鑰，程式碼開源透明。</p>
+              <!-- [PLAIN-TAG] -->
+              <p data-i18n="trustLocalBody">歷史試算邏輯與參數 100 pts 於本地瀏覽器運算，絕不索取用戶 API 交易密鑰，程式碼開源透明。</p>
             </article>
             <article class="trust-card">
               <!-- [REPLACE-TAG] -->
@@ -282,13 +296,15 @@ Upper = Mid + k · ATR_n , Lower = Mid − k · ATR_n</pre>
             </article>
             <article class="trust-card">
               <h4 data-i18n="trustStressTitle">嚴謹壓力測試 (Stress-Tested Models)</h4>
-              <p data-i18n="trustStressBody">全站策略均經過 2023-2026 極端牛熊行情回測檢驗，內建最大回撤與停損熔斷機制。</p>
+              <!-- [PLAIN-TAG] -->
+              <p data-i18n="trustStressBody">全站策略均經過 2023-2026 極端牛熊行情歷史試算檢驗，內建最大回撤與停損熔斷機制。</p>
             </article>
           </div>
           <section class="week-board-mobile sheet-extra" aria-label="Peak return ranking">
             <div class="kicker kicker-plain">ALPHA</div>
             <!-- [REPLACE-TAG] -->
-            <h3 class="rail-h" data-week-title>極端窗口波動捕捉率排行 TOP 5（僅供回測觀察）</h3>
+            <!-- [PLAIN-TAG] -->
+            <h3 class="rail-h" data-week-title>這段日子誰賺得多 TOP 5（只看歷史試算）</h3>
             <p class="muted lb-period-note" data-lb-period></p>
             <ol class="week-list" data-week-board></ol>
           </section>
@@ -300,7 +316,8 @@ Upper = Mid + k · ATR_n , Lower = Mid − k · ATR_n</pre>
         <section class="rail-block week-board-desk mv-panel-leaderboard">
           <div class="kicker kicker-plain">ALPHA</div>
           <!-- [REPLACE-TAG] -->
-          <h3 class="rail-h" data-week-title>極端窗口波動捕捉率排行 TOP 5（僅供回測觀察）</h3>
+          <!-- [PLAIN-TAG] -->
+          <h3 class="rail-h" data-week-title>這段日子誰賺得多 TOP 5（只看歷史試算）</h3>
           <p class="muted lb-period-note" data-lb-period></p>
           <ol class="week-list" data-week-board></ol>
         </section>
@@ -326,7 +343,8 @@ Upper = Mid + k · ATR_n , Lower = Mid − k · ATR_n</pre>
     <footer class="site-foot">
       <div class="foot-cta">
         <button type="button" class="foot-cta-btn" data-community-open="1" data-get-strategy data-i18n="footSubscribe">订阅节点数据流</button>
-        <p class="foot-disc" data-i18n="footDisc">QuantAlpha 是獨立的量化研究與演算法編譯工具，不構成任何投資建議。虛擬資產波動劇烈，請嚴格做好部位風控。</p>
+        <!-- [PLAIN-TAG] -->
+        <p class="foot-disc" data-i18n="footDisc">QuantAlpha 是獨立的策略研究和寫程序工具，不是投資建議。幣價漲跌很兇，請自己控制好倉位。</p>
       </div>
       <div class="foot-brand">
         <div class="foot-logo-mark">QUANT.ALPHA</div>
@@ -351,7 +369,8 @@ Upper = Mid + k · ATR_n , Lower = Mid − k · ATR_n</pre>
       <button type="button" class="btn ghost" id="aiLimitClose" data-i18n="close">關閉</button>
     </div>
   </div>
-  <nav class="thumb-dock" id="thumbDock" aria-label="回測操作" data-i18n-aria="ariaBacktestOps">
+  <!-- [PLAIN-TAG] -->
+  <nav class="thumb-dock" id="thumbDock" aria-label="歷史試算操作" data-i18n-aria="ariaBacktestOps">
     <label class="dock-field">
       <span data-i18n="dockCoin">幣種</span>
       <select id="dockSymbol">
@@ -372,7 +391,8 @@ Upper = Mid + k · ATR_n , Lower = Mid − k · ATR_n</pre>
         <option value="1w" data-i18n="tf1w">1週</option>
       </select>
     </label>
-    <button type="button" class="btn-cta dock-run" id="dockRun" data-i18n="dockRun">執行回測</button>
+    <!-- [PLAIN-TAG] -->
+    <button type="button" class="btn-cta dock-run" id="dockRun" data-i18n="dockRun">執行歷史試算</button>
   </nav>
   <div class="share-overlay" id="shareOverlay" hidden>
     <div class="share-poster" id="sharePoster">

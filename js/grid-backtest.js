@@ -1054,14 +1054,16 @@
       if (n) n.textContent = "—";
       if (sh) sh.textContent = "—";
       if (dd) dd.textContent = "—";
-      if (lab) lab.textContent = t("botApy", "區間報酬率");
+      // [PLAIN-TAG]
+      if (lab) lab.textContent = t("botApy", "區間收益");
       return;
     }
     const periodVal = Number.isFinite(res.periodRet) ? res.periodRet : res.last - 1;
     const daysLab = Number.isFinite(res.days) ? Math.max(1, Math.round(res.days)) : null;
     if (lab) {
       lab.textContent =
-        t("botApy", "區間報酬率") + (daysLab ? " · " + daysLab + "d" : "");
+        // [PLAIN-TAG]
+        t("botApy", "區間收益") + (daysLab ? " · " + daysLab + "d" : "");
     }
     let changed = false;
     if (apy && periodVal !== kpiPrev.apy) {
@@ -1138,7 +1140,8 @@
   async function runBacktest() {
     const seq = ++runSeq;
     const status = $("botStatus");
-    if (status) status.textContent = t("botRunning", "回測運算中…");
+    // [PLAIN-TAG]
+    if (status) status.textContent = t("botRunning", "歷史試算運算中…");
     try {
       const cfg = readForm();
       const bars = await loadBars(cfg.symbol, cfg.days);
@@ -1149,7 +1152,8 @@
       paintGridStep();
       if (status) {
         status.textContent = res.ok
-          ? t("botDone", "已用真實 K 線完成本機回測（含 4bps 來回成本）")
+          // [PLAIN-TAG]
+          ? t("botDone", "已用真實 K 線完成本機歷史試算（含來回手續費（約萬分之八））")
           : t("botFail", "K 線不足，請稍後再試");
       }
       if (res.ok) scrollToResults();
@@ -1333,7 +1337,8 @@
           "<p>" +
           sub +
           " · " +
-          t("botApy", "區間報酬率") +
+          // [PLAIN-TAG]
+          t("botApy", "區間收益") +
           " " +
           retTxt +
           "</p>" +
@@ -1605,14 +1610,16 @@
     const cta = $("aiLimitCta");
     if (code === "guest") {
       if (title) title.textContent = t("botAiLimitGuestTitle", "今日 AI 次數用完");
-      if (text) text.textContent = t("botAiLimitGuestMsg", "訪客每天可 AI 調參 3 次。登入後每天 10 次；付費會員不限。普通回測不限次數。");
+      // [PLAIN-TAG]
+      if (text) text.textContent = t("botAiLimitGuestMsg", "訪客每天可 AI 調參 3 次。登入後每天 10 次；付費會員不限。普通歷史試算不限次數。");
       if (cta) {
         cta.href = "./member.html#login";
         cta.textContent = t("botAiLimitLogin", "去登入");
       }
     } else {
       if (title) title.textContent = t("botAiLimitFreeTitle", "今日 AI 次數用完");
-      if (text) text.textContent = t("botAiLimitFreeMsg", "已登入用戶每天可 AI 調參 10 次。開通會員後不限次數。普通回測仍可隨意使用。");
+      // [PLAIN-TAG]
+      if (text) text.textContent = t("botAiLimitFreeMsg", "已登入用戶每天可 AI 調參 10 次。開通會員後不限次數。普通歷史試算仍可隨意使用。");
       if (cta) {
         cta.href = "./member.html#pay";
         cta.textContent = t("botAiLimitPay", "開通會員");
@@ -1718,7 +1725,8 @@
       }
       syncBandTrack();
     }
-    if ($("botStatus")) $("botStatus").textContent = t("botAiApplied", "AI 已套用參數，正在回測…");
+    // [PLAIN-TAG]
+    if ($("botStatus")) $("botStatus").textContent = t("botAiApplied", "AI 已套用參數，正在歷史試算…");
     await runBacktest();
   }
 

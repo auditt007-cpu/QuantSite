@@ -30,7 +30,8 @@
         <div class="logo"></div>
         <div class="brand-text">
           <h1>QUANT.ALPHA</h1>
-          <p class="site-slogan" data-i18n="brandSub">一個沒有感情的量化機器</p>
+          <!-- [PLAIN-TAG] -->
+          <p class="site-slogan" data-i18n="brandSub">一個沒有感情的策略機器</p>
         </div>
       </a>
       <div class="nav-end">
@@ -62,9 +63,11 @@
     <header class="bots-hero">
       <div class="bots-hero-row">
         <h1 class="bots-title-en" data-i18n="botKicker">GRID TRADING BOTS</h1>
-        <span class="bots-hero-sub" data-i18n="botLeadShort">免登入 · 本地回測</span>
+        <!-- [PLAIN-TAG] -->
+        <span class="bots-hero-sub" data-i18n="botLeadShort">免登入 · 本地歷史試算</span>
       </div>
-      <p class="bots-lead" data-i18n="botLead">免登入即可調參，於瀏覽器本機秒級回測；滿意後再託管至雲端節點，全日自動掛單。</p>
+      <!-- [PLAIN-TAG] -->
+      <p class="bots-lead" data-i18n="botLead">免登入即可調參，於瀏覽器本機秒級歷史試算；滿意後再託管至雲端節點，全日自動掛單。</p>
     </header>
 
     <section class="bot-console" aria-label="Grid sandbox">
@@ -72,7 +75,8 @@
         <div class="bot-stats-card">
         <div class="bot-kpis" id="botKpis">
           <div class="bot-kpi">
-            <div class="bot-kpi-lab" data-i18n="botApy">區間報酬率</div>
+            <!-- [PLAIN-TAG] -->
+            <div class="bot-kpi-lab" data-i18n="botApy">區間收益</div>
             <div class="bot-kpi-val is-up" id="botApy">—</div>
           </div>
           <div class="bot-kpi">
@@ -80,7 +84,8 @@
             <div class="bot-kpi-val" id="botTrades">—</div>
           </div>
           <div class="bot-kpi">
-            <div class="bot-kpi-lab" data-i18n="botSharpe">夏普比率</div>
+            <!-- [PLAIN-TAG] -->
+            <div class="bot-kpi-lab" data-i18n="botSharpe">稳不稳</div>
             <div class="bot-kpi-val is-gold" id="botSharpe">—</div>
           </div>
           <div class="bot-kpi">
@@ -91,7 +96,8 @@
 
         <div class="bot-chart-card">
           <div class="bot-chart-head">
-            <h2 data-i18n="botCurve">累積回測收益曲線</h2>
+            <!-- [PLAIN-TAG] -->
+            <h2 data-i18n="botCurve">累積歷史試算收益曲線</h2>
             <span class="bot-chart-legend muted">
               <span class="bot-leg"><i class="bot-dot up"></i><span data-i18n="botLegFill">網格成交</span></span>
               <span class="bot-leg"><i class="bot-dot band"></i><span data-i18n="botLegBand">網格帶</span></span>
@@ -110,7 +116,8 @@
           <p class="bot-chart-hint muted" data-i18n="botChartHint">灰色區間為價格超出網格帶；點擊買賣三角查看成交詳情</p>
         </div>
         <!-- [REPLACE-TAG] -->
-        <p class="bot-note" data-i18n="botDisc">回測於瀏覽器本地完成，含約 4bps 單邊成本假設。歷史結果不代表未來實盤收益。所有槓桿參數均為回測假設，不代表真實交易風險，實際使用可能面臨本金全部損失。</p>
+        <!-- [PLAIN-TAG] -->
+        <p class="bot-note" data-i18n="botDisc">歷史試算於瀏覽器本地完成，手續費按萬分之四左右估算。歷史結果不代表未來真錢交易收益。所有槓桿參數均為歷史試算假設，不代表真實交易風險，實際使用可能面臨本金全部損失。</p>
         </div>
       </div>
 
@@ -208,7 +215,8 @@
         </div>
 
         <div class="bot-actions">
-          <button type="button" class="bot-btn" id="botRun" data-i18n="botRun">[ 立即執行回測 ]</button>
+          <!-- [PLAIN-TAG] -->
+          <button type="button" class="bot-btn" id="botRun" data-i18n="botRun">[ 立即執行歷史試算 ]</button>
           <!-- [REPLACE-TAG] -->
           <button type="button" class="bot-btn ghost" id="botDeploy" data-i18n="botDeployBtn">[ 部署至仿真節點 ]</button>
         </div>
@@ -216,7 +224,8 @@
 
         <section class="bot-presets bot-presets-inline" aria-label="Grid return TOP 3">
           <!-- [REPLACE-TAG] -->
-          <h2 data-i18n="botPresets">網格策略波動捕捉率 TOP 3</h2>
+          <!-- [PLAIN-TAG] -->
+          <h2 data-i18n="botPresets">網格策略收益率 TOP 3</h2>
           <div class="bot-field bot-preset-select-row">
             <label for="botPresetSelect" data-i18n="botPresetPick">選擇 TOP 網格</label>
             <select id="botPresetSelect" class="bot-preset-select">

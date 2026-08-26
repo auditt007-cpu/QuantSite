@@ -303,7 +303,8 @@
     if (cat === "grid") return ["網格"];
     if (cat === "mean_reversion") return ["震盪"];
     if (cat === "breakout" || cat === "trend") return ["趨勢"];
-    return ["機構實盤"];
+    // [PLAIN-TAG]
+    return ["機構真錢交易"];
   }
 
   function toSpec(row) {

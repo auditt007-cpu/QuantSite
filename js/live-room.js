@@ -182,7 +182,8 @@
     if (/ROC/.test(s)) return "動能突破";
     const zh = s.replace(/[A-Za-z0-9_\-\s().]/g, "");
     if (zh.length >= 2) return zh.slice(0, 4);
-    return s.slice(0, 4) || "量化策略";
+    // [PLAIN-TAG]
+    return s.slice(0, 4) || "策略";
   }
 
   function fmtSpeechPx(n) {
@@ -274,7 +275,8 @@
           key: "agg|" + key,
           ts: head.ts,
           symbol: "ALL",
-          name: head.name || "量化策略",
+          // [PLAIN-TAG]
+          name: head.name || "策略",
           interval: head.interval || "1h",
           strategyId: head.strategyId,
           event: "close",
@@ -1543,7 +1545,8 @@
 
   function stratAnchor(ev) {
     const id = plazaIdFor(ev);
-    const label = escapeHtml(ev.name || "量化策略");
+    // [PLAIN-TAG]
+    const label = escapeHtml(ev.name || "策略");
     return (
       '<a class="tape-strat" href="./strategies.html?id=' +
       encodeURIComponent(id) +
@@ -2228,7 +2231,8 @@
             action: g.action,
             event: s.event || g.event || "open",
             pnl_pct: s.pnl_pct,
-            name: g.name_zh || g.name_en || "量化策略",
+            // [PLAIN-TAG]
+            name: g.name_zh || g.name_en || "策略",
             interval: g.interval || "1h",
             strategyId: g.strategy_id || s.strategy_id,
           });
@@ -2245,7 +2249,8 @@
         action: g.action,
         event: g.event || "open",
         pnl_pct: g.pnl_pct,
-        name: g.name_zh || g.name_en || "量化策略",
+        // [PLAIN-TAG]
+        name: g.name_zh || g.name_en || "策略",
         interval: g.interval || "1h",
         strategyId: g.strategy_id,
       });
@@ -2276,7 +2281,8 @@
         action: g.action,
         event: g.event || "open",
         pnl_pct: g.pnl_pct,
-        name: g.name_zh || g.name_en || "量化策略",
+        // [PLAIN-TAG]
+        name: g.name_zh || g.name_en || "策略",
         interval: g.interval || "1h",
         strategyId: g.strategy_id,
       });
@@ -2351,7 +2357,8 @@
     const seen = {};
     const chips = [];
     (events || []).forEach((ev) => {
-      const name = String((ev && ev.name) || "").trim() || "量化策略";
+      // [PLAIN-TAG]
+      const name = String((ev && ev.name) || "").trim() || "策略";
       if (seen[name]) return;
       seen[name] = true;
       chips.push(stratAnchor(ev));

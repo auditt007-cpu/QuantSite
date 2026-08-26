@@ -41,7 +41,8 @@ const META = {
     trigger: "触发条件：跌破布林下轨且 RSI<30 时买入；回到中轨或 RSI>65 时卖出。",
   },
   "strat-008": {
-    name: "RSI 极值均值回归修复 (Mean Reversion Alpha)",
+    // [PLAIN-TAG]
+    name: "RSI 极值均值回归修复 (Mean Reversion 收益)",
     principle: "核心原理：价格创新低但 RSI 不再创新低，说明下跌动能在衰减，容易出现修复反弹。",
     // [REPLACE-TAG]
     trigger: "触发条件：出现底背离且 RSI 仍低于 35 时买入；RSI 升破 70 或急跌约 3 pts 时卖出。",

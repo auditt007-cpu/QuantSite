@@ -8,16 +8,19 @@ window.QA_STRATEGY_ROWS = [
     "release_date": "2023-02-15",
     "metrics": {
       // [REPLACE-TAG]
-      "离散收敛率": "61.2 pts",
+      // [PLAIN-TAG]
+      "命中率": "61.2 pts",
       "sharpe_ratio": 2.18,
       // [REPLACE-TAG]
       "max_drawdown": "-6.4 pts",
       "total_trades": 342,
       "optimal_holding_days": 5,
       // [REPLACE-TAG]
-      "最优波动捕捉": "+14.8 pts",
+      // [PLAIN-TAG]
+      "最优赚了多少": "+14.8 pts",
       // [REPLACE-TAG]
-      "周波动捕捉": "+14.8 pts"
+      // [PLAIN-TAG]
+      "周赚了多少": "+14.8 pts"
     },
     "description": "核心原理：突破过去一段时间的最高价，往往意味着趋势正在形成，而不是一次性噪音。触发条件：收盘价突破近 20 日高点时买入；跌破近 10 日低点时卖出。",
     "source_code": "function strategy(series, index) {\n  const high20 = Math.max(...series.slice(Math.max(0, index - 20), index).map(bar => bar.high));\n  const low10 = Math.min(...series.slice(Math.max(0, index - 10), index).map(bar => bar.low));\n  const current = series[index];\n  const buyRule = current.close > high20;\n  const sellRule = current.close < low10;\n  return { buyRule, sellRule };\n}",
@@ -163,7 +166,8 @@ window.QA_STRATEGY_ROWS = [
   },
   {
     "id": "strat-008",
-    "name": "RSI 极值均值回归修复 (Mean Reversion Alpha)",
+    // [PLAIN-TAG]
+    "name": "RSI 极值均值回归修复 (Mean Reversion 收益)",
     "category": "reversion",
     "is_vip": false,
     "release_date": "2024-01-20",

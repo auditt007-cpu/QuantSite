@@ -87,9 +87,11 @@
       fitsHans: "现货与永续价差收敛、资金费率为正的盘整段",
       fitsEn: "Spot–perp basis compressing while funding is positive",
       explain:
-        "一邊做現貨、一邊用永續對沖方向，吃的是基差收斂與資金費率，不是賭漲跌。殘差再套一層窄網格。資金費率翻負或兩腿流動性差時，對沖成本會吃掉來回。",
+        // [PLAIN-TAG]
+        "一邊做現貨、一邊用永續對沖方向，吃的是基差收斂與資金費率，不是賭漲跌。殘差再套一層窄網格。持倉費變成要你付錢或兩腿流動性差時，對沖成本會吃掉來回。",
       explainHans:
-        "一边做现货、一边用永续对冲方向，吃的是基差收敛和资金费率，不是赌涨跌。残差再套一层窄网格。资金费率翻负或两腿流动性差时，对冲成本会吃掉来回。",
+        // [PLAIN-TAG]
+        "一边做现货、一边用永续对冲方向，吃的是基差收敛和资金费率，不是赌涨跌。残差再套一层窄网格。持仓费变成要你付钱或两腿流动性差时，对冲成本会吃掉来回。",
       explainEn:
         "Long/short the spot–perp basis and funding, not the coin's direction. A tight grid sits on the residual. Negative funding or thin legs eat the round-trip.",
     },
@@ -122,16 +124,20 @@
         "Adds size on a geometric dip to lower average, then peels on a shallow bounce. It is not a crash hedge. A drop through the band with no bounce stacks inventory one way.",
     },
     PAIRS_COINT_GRID: {
-      title: "協整價差網格",
-      titleHans: "协整价差网格",
+      // [PLAIN-TAG]
+      title: "兩個幣價差網格",
+      // [PLAIN-TAG]
+      titleHans: "两个币价差网格",
       titleEn: "Cointegration spread grid",
       fits: "兩腿價差回歸，對沖方向性 beta",
       fitsHans: "两腿价差回归，对冲方向性 beta",
       fitsEn: "Two-leg spread mean-reversion; hedges directional beta",
       explain:
-        "不做單幣方向，做兩條腿的價差回歸。價差偏離時一邊多一邊空，等價差縮回平倉。協整關係破裂或兩腿流動性不對稱時，對沖會失效。",
+        // [PLAIN-TAG]
+        "不做單幣方向，做兩條腿的價差回歸。價差偏離時一邊多一邊空，等價差縮回平倉。兩個幣價格不再一起動或兩腿流動性不對稱時，對沖會失效。",
       explainHans:
-        "不做单币方向，做两条腿的价差回归。价差偏离时一边多一边空，等价差缩回平仓。协整关系破裂或两腿流动性不对称时，对冲会失效。",
+        // [PLAIN-TAG]
+        "不做单币方向，做两条腿的价差回归。价差偏离时一边多一边空，等价差缩回平仓。两个币价格不再一起动或两腿流动性不对称时，对冲会失效。",
       explainEn:
         "Trades the spread, not the coin. Fade a dislocation, flatten when it snaps back. Broken cointegration or lopsided liquidity kills the hedge.",
     },
@@ -305,7 +311,8 @@
     }
     const raw = sanitizeCopy((row && (row.principle || row.description || row.copy)) || "");
     if (raw && raw.length > 12) return raw;
-    return t("mktExplainClassic", "經典量化樣本：按訊號進出。下方數字是該回測窗口，未年化。");
+    // [PLAIN-TAG]
+    return t("mktExplainClassic", "經典策略樣本：按訊號進出。下方數字是該歷史試算窗口，沒有年化。");
   }
 
   function sanitizeCopy(text) {
@@ -315,7 +322,8 @@
       .replace(/fee[- ]?rebate/gi, "")
       .replace(/返傭/g, "")
       .replace(/佣金趨向|佣金趋向/g, "")
-      .replace(/回測\s*APY[^·。；\n]*/gi, "")
+      // [PLAIN-TAG]
+      .replace(/歷史試算\s*APY[^·。；\n]*/gi, "")
       .replace(/APY\s*[\d.,]+%?/gi, "")
       .replace(/\s*[·・]\s*[·・]/g, " ·")
       .replace(/[·・]\s*$/g, "")
@@ -636,7 +644,8 @@
     const p1 = t("mktExplainFits", "適用行情：{f}").replace("{f}", fits);
     const p2 = t(
       "mktExplainWindow",
-      "本卡是 {d} 日回測窗口。樣本成交 {n} 筆，命中率 {wr}，窗口累積 {ret}。數字未年化。"
+      // [PLAIN-TAG]
+      "本卡是 {d} 日歷史試算窗口。樣本成交 {n} 筆，命中率 {wr}，窗口累積 {ret}。數字沒有年化。"
     )
       .replace("{d}", days)
       .replace("{n}", n)
@@ -645,11 +654,13 @@
     const p3 = isGridRow(row)
       ? t(
           "mktExplainFail",
-          "失效條件寫在「適用」裡：單邊沒有來回、協整破裂、資金費率翻負，都不是再加一層格子能修好的。曲線是窗口淨值，不是實盤對帳單。"
+          // [PLAIN-TAG]
+          "不好用的情況也寫在「適用」裡：只漲不跌或只跌不漲、兩個幣不再一起動、持倉費變成要你付錢，加格子也救不了。曲線是這段試算的賬，不是真錢交易單。"
         )
       : t(
           "mktExplainFailClassic",
-          "曲線是窗口淨值，不是實盤對帳單。歷史樣本不保證下一窗。"
+          // [PLAIN-TAG]
+          "曲線是試算賬，不是真錢交易單。上一段好不代表下一段也好。"
         );
     return "<p>" + p1 + "</p><p>" + p2 + "</p><p>" + p3 + "</p>";
   }
@@ -659,7 +670,8 @@
     const rt = String(FEE_SIDE_BPS * 2);
     return t(
       "mktFeeNote",
-      "記帳規則：盈虧按 0 手續費入帳，與上方回測累積同一套算法。參考手續費單邊 {bps} bps（萬分之{bps}），往返約 {rt} bps；只列在旁邊，未從記帳列扣除。"
+      // [PLAIN-TAG]
+      "記帳規則：盈虧按 0 手續費入帳，與上方歷史試算累積同一套算法。參考手續費單邊約萬分之四，來回手續費約萬分之八；只列在旁邊，未從記帳列扣除。"
     )
       .replace(/\{bps\}/g, bps)
       .replace("{rt}", rt);
@@ -867,7 +879,8 @@
     const wrCls = wr !== "—" ? " is-up" : "";
     const winCls =
       seed.windowRet == null ? "" : Number(seed.windowRet) >= 0 ? " is-up" : " is-down";
-    const disc = t("mktNoAnn", "基於 {d} 日回測樣本，未年化").replace("{d}", String(days));
+    // [PLAIN-TAG]
+    const disc = t("mktNoAnn", "基於 {d} 日歷史試算樣本，沒有年化").replace("{d}", String(days));
     const shShow = seed.sh != null && Number(seed.sh) <= 10 ? fmtSharpe(seed.sh) : "—";
     const lev = seed.lev != null ? seed.lev : 1;
     const levHtml =
@@ -885,13 +898,15 @@
       '">' +
       winRet +
       "</b><span>" +
-      t("mktWinHero", "回測{d}日累積").replace("{d}", String(days)) +
+      // [PLAIN-TAG]
+      t("mktWinHero", "歷史試算{d}日累積").replace("{d}", String(days)) +
       "</span></div>" +
       '<div class="plaza-core-side">' +
       '<div class="plaza-stab"><b>' +
       String(days) +
       "</b><span>" +
-      t("mktDaysLabel", "回測天數") +
+      // [PLAIN-TAG]
+      t("mktDaysLabel", "歷史試算天數") +
       "</span></div>" +
       levHtml +
       "</div></div>" +
@@ -1121,7 +1136,8 @@
     const periodDays = Number(r.period_days) > 0 ? Number(r.period_days) : 60;
     const title = publicTitle(Object.assign({}, r, row));
     const fits = publicFits(Object.assign({}, r, row));
-    const noAnn = t("mktNoAnn", "基於 {d} 日回測樣本，未年化").replace("{d}", String(periodDays));
+    // [PLAIN-TAG]
+    const noAnn = t("mktNoAnn", "基於 {d} 日歷史試算樣本，沒有年化").replace("{d}", String(periodDays));
     const explain = publicExplain(Object.assign({}, r, row));
     return {
       id: r.id,
@@ -1241,7 +1257,8 @@
     const fromBacktest =
       String(s.metrics_source || m.metrics_source || "").indexOf("backtest") >= 0 ||
       /GRID/i.test(String(s.strategy_type || s.subtype || ""));
-    const noAnn = t("mktNoAnn", "基於 {d} 日回測樣本，未年化").replace("{d}", String(periodDays));
+    // [PLAIN-TAG]
+    const noAnn = t("mktNoAnn", "基於 {d} 日歷史試算樣本，沒有年化").replace("{d}", String(periodDays));
     const lev = leverageOf(s);
     return {
       wr: Number.isFinite(wr) ? wr : null,
@@ -1287,7 +1304,8 @@
       ? '<span class="ai-badge">' + t("mktBadgeAi", "AI 挖礦") + "</span>"
       : grid
         ? '<span class="grid-hero-badge">24H 波動率套利流水線</span>'
-        : '<span class="classic-badge">' + t("mktBadgeClassic", "量化經典") + "</span>";
+        // [PLAIN-TAG]
+        : '<span class="classic-badge">' + t("mktBadgeClassic", "經典策略") + "</span>";
     const days = seed.periodDays || 60;
     const kind = grid ? "grid" : s.ai ? "ai" : s.tier === "master" ? "master" : "classic";
     const fits = s.fits || publicFits(s);
@@ -1334,7 +1352,8 @@
       "</span>" +
       '<span class="plaza-dot"></span>' +
       "<span>" +
-      t("mktBackDays", "回測 {d} 日").replace("{d}", String(days)) +
+      // [PLAIN-TAG]
+      t("mktBackDays", "歷史試算 {d} 日").replace("{d}", String(days)) +
       "</span>" +
       (leverageOf(s) > 1
         ? '<span class="plaza-dot"></span><span>' + levLabel(s) + "</span>"
@@ -1347,7 +1366,8 @@
       '<button type="button" class="btn-link" data-plaza-detail="' +
       s.id +
       '">' +
-      t("mktDetail", "查看回測曲線") +
+      // [PLAIN-TAG]
+      t("mktDetail", "查看歷史試算曲線") +
       "</button>" +
       '<a class="btn-cta compact" href="#" data-get-strategy>' +
       t("mktGet", "獲取策略") +
@@ -1363,7 +1383,8 @@
     const isAi = Boolean(row.ai || String(row.id || "").indexOf("ai_") === 0);
     if (badge) {
       badge.className = isAi ? "ai-badge" : "classic-badge";
-      badge.textContent = isAi ? t("mktBadgeAi", "AI 挖礦") : t("mktBadgeClassic", "量化經典");
+      // [PLAIN-TAG]
+      badge.textContent = isAi ? t("mktBadgeAi", "AI 挖礦") : t("mktBadgeClassic", "經典策略");
     }
     const name = displayName(row);
     document.getElementById("aiStratTitle").textContent = name;
@@ -1373,7 +1394,8 @@
     const cohort = Number(row.cohort) > 1 ? Number(row.cohort) : 0;
     const metaBits = [
       t("mktFits", "適用") + " · " + fits,
-      t("mktBackDays", "回測 {d} 日").replace("{d}", String(days)),
+      // [PLAIN-TAG]
+      t("mktBackDays", "歷史試算 {d} 日").replace("{d}", String(days)),
     ];
     if (leverageOf(row) > 1) metaBits.push(levLabel(row));
     if (cohort) {

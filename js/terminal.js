@@ -363,7 +363,8 @@
       trades: Number.isFinite(Number(s.trades)) ? Number(s.trades) : Number(pack.trades) || null,
       periodDays: periodDays,
       source: hasBacktest || isGrid ? "backtest" : s.ai ? "pipeline" : "pack",
-      disclaimer: "基於 " + periodDays + " 日回測樣本，未年化",
+      // [PLAIN-TAG]
+      disclaimer: "基於 " + periodDays + " 日歷史試算樣本，沒有年化",
     };
   }
 
@@ -514,7 +515,8 @@
       name: s.name,
       symbols: s.symbols && s.symbols.length ? s.symbols : ["BTCUSDT"],
       interval: s.interval || "1h",
-      tags: s.tags && s.tags.length ? s.tags : tier === "master" ? ["機構實盤", "BTCUSDT", "1H"] : ["開源"],
+      // [PLAIN-TAG]
+      tags: s.tags && s.tags.length ? s.tags : tier === "master" ? ["機構真錢交易", "BTCUSDT", "1H"] : ["開源"],
       principle: s.principle || (spec && spec.principle) || "",
       description: s.description || (spec && spec.description) || "",
       engine: s.engine || s.id,
@@ -668,7 +670,8 @@
         : "—";
     const disc =
       seed.disclaimer ||
-      (seed.source === "backtest" ? "基於 " + (seed.periodDays || 60) + " 日回測樣本，未年化" : "");
+      // [PLAIN-TAG]
+      (seed.source === "backtest" ? "基於 " + (seed.periodDays || 60) + " 日歷史試算樣本，沒有年化" : "");
     const chartBlock = s.chart
       ? `<img class="ai-eq-thumb" src="${s.chart}" alt="${title} equity" loading="lazy" />`
       : "";
@@ -756,9 +759,12 @@
 
   function buildTabDefs() {
     return [
-      { id: "d7", label: "回測 7 天 (" + countLane("d7") + ")" },
-      { id: "d30", label: "回測 30 天 (" + countLane("d30") + ")" },
-      { id: "d60", label: "回測 60 天 (" + countLane("d60") + ")" },
+      // [PLAIN-TAG]
+      { id: "d7", label: "歷史試算 7 天 (" + countLane("d7") + ")" },
+      // [PLAIN-TAG]
+      { id: "d30", label: "歷史試算 30 天 (" + countLane("d30") + ")" },
+      // [PLAIN-TAG]
+      { id: "d60", label: "歷史試算 60 天 (" + countLane("d60") + ")" },
     ];
   }
 
