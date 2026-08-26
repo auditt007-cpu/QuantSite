@@ -33,16 +33,26 @@
         "同步：{symbol} 发出做空指令，现价 {price}。按风控规则进场。",
       ],
       TAKE_PROFIT: [
-        "{symbol} 目标到位，止盈离场，浮盈 {pnl}%。利润落袋，漂亮。",
-        "结算：{symbol} 触及止盈，获利 {pnl}%。该收的时候绝不贪。",
-        "{symbol} 兑现利润 {pnl}%。这一笔执行合格，继续下一枪。",
-        "止盈触发：{symbol} 盈利 {pnl}%。先把战果锁住。",
-        "{symbol} 到达预设目标，平仓获利 {pnl}%。纪律战胜贪婪。",
-        "不错，{symbol} 止盈成交，赚了 {pnl}%。账户曲线说话。",
-        "{symbol} 利润回撤前离场，锁定 {pnl}%。这才是职业做法。",
-        "提醒：{symbol} 止盈完成，回报 {pnl}%。情绪归零，准备下一笔。",
-        "{symbol} 阶段性目标达成，获利 {pnl}%。收工这一段。",
-        "同步结果：{symbol} 止盈出局，盈利 {pnl}%。风控与执行都在线。",
+        // [REPLACE-TAG]
+        "{symbol} 目标到位，触发平仓条件，模拟Alpha {pnl} pts。策略执行完成。",
+        // [REPLACE-TAG]
+        "结算：{symbol} 触及预设平仓条件，模拟Alpha {pnl} pts。执行纪律良好。",
+        // [REPLACE-TAG]
+        "{symbol} 兑现利润 {pnl} pts。这一笔执行合格，继续下一枪。",
+        // [REPLACE-TAG]
+        "平仓触发：{symbol} 模拟Alpha {pnl} pts。锁定仿真结果。",
+        // [REPLACE-TAG]
+        "{symbol} 到达预设目标，平仓模拟Alpha {pnl} pts。纪律执行。",
+        // [REPLACE-TAG]
+        "不错，{symbol} 平仓成交，模拟Alpha {pnl} pts。曲线反映回测数据。",
+        // [REPLACE-TAG]
+        "{symbol} 利润回撤前离场，锁定 {pnl} pts。这才是职业做法。",
+        // [REPLACE-TAG]
+        "提醒：{symbol} 平仓完成，模拟Alpha {pnl} pts。准备下一次仿真。",
+        // [REPLACE-TAG]
+        "{symbol} 阶段性目标达成，模拟Alpha {pnl} pts。此段仿真结束。",
+        // [REPLACE-TAG]
+        "同步结果：{symbol} 平仓出局，模拟Alpha {pnl} pts。风控与执行仿真完成。",
       ],
       STOP_LOSS: [
         "{symbol} 触发止损。认赔离场，本金优先，下一笔再说。",
@@ -119,16 +129,26 @@
         "同步：{symbol} 開空訊號，現價 {price}，大家小心倉位喔！",
       ],
       TAKE_PROFIT: [
-        "耶！{symbol} 止盈到了，賺 {pnl}%，先落袋為安啦！",
-        "太好了，{symbol} 達標出場，獲利 {pnl}%，今晚可以開心一點！",
-        "{symbol} 停利成交，賺了 {pnl}%，執行得很漂亮吼！",
-        "提醒你：{symbol} 利潤鎖住 {pnl}%，該收就收，不要貪！",
-        "哇塞，{symbol} 止盈成功，回報 {pnl}%，帳戶有說話耶！",
-        "{symbol} 目標價碰到了，獲利 {pnl}%，先把戰果收起來！",
-        "欸嘿，{symbol} 停利離場，賺 {pnl}%，下一段再來！",
-        "{symbol} 利潤保護成功，鎖定 {pnl}%，這才是好習慣啦！",
-        "同步結果：{symbol} 止盈完成，盈利 {pnl}%，讚讚！",
-        "{symbol} 達標平倉，到手 {pnl}%，情緒歸零準備下一筆喔！",
+        // [REPLACE-TAG]
+        "耶！{symbol} 止盈到了，賺 {pnl} pts，先落袋為安啦！",
+        // [REPLACE-TAG]
+        "太好了，{symbol} 達標出場，獲利 {pnl} pts，今晚可以開心一點！",
+        // [REPLACE-TAG]
+        "{symbol} 停利成交，賺了 {pnl} pts，執行得很漂亮吼！",
+        // [REPLACE-TAG]
+        "提醒你：{symbol} 利潤鎖住 {pnl} pts，該收就收，不要貪！",
+        // [REPLACE-TAG]
+        "哇塞，{symbol} 止盈成功，回報 {pnl} pts，帳戶有說話耶！",
+        // [REPLACE-TAG]
+        "{symbol} 目標價碰到了，獲利 {pnl} pts，先把戰果收起來！",
+        // [REPLACE-TAG]
+        "欸嘿，{symbol} 停利離場，賺 {pnl} pts，下一段再來！",
+        // [REPLACE-TAG]
+        "{symbol} 利潤保護成功，鎖定 {pnl} pts，這才是好習慣啦！",
+        // [REPLACE-TAG]
+        "同步結果：{symbol} 平倉完成，模擬Alpha {pnl} pts。",
+        // [REPLACE-TAG]
+        "{symbol} 達標平倉，到手 {pnl} pts，情緒歸零準備下一筆喔！",
       ],
       STOP_LOSS: [
         "啊！{symbol} 碰到停損了，先平掉啦，保本金比較重要！",
@@ -233,68 +253,18 @@
 
   const VOICE_TEMPLATES = {
     "zh-CN": makeRotators("zh-CN"),
-    en: {
-      LONG: function (sym, price) {
-        return (
-          "Breaking news! " +
-          sym +
-          " is looking tremendous. Buy signal at " +
-          price +
-          ". We are going long, folks, and we are going to WIN big!"
-        );
-      },
-      SHORT: function (sym, price) {
-        return (
-          "Total weakness on " +
-          sym +
-          "! Short signal active at " +
-          price +
-          ". The dump is real, believe me. Take the short side right now!"
-        );
-      },
-      TAKE_PROFIT: function (sym, pnl) {
-        return (
-          "Massive profit on " +
-          sym +
-          "! Up " +
-          pnl +
-          "%, absolutely huge! Nobody makes gains like our algorithms. Make Your Portfolio Great Again!"
-        );
-      },
-      STOP_LOSS: function (sym) {
-        return (
-          "Stop loss executed on " +
-          sym +
-          ". Very disciplined, very smart risk management. We protect the capital and strike back!"
-        );
-      },
-      CLOSE: function (sym) {
-        return sym + " position closed. Clean exit. We move on and we WIN again!";
-      },
-      ALERT: function (sym) {
-        return (
-          "Market Alert! Huge volume spike on " +
-          (sym || "majors") +
-          ". The volatility is unbelievable, stay sharp everyone!"
-        );
-      },
-      STORM: function () {
-        return "Huge market storm right now! Multiple strategies firing at once. Check the war board immediately!";
-      },
-    },
     "zh-Hant": makeRotators("zh-Hant"),
   };
 
   const PROMO_SRC = {
     "zh-CN": "./audio/promo_zh_cn.mp3",
-    en: "./audio/promo_en_us.mp3",
     "zh-Hant": "./audio/promo_zh_tw.mp3",
   };
 
   function normalizeLang(raw) {
     const s = String(raw || "").trim();
     if (s === "zh-Hans" || s === "zh-CN" || s === "zh") return "zh-CN";
-    if (s === "en" || s === "en-US" || s === "en-GB") return "en";
+    if (s === "en" || s === "en-US" || s === "en-GB") return "zh-Hant";
     if (s === "zh-Hant" || s === "zh-TW" || s === "zh-HK") return "zh-Hant";
     return "zh-Hant";
   }
@@ -327,7 +297,6 @@
 
   const EDGE_VOICE = {
     "zh-CN": "zh-CN-YunyangNeural",
-    en: "en-US-ChristopherNeural",
     "zh-Hant": "zh-TW-HsiaoChenNeural",
   };
 
@@ -341,7 +310,7 @@
     return false;
   }
 
-    /* 语速：简中/EN 保持 1.2×；繁中在 1.2× 基础上再减慢 10%（+30% → +17%） */
+    /* 语速：简中保持 1.2×；繁中在 1.2× 基础上再减慢 10 pts（+30 pts → +17 pts） */
   function speechConfig(lang) {
     const key = normalizeLang(lang || currentVoiceLang());
     if (key === "zh-CN") {
@@ -351,15 +320,6 @@
         rate: "+14%",
         pitch: "-8Hz",
         prefer: [/Yunyang/i, /Yunjian/i, /Yunxi/i, /Kangkang/i, /zh-CN.*Neural.*Male/i, /zh-CN/i],
-      };
-    }
-    if (key === "en") {
-      return {
-        lang: "en-US",
-        edgeVoice: EDGE_VOICE.en,
-        rate: "+16%",
-        pitch: "-5Hz",
-        prefer: [/Christopher/i, /Eric/i, /Steffan/i, /Guy/i, /Davis/i, /David/i, /en-US.*Neural.*Male/i, /en-US/i],
       };
     }
     return {

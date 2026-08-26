@@ -59,7 +59,7 @@
     }
     const lang = localStorage.getItem("user_lang") || localStorage.getItem("quant_lang") || "zh-Hant";
     const mapped = lang === "zh-Hans" ? "zh-CN" : lang;
-    const pack = (root.I18N && (root.I18N[mapped] || root.I18N["zh-Hant"] || root.I18N.en)) || {};
+    const pack = (root.I18N && (root.I18N[mapped] || root.I18N["zh-Hant"] || root.I18N["zh-CN"])) || {};
     return pack[key] || fallback || key;
   }
 
@@ -162,7 +162,6 @@
   function uiPack() {
     const lang = localStorage.getItem("user_lang") || localStorage.getItem("quant_lang") || "zh-Hant";
     if (lang === "zh-Hans" || lang === "zh-CN") return "hans";
-    if (lang === "en") return "en";
     return "hant";
   }
 
@@ -172,7 +171,6 @@
     if (!fam) return "";
     const pack = uiPack();
     if (pack === "hans" && fam[field + "Hans"]) return fam[field + "Hans"];
-    if (pack === "en" && fam[field + "En"]) return fam[field + "En"];
     return fam[field] || "";
   }
 
@@ -221,11 +219,13 @@
       .replace(/[/\-\s]/g, "")
       .toUpperCase();
     if (DEAD_SYMS[sy] || /^FET/.test(sy)) return false;
-    // Drop fantasy miner rows (e.g. +549806048%) before they hit the board.
+    // [REPLACE-TAG]
+    // Drop fantasy miner rows (e.g. +549806048 pts) before they hit the board.
     const m = (row.metrics && typeof row.metrics === "object" ? row.metrics : {}) || {};
     let ret = Number(row.return_pct);
     if (!Number.isFinite(ret)) ret = Number(m.return_pct);
-    if (Number.isFinite(ret) && Math.abs(ret) > 5) return false; // ratio > 500%
+    // [REPLACE-TAG]
+    if (Number.isFinite(ret) && Math.abs(ret) > 5) return false; // ratio > 500 pts
     let apy = Number(m.backtest_apy_pct != null ? m.backtest_apy_pct : row.backtest_apy_pct);
     if (Number.isFinite(apy) && (apy > 500 || apy < -99)) return false;
     return true;
@@ -778,7 +778,8 @@
       "<defs><linearGradient id=\"" +
       gid +
       '" x1="0" y1="0" x2="0" y2="1">' +
-      '<stop offset="0%" stop-color="' +
+      // [REPLACE-TAG]
+      '<stop offset="0 pts" stop-color="' +
       fill0 +
       '"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></linearGradient></defs>' +
       '<path d="' +
@@ -817,14 +818,16 @@
   function fmtWr(n) {
     if (!Number.isFinite(n)) return "—";
     const pct = Math.abs(n) <= 1 ? n * 100 : n;
-    return pct.toFixed(1) + "%";
+    // [REPLACE-TAG]
+    return pct.toFixed(1) + " pts";
   }
 
   function fmtMdd(n) {
     if (!Number.isFinite(n)) return "—";
     const pct = Math.abs(n) <= 1.5 ? n * 100 : n;
     const v = -Math.abs(pct);
-    return v.toFixed(1) + "%";
+    // [REPLACE-TAG]
+    return v.toFixed(1) + " pts";
   }
 
   function fmtRet(n) {
@@ -832,7 +835,8 @@
     if (r == null) return "—";
     const pct = r * 100;
     const sign = pct > 0 ? "+" : "";
-    return sign + pct.toFixed(1) + "%";
+    // [REPLACE-TAG]
+    return sign + pct.toFixed(1) + " pts";
   }
 
   function fmtPf(n) {
@@ -1149,8 +1153,10 @@
       grid_params: r.grid_params || row.grid_params || r.params || row.params || null,
       metrics: {
         sharpe_ratio: sh,
-        max_drawdown: Number.isFinite(mdd) ? (-Math.abs(mdd) * 100).toFixed(1) + "%" : null,
-        win_rate: Number.isFinite(wr) ? (wr * 100).toFixed(1) + "%" : null,
+        // [REPLACE-TAG]
+        max_drawdown: Number.isFinite(mdd) ? (-Math.abs(mdd) * 100).toFixed(1) + " pts" : null,
+        // [REPLACE-TAG]
+        win_rate: Number.isFinite(wr) ? (wr * 100).toFixed(1) + " pts" : null,
         profit_factor: pf,
         return_pct: Number.isFinite(ret) ? ret : null,
         daily_turnover_rate: m.daily_turnover_rate != null ? m.daily_turnover_rate : m.daily_turnover,

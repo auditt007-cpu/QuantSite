@@ -29,7 +29,7 @@
     if (api && api.normalizeLang) return api.normalizeLang(raw);
     const s = String(raw || "").trim();
     if (s === "zh-Hans" || s === "zh-CN" || s === "zh") return "zh-CN";
-    if (s === "en" || s === "en-US" || s === "en-GB") return "en";
+    if (s === "en" || s === "en-US" || s === "en-GB") return "zh-Hant";
     return "zh-Hant";
   }
 
@@ -38,7 +38,6 @@
     if (api && api.edgeVoiceFor) return api.edgeVoiceFor(lang);
     const key = normalizeLang(lang);
     if (key === "zh-CN") return "zh-CN-YunyangNeural";
-    if (key === "en") return "en-US-ChristopherNeural";
     return "zh-TW-HsiaoChenNeural";
   }
 

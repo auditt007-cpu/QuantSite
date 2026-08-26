@@ -114,7 +114,8 @@
     const x = Number(n);
     if (!Number.isFinite(x)) return "—";
     const sign = x > 0 ? "+" : "";
-    return sign + x.toFixed(1) + "%";
+    // [REPLACE-TAG]
+    return sign + x.toFixed(1) + " pts";
   }
 
   function fmtTime(ts) {
@@ -208,7 +209,8 @@
     return Number.isFinite(pnl) ? Math.abs(pnl) : 0;
   }
 
-  /** Friction / reset closes with ~0% PnL — never render or speak. */
+  // [REPLACE-TAG]
+  /** Friction / reset closes with ~0 pts PnL — never render or speak. */
   function isZeroValueClose(ev) {
     if (!ev || !isClose(ev) || ev.kind === "close_agg") return false;
     if (!/平倉|Close/i.test(String(ev.action || "")) && String(ev.event || "").toLowerCase() !== "close") {
@@ -220,7 +222,8 @@
   }
 
   /**
-   * Consumer pipeline: drop 0.0% closes, then fold same-second mass micro-closes
+   // [REPLACE-TAG]
+   * Consumer pipeline: drop 0.0 pts closes, then fold same-second mass micro-closes
    * into one radar summary row.
    */
   function pruneAndCollapseEvents(events) {
@@ -839,7 +842,8 @@
     const pnl = Number(ev.pnl_pct);
     if (!api) {
       const when = fmt12hSpeech(ev.ts || Date.now());
-      if (Number.isFinite(pnl) && pnl > 0) return when + "，" + coin + "平倉，獲利 " + pnl.toFixed(1) + "%。";
+      // [REPLACE-TAG]
+      if (Number.isFinite(pnl) && pnl > 0) return when + "，" + coin + "平倉，獲利 " + pnl.toFixed(1) + " pts。";
       return when + "，" + coin + "平倉離場。";
     }
     if (Number.isFinite(pnl) && pnl > 0) return api.line("TAKE_PROFIT", lang, coin, pnl.toFixed(1));
@@ -867,7 +871,7 @@
     }
     const pairs = events
       .map((e) => coinSpeech(e.symbol) + " " + fmtSpeechPx(eventPx(e)))
-      .join(lang === "en" ? ", " : "，");
+      .join("，");
     return api.line(kind, lang, pairs, "");
   }
 
@@ -1356,7 +1360,8 @@
       const tagPx = pickPx(signalPx, linePx);
       const tag = close
         ? Number(ev.pnl_pct) > 0
-          ? "平倉 +" + Number(ev.pnl_pct).toFixed(1) + "%"
+          // [REPLACE-TAG]
+          ? "平倉 +" + Number(ev.pnl_pct).toFixed(1) + " pts"
           : "平倉"
         : (buy ? "BUY @" : "SELL @") + " " + fmtAxisPx(tagPx);
       ctx.font = "10px Roboto Mono, monospace";
@@ -1433,7 +1438,8 @@
     if (chgEl) {
       if (Number.isFinite(chg)) {
         const up = chg >= 0;
-        chgEl.textContent = (up ? "▲ " : "▼ ") + Math.abs(chg).toFixed(2) + "%";
+        // [REPLACE-TAG]
+        chgEl.textContent = (up ? "▲ " : "▼ ") + Math.abs(chg).toFixed(2) + " pts";
         chgEl.classList.toggle("is-up", up);
         chgEl.classList.toggle("is-down", !up);
       } else {
@@ -1617,7 +1623,8 @@
       if (chgEl) {
         if (Number.isFinite(chg)) {
           const up = chg >= 0;
-          chgEl.textContent = (up ? "▲ " : "▼ ") + Math.abs(chg).toFixed(2) + "%";
+          // [REPLACE-TAG]
+          chgEl.textContent = (up ? "▲ " : "▼ ") + Math.abs(chg).toFixed(2) + " pts";
           chgEl.classList.toggle("is-up", up);
           chgEl.classList.toggle("is-down", !up);
         } else {
@@ -1802,7 +1809,8 @@
     if (meta) {
       meta.innerHTML =
         "<span>24H " +
-        (Number.isFinite(chg) ? (chg >= 0 ? "+" : "") + chg.toFixed(2) + "%" : "—") +
+        // [REPLACE-TAG]
+        (Number.isFinite(chg) ? (chg >= 0 ? "+" : "") + chg.toFixed(2) + " pts" : "—") +
         "</span>" +
         "<span>監控中 · 1m 折線 · 即時跳動</span>";
     }
@@ -1946,7 +1954,8 @@
         const chgEl = node.querySelector("[data-chg]");
         if (chgEl && Number.isFinite(chg)) {
           const up = chg >= 0;
-          chgEl.textContent = (up ? "▲ " : "▼ ") + Math.abs(chg).toFixed(2) + "%";
+          // [REPLACE-TAG]
+          chgEl.textContent = (up ? "▲ " : "▼ ") + Math.abs(chg).toFixed(2) + " pts";
           chgEl.classList.toggle("is-up", up);
           chgEl.classList.toggle("is-down", !up);
         }

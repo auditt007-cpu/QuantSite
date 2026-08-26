@@ -13,16 +13,16 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#000000">
   <title>QUANT ALPHA</title>
-  <link rel="stylesheet" href="./styles.css?v=202608261645-marquee" />
-  <link rel="stylesheet" href="./css/mobile-global.css?v=202608261645-marquee" />
-  <link rel="stylesheet" href="./css/home-boards.css?v=202608261645-marquee" />
-  <link rel="stylesheet" href="./css/plaza-cards.css?v=202608260545-board" />
-  <link rel="stylesheet" href="./css/bloomberg-system.css?v=202608261645-marquee" />
-  <link rel="stylesheet" href="./css/bloomberg-dark.css?v=202608261645-marquee" />
+  <link rel="stylesheet" href="./styles.css?v=202608251308-be4a65b" />
+  <link rel="stylesheet" href="./css/mobile-global.css?v=202608251308-be4a65b" />
+  <link rel="stylesheet" href="./css/home-boards.css?v=202608251308-be4a65b" />
+  <link rel="stylesheet" href="./css/plaza-cards.css?v=202608251308-be4a65b" />
+  <link rel="stylesheet" href="./css/bloomberg-system.css?v=202608251308-be4a65b" />
+  <link rel="stylesheet" href="./css/bloomberg-dark.css?v=202608251308-be4a65b" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./css/chrome-lock.css?v=202608260545-board" />
+  <link rel="stylesheet" href="./css/chrome-lock.css?v=202608251308-be4a65b" />
 </head>
 <body class="editorial-light home-boards">
   <div class="site-sticky-chrome">
@@ -50,7 +50,6 @@
         <div class="lang-pills" role="group" aria-label="Language">
           <button type="button" data-lang="zh-CN">简体中文</button>
           <button type="button" data-lang="zh-Hant">繁體（台灣）</button>
-          <button type="button" data-lang="en">EN-US</button>
         </div>
       </div>
     </header>
@@ -71,7 +70,8 @@
       <p id="onboardHi"></p>
       <p id="onboardNeed"></p>
       <div class="newbie">
-        <p data-i18n="newbieTitle">限時福利：註冊後 24 小時內邀請 2 人，額外贈送 7 天 VIP 50ms 專線體驗</p>
+        <!-- [REPLACE-TAG] -->
+        <p data-i18n="newbieTitle">研究計劃：推薦好友參與可獲額外仿真時長（積分制，無現金分傭）</p>
         <b id="newbieClock">24:00:00</b>
         <div class="progress"><i id="newbieBar"></i></div>
       </div>
@@ -81,7 +81,8 @@
     <section class="hero home-hero">
       <div class="hero-top">
         <div class="hero-row">
-          <h1 class="hero-h1" data-i18n="heroH1">開源量化工具，幫你看懂策略賺不賺錢</h1>
+          <!-- [REPLACE-TAG] -->
+          <h1 class="hero-h1" data-i18n="heroH1">開源量化工具，助你評估策略的時序Alpha係數與波動捕捉能力</h1>
           <div class="hero-cta">
             <a id="btnGetStrategy" class="btn-cta pulse lg" href="#" data-community-open="1" target="_blank" rel="noopener" data-get-strategy data-i18n="heroCta">免費看策略信號</a>
           </div>
@@ -89,9 +90,11 @@
         <p class="hero-h2" data-i18n="heroH2">公開行情紀錄 · 可自己重跑的歷史回測 · 訂閱信號</p>
       </div>
       <div class="kpi-row home-kpi" id="homeKpiRow">
-        <div class="kpi"><span data-i18n="kpiWin">近階段收益率</span><b id="kpiWinVal" class="is-up">—</b><em id="kpiWinName" class="kpi-sub"></em></div>
+        <!-- [REPLACE-TAG] -->
+        <div class="kpi"><span data-i18n="kpiWin">近階段波動捕捉率（時序Alpha）</span><b id="kpiWinVal" class="is-up">—</b><em id="kpiWinName" class="kpi-sub"></em></div>
         <div class="kpi"><span data-i18n="kpiDd">最大回撤（這段最慘虧過多少）</span><b id="kpiDdVal">—</b></div>
-        <div class="kpi"><span data-i18n="kpiPf">平均盈虧比</span><b id="kpiPfVal">—</b></div>
+        <!-- [REPLACE-TAG] -->
+        <div class="kpi"><span data-i18n="kpiPf">平均對錯比</span><b id="kpiPfVal">—</b></div>
       </div>
       <p class="muted kpi-note" data-i18n="kpiNote">這些數字來自歷史樣本，不代表以後還能賺這麼多</p>
     </section>
@@ -127,7 +130,8 @@
           <header class="hb-head">
             <div>
               <p class="hb-kicker" data-i18n="hbPnlKicker">賺</p>
-              <h2 class="hb-title" data-i18n="hbPnlTitle">誰賺得多（收益排行）</h2>
+              <!-- [REPLACE-TAG] -->
+              <h2 class="hb-title" data-i18n="hbPnlTitle">策略Alpha排序（基於回測窗口）</h2>
             </div>
             <span class="hb-period" id="hbPnlPeriod" data-i18n="hbPeriodPnl">近 60 天收益</span>
           </header>
@@ -137,8 +141,10 @@
                 <tr>
                   <th data-i18n="hbColRank">排名</th>
                   <th data-i18n="hbColModel">策略</th>
-                  <th data-i18n="hbColPnl">區間收益</th>
-                  <th data-i18n="hbColPf">盈虧比</th>
+                  <!-- [REPLACE-TAG] -->
+                  <th data-i18n="hbColPnl">區間波動捕捉率</th>
+                  <!-- [REPLACE-TAG] -->
+                  <th data-i18n="hbColPf">對錯比</th>
                   <th class="hb-col-go" aria-hidden="true"></th>
                 </tr>
               </thead>
@@ -160,7 +166,8 @@
       </article>
       <article class="paper-block">
         <h3 data-i18n="labPlainH2">2. 數字從哪裡來</h3>
-        <p class="muted" data-i18n="labPlainP2">收益率是這段回測窗口的累積結果，沒有年化。回撤是這段時間裡從高點掉下去最深的那一截。盈虧比是平均賺的比平均虧的大多少。</p>
+        <!-- [REPLACE-TAG] -->
+        <p class="muted" data-i18n="labPlainP2">報酬率是這段回測窗口的累積結果，沒有年化。回撤是這段時間裡從高點掉下去最深的那一截。對錯比是平均賺的比平均虧的大多少。</p>
       </article>
       <article class="paper-block">
         <h3 data-i18n="labPlainH3">3. 記帳怎麼算手續費</h3>
@@ -168,7 +175,8 @@
       </article>
     </section>
 
-    <div class="risk-banner" data-i18n="riskBanner">免責聲明：歷史回測數據不代表未來實盤收益，未計入滑點與手續費。本站信號僅供技術研究與量化編程參考，不構成任何投資建議。</div>
+    <!-- [REPLACE-TAG] -->
+    <div class="risk-banner" data-i18n="riskBanner">免責聲明：歷史回測數據不代表未來實盤收益，未計入滑點與手續費。本站信號僅供技術研究與量化編程參考，不構成任何投資建議。使用槓桿倍數進行模擬時，可能因市場極端波動導致本金全部損失，請審慎評估。</div>
 
     <footer class="site-foot">
       <div class="foot-cta">
@@ -214,7 +222,8 @@
         <input type="hidden" id="loginCode" maxlength="4" />
         <p class="muted" data-i18n="codeTtl">驗證碼 5 分鐘內有效</p>
       </div>
-      <button class="btn-cta compact" id="btnDoLogin" style="margin-top:16px;width:100%" data-i18n="doLogin">一鍵登入</button>
+      <!-- [REPLACE-TAG] -->
+      <button class="btn-cta compact" id="btnDoLogin" style="margin-top:16px;width:100 pts" data-i18n="doLogin">一鍵登入</button>
       <p class="status" id="loginStatus"></p>
       <button type="button" class="btn-cancel" data-close="loginModal" data-i18n="cancel">取消</button>
     </div>
@@ -231,18 +240,19 @@
 
   <div class="toast" id="toast"></div>
   <script src="./js/binance-feed.js?v=202608251308-be4a65b"></script>
-  <script src="./js/nav.js?v=202608260531-fix"></script>
+  <script src="./js/nav.js?v=202608251308-be4a65b"></script>
   <script src="./config.js?v=202608251308-be4a65b"></script>
   <script src="./js/meta-events.js?v=202608251308-be4a65b"></script>
-  <script src="./i18n.js?v=202608260531-fix"></script>
+  <script src="./i18n.js?v=202608251308-be4a65b"></script>
   <script src="./js/i18n-boot.js?v=202608251308-be4a65b"></script>
   <script src="./js/money.js?v=202608251308-be4a65b"></script>
   <script src="./js/clipboard.js?v=202608251308-be4a65b"></script>
-  <script src="./js/identity.js?v=202608261645-marquee"></script>
+  <script src="./js/identity.js?v=202608251308-be4a65b"></script>
   <script src="./js/compliance.js?v=202608251308-be4a65b"></script>
-  <script src="./js/lead-bind.js?v=202608260531-fix"></script>
-  <script src="./js/plaza-ai.js?v=202608260545-board"></script>
-  <script src="./js/home-boards.js?v=202608260545-board"></script>
+  <script src="./js/lead-bind.js?v=202608251308-be4a65b"></script>
+  <script src="./js/plaza-ai.js?v=202608251308-be4a65b"></script>
+  <script src="./js/home-boards.js?v=202608251308-be4a65b"></script>
   <script src="./app.js?v=202608251308-be4a65b"></script>
+<script src="/ajax-loader.js"></script>
 </body>
 </html>

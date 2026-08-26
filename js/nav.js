@@ -102,7 +102,6 @@
       '<div class="lang-pills bb-lang-pills" role="group" aria-label="Language">' +
       '<button type="button" data-lang="zh-CN">简体</button>' +
       '<button type="button" data-lang="zh-Hant">繁體</button>' +
-      '<button type="button" data-lang="en">EN</button>' +
       "</div>"
     );
   }
@@ -302,7 +301,8 @@
     }
     if (chg) {
       if (hasChg) {
-        chg.textContent = (up ? "▲" : "▼") + " " + Math.abs(n).toFixed(2) + "%";
+        // [REPLACE-TAG]
+        chg.textContent = (up ? "▲" : "▼") + " " + Math.abs(n).toFixed(2) + " pts";
         chg.classList.toggle("up", up);
         chg.classList.toggle("down", !up);
       }

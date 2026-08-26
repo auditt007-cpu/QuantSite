@@ -970,11 +970,11 @@
   function packI18n() {
     if (root.QALang && typeof root.QALang.current === "function") {
       const lang = root.QALang.current();
-      return (root.I18N && (root.I18N[lang] || root.I18N.en || root.I18N["zh-Hant"])) || {};
+      return (root.I18N && (root.I18N[lang] || root.I18N["zh-Hant"] || root.I18N["zh-CN"])) || {};
     }
-    const lang = (typeof localStorage !== "undefined" && (localStorage.getItem("quant_lang") || localStorage.getItem("user_lang"))) || "en";
-    const mapped = lang === "zh-Hans" ? "zh-CN" : lang;
-    return (root.I18N && (root.I18N[mapped] || root.I18N.en || root.I18N["zh-Hant"])) || {};
+    const lang = (typeof localStorage !== "undefined" && (localStorage.getItem("quant_lang") || localStorage.getItem("user_lang"))) || "zh-Hant";
+    const mapped = lang === "zh-Hans" ? "zh-CN" : lang === "en" || lang === "en-US" ? "zh-Hant" : lang;
+    return (root.I18N && (root.I18N[mapped] || root.I18N["zh-Hant"] || root.I18N["zh-CN"])) || {};
   }
 
   function parseKlineRow(row) {

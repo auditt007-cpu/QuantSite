@@ -1,12 +1,13 @@
 (function (root) {
-  const PACKS = ["zh-Hant", "zh-CN", "en"];
+  const PACKS = ["zh-Hant", "zh-CN"];
+  const DEFAULT_PACK = "zh-Hant";
 
   function packOf(code) {
     const raw = String(code || "").trim();
     if (!raw) return null;
+    if (raw === "en" || raw === "en-US" || raw === "en-GB") return "zh-Hant";
     if (raw === "zh-Hans" || raw === "zh-CN" || raw === "zh-SG") return "zh-CN";
     if (raw === "zh-Hant" || raw === "zh-TW" || raw === "zh-HK" || raw === "zh-MO") return "zh-Hant";
-    if (raw === "en") return "en";
     if (root.I18N && root.I18N[raw]) return raw;
     return null;
   }
@@ -15,7 +16,7 @@
     const list =
       typeof navigator !== "undefined" && navigator.languages && navigator.languages.length
         ? navigator.languages
-        : [typeof navigator !== "undefined" ? navigator.language || navigator.userLanguage : "en"];
+        : [typeof navigator !== "undefined" ? navigator.language || navigator.userLanguage : "zh-Hant"];
     for (let i = 0; i < list.length; i++) {
       const tag = String(list[i] || "")
         .toLowerCase()
@@ -30,7 +31,7 @@
         return "zh-CN";
       }
     }
-    return "en";
+    return DEFAULT_PACK;
   }
 
   function persist(pack) {
@@ -52,7 +53,7 @@
     }
     if (pack && root.I18N && root.I18N[pack]) return pack;
     pack = detectBrowserLang();
-    if (!root.I18N || !root.I18N[pack]) pack = "en";
+    if (!root.I18N || !root.I18N[pack]) pack = DEFAULT_PACK;
     persist(pack);
     return pack;
   }
@@ -69,15 +70,13 @@
   }
 
   function t(key) {
-    const pack = (root.I18N && (root.I18N[currentLang()] || root.I18N.en || root.I18N["zh-Hant"])) || {};
-    const en = (root.I18N && root.I18N.en) || {};
+    const pack = (root.I18N && (root.I18N[currentLang()] || root.I18N[DEFAULT_PACK])) || {};
     const hant = (root.I18N && root.I18N["zh-Hant"]) || {};
     const cn = (root.I18N && root.I18N["zh-CN"]) || {};
-    return lookup(pack, key) || lookup(en, key) || lookup(hant, key) || lookup(cn, key) || key;
+    return lookup(pack, key) || lookup(hant, key) || lookup(cn, key) || key;
   }
 
   function htmlLang(pack) {
-    if (pack === "en") return "en";
     if (pack === "zh-CN") return "zh-Hans";
     return "zh-Hant";
   }
@@ -124,7 +123,7 @@
 
   function setLang(lang) {
     let pack = packOf(lang);
-    if (!pack || !root.I18N || !root.I18N[pack]) pack = "en";
+    if (!pack || !root.I18N || !root.I18N[pack]) pack = DEFAULT_PACK;
     persist(pack);
     applyI18nDom();
     root.dispatchEvent(new CustomEvent("quant-lang", { detail: pack }));

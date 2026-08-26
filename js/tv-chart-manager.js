@@ -86,8 +86,7 @@
 
   function localeForPage() {
     var lang = (document.documentElement && document.documentElement.lang) || "zh-Hant";
-    if (lang === "en") return "en";
-    if (lang === "zh-CN") return "zh_CN";
+    if (lang === "zh-CN" || lang === "zh-Hans") return "zh_CN";
     return "zh_TW";
   }
 

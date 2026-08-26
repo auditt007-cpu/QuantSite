@@ -8,16 +8,6 @@
   const RSS = "https://api.rss2json.com/v1/api.json?rss_url=";
 
   const COPY = {
-    en: {
-      marqueeTag: "LIVE",
-      flashFb: [
-        "Fed rate decision and its impact on Bitcoin liquidity",
-        "Ethereum L2 active addresses hit a new high",
-        "Weaker dollar: gold and crypto attract defensive flows",
-        "Spot ETF inflows rebound as institutions turn net long",
-        "Asia open: BTC volatility compresses ahead of the next move",
-      ],
-    },
     "zh-Hans": {
       marqueeTag: "即时快讯",
       flashFb: [
@@ -41,14 +31,13 @@
   };
 
   function newsKey() {
-    const pack = root.QALang && root.QALang.current ? root.QALang.current() : "en";
+    const pack = root.QALang && root.QALang.current ? root.QALang.current() : "zh-Hant";
     if (pack === "zh-CN" || pack === "zh-Hans") return "zh-Hans";
-    if (pack === "zh-Hant" || pack === "zh-TW") return "zh-Hant";
-    return "en";
+    return "zh-Hant";
   }
 
   function copyOf(key) {
-    return COPY[key] || COPY.en;
+    return COPY[key] || COPY["zh-Hant"];
   }
 
   function t(key) {
@@ -60,8 +49,7 @@
 
   function localeFor(key) {
     if (key === "zh-Hans") return "zh-CN";
-    if (key === "zh-Hant") return "zh-TW";
-    return "en-US";
+    return "zh-TW";
   }
 
   function hhmm(epoch, key) {
@@ -108,7 +96,7 @@
   }
 
   async function pullCc(key) {
-    const lang = key === "en" ? "EN" : "ZH";
+    const lang = "ZH";
     const json = await fetchJson(CC + lang);
     const data = json && json.Data ? json.Data : [];
     return mustRows(
@@ -149,16 +137,8 @@
   }
 
   function nodesFor(key) {
-    const binance =
-      key === "en"
-        ? "https://www.binance.com/en/support/announcement"
-        : "https://www.binance.com/zh-CN/support/announcement";
-    const extra =
-      key === "zh-Hant"
-        ? "https://www.blocktempo.com/feed/"
-        : key === "zh-Hans"
-          ? "https://www.jinse.cn/rss"
-          : "https://cointelegraph.com/rss";
+    const binance = "https://www.binance.com/zh-CN/support/announcement";
+    const extra = key === "zh-Hant" ? "https://www.blocktempo.com/feed/" : "https://www.jinse.cn/rss";
     return [
       () => pullCc(key),
       () => pullCoinGecko(key),
@@ -193,7 +173,7 @@
       title,
       url: "https://www.coindesk.com/",
       time: Date.now() / 1000 - i * 600,
-      source: key === "en" ? "Desk" : key === "zh-Hans" ? "宏观快讯" : "宏觀快訊",
+      source: key === "zh-Hans" ? "宏观快讯" : "宏觀快訊",
     }));
   }
 

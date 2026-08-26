@@ -43,7 +43,8 @@ const META = {
   "strat-008": {
     name: "RSI 极值均值回归修复 (Mean Reversion Alpha)",
     principle: "核心原理：价格创新低但 RSI 不再创新低，说明下跌动能在衰减，容易出现修复反弹。",
-    trigger: "触发条件：出现底背离且 RSI 仍低于 35 时买入；RSI 升破 70 或急跌约 3% 时卖出。",
+    // [REPLACE-TAG]
+    trigger: "触发条件：出现底背离且 RSI 仍低于 35 时买入；RSI 升破 70 或急跌约 3 pts 时卖出。",
   },
   "strat-009": {
     name: "随机指标超卖金叉修复 (Stochastic Reversion)",
@@ -78,7 +79,8 @@ const META = {
   "strat-015": {
     name: "分批摊薄网格补仓 (Scaled Grid Averaging)",
     principle: "核心原理：下跌时分批加仓降低持仓均价，指望价格回到均价附近再兑现；回撤风险会放大。",
-    trigger: "触发条件：空仓或较均价再跌约 2.5% 时加仓；较均价反弹约 2.5% 时减仓。",
+    // [REPLACE-TAG]
+    trigger: "触发条件：空仓或较均价再跌约 2.5 pts 时加仓；较均价反弹约 2.5 pts 时减仓。",
   },
   "strat-016": {
     name: "枢轴点日内网格 (Pivot Point Intraday Grid)",
@@ -108,7 +110,8 @@ const META = {
   "strat-021": {
     name: "跳空缺口动量跟踪 (Opening Gap Momentum)",
     principle: "核心原理：向上跳空说明隔夜信息已被定价，缺口不回补时动量往往延续。",
-    trigger: "触发条件：低点高于昨高约 1.5% 且收阳时买入；跌回缺口或收阴转弱时卖出。",
+    // [REPLACE-TAG]
+    trigger: "触发条件：低点高于昨高约 1.5 pts 且收阳时买入；跌回缺口或收阴转弱时卖出。",
   },
   "strat-022": {
     name: "分形结构突破 (Williams Fractal Breakout)",
@@ -128,17 +131,20 @@ const META = {
   "strat-025": {
     name: "盖特曼双动量轮动 (Absolute + Relative Dual Momentum)",
     principle: "核心原理：既要求自己在涨（绝对动量），又要求比对照资产更强（相对动量），两边同时满足才持有。",
-    trigger: "触发条件：12 期涨幅大于 3% 且相对强度排名靠前时买入；绝对动量转负或相对排名下滑时卖出。",
+    // [REPLACE-TAG]
+    trigger: "触发条件：12 期涨幅大于 3 pts 且相对强度排名靠前时买入；绝对动量转负或相对排名下滑时卖出。",
   },
   "strat-026": {
     name: "米奈尔维尼波动收缩突破 (VCP Breakout)",
     principle: "核心原理：波动一轮比一轮更窄，像弹簧被压紧，再放量离开枢轴价时趋势容易启动。",
-    trigger: "触发条件：识别 VCP 后放量突破枢轴价时买入；跌破枢轴约 5% 或冲高过热约 20% 时卖出。",
+    // [REPLACE-TAG]
+    trigger: "触发条件：识别 VCP 后放量突破枢轴价时买入；跌破枢轴约 5 pts 或冲高过热约 20 pts 时卖出。",
   },
   "strat-027": {
     name: "欧奈尔杯柄形态动量 (Cup-with-Handle Momentum)",
     principle: "核心原理：杯柄是回撤后再收缩的整理，突破杯口往往对应机构重新进场。",
-    trigger: "触发条件：杯柄完成后放量突破枢轴时买入；跌破枢轴约 7% 或冲高约 25% 时卖出。",
+    // [REPLACE-TAG]
+    trigger: "触发条件：杯柄完成后放量突破枢轴时买入；跌破枢轴约 7 pts 或冲高约 25 pts 时卖出。",
   },
   "strat-028": {
     name: "桥水全天候风险平价过滤 (All-Weather Risk Overlay)",

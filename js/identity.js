@@ -4,10 +4,10 @@
 
   function t(key) {
     if (root.QALang && typeof root.QALang.t === "function") return root.QALang.t(key);
-    const lang = localStorage.getItem("quant_lang") || localStorage.getItem("user_lang") || "en";
-    const mapped = lang === "zh-Hans" ? "zh-CN" : lang;
-    const pack = (root.I18N && (root.I18N[mapped] || root.I18N.en || root.I18N["zh-Hant"])) || {};
-    const fallback = (root.I18N && root.I18N.en) || {};
+    const lang = localStorage.getItem("quant_lang") || localStorage.getItem("user_lang") || "zh-Hant";
+    const mapped = lang === "zh-Hans" ? "zh-CN" : lang === "en" || lang === "en-US" ? "zh-Hant" : lang;
+    const pack = (root.I18N && (root.I18N[mapped] || root.I18N["zh-Hant"] || root.I18N["zh-CN"])) || {};
+    const fallback = (root.I18N && root.I18N["zh-Hant"]) || {};
     return pack[key] || fallback[key] || key;
   }
 

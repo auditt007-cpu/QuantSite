@@ -299,7 +299,8 @@
     const x = Number(n);
     if (!Number.isFinite(x)) return "—";
     const sign = x > 0 ? "+" : "";
-    return sign + (x * 100).toFixed(digits == null ? 1 : digits) + "%";
+    // [REPLACE-TAG]
+    return sign + (x * 100).toFixed(digits == null ? 1 : digits) + " pts";
   }
 
   function fmtAxisDate(sec) {
@@ -536,7 +537,8 @@
       ctx.lineTo(w - pad.r, y);
       ctx.stroke();
       const ret = (v - 1) * 100;
-      ctx.fillText((ret >= 0 ? "+" : "") + ret.toFixed(1) + "%", pad.l - 4, y);
+      // [REPLACE-TAG]
+      ctx.fillText((ret >= 0 ? "+" : "") + ret.toFixed(1) + " pts", pad.l - 4, y);
     }
 
     ctx.textAlign = "center";
@@ -628,7 +630,8 @@
       mark.level != null && Number.isFinite(Number(mark.level))
         ? Number(mark.level).toLocaleString("en-US", { maximumFractionDigits: 4 })
         : "—";
-    const ret = mark.v != null ? ((mark.v - 1) * 100).toFixed(2) + "%" : "—";
+    // [REPLACE-TAG]
+    const ret = mark.v != null ? ((mark.v - 1) * 100).toFixed(2) + " pts" : "—";
     box.innerHTML =
       "<strong>" +
       side +
@@ -1101,7 +1104,8 @@
       const prev = kpiPrev.mdd;
       animateKpi(dd, prev, res.mdd, {
         fmt: function (v) {
-          return Number.isFinite(v) ? (v * 100).toFixed(1) + "%" : "—";
+          // [REPLACE-TAG]
+          return Number.isFinite(v) ? (v * 100).toFixed(1) + " pts" : "—";
         },
         down: Number.isFinite(prev) && res.mdd < prev,
       });
@@ -1264,7 +1268,8 @@
     if (!Number.isFinite(frac)) return "—";
     const pct = Math.abs(frac) <= 5 ? frac * 100 : frac;
     const sign = pct > 0 ? "+" : "";
-    return sign + pct.toFixed(1) + "%";
+    // [REPLACE-TAG]
+    return sign + pct.toFixed(1) + " pts";
   }
 
   function renderTopGridCards(rows) {

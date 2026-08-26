@@ -12,16 +12,16 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#000000">
   <title>QUANT ALPHA · 網格機器人</title>
-  <link rel="stylesheet" href="./styles.css?v=202608261645-marquee" />
-  <link rel="stylesheet" href="./css/mobile-global.css?v=202608261645-marquee" />
-  <link rel="stylesheet" href="./css/mobile-subpages.css?v=202608261645-marquee" />
-  <link rel="stylesheet" href="./css/bots.css?v=202608261730-bots" />
-  <link rel="stylesheet" href="./css/bloomberg-system.css?v=202608261645-marquee" />
-  <link rel="stylesheet" href="./css/bloomberg-dark.css?v=202608261645-marquee" />
+  <link rel="stylesheet" href="./styles.css?v=202608251308-be4a65b" />
+  <link rel="stylesheet" href="./css/mobile-global.css?v=202608251308-be4a65b" />
+  <link rel="stylesheet" href="./css/mobile-subpages.css?v=202608251308-be4a65b" />
+  <link rel="stylesheet" href="./css/bots.css?v=202608251308-be4a65b" />
+  <link rel="stylesheet" href="./css/bloomberg-system.css?v=202608251308-be4a65b" />
+  <link rel="stylesheet" href="./css/bloomberg-dark.css?v=202608251308-be4a65b" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./css/chrome-lock.css?v=202608260531-fix" />
+  <link rel="stylesheet" href="./css/chrome-lock.css?v=202608251308-be4a65b" />
 </head>
 <body class="editorial-light bots-page" data-title-key="titleBots">
   <div class="site-sticky-chrome">
@@ -109,7 +109,8 @@
           </div>
           <p class="bot-chart-hint muted" data-i18n="botChartHint">灰色區間為價格超出網格帶；點擊買賣三角查看成交詳情</p>
         </div>
-        <p class="bot-note" data-i18n="botDisc">回測於瀏覽器本地完成，含約 4bps 單邊成本假設。歷史結果不代表未來實盤收益。</p>
+        <!-- [REPLACE-TAG] -->
+        <p class="bot-note" data-i18n="botDisc">回測於瀏覽器本地完成，含約 4bps 單邊成本假設。歷史結果不代表未來實盤收益。所有槓桿參數均為回測假設，不代表真實交易風險，實際使用可能面臨本金全部損失。</p>
         </div>
       </div>
 
@@ -208,12 +209,14 @@
 
         <div class="bot-actions">
           <button type="button" class="bot-btn" id="botRun" data-i18n="botRun">[ 立即執行回測 ]</button>
-          <button type="button" class="bot-btn ghost" id="botDeploy" data-i18n="botDeployBtn">[ 部署至實盤 ]</button>
+          <!-- [REPLACE-TAG] -->
+          <button type="button" class="bot-btn ghost" id="botDeploy" data-i18n="botDeployBtn">[ 部署至仿真節點 ]</button>
         </div>
         <p class="bot-status" id="botStatus"></p>
 
         <section class="bot-presets bot-presets-inline" aria-label="Grid return TOP 3">
-          <h2 data-i18n="botPresets">網格策略收益率 TOP 3</h2>
+          <!-- [REPLACE-TAG] -->
+          <h2 data-i18n="botPresets">網格策略波動捕捉率 TOP 3</h2>
           <div class="bot-field bot-preset-select-row">
             <label for="botPresetSelect" data-i18n="botPresetPick">選擇 TOP 網格</label>
             <select id="botPresetSelect" class="bot-preset-select">
@@ -231,11 +234,13 @@
   <div class="bot-deploy-bg" id="botDeployBg" role="dialog" aria-modal="true">
     <div class="bot-deploy">
       <button type="button" class="bot-deploy-x" data-close-bot aria-label="關閉">×</button>
-      <h3 data-i18n="botModalTitle">實盤雲端託管</h3>
+      <!-- [REPLACE-TAG] -->
+      <h3 data-i18n="botModalTitle">雲端仿真託管</h3>
       <p data-i18n="botModalCopy">無需手動盯盤，QuantAlpha 雲端節點將按您自訂的參數自動 24H 執行網格掛單。</p>
       <ol>
         <li>
-          <span data-i18n="botStep1">使用專屬邀請碼註冊交易所（享永久 40% 手續費折抵）</span>
+          <!-- [REPLACE-TAG] -->
+          <span data-i18n="botStep1">使用專屬邀請碼註冊交易所（享永久 40 pts 手續費折抵）</span>
           · <a href="./affiliate.html" data-i18n="botInvite">前往邀請與開戶</a>
         </li>
         <li data-i18n="botStep2">填寫交易所 UID 與唯讀／交易 API Key（嚴禁勾選提領權限）</li>
@@ -259,17 +264,18 @@
   </div>
 
   <div class="toast" id="toast"></div>
-  <script src="./js/binance-feed.js?v=202608252340-board"></script>
-  <script src="./js/offline-klines.js?v=202608252340-board"></script>
-  <script src="./js/nav.js?v=202608260531-fix"></script>
-  <script src="./config.js?v=202608252340-board"></script>
-  <script src="./js/meta-events.js?v=202608252340-board"></script>
-  <script src="./i18n.js?v=202608261730-bots"></script>
-  <script src="./js/i18n-boot.js?v=202608252340-board"></script>
-  <script src="./js/identity.js?v=202608261645-marquee"></script>
-  <script src="./js/compliance.js?v=202608252340-board"></script>
-  <script src="./js/lead-bind.js?v=202608260531-fix"></script>
-  <script src="./js/money.js?v=202608252340-board"></script>
-  <script src="./js/grid-backtest.js?v=202608261730-bots"></script>
+  <script src="./js/binance-feed.js?v=202608251308-be4a65b"></script>
+  <script src="./js/offline-klines.js?v=202608251308-be4a65b"></script>
+  <script src="./js/nav.js?v=202608251308-be4a65b"></script>
+  <script src="./config.js?v=202608251308-be4a65b"></script>
+  <script src="./js/meta-events.js?v=202608251308-be4a65b"></script>
+  <script src="./i18n.js?v=202608251308-be4a65b"></script>
+  <script src="./js/i18n-boot.js?v=202608251308-be4a65b"></script>
+  <script src="./js/identity.js?v=202608251308-be4a65b"></script>
+  <script src="./js/compliance.js?v=202608251308-be4a65b"></script>
+  <script src="./js/lead-bind.js?v=202608251308-be4a65b"></script>
+  <script src="./js/money.js?v=202608251308-be4a65b"></script>
+  <script src="./js/grid-backtest.js?v=202608251308-be4a65b"></script>
+<script src="/ajax-loader.js"></script>
 </body>
 </html>

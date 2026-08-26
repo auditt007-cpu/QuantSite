@@ -23,7 +23,8 @@
     const n = Number(x);
     if (!isFinite(n)) return "—";
     const sign = n > 0 ? "+" : "";
-    return sign + (n * 100).toFixed(digits == null ? 2 : digits) + "%";
+    // [REPLACE-TAG]
+    return sign + (n * 100).toFixed(digits == null ? 2 : digits) + " pts";
   }
 
   function clsSigned(n) {
@@ -331,7 +332,8 @@
     const avgEl = $("bestAvg");
     avgEl.textContent = t("bestAvgTpl").replace("{d}", String(best.days)).replace("{pct}", pct(best.avg));
     avgEl.className = clsSigned(best.avg);
-    $("maxUp").textContent = t("maxUpTpl").replace("{d}", String(bestUp.days)).replace("{pct}", (bestUp.up * 100).toFixed(2) + "%");
+    // [REPLACE-TAG]
+    $("maxUp").textContent = t("maxUpTpl").replace("{d}", String(bestUp.days)).replace("{pct}", (bestUp.up * 100).toFixed(2) + " pts");
   }
 
   async function runDeep() {
@@ -425,7 +427,8 @@
       lastCount = entries.length;
       paintExec(matrix, entries.length);
       paintMatrix(matrix);
-      $("mWr").textContent = (st.wr * 100).toFixed(1) + "%";
+      // [REPLACE-TAG]
+      $("mWr").textContent = (st.wr * 100).toFixed(1) + " pts";
       $("mPf").textContent = !isFinite(st.pf) ? "∞" : st.pf.toFixed(2);
       $("mTrades").textContent = String(st.trades);
       $("mBars").textContent = String(sliced.length);
@@ -442,7 +445,8 @@
       $("navNow").textContent = t("navNowTpl").replace("{v}", "$" + now.toFixed(2));
       $("navPnl").textContent = t("navPnlTpl").replace("{v}", pct(st.ret));
       $("navPnl").className = "nav-chip " + (st.ret < 0 ? "down" : "up");
-      $("navDd").textContent = t("navDdTpl").replace("{v}", (st.mdd * 100).toFixed(1) + "%");
+      // [REPLACE-TAG]
+      $("navDd").textContent = t("navDdTpl").replace("{v}", (st.mdd * 100).toFixed(1) + " pts");
       paintDur(sliced);
       if (window.QAUi) {
         window.QAUi.flash($("navNow"), st.ret < 0);
@@ -506,7 +510,8 @@
     if (lastSt) {
       $("navNow").textContent = t("navNowTpl").replace("{v}", "$" + lastEqNow.toFixed(2));
       $("navPnl").textContent = t("navPnlTpl").replace("{v}", pct(lastSt.ret));
-      $("navDd").textContent = t("navDdTpl").replace("{v}", (lastSt.mdd * 100).toFixed(1) + "%");
+      // [REPLACE-TAG]
+      $("navDd").textContent = t("navDdTpl").replace("{v}", (lastSt.mdd * 100).toFixed(1) + " pts");
       paintDur(lastSliced);
     }
   });

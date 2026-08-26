@@ -11,10 +11,10 @@
       const live = window.QALang.t(key);
       if (live && live !== key) return live;
     }
-    const lang = localStorage.getItem("user_lang") || localStorage.getItem("quant_lang") || "en";
-    const mapped = lang === "zh-Hans" ? "zh-CN" : lang;
-    const pack = (window.I18N && (window.I18N[mapped] || window.I18N.en || window.I18N["zh-Hant"])) || {};
-    const fallback = (window.I18N && window.I18N.en) || {};
+    const lang = localStorage.getItem("user_lang") || localStorage.getItem("quant_lang") || "zh-Hant";
+    const mapped = lang === "zh-Hans" ? "zh-CN" : lang === "en" || lang === "en-US" ? "zh-Hant" : lang;
+    const pack = (window.I18N && (window.I18N[mapped] || window.I18N["zh-Hant"] || window.I18N["zh-CN"])) || {};
+    const fallback = (window.I18N && window.I18N["zh-Hant"]) || {};
     return pack[key] || fallback[key] || key;
   }
 
@@ -96,16 +96,13 @@
   }
 
   function langCode() {
-    const raw = localStorage.getItem("quant_lang") || localStorage.getItem("user_lang") || "en";
+    const raw = localStorage.getItem("quant_lang") || localStorage.getItem("user_lang") || "zh-Hant";
     if (raw === "zh-Hans" || raw === "zh-CN") return "zh-CN";
-    if (raw === "zh-Hant" || raw === "zh-TW") return "zh-Hant";
-    return "en";
+    return "zh-Hant";
   }
 
   function modelName(row) {
     if (!row) return "—";
-    const code = langCode();
-    if (code === "en") return row.name_en || row.engine || row.id || "—";
     return row.name_zh || row.name_en || row.engine || row.id || "—";
   }
 
@@ -224,7 +221,8 @@
               '">' +
               (up ? "+" : "") +
               roi.toFixed(1) +
-              '% <small class="week-days">' +
+              // [REPLACE-TAG]
+              ' pts <small class="week-days">' +
               days +
               t("weekDaysUnit") +
               "</small></em></button></li>"
@@ -373,7 +371,8 @@
     if (!el) return;
     el.classList.remove("soft");
     if (Number.isFinite(hit)) {
-      el.textContent = (hit * 100).toFixed(1) + "%";
+      // [REPLACE-TAG]
+      el.textContent = (hit * 100).toFixed(1) + " pts";
       if (window.QAUi && !soft) window.QAUi.flash(el, hit < 0.5);
       return;
     }
@@ -659,11 +658,13 @@
       : `<span class="classic-badge">${t("mktBadgeClassic")}</span>`;
     const principle = enriched.principle;
     const wrPct =
-      seed.wrLabel || (seed.wr != null ? (seed.wr * 100).toFixed(1) + "%" : "—");
+      // [REPLACE-TAG]
+      seed.wrLabel || (seed.wr != null ? (seed.wr * 100).toFixed(1) + " pts" : "—");
     const shTxt = seed.sh != null ? Number(seed.sh).toFixed(2) : "—";
     const mddTxt =
       seed.mdd != null
-        ? (-Math.abs(seed.mdd <= 1.5 ? seed.mdd * 100 : seed.mdd)).toFixed(1) + "%"
+        // [REPLACE-TAG]
+        ? (-Math.abs(seed.mdd <= 1.5 ? seed.mdd * 100 : seed.mdd)).toFixed(1) + " pts"
         : "—";
     const disc =
       seed.disclaimer ||

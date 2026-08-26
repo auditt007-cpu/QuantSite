@@ -881,7 +881,8 @@ async function creditVipCommissions(env: Bindings, payer: UserRecord) {
     await sendTelegram(
       env,
       parent.tg_id,
-      `機構 VIP 返傭入帳：L1 直推 ${L1_USDT.toFixed(2)} USDT（35%）。`,
+      // [REPLACE-TAG]
+      `機構 VIP 返傭入帳：L1 直推 ${L1_USDT.toFixed(2)} USDT（35 pts）。`,
     );
   }
 
@@ -899,7 +900,8 @@ async function creditVipCommissions(env: Bindings, payer: UserRecord) {
     await sendTelegram(
       env,
       gp.tg_id,
-      `機構 VIP 返傭入帳：L2 間推 ${L2_USDT.toFixed(2)} USDT（15%）。`,
+      // [REPLACE-TAG]
+      `機構 VIP 返傭入帳：L2 間推 ${L2_USDT.toFixed(2)} USDT（15 pts）。`,
     );
   }
 }

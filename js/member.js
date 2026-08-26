@@ -3,9 +3,9 @@ const $ = (id) => document.getElementById(id);
 
 function t(key) {
   if (window.QALang && typeof window.QALang.t === "function") return window.QALang.t(key);
-  const lang = localStorage.getItem("quant_lang") || localStorage.getItem("user_lang") || "en";
-  const mapped = lang === "zh-Hans" ? "zh-CN" : lang;
-  const pack = (window.I18N && (window.I18N[mapped] || window.I18N.en || window.I18N["zh-Hant"])) || {};
+  const lang = localStorage.getItem("quant_lang") || localStorage.getItem("user_lang") || "zh-Hant";
+  const mapped = lang === "zh-Hans" ? "zh-CN" : lang === "en" || lang === "en-US" ? "zh-Hant" : lang;
+  const pack = (window.I18N && (window.I18N[mapped] || window.I18N["zh-Hant"] || window.I18N["zh-CN"])) || {};
   return pack[key] || key;
 }
 
@@ -200,7 +200,7 @@ async function refreshInviteUi() {
   }
   const lang = localStorage.getItem("quant_lang") || "zh-Hant";
   $("inviteLink").textContent = code ? `${origin}?ref=${code}` : "—";
-  if ($("refCount")) $("refCount").textContent = `${count}${lang === "en" ? " / 2 binds" : " / 2 人"}`;
+  if ($("refCount")) $("refCount").textContent = `${count} / 2 人`;
   const money = window.QAMoney;
   if ($("refAvail")) $("refAvail").textContent = money ? money.fmtUsdt(avail) : avail.toFixed(2) + " USDT";
   if ($("refPend")) $("refPend").textContent = money ? money.fmtUsdt(pend) : pend.toFixed(2) + " USDT";

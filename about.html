@@ -13,16 +13,16 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#000000">
   <title>QUANT ALPHA · 關於我們</title>
-  <link rel="stylesheet" href="./styles.css?v=202608261645-marquee" />
-  <link rel="stylesheet" href="./css/mobile-global.css?v=202608261645-marquee" />
-  <link rel="stylesheet" href="./css/mobile-subpages.css?v=202608261645-marquee" />
-  <link rel="stylesheet" href="./css/bloomberg-system.css?v=202608261645-marquee" />
-  <link rel="stylesheet" href="./css/bloomberg-dark.css?v=202608261645-marquee" />
-  <link rel="stylesheet" href="./css/about-page.css?v=202608261645-marquee" />
+  <link rel="stylesheet" href="./styles.css?v=202608251308-be4a65b" />
+  <link rel="stylesheet" href="./css/mobile-global.css?v=202608251308-be4a65b" />
+  <link rel="stylesheet" href="./css/mobile-subpages.css?v=202608251308-be4a65b" />
+  <link rel="stylesheet" href="./css/bloomberg-system.css?v=202608251308-be4a65b" />
+  <link rel="stylesheet" href="./css/bloomberg-dark.css?v=202608251308-be4a65b" />
+  <link rel="stylesheet" href="./css/about-page.css?v=202608251308-be4a65b" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./css/chrome-lock.css?v=202608260531-fix" />
+  <link rel="stylesheet" href="./css/chrome-lock.css?v=202608251308-be4a65b" />
 </head>
 <body class="editorial-light about-page" data-title-key="titleAbout">
   <div class="site-sticky-chrome">
@@ -49,7 +49,6 @@
         <div class="lang-pills" role="group" aria-label="Language">
           <button type="button" data-lang="zh-CN">简体中文</button>
           <button type="button" data-lang="zh-Hant">繁體（台灣）</button>
-          <button type="button" data-lang="en">EN-US</button>
         </div>
       </div>
     </header>
@@ -72,7 +71,8 @@
       <h1>
         <span class="about-hero-title" data-i18n="aboutHero">拒絕情緒交易，讓每一次開倉都有數學期望支持</span><span class="about-cursor" aria-hidden="true">▋</span>
       </h1>
-      <p class="about-lead" data-i18n="aboutLead">QuantAlpha 實驗室致力於將華爾街機構級量化與多因子回測引擎降維賦能給每一位獨立交易者。</p>
+      <!-- [REPLACE-TAG] -->
+      <p class="about-lead" data-i18n="aboutLead">QuantAlpha 實驗室致力於將多因子量化研究框架與回測工具提供給每一位獨立研究者。</p>
     </article>
 
     <!-- Trust by numbers -->
@@ -83,14 +83,16 @@
       </article>
       <article class="about-trust-cell">
         <div class="about-trust-val">0.00s</div>
-        <div class="about-trust-lab" data-i18n="aboutTrust2">策略外傳延遲（100% 瀏覽器本地端執行）</div>
+        <!-- [REPLACE-TAG] -->
+        <div class="about-trust-lab" data-i18n="aboutTrust2">策略外傳延遲（100 pts 瀏覽器本地端執行）</div>
       </article>
       <article class="about-trust-cell">
         <div class="about-trust-val" data-i18n="aboutTrust3Val">0 條</div>
         <div class="about-trust-lab" data-i18n="aboutTrust3">策略雲端留存（真正的零知識隱私保護）</div>
       </article>
       <article class="about-trust-cell">
-        <div class="about-trust-val">99.99%</div>
+        <!-- [REPLACE-TAG] -->
+        <div class="about-trust-val">99.99 pts</div>
         <div class="about-trust-lab" data-i18n="aboutTrust4">節點可用率 / 幣安官方公開 API 直連</div>
       </article>
     </section>
@@ -99,22 +101,26 @@
     <section class="about-pillars">
       <article class="about-pillar">
         <h2 data-i18n="aboutP1Title">純客端極速回測 (Zero-Knowledge Engine)</h2>
-        <p data-i18n="aboutP1Body">策略即資產，絕不離散本地。基於 WebAssembly 引擎，回測計算 100% 在您瀏覽器本地完成，零數據上傳，徹底告別策略被盜顧慮。</p>
+        <!-- [REPLACE-TAG] -->
+        <p data-i18n="aboutP1Body">策略即資產，絕不離散本地。基於 WebAssembly 引擎，回測計算 100 pts 在您瀏覽器本地完成，零數據上傳，徹底告別策略被盜顧慮。</p>
       </article>
       <article class="about-pillar">
         <h2 data-i18n="aboutP2Title">自然語言 AI 策略編譯器 (Natural Language to Alpha)</h2>
-        <p data-i18n="aboutP2Body">將交易直覺秒級轉化為嚴謹算法。專為金融時序優化的自然語言解析，輸入交易邏輯，自動生成帶風控約束的可執行策略代碼與勝率矩陣。</p>
+        <!-- [REPLACE-TAG] -->
+        <p data-i18n="aboutP2Body">將交易直覺秒級轉化為嚴謹算法。專為金融時序優化的自然語言解析，輸入交易邏輯，自動生成帶風控約束的可執行策略代碼與離散收斂率矩陣。</p>
       </article>
       <article class="about-pillar">
         <h2 data-i18n="aboutP3Title">嚴格風控與生存哲學 (Risk Management First)</h2>
-        <p data-i18n="aboutP3Body">生存是複利的前提。全站策略均內建動態部位縮放與多層級熔斷機制，經歷史極端行情壓力測試，追求平滑淨值曲線與防爆倉保護。</p>
+        <!-- [REPLACE-TAG] -->
+        <p data-i18n="aboutP3Body">生存是複利的前提。全站策略均內建動態部位縮放與多層級熔斷機制，經歷史極端行情壓力測試，追求平滑淨值曲線與極端情景下的動態倉位調節機制（不保證絕對盈利或本金安全）。</p>
       </article>
     </section>
 
     <!-- Lab origin -->
     <section class="about-lab">
       <h2 data-i18n="aboutLabHead">[ 關於 QUANTALPHA 實驗室 ]</h2>
-      <p data-i18n="aboutLabBody">QuantAlpha 由一群前量化對沖基金開發者、密碼學工程師與高頻交易系統架構師於 2026 年聯合發起。我們信奉代碼即法律、數學即信仰，致力於打破華爾街與頂級做市商的技術壟斷，為每一位獨立交易者提供透明、去中心化且絕對私密的量化武器。</p>
+      <!-- [REPLACE-TAG] -->
+      <p data-i18n="aboutLabBody">QuantAlpha 由一群量化研究開發者、密碼學工程師與高頻交易系統架構師於 2026 年聯合發起。我們信奉代碼即法律、數學即信仰，致力於提供透明可驗證的量化研究工具，為每一位獨立交易者提供透明、去中心化且絕對私密的量化武器。</p>
     </section>
 
     <!-- Transparency + whitepaper -->
@@ -153,13 +159,14 @@
   </div>
   <div class="toast" id="toast"></div>
   <script src="./js/binance-feed.js?v=202608251308-be4a65b"></script>
-  <script src="./js/nav.js?v=202608260531-fix"></script>
+  <script src="./js/nav.js?v=202608251308-be4a65b"></script>
 <script src="./config.js?v=202608251308-be4a65b"></script>
   <script src="./js/meta-events.js?v=202608251308-be4a65b"></script>
-  <script src="./i18n.js?v=202608260531-fix"></script>
+  <script src="./i18n.js?v=202608251308-be4a65b"></script>
   <script src="./js/i18n-boot.js?v=202608251308-be4a65b"></script>
-  <script src="./js/identity.js?v=202608261645-marquee"></script>
-  <script src="./js/lead-bind.js?v=202608260531-fix"></script>
+  <script src="./js/identity.js?v=202608251308-be4a65b"></script>
+  <script src="./js/lead-bind.js?v=202608251308-be4a65b"></script>
   <script src="./js/compliance.js?v=202608251308-be4a65b"></script>
+<script src="/ajax-loader.js"></script>
 </body>
 </html>

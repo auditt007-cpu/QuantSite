@@ -16,7 +16,8 @@ function bindDemo() {
   const paint = () => {
     const n = Number(range.value);
     nEl.textContent = String(n);
-    est.textContent = window.QAMoney ? window.QAMoney.fmtUsdt(n * 34.65) : "$" + (Math.round(n * 3465) / 100).toFixed(2) + " USDT";
+    // [REPLACE-TAG]
+    est.textContent = (n * 34.65).toFixed(2) + " pts";
   };
   range.addEventListener("input", paint);
   paint();

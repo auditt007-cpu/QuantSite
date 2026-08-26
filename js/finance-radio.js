@@ -13,11 +13,6 @@
       { label: "广东股市广播", url: "https://lhttp.qingting.fm/live/4847/64k.mp3" },
       { label: "东广新闻台", url: "https://lhttp.qingting.fm/live/275/64k.mp3" },
     ],
-    en: [
-      { label: "Bloomberg Radio", url: "https://playerservices.streamtheworld.com/api/livestream-redirect/WBBRAMAAC48.aac" },
-      { label: "BBC World Service", url: "https://stream.live.vc.bbcmedia.co.uk/bbc_world_service" },
-      { label: "NPR News", url: "https://npr-ice.streamguys1.com/live.mp3" },
-    ],
   };
 
   var audio = null;
@@ -32,14 +27,7 @@
   }
 
   function langFromPage() {
-    var pack = "";
-    try {
-      if (root.QALang && typeof root.QALang.current === "function") pack = root.QALang.current();
-    } catch (e) {
-      pack = "";
-    }
-    if (!pack && document.documentElement) pack = document.documentElement.lang || "";
-    return String(pack).indexOf("en") === 0 ? "en" : "cn";
+    return "cn";
   }
 
   function loadPrefs() {

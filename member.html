@@ -13,12 +13,12 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#000000">
   <title>QUANT ALPHA · 會員中心</title>
-  <link rel="stylesheet" href="./styles.css?v=202608261645-marquee" />
-  <link rel="stylesheet" href="./css/mobile-global.css?v=202608261645-marquee" />
-  <link rel="stylesheet" href="./css/mobile-subpages.css?v=202608261645-marquee" />
-  <link rel="stylesheet" href="./css/bloomberg-system.css?v=202608261645-marquee" />
-  <link rel="stylesheet" href="./css/bloomberg-dark.css?v=202608261645-marquee" />
-  <link rel="stylesheet" href="./css/chrome-lock.css?v=202608260531-fix" />
+  <link rel="stylesheet" href="./styles.css?v=202608251308-be4a65b" />
+  <link rel="stylesheet" href="./css/mobile-global.css?v=202608251308-be4a65b" />
+  <link rel="stylesheet" href="./css/mobile-subpages.css?v=202608251308-be4a65b" />
+  <link rel="stylesheet" href="./css/bloomberg-system.css?v=202608251308-be4a65b" />
+  <link rel="stylesheet" href="./css/bloomberg-dark.css?v=202608251308-be4a65b" />
+  <link rel="stylesheet" href="./css/chrome-lock.css?v=202608251308-be4a65b" />
 </head>
 <body>
   <div class="site-sticky-chrome">
@@ -46,7 +46,6 @@
         <div class="lang-pills" role="group" aria-label="Language">
           <button type="button" data-lang="zh-CN">简体中文</button>
           <button type="button" data-lang="zh-Hant">繁體（台灣）</button>
-          <button type="button" data-lang="en">EN-US</button>
         </div>
       </div>
     </header>
@@ -116,7 +115,8 @@
       </div>
       <div class="dash-pay" id="payBox">
         <h4 data-i18n="payHead">方案對比</h4>
-        <p class="muted" data-i18n="payLead">免費版走公開頻道；Pro 為私聊極速推送。大師組可免費看業績與回測，實盤接入需付費後向客服索取平台配置連結。</p>
+        <!-- [REPLACE-TAG] -->
+        免費版走公開頻道；Pro 為私聊推送。大師組可免費查看業績與回測，仿真環境接入需訂閱研究計劃後聯繫客服。
         <div class="price-grid">
           <div class="price-card">
             <b data-i18n="priceFree">免費版</b>
@@ -124,7 +124,8 @@
           </div>
           <div class="price-card on">
             <b data-i18n="pricePro">Pro 通道</b>
-            <p class="muted" data-i18n="priceProD">私聊推送 · 低延遲通道 · 大師組實盤接入</p>
+            <!-- [REPLACE-TAG] -->
+            私聊推送 · 低延遲通道 · 大師組仿真環境接入
           </div>
         </div>
         <div class="lab-actions" style="margin-top:12px">
@@ -178,16 +179,17 @@
   </div>
   <div class="toast" id="toast"></div>
   <script src="./js/binance-feed.js?v=202608251308-be4a65b"></script>
-  <script src="./js/nav.js?v=202608260531-fix"></script>
+  <script src="./js/nav.js?v=202608251308-be4a65b"></script>
 <script src="./config.js?v=202608251308-be4a65b"></script>
   <script src="./js/meta-events.js?v=202608251308-be4a65b"></script>
-  <script src="./i18n.js?v=202608260531-fix"></script>
+  <script src="./i18n.js?v=202608251308-be4a65b"></script>
   <script src="./js/i18n-boot.js?v=202608251308-be4a65b"></script>
   <script src="./js/money.js?v=202608251308-be4a65b"></script>
   <script src="./js/clipboard.js?v=202608251308-be4a65b"></script>
-  <script src="./js/identity.js?v=202608261645-marquee"></script>
+  <script src="./js/identity.js?v=202608251308-be4a65b"></script>
     <script src="./js/compliance.js?v=202608251308-be4a65b"></script>
-  <script src="./js/lead-bind.js?v=202608260531-fix"></script>
+  <script src="./js/lead-bind.js?v=202608251308-be4a65b"></script>
   <script src="./js/member.js?v=202608251308-be4a65b"></script>
+<script src="/ajax-loader.js"></script>
 </body>
 </html>

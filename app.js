@@ -4,17 +4,18 @@ let lang = "zh-Hant";
 
 function t(key) {
   if (window.QALang && typeof window.QALang.t === "function") return window.QALang.t(key);
-  const pack = window.I18N[lang] || window.I18N.en || window.I18N["zh-Hant"];
-  return pack[key] || (window.I18N.en && window.I18N.en[key]) || (window.I18N["zh-Hant"] && window.I18N["zh-Hant"][key]) || key;
+  const pack = window.I18N[lang] || window.I18N["zh-Hant"] || window.I18N["zh-CN"];
+  return pack[key] || (window.I18N["zh-Hant"] && window.I18N["zh-Hant"][key]) || (window.I18N["zh-CN"] && window.I18N["zh-CN"][key]) || key;
 }
 
 function detectLang() {
   if (window.QALang && typeof window.QALang.current === "function") return window.QALang.current();
   const user = localStorage.getItem("user_lang");
-  if (user && window.I18N[user]) return user === "zh-Hans" ? "zh-CN" : user;
+  if (user === "zh-Hans") return "zh-CN";
+  if (user && window.I18N[user]) return user;
   const saved = localStorage.getItem("quant_lang");
   if (saved && window.I18N[saved]) return saved;
-  return "en";
+  return "zh-Hant";
 }
 
 function loggedIn() {
@@ -32,7 +33,7 @@ function applyAuthUi() {
 }
 
 function applyI18n() {
-  document.documentElement.lang = lang === "en" ? "en" : lang === "zh-CN" ? "zh-CN" : "zh-Hant";
+  document.documentElement.lang = lang === "zh-CN" ? "zh-Hans" : "zh-Hant";
   document.title = t("title");
   document.querySelectorAll("[data-i18n]").forEach((el) => {
     if (el.id === "nodeName" || el.id === "dashLevel" || el.id === "mCap" || el.id === "mWin" || el.id === "mPf" || el.id === "mDd" || el.id === "btnAuth" || el.id === "idPill" || el.id === "refCount") return;
@@ -229,7 +230,8 @@ const LEGAL = {
   },
   disclaimer: {
     title: "免責聲明 (Disclaimer)",
-    body: "本平台所有策略、代碼與信號僅供量化回測與學術研究，不構成任何投資建議與收益承諾。看板數據、買賣點標記與績效數字均為研究展示，不得視為實盤保證。使用者應獨立判斷並自行承擔全部風險。",
+    // [REPLACE-TAG]
+    body: "本平台所有策略、代碼與信號僅供量化回測與學術研究，不構成任何投資建議與收益承諾。看板數據、買賣點標記與績效數字均為研究展示，不得視為實盤保證。使用者應獨立判斷並自行承擔全部風險。使用槓桿倍數進行模擬時，可能因市場極端波動導致本金全部損失，請審慎評估。",
   },
 };
 

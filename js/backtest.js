@@ -34,9 +34,9 @@ function isMasterSpec(s) {
 
 function t(key) {
   if (window.QALang && typeof window.QALang.t === "function") return window.QALang.t(key);
-  const lang = localStorage.getItem("quant_lang") || localStorage.getItem("user_lang") || "en";
-  const mapped = lang === "zh-Hans" ? "zh-CN" : lang;
-  const pack = (window.I18N && (window.I18N[mapped] || window.I18N.en || window.I18N["zh-Hant"])) || {};
+  const lang = localStorage.getItem("quant_lang") || localStorage.getItem("user_lang") || "zh-Hant";
+  const mapped = lang === "zh-Hans" ? "zh-CN" : lang === "en" || lang === "en-US" ? "zh-Hant" : lang;
+  const pack = (window.I18N && (window.I18N[mapped] || window.I18N["zh-Hant"] || window.I18N["zh-CN"])) || {};
   return pack[key] || key;
 }
 
@@ -264,7 +264,8 @@ function fmtUsd(n) {
 function fmtSignedPct(x) {
   const n = Number(x) * 100;
   const sign = n > 0 ? "+" : "";
-  return sign + n.toFixed(1) + "%";
+  // [REPLACE-TAG]
+  return sign + n.toFixed(1) + " pts";
 }
 
 /* ---------------------------------------------------------------------
@@ -540,10 +541,13 @@ function resetBacktestResults() {
   if ($("sampleHint")) $("sampleHint").textContent = t("btAwaitRun");
   if ($("moneyStart")) $("moneyStart").textContent = "$10,000";
   if ($("moneyEnd")) $("moneyEnd").textContent = "$10,000";
-  if ($("moneyPnl")) $("moneyPnl").textContent = t("moneyPnlIdle");
-  const pnlWrap = $("moneyPnlWrap");
+  // [REPLACE-TAG]
+  if ($("alphaPnl")) $("alphaPnl").textContent = t("moneyPnlIdle");
+  // [REPLACE-TAG]
+  const pnlWrap = $("alphaPnlWrap");
   if (pnlWrap) pnlWrap.classList.remove("is-loss");
-  if ($("moneyPnl")) $("moneyPnl").classList.remove("is-loss");
+  // [REPLACE-TAG]
+  if ($("alphaPnl")) $("alphaPnl").classList.remove("is-loss");
   if ($("tradePills")) $("tradePills").innerHTML = "";
   pillEq = null;
   if ($("mWr")) $("mWr").textContent = "—";
@@ -553,7 +557,8 @@ function resetBacktestResults() {
   if ($("navStart")) $("navStart").textContent = "$10,000.00";
   if ($("navNow")) $("navNow").textContent = "$10,000.00";
   if ($("navDd")) {
-    $("navDd").textContent = "0.0%";
+    // [REPLACE-TAG]
+    $("navDd").textContent = "0.0 pts";
     $("navDd").className = "bbg-loss-text";
   }
   if ($("navDur")) {
@@ -731,14 +736,18 @@ function paintRetail(eq, st, trades, ctx) {
   const endEl = $("moneyEnd");
   if (startEl) startEl.textContent = "$" + fmtUsd0(START_EQ);
   if (endEl) endEl.textContent = "$" + fmtUsd0(end);
-  if ($("moneyPnl")) {
-    $("moneyPnl").textContent = t("moneyPnlTpl")
+  // [REPLACE-TAG]
+  if ($("alphaPnl")) {
+    // [REPLACE-TAG]
+    $("alphaPnl").textContent = t("moneyPnlTpl")
       .replace("{sign}", sign)
       .replace("{amt}", fmtUsd(Math.abs(profit)))
       .replace("{pct}", fmtSignedPct(pct));
-    $("moneyPnl").classList.toggle("is-loss", loss);
+    // [REPLACE-TAG]
+    $("alphaPnl").classList.toggle("is-loss", loss);
   }
-  if ($("moneyPnlWrap")) $("moneyPnlWrap").classList.toggle("is-loss", loss);
+  // [REPLACE-TAG]
+  if ($("alphaPnlWrap")) $("alphaPnlWrap").classList.toggle("is-loss", loss);
   pillEq = eq;
   if ($("tradePills")) $("tradePills").innerHTML = tradePillsHtml(trades);
   paintBbgFooter(ctx);
@@ -763,7 +772,8 @@ function refreshBacktestCardI18n() {
     paintNav(eq, st, lastCtx);
     paintSampleHint(lastCtx);
   } else {
-    if ($("moneyPnl")) $("moneyPnl").textContent = t("moneyPnlIdle");
+    // [REPLACE-TAG]
+    if ($("alphaPnl")) $("alphaPnl").textContent = t("moneyPnlIdle");
     if ($("navDur")) $("navDur").textContent = t("navDurIdle");
     if ($("bbgFooterRange")) $("bbgFooterRange").textContent = t("bbgFooterRangeIdle");
     if ($("bbgFooterMeta")) $("bbgFooterMeta").textContent = t("bbgFooterMetaIdle");
@@ -781,7 +791,8 @@ function paintNav(eq, st, ctx) {
     if (window.QAUi) window.QAUi.flash($("navNow"), down);
   }
   if ($("navDd")) {
-    $("navDd").textContent = (dd * 100).toFixed(1) + "%";
+    // [REPLACE-TAG]
+    $("navDd").textContent = (dd * 100).toFixed(1) + " pts";
     $("navDd").className = "bbg-loss-text";
     if (window.QAUi) window.QAUi.flash($("navDd"), true);
   }
@@ -795,10 +806,9 @@ function paintNav(eq, st, ctx) {
 function leaderboardPeriodLabel() {
   const lb = window.QALeaderboard;
   const n = (lb && lb.period_days) || 7;
-  const lang = window.QALang && window.QALang.current ? window.QALang.current() : "en";
+  const lang = window.QALang && window.QALang.current ? window.QALang.current() : "zh-Hant";
   if (lang === "zh-CN") return t("navDurWeekZh").replace("7", String(n));
-  if (lang === "zh-Hant") return t("navDurWeekTw").replace("7", String(n));
-  return t("navDurWeekTpl").replace("7", String(n));
+  return t("navDurWeekTw").replace("7", String(n));
 }
 
 function resolveLbRow(eng) {
@@ -834,7 +844,8 @@ function applyLeaderboardPeriodToCard() {
     $("navDur").textContent = leaderboardPeriodLabel();
   }
   if (!row || lastCtx) return;
-  if ($("mWr")) $("mWr").textContent = (Number(row.win_rate) * 100).toFixed(1) + "%";
+  // [REPLACE-TAG]
+  if ($("mWr")) $("mWr").textContent = (Number(row.win_rate) * 100).toFixed(1) + " pts";
   if ($("mPf")) $("mPf").textContent = Number(row.profit_factor || 0).toFixed(2);
   const trades = Number(row.total_trades != null ? row.total_trades : row.trades);
   if ($("mTrades") && Number.isFinite(trades) && trades > 0) {
@@ -842,14 +853,19 @@ function applyLeaderboardPeriodToCard() {
   }
   const pnl = Number(row.net_pnl_usd != null ? row.net_pnl_usd : row.net_profit_usd);
   const roi = Number(row.roi_pct);
-  if ($("moneyPnl") && Number.isFinite(pnl)) {
+  // [REPLACE-TAG]
+  if ($("alphaPnl") && Number.isFinite(pnl)) {
     const sign = pnl >= 0 ? "+" : "-";
-    const pctStr = Number.isFinite(roi) ? (roi >= 0 ? "+" : "") + roi.toFixed(1) + "%" : "";
-    $("moneyPnl").textContent = t("moneyPnlTpl")
+    // [REPLACE-TAG]
+    const pctStr = Number.isFinite(roi) ? (roi >= 0 ? "+" : "") + roi.toFixed(1) + " pts" : "";
+    // [REPLACE-TAG]
+    $("alphaPnl").textContent = t("moneyPnlTpl")
       .replace("{sign}", sign)
       .replace("{amt}", fmtUsd(Math.abs(pnl)))
-      .replace("{pct}", pctStr || "0.0%");
-    $("moneyPnl").classList.toggle("is-loss", pnl < 0);
+      // [REPLACE-TAG]
+      .replace("{pct}", pctStr || "0.0 pts");
+    // [REPLACE-TAG]
+    $("alphaPnl").classList.toggle("is-loss", pnl < 0);
   }
   if ($("moneyEnd") && Number.isFinite(pnl)) {
     $("moneyEnd").textContent = "$" + fmtUsd0(START_EQ + pnl);
@@ -1132,7 +1148,8 @@ function run(silent) {
   paintRetail(eq, st, trades, ctx);
   paintHumanSubs(st, ctx);
   if ($("mWr")) {
-    $("mWr").textContent = (st.hit * 100).toFixed(1) + "%";
+    // [REPLACE-TAG]
+    $("mWr").textContent = (st.hit * 100).toFixed(1) + " pts";
     if (window.QAUi) window.QAUi.flash($("mWr"), st.hit < 0.5);
   }
   if ($("mPf")) {

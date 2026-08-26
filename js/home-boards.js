@@ -9,30 +9,28 @@
 
   function t(key) {
     if (root.QALang && typeof root.QALang.t === "function") return root.QALang.t(key);
-    const lang = localStorage.getItem("quant_lang") || localStorage.getItem("user_lang") || "en";
-    const mapped = lang === "zh-Hans" ? "zh-CN" : lang;
-    const pack = (root.I18N && (root.I18N[mapped] || root.I18N.en || root.I18N["zh-Hant"])) || {};
+    const lang = localStorage.getItem("quant_lang") || localStorage.getItem("user_lang") || "zh-Hant";
+    const mapped = lang === "zh-Hans" ? "zh-CN" : lang === "en" || lang === "en-US" ? "zh-Hant" : lang;
+    const pack = (root.I18N && (root.I18N[mapped] || root.I18N["zh-Hant"] || root.I18N["zh-CN"])) || {};
     return pack[key] || key;
   }
 
   function langCode() {
     if (root.QALang && typeof root.QALang.current === "function") return root.QALang.current();
-    const raw = localStorage.getItem("quant_lang") || localStorage.getItem("user_lang") || "en";
+    const raw = localStorage.getItem("quant_lang") || localStorage.getItem("user_lang") || "zh-Hant";
     if (raw === "zh-Hans" || raw === "zh-CN") return "zh-CN";
-    if (raw === "zh-Hant" || raw === "zh-TW") return "zh-Hant";
-    return "en";
+    return "zh-Hant";
   }
 
   function modelName(row) {
-    const code = langCode();
-    if (code === "en") return row.name_en || row.engine;
     return row.name_zh || row.name_en || row.engine;
   }
 
   function fmtPct(x, digits) {
     const n = Number(x);
     if (!Number.isFinite(n)) return "—";
-    return (n * 100).toFixed(digits == null ? 1 : digits) + "%";
+    // [REPLACE-TAG]
+    return (n * 100).toFixed(digits == null ? 1 : digits) + " pts";
   }
 
   function fmtUsd(n) {
@@ -53,7 +51,8 @@
     if (!Number.isFinite(n)) return "—";
     const pct = Math.abs(n) <= 1.5 ? n * 100 : n;
     const sign = pct > 0 ? "+" : "";
-    return sign + pct.toFixed(1) + "%";
+    // [REPLACE-TAG]
+    return sign + pct.toFixed(1) + " pts";
   }
 
   function fmtSharpeFromWr(wr) {

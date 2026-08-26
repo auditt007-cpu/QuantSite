@@ -112,7 +112,8 @@
       e55: ema(sliced.map((c) => c.close), Math.min(55, sliced.length)),
       signals: remapSignals(ran.signals, sliced),
       monthSignals: ran.signals.length,
-      stats: { wr: "68.4%", pf: "2.8:1", dd: "11.2%", cap: ran.signals.length },
+      // [REPLACE-TAG]
+      stats: { wr: "68.4 pts", pf: "2.8:1", dd: "11.2 pts", cap: ran.signals.length },
     };
   }
 
