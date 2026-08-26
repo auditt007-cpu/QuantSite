@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-26T02:25:53.563016+00:00",
+  "updated_at": "2026-08-26T02:50:23.092587+00:00",
   "status": "BACKTEST_PRERENDER",
   "strategies": [
     {
@@ -126,48 +126,55 @@
       "status": "BACKTEST_READY",
       "strategy_type": "GRID",
       "subtype": "BOLLINGER_SQUEEZE_GRID",
-      "title": "SOL·統計套利擠壓套利網格 V4.2",
-      "name": "SOL·統計套利擠壓套利網格 V4.2",
-      "symbol": "SOL/USDT",
+      "title": "DOGE·時序動量擠壓套利網格 V5.6",
+      "name": "DOGE·時序動量擠壓套利網格 V5.6",
+      "symbol": "DOGE/USDT",
       "symbols": [
-        "SOLUSDT"
+        "DOGEUSDT"
       ],
       "timeframe": "15m",
       "interval": "15m",
-      "period_days": 30,
-      "backtest_days": 30,
+      "period_days": 60,
+      "backtest_days": 60,
       "grid_params": {
-        "leverage": 5,
-        "grids_count": 60,
-        "grid_mode": "geometric",
-        "profit_per_grid_pct": 0.55
+        "lower_price": 0.083922,
+        "upper_price": 0.092932,
+        "grids_count": 48,
+        "grid_mode": "arithmetic",
+        "leverage": 3.0,
+        "profit_per_grid_pct": 0.45,
+        "atr_multiplier": null,
+        "bb_period": 20,
+        "bb_k": 2.5
+      },
+      "params": {
+        "leverage": 3,
+        "profit_per_grid_pct": 0.45
       },
       "metrics": {
-        "backtest_apy_pct": 69.2,
-        "max_drawdown_pct": -2.3,
-        "win_rate_pct": 93.3,
-        "daily_turnover_rate": 42.2,
-        "daily_turnover": 42.2,
-        "sharpe_ratio": 5.17,
-        "profit_factor": 3.81,
-        "return_pct": 0.1138,
-        "period_days": 30,
+        "backtest_apy_pct": 980.0,
+        "max_drawdown_pct": -1.26,
+        "daily_turnover_rate": 15.2,
+        "daily_turnover": 15.2,
+        "sharpe_ratio": 29.35,
+        "win_rate_pct": 93.0,
+        "profit_factor": 3.176,
+        "return_pct": 0.3664,
+        "period_days": 60,
         "metrics_source": "backtest_60d",
-        "disclaimer": "基於 30 日回測數據"
+        "disclaimer": "基於 60 日回測數據"
       },
-      "sharpe": 5.17,
-      "max_drawdown": -0.023,
-      "return_pct": 0.1138,
-      "profit_factor": 3.81,
-      "win_rate": 0.9329999999999999,
-      "trades": 1716,
+      "sharpe": 29.35,
+      "max_drawdown": -0.0126,
+      "return_pct": 0.3664,
+      "profit_factor": 3.176,
+      "win_rate": 0.93,
+      "trades": 685,
       "chart": "/static/charts/rsi.svg",
       "chart_url": "/static/charts/rsi.svg",
-      "copy": "SOL·統計套利擠壓套利網格 V4.2 · SOLUSDT 高頻網格 · 回測 APY 69.2% · 日換手 42.2 · 手續費返傭導向",
-      "principle": "賽馬篩選網格 · 基於 60 日回測預渲染 · Live 掃描同步中",
       "monetization": "trading_volume_rebate",
-      "cleaned_at": "2026-08-25T14:13:11Z",
-      "disclaimer": "基於 30 日回測數據"
+      "replaced_at": "2026-08-26T02:50:23Z",
+      "copy": "DOGE·時序動量擠壓套利網格 V5.6 · DOGEUSDT 高換手網格 · 手續費返傭導向"
     },
     {
       "id": "squeeze",
