@@ -831,7 +831,7 @@
     if (!Number.isFinite(n)) return "—";
     const pct = Math.abs(n) <= 1 ? n * 100 : n;
     // [REPLACE-TAG]
-    return pct.toFixed(1) + " pts";
+    return pct.toFixed(1) + "%";
   }
 
   function fmtMdd(n) {
@@ -839,7 +839,7 @@
     const pct = Math.abs(n) <= 1.5 ? n * 100 : n;
     const v = -Math.abs(pct);
     // [REPLACE-TAG]
-    return v.toFixed(1) + " pts";
+    return v.toFixed(1) + "%";
   }
 
   function fmtRet(n) {
@@ -848,7 +848,7 @@
     const pct = r * 100;
     const sign = pct > 0 ? "+" : "";
     // [REPLACE-TAG]
-    return sign + pct.toFixed(1) + " pts";
+    return sign + pct.toFixed(1) + "%";
   }
 
   function fmtPf(n) {
@@ -880,7 +880,13 @@
     const winCls =
       seed.windowRet == null ? "" : Number(seed.windowRet) >= 0 ? " is-up" : " is-down";
     // [PLAIN-TAG]
-    const disc = t("mktNoAnn", "基於 {d} 日歷史試算樣本，沒有年化").replace("{d}", String(days));
+    const wrTip = t("mktWrTip", "已平倉獲利訂單統計");
+    const mddTip = t("mktMddTip", "極端行情下的歷史最大回撤");
+    const pfTip = t("kpiPfTip", "歷史總盈利 ÷ 總虧損");
+    const tradesTip = t("hbColTradesTip", "區間內自動低買高賣筆數");
+    const shTip = t("mktShTip", "承受單位風險的歷史超額回報");
+    const turnTip = t("mktTurnoverTip", "日均換手頻率");
+    const disc = t("mktNoAnn", "基於過去{d}天回測數據").replace("{d}", String(days));
     const shShow = seed.sh != null && Number(seed.sh) <= 10 ? fmtSharpe(seed.sh) : "—";
     const lev = seed.lev != null ? seed.lev : 1;
     const levHtml =
@@ -912,39 +918,51 @@
       "</div></div>" +
       '<div class="stat-caps plaza-metrics plaza-metrics-6">' +
       '<div class="stat-cap"><span>' +
-      t("mktWr", "命中率") +
+      t("mktWr", "歷史盈利單佔比") +
       '</span><b class="' +
       wrCls.trim() +
       '">' +
       wr +
-      "</b></div>" +
+      '</b><small class="stat-tip">' +
+      wrTip +
+      "</small></div>" +
       '<div class="stat-cap"><span>' +
-      t("mktMdd", "最大回撤") +
+      t("mktMdd", "歷史最大回撤記錄") +
       '</span><b class="' +
       mddCls.trim() +
       '">' +
       mdd +
-      "</b></div>" +
+      '</b><small class="stat-tip">' +
+      mddTip +
+      "</small></div>" +
       '<div class="stat-cap"><span>' +
-      t("kpiPf", "盈虧因子") +
+      t("kpiPf", "歷史盈虧比記錄") +
       "</span><b>" +
       pf +
-      "</b></div>" +
+      '</b><small class="stat-tip">' +
+      pfTip +
+      "</small></div>" +
       '<div class="stat-cap"><span>' +
-      t("hbColTrades", "總筆數") +
+      t("hbColTrades", "自動高拋低吸次數") +
       "</span><b>" +
       trades +
-      "</b></div>" +
+      '</b><small class="stat-tip">' +
+      tradesTip +
+      "</small></div>" +
       '<div class="stat-cap"><span>' +
-      t("mktSh", "抗震穩健度") +
+      t("mktSh", "歷史風險調整收益") +
       "</span><b>" +
       shShow +
-      "</b></div>" +
+      '</b><small class="stat-tip">' +
+      shTip +
+      "</small></div>" +
       '<div class="stat-cap"><span>' +
-      t("mktTurnover", "日換手") +
+      t("mktTurnover", "日均換手率") +
       "</span><b>" +
       turn +
-      "</b></div>" +
+      '</b><small class="stat-tip">' +
+      turnTip +
+      "</small></div>" +
       "</div>" +
       '<div class="plaza-disclaimer muted">' +
       disc +
@@ -1170,9 +1188,9 @@
       metrics: {
         sharpe_ratio: sh,
         // [REPLACE-TAG]
-        max_drawdown: Number.isFinite(mdd) ? (-Math.abs(mdd) * 100).toFixed(1) + " pts" : null,
+        max_drawdown: Number.isFinite(mdd) ? (-Math.abs(mdd) * 100).toFixed(1) + "%" : null,
         // [REPLACE-TAG]
-        win_rate: Number.isFinite(wr) ? (wr * 100).toFixed(1) + " pts" : null,
+        win_rate: Number.isFinite(wr) ? (wr * 100).toFixed(1) + "%" : null,
         profit_factor: pf,
         return_pct: Number.isFinite(ret) ? ret : null,
         daily_turnover_rate: m.daily_turnover_rate != null ? m.daily_turnover_rate : m.daily_turnover,

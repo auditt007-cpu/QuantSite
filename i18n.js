@@ -384,8 +384,8 @@ window.I18N = {
     mktMasterLead: "免費會員可看業績、可歷史試算，但不能複製原始碼、不能仿真接入。訂閱後請到會員中心，再向客服索取研究環境設定連結。",
     mktSeeBt: "查看解說與曲線",
     mktOpenBt: "查看解說與曲線",
-    mktDetail: "查看解說與曲線",
-    mktGet: "領取策略",
+    mktDetail: "查看完整回測數據",
+    mktGet: "免費複製策略參數",
     mktBadgeAi: "AI 挖礦",
     // [PLAIN-TAG]
     mktBadgeClassic: "經典策略",
@@ -396,50 +396,53 @@ window.I18N = {
     mktPayUnlock: "訂閱後才能仿真接入",
     mktAskLink: "已付費 · 向客服索取平台設定連結",
     mktUnlockLive: "開啟節點自動訂閱",
-    mktWr: "命中率",
-    mktWrTip: "歷史訊號裡獲利次數的占比",
-    mktSh: "抗震穩健度",
-    mktShTip: "承受 1 分風險可換回的分數",
-    mktMdd: "歷史最大回撤",
-    mktMddTip: "歷史區間內最大虧損幅度",
+    mktWr: "歷史盈利單佔比",
+    mktWrTip: "已平倉獲利訂單統計",
+    mktSh: "歷史風險調整收益",
+    mktShTip: "承受單位風險的歷史超額回報",
+    mktMdd: "歷史最大回撤記錄",
+    mktMddTip: "極端行情下的歷史最大回撤",
+    kpiPfTip: "歷史總盈利 ÷ 總虧損",
+    hbColTradesTip: "區間內自動低買高賣筆數",
+    mktTurnoverTip: "日均換手頻率",
     // [PLAIN-TAG]
     mktRet: "歷史試算{d}日區間報酬",
     // [REPLACE-TAG]
     // [PLAIN-TAG]
     mktRetTip: "指定歷史試算窗口內賺了多少，沒有年化",
     // [PLAIN-TAG]
-    mktWinHero: "歷史試算{d}日累積",
+    mktWinHero: "過去{d}天累計增長",
     // [REPLACE-TAG]
     // [PLAIN-TAG]
-    mktLevX: "槓桿 {n}×（僅用於歷史試算壓力測試）",
+    mktLevX: "槓桿 {n}×（僅用於歷史回測壓力測試）",
     mktSpotLev: "現貨 · 無槓桿",
     mktLevLabel: "槓桿",
     mktSpotShort: "現貨",
     // [PLAIN-TAG]
-    mktDaysLabel: "歷史試算天數",
+    mktDaysLabel: "回測天數",
     // [PLAIN-TAG]
-    mktBackDays: "歷史試算 {d} 日",
+    mktBackDays: "歷史回測 {d} 日",
     mktFits: "適用",
     mktFitsGeneric: "高相關標的上的同一套方法，展示適用行情而非單一幣種",
     mktCohort: "同方法複核 {n} 組相關樣本",
     // [REPLACE-TAG]
     // [PLAIN-TAG]
-    mktNoAnn: "基於 {d} 日歷史試算樣本，沒有年化",
+    mktNoAnn: "基於過去{d}天回測數據",
     mktMethodFallback: "網格流水線",
     mktExplainGeneric: "這是一套網格流水線：在預設帶寬裡低買高賣，來回換手。盤整、波動有上有下時格子才吃得到價差；單邊沒有回檔時，格子會掛在同一側，方法失效。展示按方法歸類，不把高相關標的拆成多張卡。",
     mktExplainFits: "適用行情：{f}",
     // [REPLACE-TAG]
     // [PLAIN-TAG]
-    mktExplainWindow: "本卡是 {d} 日歷史試算窗口。成交 {n} 筆，命中率 {wr} pts，這段總共 {ret} pts。沒有吹成一年。",
+    mktExplainWindow: "本卡是 {d} 日歷史回測窗口。成交 {n} 筆，命中率 {wr}%，這段總共 {ret}%。沒有吹成一年。",
     // [PLAIN-TAG]
-    mktExplainFail: "不好用的情況也寫在「適用」裡：只漲不跌或只跌不漲、兩個幣不再一起動、持倉費變成要你付錢，加格子也救不了。曲線是這段試算的賬，不是真錢交易單。",
+    mktExplainFail: "不好用的情況也寫在「適用」裡：只漲不跌或只跌不漲、兩個幣不再一起動、持倉費變成要你付錢，加格子也救不了。曲線是這段回測的賬，不是真錢交易單。",
     // [REPLACE-TAG]
     // [PLAIN-TAG]
-    mktExplainClassic: "經典策略：有信號就買賣。下面數字是這段試算賺了多少，沒有年化。",
+    mktExplainClassic: "經典策略：有信號就買賣。下面數字是這段回測賺了多少，沒有年化。",
     // [PLAIN-TAG]
-    mktExplainFailClassic: "曲線是試算賬，不是真錢交易單。上一段好不代表下一段也好。",
+    mktExplainFailClassic: "曲線是回測賬，不是真錢交易單。上一段好不代表下一段也好。",
     // [PLAIN-TAG]
-    mktFeeNote: "記帳規則：盈虧按 0 手續費入帳，與上方歷史試算累積同一套算法。參考手續費單邊約萬分之四，來回手續費約萬分之八；只列在旁邊，未從記帳列扣除。",
+    mktFeeNote: "記帳規則：盈虧按 0 手續費入帳，與上方歷史回測累積同一套算法。參考手續費單邊約萬分之四，來回手續費約萬分之八；只列在旁邊，未從記帳列扣除。",
     mktTapeCaption: "逐筆明細 · 本金 {cap} U",
     mktTapeBuyShort: "買",
     mktTapeSellShort: "賣",
@@ -529,6 +532,7 @@ window.I18N = {
     // [REPLACE-TAG]
     // [PLAIN-TAG]
     discFoot: "歷史試算資料不代表未來真錢交易收益，沒算買賣價差和手續費。本站信號僅供技術研究，不構成投資建議。使用槓桿倍數進行模擬時，可能因市場極端波動導致本金全部損失，請審慎評估。",
+    stratDiscClaim: "* 免責聲明：本站展示之所有數據均源自歷史行情之量化回測統計，歷史表現不代表亦不保證未來收益。本站為量化工具輔助終端，不提供任何投資建議。",
     discMini: "僅供資料研究",
     flashKicker: "FLASH NEWS",
     flashTitle: "7x24 即時快訊",
@@ -1205,8 +1209,8 @@ window.I18N = {
     mktMasterLead: "免费会员可看业绩、可历史试算，但不能复制源码、不能仿真接入。订阅后请到会员中心，再向客服索取研究环境配置链接。",
     mktSeeBt: "查看解说与曲线",
     mktOpenBt: "查看解说与曲线",
-    mktDetail: "查看解说与曲线",
-    mktGet: "领取策略",
+    mktDetail: "查看完整回测数据",
+    mktGet: "免费复制策略参数",
     mktBadgeAi: "AI 挖矿",
     // [PLAIN-TAG]
     mktBadgeClassic: "经典策略",
@@ -1217,50 +1221,53 @@ window.I18N = {
     mktPayUnlock: "订阅后才能仿真接入",
     mktAskLink: "已付费 · 向客服索取平台配置链接",
     mktUnlockLive: "开启节点自动订阅",
-    mktWr: "命中率",
-    mktWrTip: "历史信号里赚钱次数的占比",
-    mktSh: "抗震稳健度",
-    mktShTip: "承受1分风险赚回的分数",
-    mktMdd: "历史最大回撤",
-    mktMddTip: "历史区间内最大亏损幅度",
+    mktWr: "历史盈利单占比",
+    mktWrTip: "已平仓获利订单统计",
+    mktSh: "历史风险调整收益",
+    mktShTip: "承受单位风险的历史超额回报",
+    mktMdd: "历史最大回撤记录",
+    mktMddTip: "极端行情下的历史最大回撤",
+    kpiPfTip: "历史总盈利 ÷ 总亏损",
+    hbColTradesTip: "区间内自动低买高卖笔数",
+    mktTurnoverTip: "日均换手频率",
     // [PLAIN-TAG]
     mktRet: "历史试算{d}日区间报酬",
     // [REPLACE-TAG]
     // [PLAIN-TAG]
     mktRetTip: "指定历史试算窗口内赚了多少，没有年化",
     // [PLAIN-TAG]
-    mktWinHero: "历史试算{d}日累积",
+    mktWinHero: "过去{d}天累计增长",
     // [REPLACE-TAG]
     // [PLAIN-TAG]
-    mktLevX: "杠杆 {n}×（仅用于历史试算压力测试）",
+    mktLevX: "杠杆 {n}×（仅用于历史回测压力测试）",
     mktSpotLev: "现货 · 无杠杆",
     mktLevLabel: "杠杆",
     mktSpotShort: "现货",
     // [PLAIN-TAG]
-    mktDaysLabel: "历史试算天数",
+    mktDaysLabel: "回测天数",
     // [PLAIN-TAG]
-    mktBackDays: "历史试算 {d} 日",
+    mktBackDays: "历史回测 {d} 日",
     mktFits: "适用",
     mktFitsGeneric: "高相关标的上的同一套方法，展示适用行情而非单一币种",
     mktCohort: "同方法复核 {n} 组相关样本",
     // [REPLACE-TAG]
     // [PLAIN-TAG]
-    mktNoAnn: "基于 {d} 日历史试算样本，没有年化",
+    mktNoAnn: "基于过去{d}天回测数据",
     mktMethodFallback: "网格流水线",
     mktExplainGeneric: "这是一套网格流水线：在预设带宽里低买高卖，来回换手。盘整、波动有上有下时格子才吃得到价差；单边没有回档时，格子会挂在同一侧，方法失效。展示按方法归类，不把高相关标的拆成多张卡。",
     mktExplainFits: "适用行情：{f}",
     // [REPLACE-TAG]
     // [PLAIN-TAG]
-    mktExplainWindow: "本卡是 {d} 日历史试算窗口。成交 {n} 笔，命中率 {wr} pts，这段总共 {ret} pts。没有吹成一年。",
+    mktExplainWindow: "本卡是 {d} 日历史回测窗口。成交 {n} 笔，命中率 {wr}%，这段总共 {ret}%。没有吹成一年。",
     // [PLAIN-TAG]
-    mktExplainFail: "不好用的情况也写在「适用」里：只涨不跌或只跌不涨、两个币不再一起动、持仓费变成要你付钱，加格子也救不了。曲线是这段试算的账，不是真钱交易单。",
+    mktExplainFail: "不好用的情况也写在「适用」里：只涨不跌或只跌不涨、两个币不再一起动、持仓费变成要你付钱，加格子也救不了。曲线是这段回测的账，不是真钱交易单。",
     // [REPLACE-TAG]
     // [PLAIN-TAG]
-    mktExplainClassic: "经典策略：有信号就买卖。下面数字是这段试算赚了多少，没有年化。",
+    mktExplainClassic: "经典策略：有信号就买卖。下面数字是这段回测赚了多少，没有年化。",
     // [PLAIN-TAG]
-    mktExplainFailClassic: "曲线是试算账，不是真钱交易单。上一段好不代表下一段也好。",
+    mktExplainFailClassic: "曲线是回测账，不是真钱交易单。上一段好不代表下一段也好。",
     // [PLAIN-TAG]
-    mktFeeNote: "记账规则：盈亏按 0 手续费入账，与上方历史试算累积同一套算法。参考手续费单边约万分之四，来回手续费约万分之八；只列在旁边，未从记账列扣除。",
+    mktFeeNote: "记账规则：盈亏按 0 手续费入账，与上方历史回测累积同一套算法。参考手续费单边约万分之四，来回手续费约万分之八；只列在旁边，未从记账列扣除。",
     mktTapeCaption: "逐笔明细 · 本金 {cap} U",
     mktTapeBuyShort: "买",
     mktTapeSellShort: "卖",
@@ -1350,6 +1357,7 @@ window.I18N = {
     // [REPLACE-TAG]
     // [PLAIN-TAG]
     discFoot: "历史试算数据不代表未来真钱交易收益，没算买卖价差和手续费。本站信号仅供技术研究，不构成投资建议。使用杠杆倍数进行模拟时，可能因市场极端波动导致本金全部损失，请审慎评估。",
+    stratDiscClaim: "* 免责声明：本站展示之所有数据均源自历史行情之量化回测统计，历史表现不代表亦不保证未来收益。本站为量化工具辅助终端，不提供任何投资建议。",
     discMini: "仅供数据研究",
     flashKicker: "FLASH NEWS",
     flashTitle: "7x24 实时快报",
@@ -1643,6 +1651,66 @@ window.I18N = {
     aboutCtaCompile: "[ 立即编译你的第一个策略 -> ]",
     aboutCtaLive: "[ 进入 直播作战室 查看即时信号 ]",
     aboutCtaOpen: "[ 查看 Grademark / Pine 开源核心仓库 ]"
+  },
+  "en": {
+    title: "QUANT ALPHA · Open Strategy Research",
+    brandSub: "Math & code helping independent traders backtest and monitor",
+    heroH1: "Open-source tools to see if strategies work",
+    mktWr: "Historical Win Rate",
+    mktWrTip: "Share of closed profitable trades",
+    mktSh: "Historical Risk-Adjusted Return",
+    mktShTip: "Excess return per unit of historical risk",
+    mktMdd: "Historical Max Drawdown",
+    mktMddTip: "Worst peak-to-trough drop in extreme conditions",
+    mktWinHero: "{d}-Day Cumulative Growth",
+    kpiPf: "Historical Profit Factor",
+    hbColTrades: "Auto Grid Cycles",
+    mktTurnover: "Avg Daily Turnover",
+    mktLevX: "Leverage {n}× (backtest stress test only)",
+    mktSpotLev: "Spot · No Leverage",
+    mktLevLabel: "Leverage",
+    mktDaysLabel: "Backtest Days",
+    mktBackDays: "{d}-Day Backtest",
+    mktFits: "Fits",
+    mktNoAnn: "Based on past {d}-day backtest data",
+    mktGet: "Free Copy Strategy Params",
+    mktDetail: "View Full Backtest Data",
+    mktBadgeAi: "AI Mining",
+    mktBadgeClassic: "Classic Strategy",
+    mktExplainGeneric: "A grid pipeline: buy low, sell high within a band. Works in ranges; fails on one-way moves.",
+    mktExplainFits: "Fits: {f}",
+    mktExplainWindow: "This card is a {d}-day backtest window. {n} trades, win rate {wr}%, total {ret}%. Not annualized.",
+    mktExplainFail: "Failure cases are in 'Fits': one-way moves, broken correlation, funding costs. The curve is backtest data, not real trades.",
+    mktExplainClassic: "Classic strategy: trades on signals. Numbers below are backtest results, not annualized.",
+    mktExplainFailClassic: "The curve is a backtest, not real trades. Past performance doesn't guarantee future results.",
+    mktFeeNote: "Accounting: P&L at 0 commission, matching the backtest above. Reference commission ~4bps one-way, ~8bps round-trip; shown separately, not deducted.",
+    plazaLoaded: "Strategies grouped by method, {n} cards (highly correlated assets merged)",
+    mktDetail: "View Full Backtest Data",
+    mktCohort: "Same method review of {n} related samples",
+    mktFitsGeneric: "Same method on correlated assets, showing market fit not individual coins",
+    discFoot: "Backtest data does not represent future trading returns. Does not include spread or commissions. Signals are for technical research only, not investment advice. Leverage may result in total loss of capital.",
+    mktTapeCaption: "Trade-by-trade · Principal {cap} U",
+    mktTapeBuy: "BUY",
+    mktTapeSell: "SELL",
+    mktTapeBuyShort: "Buy",
+    mktTapeSellShort: "Sell",
+    mktTapeWin: "Win",
+    mktTapeLoss: "Loss",
+    mktTapeTime: "Time",
+    mktTapeSide: "Side",
+    mktTapeResult: "Result",
+    mktTapeBooked: "P&L",
+    mktTapeFee: "Commission",
+    mktTapeBroken: "Sample range exceeds per-trade expansion scope. No fabricated trades.",
+    mktTapeEmpty: "Insufficient trades to show tape.",
+    mktMethodFallback: "Grid Pipeline",
+    mktSpotShort: "Spot",
+    mktLevLabel: "Leverage",
+    mktExplainFits: "Fits: {f}",
+    stratDiscClaim: "* Disclaimer: All data shown is from historical quantitative backtesting. Past performance does not guarantee future returns. This site is a quantitative tool terminal and does not provide investment advice.",
+    kpiPfTip: "Historical total profit ÷ total loss",
+    hbColTradesTip: "Auto buy-low-sell-high cycles in range",
+    mktTurnoverTip: "Average daily turnover rate"
   }
 };
 window.I18N["zh-Hans"] = window.I18N["zh-CN"];
