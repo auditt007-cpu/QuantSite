@@ -1627,6 +1627,7 @@
       drawSpark(sym);
     });
     paintMiniTapes();
+    paintRadarNow();
     if (state.modalSym) paintModalLive(state.modalSym);
   }
 
@@ -2500,7 +2501,7 @@
         });
         announceEvents(fresh);
       }
-      paintRadar();
+      paintRadarNow();
       paintCardsMeta();
     } catch {
       /* isolate feed parse */
