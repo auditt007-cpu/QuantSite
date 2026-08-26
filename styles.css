@@ -1194,6 +1194,14 @@ input.is-focused, textarea.is-focused, select.is-focused {
   text-align: center;
   min-width: 0;
   display: inline-block;
+  flex: 0 0 auto;
+  flex-shrink: 0;
+  overflow: visible;
+  white-space: nowrap;
+}
+.ticker-pill .tp-sym {
+  min-width: 2.25em;
+  text-align: left;
 }
 .ticker-pill .tp-chg.up, .rail-quote em.up { color: var(--color-up); }
 .ticker-pill .tp-chg.down, .rail-quote em.down { color: var(--color-down); }
@@ -2162,10 +2170,11 @@ body.sheet-open { overflow: hidden; }
     box-sizing: border-box !important;
   }
   .ticker-bar .ticker-track {
-    height: auto !important;
-    min-height: 28px !important;
+    height: 40px !important;
+    min-height: 40px !important;
     flex-wrap: nowrap !important;
-    overflow: hidden !important;
+    overflow: visible !important;
+    align-items: center !important;
     max-width: none;
     animation-duration: 42s !important;
   }
@@ -2179,13 +2188,15 @@ body.sheet-open { overflow: hidden; }
   .ticker-item {
     flex-shrink: 0 !important;
     margin-right: 0 !important;
-    min-width: 0 !important;
+    min-width: max-content !important;
     width: auto !important;
-    height: auto !important;
+    height: 28px !important;
+    min-height: 28px !important;
     font-size: 11px !important;
     display: inline-flex !important;
     align-items: center !important;
     white-space: nowrap !important;
+    overflow: visible !important;
   }
   .disc-mini { display: block; margin: 16px 0 8px; font-size: 11px; color: #94a3b8; text-align: center; }
   .ai-lab-h1 { font-size: 22px; line-height: 1.25; margin: 4px 0 6px; }
