@@ -195,7 +195,12 @@
 
   function isClose(ev) {
     if (ev && ev.kind === "close_agg") return true;
-    return String(ev.event || "").toLowerCase() === "close" || /平倉|Close/i.test(String(ev.action || ""));
+    const kind = String(ev.event || "").toLowerCase();
+    if (kind === "open") return false;
+    if (kind === "close") return true;
+    const side = String(ev.side || "").toUpperCase();
+    if (/^CLOSE_/.test(side) || side === "CLOSE") return true;
+    return /平倉|Close/i.test(String(ev.action || ""));
   }
 
   function closePnlAbs(ev) {
