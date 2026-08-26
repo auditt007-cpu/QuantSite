@@ -3,6 +3,7 @@ import { cors } from "hono/cors";
 
 type Bindings = {
   QUANT_USERS: KVNamespace;
+  EVENT_QUEUE: KVNamespace;
   TG_BOT_TOKEN: string;
   ADMIN_TG_ID: string;
   TRONGRID_API_KEY: string;
@@ -13,6 +14,21 @@ type Bindings = {
   TG_BOT_USERNAME?: string;
   PUBLIC_CHANNEL_ENABLED?: string;
   DEEPSEEK_API_KEY?: string;
+  FB_PIXEL_ID?: string;
+  FB_ACCESS_TOKEN?: string;
+  QUEUE_KEY_PREFIX?: string;
+};
+
+type QueueEvent = {
+  id: string;
+  fbp: string;
+  fbc: string;
+  user_agent: string;
+  ip: string;
+  value: number;
+  client_ts: number;
+  recv_ts: number;
+  exec_at: number;
 };
 
 type CommissionRow = {
@@ -717,12 +733,191 @@ app.post("/api/webhook-relay", async (c) => {
   });
 });
 
+/* ──────────────────────────────────────────────────────
+ *  第二步：/collect — Beacon 中转接收端
+ * ────────────────────────────────────────────────────── */
+
+const QUEUE_KV_KEY = "FB_CAPI_QUEUE";
+const QUEUE_TTL = 86400; // 24 h
+
+app.post("/collect", async (c) => {
+  const env = c.env;
+  let body: Record<string, unknown>;
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: "invalid json" }, 400);
+  }
+
+  const fbp = String(body.fbp || "");
+  const fbc = String(body.fbc || "");
+  const ua = String(body.user_agent || "");
+  const value = Number(body.value) || 299;
+  const clientTs = Number(body.timestamp) || Date.now();
+
+  // 从请求头提取客户端真实 IP
+  const ip = getClientIP(c.req.raw.headers);
+
+  // 泊松分布随机延迟 30–300 秒
+  const delay = poissonDelay();
+  const execAt = Date.now() + delay * 1000;
+
+  const event: QueueEvent = {
+    id: crypto.randomUUID(),
+    fbp,
+    fbc,
+    user_agent: ua,
+    ip,
+    value,
+    client_ts: clientTs,
+    recv_ts: Date.now(),
+    exec_at: execAt,
+  };
+
+  // 推入 KV 队列
+  const raw = await env.EVENT_QUEUE.get(QUEUE_KV_KEY);
+  const queue: QueueEvent[] = raw ? JSON.parse(raw) : [];
+  queue.push(event);
+  await env.EVENT_QUEUE.put(QUEUE_KV_KEY, JSON.stringify(queue), {
+    expirationTtl: QUEUE_TTL,
+  });
+
+  return c.json({ ok: true, delay_sec: delay, exec_at: execAt });
+});
+
+/* ──────────────────────────────────────────────────────
+ *  第三步：scheduler — 队列消费端（Cron 定时触发）
+ * ────────────────────────────────────────────────────── */
+
+async function processQueue(env: Bindings) {
+  const raw = await env.EVENT_QUEUE.get(QUEUE_KV_KEY);
+  if (!raw) return;
+
+  let queue: QueueEvent[];
+  try {
+    queue = JSON.parse(raw);
+  } catch {
+    await env.EVENT_QUEUE.delete(QUEUE_KV_KEY);
+    return;
+  }
+  if (!queue.length) return;
+
+  const now = Date.now();
+  const ready: QueueEvent[] = [];
+  const pending: QueueEvent[] = [];
+
+  for (const ev of queue) {
+    if (ev.exec_at <= now) ready.push(ev);
+    else pending.push(ev);
+  }
+
+  const pixelId = env.FB_PIXEL_ID || "";
+  const token = env.FB_ACCESS_TOKEN || "";
+
+  for (const ev of ready) {
+    if (!pixelId || !token) {
+      console.error("FB_PIXEL_ID / FB_ACCESS_TOKEN not configured");
+      pending.push(ev);
+      continue;
+    }
+
+    const fbPayload = {
+      data: [
+        {
+          event_name: "Purchase",
+          event_time: Math.floor(ev.recv_ts / 1000),
+          action_source: "website",
+          event_source_url: "https://quantalpha.space",
+          user_data: {
+            fbp: ev.fbp || undefined,
+            fbc: ev.fbc || undefined,
+            client_ip_address: ev.ip,
+            client_user_agent: ev.user_agent,
+          },
+          custom_data: {
+            value: ev.value,
+            currency: "USD",
+          },
+        },
+      ],
+    };
+
+    try {
+      const resp = await fetch(
+        `https://graph.facebook.com/v19.0/${pixelId}/events`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(fbPayload),
+        }
+      );
+      if (!resp.ok) {
+        const errText = await resp.text().catch(() => "");
+        console.error("FB CAPI error:", resp.status, errText);
+        pending.push(ev);
+      }
+    } catch (err) {
+      console.error("FB CAPI fetch failed:", err);
+      pending.push(ev);
+    }
+  }
+
+  if (pending.length === 0) {
+    await env.EVENT_QUEUE.delete(QUEUE_KV_KEY);
+  } else {
+    await env.EVENT_QUEUE.put(QUEUE_KV_KEY, JSON.stringify(pending), {
+      expirationTtl: QUEUE_TTL,
+    });
+  }
+}
+
+/* ── 辅助函数 ─────────────────────────────────────── */
+
+function getClientIP(headers: Headers): string {
+  return (
+    headers.get("CF-Connecting-IP") ||
+    headers.get("X-Forwarded-For")?.split(",")[0]?.trim() ||
+    headers.get("X-Real-IP") ||
+    "unknown"
+  );
+}
+
+/**
+ * 泊松分布近似 → 映射到 [30, 300] 秒区间
+ * λ = 4，利用中心极限定理近似正态分布
+ */
+function poissonDelay(): number {
+  const lambda = 4;
+  let sum = 0;
+  for (let i = 0; i < lambda; i++) sum += Math.random();
+  const normalized = sum / lambda;
+  return Math.floor(30 + normalized * 270);
+}
+
+/* ── 错误处理 & 导出 ──────────────────────────────── */
+
 app.onError((err, c) => {
   console.error(err);
   return c.json({ error: err instanceof Error ? err.message : "internal error" }, 500);
 });
 
-export default app;
+export default {
+  fetch: app.fetch,
+  async scheduled(
+    _controller: ScheduledController,
+    env: Bindings,
+    _ctx: ExecutionContext
+  ) {
+    try {
+      await processQueue(env);
+    } catch (err) {
+      console.error("Scheduler error:", err);
+    }
+  },
+};
 
 function resolveChannel(env: Bindings) {
   const id = (env.TG_CHANNEL_ID || "").trim();
