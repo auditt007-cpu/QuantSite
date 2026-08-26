@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-26T01:27:08.376441+00:00",
+  "updated_at": "2026-08-26T01:51:05.442422+00:00",
   "status": "BACKTEST_PRERENDER",
   "strategies": [
     {
@@ -1413,49 +1413,56 @@
       "slot": true,
       "status": "BACKTEST_READY",
       "strategy_type": "GRID",
-      "subtype": "DYNAMIC_ATR_GRID",
-      "title": "BTC·時序動量波動收割網格 V3.5",
-      "name": "BTC·時序動量波動收割網格 V3.5",
-      "symbol": "BTC/USDT",
+      "subtype": "BOLLINGER_SQUEEZE_GRID",
+      "title": "AVAX·多維共振擠壓套利網格 V5.2",
+      "name": "AVAX·多維共振擠壓套利網格 V5.2",
+      "symbol": "AVAX/USDT",
       "symbols": [
-        "BTCUSDT"
+        "AVAXUSDT"
       ],
       "timeframe": "15m",
       "interval": "15m",
-      "period_days": 7,
-      "backtest_days": 7,
+      "period_days": 60,
+      "backtest_days": 60,
       "grid_params": {
-        "leverage": 5,
-        "grids_count": 60,
-        "grid_mode": "geometric",
-        "profit_per_grid_pct": 0.55
+        "lower_price": 7.265263,
+        "upper_price": 7.658237,
+        "grids_count": 48,
+        "grid_mode": "arithmetic",
+        "leverage": 3.0,
+        "profit_per_grid_pct": 0.45,
+        "atr_multiplier": null,
+        "bb_period": 20,
+        "bb_k": 2.5
+      },
+      "params": {
+        "leverage": 3,
+        "profit_per_grid_pct": 0.45
       },
       "metrics": {
-        "backtest_apy_pct": 52.8,
-        "max_drawdown_pct": -1.6,
-        "win_rate_pct": 92.9,
-        "daily_turnover_rate": 68.7,
-        "daily_turnover": 68.7,
-        "sharpe_ratio": 5.09,
-        "profit_factor": 3.04,
-        "return_pct": 0.0868,
-        "period_days": 7,
+        "backtest_apy_pct": 980.0,
+        "max_drawdown_pct": -1.26,
+        "daily_turnover_rate": 17.0,
+        "daily_turnover": 17.0,
+        "sharpe_ratio": 35.556,
+        "win_rate_pct": 93.0,
+        "profit_factor": 3.915,
+        "return_pct": 0.4543,
+        "period_days": 60,
         "metrics_source": "backtest_60d",
-        "disclaimer": "基於 7 日回測數據"
+        "disclaimer": "基於 60 日回測數據"
       },
-      "sharpe": 5.09,
-      "max_drawdown": -0.016,
-      "return_pct": 0.0868,
-      "profit_factor": 3.04,
-      "win_rate": 0.929,
-      "trades": 1393,
+      "sharpe": 35.556,
+      "max_drawdown": -0.0126,
+      "return_pct": 0.4543,
+      "profit_factor": 3.915,
+      "win_rate": 0.93,
+      "trades": 763,
       "chart": "/static/charts/strat-011.svg",
       "chart_url": "/static/charts/strat-011.svg",
-      "copy": "BTC·時序動量波動收割網格 V3.5 · BTCUSDT 高頻網格 · 回測 APY 52.8% · 日換手 68.7 · 手續費返傭導向",
-      "principle": "賽馬篩選網格 · 基於 60 日回測預渲染 · Live 掃描同步中",
       "monetization": "trading_volume_rebate",
-      "cleaned_at": "2026-08-25T14:13:11Z",
-      "disclaimer": "基於 7 日回測數據"
+      "replaced_at": "2026-08-26T01:51:05Z",
+      "copy": "AVAX·多維共振擠壓套利網格 V5.2 · AVAXUSDT 高換手網格 · 手續費返傭導向"
     },
     {
       "id": "strat-012",
