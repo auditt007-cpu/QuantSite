@@ -1,19 +1,169 @@
 {
-  "updated_at": "2026-08-26T00:31:13Z",
+  "updated_at": "2026-08-26T00:32:44Z",
   "venue": "coinbase",
   "poll_sec": 5,
   "exec_log": [
+    {
+      "kind": "batch",
+      "name_zh": "複合動能B",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "多頭平倉翻空 (SELL)",
+      "logged_at": 1787704350,
+      "bar_ts": 1787703300,
+      "event": "open",
+      "strategy_id": "strat-026",
+      "symbols": [
+        {
+          "symbol": "AAVEUSDT",
+          "price": 125.92,
+          "sl_pct": -0.5723260800508299,
+          "tp_pct": 1.1446529542566768,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "ARBUSDT",
+          "price": 0.09232,
+          "sl_pct": -0.5372616984402041,
+          "tp_pct": 1.0745233968804082,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
+      "name_zh": "複合動能",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "多頭平倉翻空 (SELL)",
+      "logged_at": 1787704351,
+      "bar_ts": 1787703300,
+      "event": "open",
+      "strategy_id": "strat-011",
+      "symbols": [
+        {
+          "symbol": "AAVEUSDT",
+          "price": 125.92,
+          "sl_pct": -0.5723260800508299,
+          "tp_pct": 1.1446529542566768,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "ARBUSDT",
+          "price": 0.09232,
+          "sl_pct": -0.5372616984402041,
+          "tp_pct": 1.0745233968804082,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
+      "name_zh": "複合動能B",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787704350,
+      "bar_ts": 1787703300,
+      "event": "close",
+      "strategy_id": "strat-026",
+      "symbols": [
+        {
+          "symbol": "AAVEUSDT",
+          "price": 125.92,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.7018373945272459
+        },
+        {
+          "symbol": "ARBUSDT",
+          "price": 0.09232,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.08658008658008305
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
+      "name_zh": "複合動能",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787704349,
+      "bar_ts": 1787703300,
+      "event": "close",
+      "strategy_id": "strat-011",
+      "symbols": [
+        {
+          "symbol": "AAVEUSDT",
+          "price": 125.92,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.7018373945272459
+        },
+        {
+          "symbol": "ARBUSDT",
+          "price": 0.09232,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.08658008658008305
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
+      "name_zh": "複合動能B",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "空頭平倉翻多 (BUY)",
+      "logged_at": 1787704294,
+      "bar_ts": 1787703300,
+      "event": "open",
+      "strategy_id": "strat-026",
+      "symbols": [
+        {
+          "symbol": "ARBUSDT",
+          "price": 0.0924,
+          "sl_pct": -0.14285714285713555,
+          "tp_pct": 0.28463203463203396,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
     {
       "kind": "batch",
       "name_zh": "複合動能",
       "interval": "15m",
       "side": "LONG",
       "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787704260,
+      "logged_at": 1787704295,
       "bar_ts": 1787703300,
       "event": "open",
       "strategy_id": "strat-011",
       "symbols": [
+        {
+          "symbol": "ARBUSDT",
+          "price": 0.0924,
+          "sl_pct": -0.14285714285713555,
+          "tp_pct": 0.28463203463203396,
+          "event": "open",
+          "pnl_pct": null
+        },
         {
           "symbol": "AAVEUSDT",
           "price": 126.81,
@@ -23,7 +173,7 @@
           "pnl_pct": null
         }
       ],
-      "strategy_count": 1
+      "strategy_count": 2
     },
     {
       "kind": "batch",
@@ -31,11 +181,19 @@
       "interval": "15m",
       "side": "SHORT",
       "action": "空頭開倉 (SELL)",
-      "logged_at": 1787704259,
+      "logged_at": 1787704294,
       "bar_ts": 1787703300,
       "event": "close",
       "strategy_id": "strat-026",
       "symbols": [
+        {
+          "symbol": "ARBUSDT",
+          "price": 0.0924,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.08665511265164291
+        },
         {
           "symbol": "AAVEUSDT",
           "price": 126.81,
@@ -43,14 +201,36 @@
           "tp_pct": null,
           "event": "close",
           "pnl_pct": -0.7067979669631517
-        },
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
+      "name_zh": "複合動能",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787704293,
+      "bar_ts": 1787703300,
+      "event": "close",
+      "strategy_id": "strat-011",
+      "symbols": [
         {
           "symbol": "ARBUSDT",
           "price": 0.0924,
           "sl_pct": null,
           "tp_pct": null,
           "event": "close",
-          "pnl_pct": -0.43478260869564955
+          "pnl_pct": -0.08665511265164291
+        },
+        {
+          "symbol": "AAVEUSDT",
+          "price": 126.81,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.7067979669631517
         }
       ],
       "strategy_count": 2
@@ -116,36 +296,6 @@
         }
       ],
       "strategy_count": 6
-    },
-    {
-      "kind": "batch",
-      "name_zh": "複合動能",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787704259,
-      "bar_ts": 1787703300,
-      "event": "close",
-      "strategy_id": "strat-011",
-      "symbols": [
-        {
-          "symbol": "AAVEUSDT",
-          "price": 126.81,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.7067979669631517
-        },
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.0924,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.43478260869564955
-        }
-      ],
-      "strategy_count": 2
     },
     {
       "kind": "batch",
@@ -459,28 +609,6 @@
     },
     {
       "kind": "batch",
-      "name_zh": "複合動能",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787704226,
-      "bar_ts": 1787703300,
-      "event": "open",
-      "strategy_id": "strat-011",
-      "symbols": [
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.09232,
-          "sl_pct": -0.5372616984402041,
-          "tp_pct": 1.0745233968804082,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
       "name_zh": "樞軸點",
       "interval": "15m",
       "side": "LONG",
@@ -555,28 +683,6 @@
     },
     {
       "kind": "batch",
-      "name_zh": "複合動能B",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787704226,
-      "bar_ts": 1787703300,
-      "event": "open",
-      "strategy_id": "strat-026",
-      "symbols": [
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.09232,
-          "sl_pct": -0.5372616984402041,
-          "tp_pct": 1.0745233968804082,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
       "name_zh": "樞軸快線",
       "interval": "15m",
       "side": "LONG",
@@ -643,36 +749,6 @@
     },
     {
       "kind": "batch",
-      "name_zh": "複合動能",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787704225,
-      "bar_ts": 1787703300,
-      "event": "close",
-      "strategy_id": "strat-011",
-      "symbols": [
-        {
-          "symbol": "AAVEUSDT",
-          "price": 125.92,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.7018373945272459
-        },
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.09232,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.08658008658008305
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
       "name_zh": "ROC8動能",
       "interval": "15m",
       "side": "SHORT",
@@ -697,36 +773,6 @@
           "tp_pct": null,
           "event": "close",
           "pnl_pct": -0.2712967986977756
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "複合動能B",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787704222,
-      "bar_ts": 1787703300,
-      "event": "close",
-      "strategy_id": "strat-026",
-      "symbols": [
-        {
-          "symbol": "AAVEUSDT",
-          "price": 125.92,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.7018373945272459
-        },
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.09232,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.08658008658008305
         }
       ],
       "strategy_count": 2
@@ -812,28 +858,6 @@
         }
       ],
       "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "唐奇安10",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787704208,
-      "bar_ts": 1787703300,
-      "event": "close",
-      "strategy_id": "strat-015",
-      "symbols": [
-        {
-          "symbol": "ARBUSDT",
-          "price": 0.0924,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 2.8391167192429108
-        }
-      ],
-      "strategy_count": 1
     }
   ],
   "exec_log_raw_count": 200,
