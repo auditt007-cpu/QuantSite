@@ -11,7 +11,7 @@
   "use strict";
 
   /* ── 配置 ─────────────────────────────────────────── */
-  var COLLECT_URL = "https://my-api.com/collect";
+  var COLLECT_URL = "https://quant-saas-api.quant-alpha-desk.workers.dev/collect";
 
   /* ── 工具函数 ─────────────────────────────────────── */
 
