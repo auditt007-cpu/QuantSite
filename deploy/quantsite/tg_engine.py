@@ -2066,11 +2066,9 @@ def scan_micro_events():
             key = "hb_{0}_{1}".format(sid, sym)
             prev = HEARTBEAT_STATE.get(key)
             px = float(data["c"][-1])
-            bar_ts = data["t"][-1]
-            # Prefer previous fully closed candle when available
-            if len(data.get("t") or []) >= 2:
-                bar_ts = data["t"][-2]
-            bar_ts = bar_close_ts(bar_ts, "5m")
+            # data_provider._clean() already drops unclosed bars;
+            # [-1] is the last CLOSED 5m candle.
+            bar_ts = bar_close_ts(data["t"][-1], "5m")
             if prev and prev.get("side") == side:
                 continue
             prev_side = prev.get("side") if prev else None
@@ -2113,7 +2111,9 @@ def stale_pulse_events():
         if len(data["c"]) > 2 and data["c"][-2]:
             roc = (data["c"][-1] / data["c"][-2] - 1.0) * 100.0
         side = "LONG" if roc >= 0 else "SHORT"
-        raw_t = data["t"][-2] if data.get("t") and len(data["t"]) >= 2 else (data["t"][-1] if data.get("t") else now * 1000)
+        # data_provider._clean() already drops unclosed bars;
+        # [-1] is the last CLOSED candle.
+        raw_t = data["t"][-1] if data.get("t") else now * 1000
         bar_ts = bar_close_ts(raw_t, "5m")
         out.append(
             _micro_event(sids[offset], names[offset], "5m", side, sym, px, bar_ts, None, now)
@@ -2138,7 +2138,9 @@ def scan_events():
                 continue
             if side not in ("LONG", "SHORT"):
                 continue
-            raw_t = data["t"][-2] if len(data.get("t") or []) >= 2 else data["t"][-1]
+            # data_provider._clean() already drops unclosed bars;
+            # [-1] is the last CLOSED candle — stamp at its close time.
+            raw_t = data["t"][-1]
             bar_ts = bar_close_ts(raw_t, tf)
             key = state_key(strat["id"], sym, tf)
             prev = SIGNAL_STATE.get(key)
