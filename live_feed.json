@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-26T14:18:03Z",
+  "updated_at": "2026-08-26T14:20:13Z",
   "period_hours": 3,
   "poll_sec": 5,
   "scan_tf": "15m+1h",
@@ -766,6 +766,80 @@
   "exec_log": [
     {
       "kind": "batch",
+      "name_zh": "布林微破",
+      "interval": "5m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787754014,
+      "bar_ts": 1787754000,
+      "event": "open",
+      "strategy_id": "hb-bb5",
+      "symbols": [
+        {
+          "symbol": "PEPEUSDT",
+          "price": 3.75e-06,
+          "sl_pct": -6.66666666666666,
+          "tp_pct": 6.66666666666666,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "5m動能微破",
+      "interval": "5m",
+      "side": "LONG",
+      "action": "空頭平倉翻多 (BUY)",
+      "logged_at": 1787754015,
+      "bar_ts": 1787754000,
+      "event": "open",
+      "strategy_id": "hb-roc5",
+      "symbols": [
+        {
+          "symbol": "SUIUSDT",
+          "price": 0.7494,
+          "sl_pct": -0.5428342674139259,
+          "tp_pct": 1.0855350947424611,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "5m動能微破",
+      "interval": "5m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787754014,
+      "bar_ts": 1787754000,
+      "event": "close",
+      "strategy_id": "hb-roc5",
+      "symbols": [
+        {
+          "symbol": "PEPEUSDT",
+          "price": 3.75e-06,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "SUIUSDT",
+          "price": 0.7494,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 2
+    },
+    {
+      "kind": "batch",
       "name_zh": "MACD信號交叉",
       "interval": "1h",
       "side": "LONG",
@@ -842,17 +916,9 @@
           "tp_pct": null,
           "event": "close",
           "pnl_pct": -0.7215007215007244
-        },
-        {
-          "symbol": "NEARUSDT",
-          "price": 1.8351,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.8054054054054127
         }
       ],
-      "strategy_count": 2
+      "strategy_count": 1
     },
     {
       "kind": "batch",
@@ -1470,72 +1536,6 @@
           "tp_pct": 1.9203315064830893,
           "event": "open",
           "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "量價突破",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787753746,
-      "bar_ts": 1787753700,
-      "event": "open",
-      "strategy_id": "strat-021",
-      "symbols": [
-        {
-          "symbol": "SUIUSDT",
-          "price": 0.7481,
-          "sl_pct": -0.9601657532415521,
-          "tp_pct": 1.9203315064830893,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "樞軸快線",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787753745,
-      "bar_ts": 1787753700,
-      "event": "open",
-      "strategy_id": "strat-030",
-      "symbols": [
-        {
-          "symbol": "SHIBUSDT",
-          "price": 5.26e-06,
-          "sl_pct": -4.942965779467666,
-          "tp_pct": 4.942965779467666,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "量均突破",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "多頭開倉 (BUY)",
-      "logged_at": 1787753744,
-      "bar_ts": 1787753700,
-      "event": "close",
-      "strategy_id": "strat-010",
-      "symbols": [
-        {
-          "symbol": "SUIUSDT",
-          "price": 0.7481,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.05344021376086399
         }
       ],
       "strategy_count": 1
