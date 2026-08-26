@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-26T15:38:35Z",
+  "updated_at": "2026-08-26T15:40:08Z",
   "period_hours": 3,
   "poll_sec": 5,
   "scan_tf": "15m+1h",
@@ -1138,6 +1138,50 @@
   "exec_log": [
     {
       "kind": "batch",
+      "name_zh": "5m動能微破",
+      "interval": "5m",
+      "side": "LONG",
+      "action": "空頭平倉翻多 (BUY)",
+      "logged_at": 1787758809,
+      "bar_ts": 1787758800,
+      "event": "open",
+      "strategy_id": "hb-roc5",
+      "symbols": [
+        {
+          "symbol": "DOGEUSDT",
+          "price": 0.08445,
+          "sl_pct": -0.46654825340437134,
+          "tp_pct": 0.9319123741859041,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "5m動能微破",
+      "interval": "5m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787758808,
+      "bar_ts": 1787758800,
+      "event": "close",
+      "strategy_id": "hb-roc5",
+      "symbols": [
+        {
+          "symbol": "DOGEUSDT",
+          "price": 0.08445,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
       "name_zh": "布林微破",
       "interval": "5m",
       "side": "SHORT",
@@ -1773,7 +1817,7 @@
         },
         {
           "symbol": "ETHUSDT",
-          "price": 2441.24,
+          "price": 2443.99,
           "sl_pct": null,
           "tp_pct": null,
           "event": "open",
@@ -1923,82 +1967,6 @@
         }
       ],
       "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "量價突破",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787758152,
-      "bar_ts": 1787757300,
-      "event": "open",
-      "strategy_id": "strat-021",
-      "symbols": [
-        {
-          "symbol": "AVAXUSDT",
-          "price": 7.205,
-          "sl_pct": -0.3997224149895958,
-          "tp_pct": 0.7994448299791793,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "BNBUSDT",
-          "price": 694.19,
-          "sl_pct": -0.29807315000216633,
-          "tp_pct": 0.5961461559515358,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "ONDOUSDT",
-          "price": 0.35775,
-          "sl_pct": -0.8908455625436745,
-          "tp_pct": 1.781970649895168,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 3
-    },
-    {
-      "kind": "batch",
-      "name_zh": "量均突破",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787758151,
-      "bar_ts": 1787757300,
-      "event": "open",
-      "strategy_id": "strat-010",
-      "symbols": [
-        {
-          "symbol": "AVAXUSDT",
-          "price": 7.205,
-          "sl_pct": -0.3997224149895958,
-          "tp_pct": 0.7994448299791793,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "BNBUSDT",
-          "price": 694.19,
-          "sl_pct": -0.29807315000216633,
-          "tp_pct": 0.5961461559515358,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "ONDOUSDT",
-          "price": 0.35775,
-          "sl_pct": -0.8908455625436745,
-          "tp_pct": 1.781970649895168,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 3
     }
   ],
   "exec_log_raw_count": 200
