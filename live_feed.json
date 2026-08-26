@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-26T15:46:13Z",
+  "updated_at": "2026-08-26T15:48:26Z",
   "period_hours": 3,
   "poll_sec": 5,
   "scan_tf": "15m+1h",
@@ -1138,6 +1138,50 @@
   "exec_log": [
     {
       "kind": "batch",
+      "name_zh": "布林微破",
+      "interval": "5m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787759307,
+      "bar_ts": 1787759100,
+      "event": "open",
+      "strategy_id": "hb-bb5",
+      "symbols": [
+        {
+          "symbol": "SUIUSDT",
+          "price": 0.7363,
+          "sl_pct": -0.5209832948526348,
+          "tp_pct": 1.04183077549913,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "5m動能微破",
+      "interval": "5m",
+      "side": "LONG",
+      "action": "多頭開倉 (BUY)",
+      "logged_at": 1787759306,
+      "bar_ts": 1787759100,
+      "event": "open",
+      "strategy_id": "hb-roc5",
+      "symbols": [
+        {
+          "symbol": "DOGEUSDT",
+          "price": 0.08452,
+          "sl_pct": -0.44013251301466794,
+          "tp_pct": 0.8802650260293523,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
       "name_zh": "Dual Thrust快",
       "interval": "15m",
       "side": "LONG",
@@ -1752,82 +1796,6 @@
           "tp_pct": 1.6031613976705592,
           "event": "open",
           "pnl_pct": null
-        }
-      ],
-      "strategy_count": 3
-    },
-    {
-      "kind": "batch",
-      "name_zh": "Dual Thrust快",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787758534,
-      "bar_ts": 1787758200,
-      "event": "close",
-      "strategy_id": "strat-020",
-      "symbols": [
-        {
-          "symbol": "SOLUSDT",
-          "price": 96.23,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.0
-        },
-        {
-          "symbol": "XRPUSDT",
-          "price": 1.3773,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 2.2220644611671236
-        },
-        {
-          "symbol": "ONDOUSDT",
-          "price": 0.3606,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 1.235244172988966
-        }
-      ],
-      "strategy_count": 3
-    },
-    {
-      "kind": "batch",
-      "name_zh": "Dual Thrust",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787758533,
-      "bar_ts": 1787758200,
-      "event": "close",
-      "strategy_id": "hg",
-      "symbols": [
-        {
-          "symbol": "SOLUSDT",
-          "price": 96.23,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 0.0
-        },
-        {
-          "symbol": "XRPUSDT",
-          "price": 1.3773,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 2.2220644611671236
-        },
-        {
-          "symbol": "ONDOUSDT",
-          "price": 0.3606,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": 1.235244172988966
         }
       ],
       "strategy_count": 3
