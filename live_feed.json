@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-26T05:27:29Z",
+  "updated_at": "2026-08-26T05:29:01Z",
   "period_hours": 3,
   "poll_sec": 5,
   "scan_tf": "15m+1h",
@@ -634,6 +634,158 @@
   "exec_log": [
     {
       "kind": "batch",
+      "name_zh": "量價突破",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "空頭平倉翻多 (BUY)",
+      "logged_at": 1787722089,
+      "bar_ts": 1787720400,
+      "event": "open",
+      "strategy_id": "strat-021",
+      "symbols": [
+        {
+          "symbol": "SOLUSDT",
+          "price": 96.64,
+          "sl_pct": -0.34127069536423404,
+          "tp_pct": 0.6825424254966921,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "ETHUSDT",
+          "price": 2458.87,
+          "sl_pct": -0.2614892206582591,
+          "tp_pct": 0.5229784413165367,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "BTCUSDT",
+          "price": 78887.18,
+          "sl_pct": -0.2705889905051746,
+          "tp_pct": 0.5411779810103492,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 3
+    },
+    {
+      "kind": "batch",
+      "name_zh": "量均突破",
+      "interval": "15m",
+      "side": "LONG",
+      "action": "空頭平倉翻多 (BUY)",
+      "logged_at": 1787722090,
+      "bar_ts": 1787720400,
+      "event": "open",
+      "strategy_id": "strat-010",
+      "symbols": [
+        {
+          "symbol": "SOLUSDT",
+          "price": 96.64,
+          "sl_pct": -0.34127069536423404,
+          "tp_pct": 0.6825424254966921,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "ETHUSDT",
+          "price": 2458.87,
+          "sl_pct": -0.2614892206582591,
+          "tp_pct": 0.5229784413165367,
+          "event": "open",
+          "pnl_pct": null
+        },
+        {
+          "symbol": "BTCUSDT",
+          "price": 78887.18,
+          "sl_pct": -0.2705889905051746,
+          "tp_pct": 0.5411779810103492,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 3
+    },
+    {
+      "kind": "batch",
+      "name_zh": "量價突破",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787722089,
+      "bar_ts": 1787720400,
+      "event": "close",
+      "strategy_id": "strat-021",
+      "symbols": [
+        {
+          "symbol": "SOLUSDT",
+          "price": 96.64,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.02069964810597808
+        },
+        {
+          "symbol": "ETHUSDT",
+          "price": 2458.87,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.09321902807968654
+        },
+        {
+          "symbol": "BTCUSDT",
+          "price": 78887.18,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.17964150940519924
+        }
+      ],
+      "strategy_count": 3
+    },
+    {
+      "kind": "batch",
+      "name_zh": "量均突破",
+      "interval": "15m",
+      "side": "SHORT",
+      "action": "空頭開倉 (SELL)",
+      "logged_at": 1787722088,
+      "bar_ts": 1787720400,
+      "event": "close",
+      "strategy_id": "strat-010",
+      "symbols": [
+        {
+          "symbol": "SOLUSDT",
+          "price": 96.64,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.02069964810597808
+        },
+        {
+          "symbol": "ETHUSDT",
+          "price": 2458.87,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.09321902807968654
+        },
+        {
+          "symbol": "BTCUSDT",
+          "price": 78887.18,
+          "sl_pct": null,
+          "tp_pct": null,
+          "event": "close",
+          "pnl_pct": -0.17964150940519924
+        }
+      ],
+      "strategy_count": 3
+    },
+    {
+      "kind": "batch",
       "name_zh": "5m動能微破",
       "interval": "5m",
       "side": "LONG",
@@ -996,66 +1148,6 @@
     },
     {
       "kind": "batch",
-      "name_zh": "量價突破",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787721502,
-      "bar_ts": 1787720400,
-      "event": "open",
-      "strategy_id": "strat-021",
-      "symbols": [
-        {
-          "symbol": "ETHUSDT",
-          "price": 2458.87,
-          "sl_pct": -0.2614892206582591,
-          "tp_pct": 0.5229784413165367,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "BTCUSDT",
-          "price": 78887.18,
-          "sl_pct": -0.2705889905051746,
-          "tp_pct": 0.5411779810103492,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "量均突破",
-      "interval": "15m",
-      "side": "LONG",
-      "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787721501,
-      "bar_ts": 1787720400,
-      "event": "open",
-      "strategy_id": "strat-010",
-      "symbols": [
-        {
-          "symbol": "ETHUSDT",
-          "price": 2458.87,
-          "sl_pct": -0.2614892206582591,
-          "tp_pct": 0.5229784413165367,
-          "event": "open",
-          "pnl_pct": null
-        },
-        {
-          "symbol": "BTCUSDT",
-          "price": 78887.18,
-          "sl_pct": -0.2705889905051746,
-          "tp_pct": 0.5411779810103492,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
       "name_zh": "成交量價差VSA",
       "interval": "15m",
       "side": "LONG",
@@ -1075,66 +1167,6 @@
         }
       ],
       "strategy_count": 1
-    },
-    {
-      "kind": "batch",
-      "name_zh": "量價突破",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787721501,
-      "bar_ts": 1787720400,
-      "event": "close",
-      "strategy_id": "strat-021",
-      "symbols": [
-        {
-          "symbol": "ETHUSDT",
-          "price": 2458.87,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.09321902807968654
-        },
-        {
-          "symbol": "BTCUSDT",
-          "price": 78887.18,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.17964150940519924
-        }
-      ],
-      "strategy_count": 2
-    },
-    {
-      "kind": "batch",
-      "name_zh": "量均突破",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "空頭開倉 (SELL)",
-      "logged_at": 1787721500,
-      "bar_ts": 1787720400,
-      "event": "close",
-      "strategy_id": "strat-010",
-      "symbols": [
-        {
-          "symbol": "ETHUSDT",
-          "price": 2458.87,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.09321902807968654
-        },
-        {
-          "symbol": "BTCUSDT",
-          "price": 78887.18,
-          "sl_pct": null,
-          "tp_pct": null,
-          "event": "close",
-          "pnl_pct": -0.17964150940519924
-        }
-      ],
-      "strategy_count": 2
     },
     {
       "kind": "batch",
