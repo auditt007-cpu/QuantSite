@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-26T08:21:35Z",
+  "updated_at": "2026-08-26T08:23:04Z",
   "period_hours": 3,
   "poll_sec": 5,
   "scan_tf": "15m+1h",
@@ -1246,33 +1246,11 @@
   "exec_log": [
     {
       "kind": "batch",
-      "name_zh": "複合動能",
-      "interval": "15m",
-      "side": "SHORT",
-      "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787732496,
-      "bar_ts": 1787731200,
-      "event": "open",
-      "strategy_id": "strat-011",
-      "symbols": [
-        {
-          "symbol": "INJUSDT",
-          "price": 5.533,
-          "sl_pct": -0.08095065967829206,
-          "tp_pct": 0.16191939273450098,
-          "event": "open",
-          "pnl_pct": null
-        }
-      ],
-      "strategy_count": 1
-    },
-    {
-      "kind": "batch",
       "name_zh": "複合動能B",
       "interval": "15m",
       "side": "SHORT",
       "action": "多頭平倉翻空 (SELL)",
-      "logged_at": 1787732497,
+      "logged_at": 1787732569,
       "bar_ts": 1787731200,
       "event": "open",
       "strategy_id": "strat-026",
@@ -1292,12 +1270,34 @@
       "kind": "batch",
       "name_zh": "複合動能",
       "interval": "15m",
+      "side": "SHORT",
+      "action": "多頭平倉翻空 (SELL)",
+      "logged_at": 1787732570,
+      "bar_ts": 1787731200,
+      "event": "open",
+      "strategy_id": "strat-011",
+      "symbols": [
+        {
+          "symbol": "INJUSDT",
+          "price": 5.533,
+          "sl_pct": -0.08095065967829206,
+          "tp_pct": 0.16191939273450098,
+          "event": "open",
+          "pnl_pct": null
+        }
+      ],
+      "strategy_count": 1
+    },
+    {
+      "kind": "batch",
+      "name_zh": "複合動能B",
+      "interval": "15m",
       "side": "LONG",
       "action": "多頭開倉 (BUY)",
-      "logged_at": 1787732496,
+      "logged_at": 1787732569,
       "bar_ts": 1787731200,
       "event": "close",
-      "strategy_id": "strat-011",
+      "strategy_id": "strat-026",
       "symbols": [
         {
           "symbol": "INJUSDT",
@@ -1336,14 +1336,14 @@
     },
     {
       "kind": "batch",
-      "name_zh": "複合動能B",
+      "name_zh": "複合動能",
       "interval": "15m",
       "side": "LONG",
       "action": "多頭開倉 (BUY)",
-      "logged_at": 1787732495,
+      "logged_at": 1787732568,
       "bar_ts": 1787731200,
       "event": "close",
-      "strategy_id": "strat-026",
+      "strategy_id": "strat-011",
       "symbols": [
         {
           "symbol": "INJUSDT",
@@ -1386,7 +1386,7 @@
       "interval": "15m",
       "side": "LONG",
       "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787732459,
+      "logged_at": 1787732551,
       "bar_ts": 1787731200,
       "event": "open",
       "strategy_id": "strat-026",
@@ -1408,7 +1408,7 @@
       "interval": "15m",
       "side": "LONG",
       "action": "空頭平倉翻多 (BUY)",
-      "logged_at": 1787732460,
+      "logged_at": 1787732552,
       "bar_ts": 1787731200,
       "event": "open",
       "strategy_id": "strat-011",
@@ -1430,7 +1430,7 @@
       "interval": "15m",
       "side": "SHORT",
       "action": "空頭開倉 (SELL)",
-      "logged_at": 1787732459,
+      "logged_at": 1787732551,
       "bar_ts": 1787731200,
       "event": "close",
       "strategy_id": "strat-026",
@@ -1452,7 +1452,7 @@
       "interval": "15m",
       "side": "SHORT",
       "action": "空頭開倉 (SELL)",
-      "logged_at": 1787732458,
+      "logged_at": 1787732550,
       "bar_ts": 1787731200,
       "event": "close",
       "strategy_id": "strat-011",
@@ -1973,7 +1973,7 @@
         },
         {
           "symbol": "ETHUSDT",
-          "price": 2466.46,
+          "price": 2467.64,
           "sl_pct": null,
           "tp_pct": null,
           "event": "open",
