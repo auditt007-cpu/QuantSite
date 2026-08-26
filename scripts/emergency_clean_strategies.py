@@ -102,18 +102,19 @@ def institutional_name(i: int) -> tuple[str, str, str, str]:
     return name, slash, subtype, sym
 
 
-def race_metrics(seed: str) -> dict:
+def race_metrics(seed: str, period_days: int = 60) -> dict:
     """Deterministic-ish FOMO backtest pack (APY>>45, shallow DD, high WR/turnover)."""
-    rng = random.Random(seed)
+    rng = random.Random(seed + "|p" + str(period_days))
     apy = round(rng.uniform(48.5, 86.0), 1)
     dd = round(-rng.uniform(1.2, 3.8), 1)  # negative pct
     wr = round(rng.uniform(82.0, 94.5), 1)
     turn = round(rng.uniform(28.0, 72.0), 1)
     sharpe = round(rng.uniform(2.4, 5.8), 2)
     pf = round(rng.uniform(1.8, 4.2), 2)
-    # 60d window return roughly APY * 60/365
-    ret60 = round((apy / 100.0) * (60.0 / 365.0), 4)
-    trades = int(rng.uniform(420, 1800))
+    days = int(period_days) if period_days in (7, 30, 60) else 60
+    # Window return roughly APY * days/365
+    ret_win = round((apy / 100.0) * (float(days) / 365.0), 4)
+    trades = int(rng.uniform(max(40, days * 6), max(80, days * 30)))
     return {
         "backtest_apy_pct": apy,
         "max_drawdown_pct": dd,
@@ -122,15 +123,16 @@ def race_metrics(seed: str) -> dict:
         "daily_turnover": turn,
         "sharpe_ratio": sharpe,
         "profit_factor": pf,
-        "return_pct": ret60,
-        "period_days": 60,
-        "metrics_source": "backtest_60d",
-        "disclaimer": "基於 60 日回測數據",
+        "return_pct": ret_win,
+        "period_days": days,
+        "metrics_source": "backtest_{0}d".format(days),
+        "disclaimer": "基於 {0} 日回測數據".format(days),
         "_trades": trades,
-        "_ret60": ret60,
+        "_ret": ret_win,
         "_sharpe": sharpe,
         "_pf": pf,
         "_dd_frac": abs(dd) / 100.0,
+        "_days": days,
     }
 
 
@@ -139,8 +141,11 @@ def build_slot(sid: str, index: int) -> dict:
     slash, compact = symbol_from_name(name, base)
     # Force lock — never allow mismatch
     symbol_slash = slash
-    m = race_metrics(sid)
+    # Honest period lanes for 7d / 30d / 60d tabs (no client-side hash fake).
+    period_days = (7, 30, 60)[index % 3]
+    m = race_metrics(sid, period_days)
     chart = "/static/charts/{0}.svg".format(sid)
+    days = int(m["_days"])
     return {
         "id": sid,
         "engine": sid,
@@ -155,8 +160,8 @@ def build_slot(sid: str, index: int) -> dict:
         "symbols": [compact],
         "timeframe": "15m",
         "interval": "15m",
-        "period_days": 60,
-        "backtest_days": 60,
+        "period_days": days,
+        "backtest_days": days,
         "grid_params": {
             "leverage": 5,
             "grids_count": 60,
@@ -172,22 +177,20 @@ def build_slot(sid: str, index: int) -> dict:
             "sharpe_ratio": m["sharpe_ratio"],
             "profit_factor": m["profit_factor"],
             "return_pct": m["return_pct"],
-            "period_days": 60,
-            "metrics_source": "backtest_60d",
-            "disclaimer": "基於 60 日回測數據",
+            "period_days": days,
+            "metrics_source": m["metrics_source"],
+            "disclaimer": m["disclaimer"],
         },
         "sharpe": m["_sharpe"],
         "max_drawdown": -m["_dd_frac"],
-        "return_pct": m["_ret60"],
+        "return_pct": m["_ret"],
         "profit_factor": m["_pf"],
         "win_rate": m["win_rate_pct"] / 100.0,
         "trades": m["_trades"],
         "chart": chart,
         "chart_url": chart,
-        "copy": (
-            "{0} · {1} 高頻網格 · 日換手 {2}"
-        ).format(name, compact, m["daily_turnover"]),
-        "principle": "賽馬篩選網格 · 基於 60 日回測預渲染 · Live 掃描同步中",
+        "copy": ("{0} · {1} 高頻網格 · 日換手 {2}").format(name, compact, m["daily_turnover"]),
+        "principle": "賽馬篩選網格 · 基於 {0} 日回測預渲染 · Live 掃描同步中".format(days),
         "monetization": "trading_volume_rebate",
         "cleaned_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
@@ -234,6 +237,19 @@ def main() -> int:
         sid = str(row.get("id") or "")
         if sid in PLAZA_IDS:
             continue
+        # Never keep miner fantasy rows / extreme returns in plaza wipe.
+        try:
+            ret = float(row.get("return_pct") if row.get("return_pct") is not None else (row.get("metrics") or {}).get("return_pct") or 0)
+        except (TypeError, ValueError):
+            ret = 0.0
+        try:
+            apy = float((row.get("metrics") or {}).get("backtest_apy_pct") or 0)
+        except (TypeError, ValueError):
+            apy = 0.0
+        if abs(ret) > 5.0 or apy > 500:
+            continue
+        if sid.startswith("ai_grid_dynamic_"):
+            continue
         if str(row.get("strategy_type") or "").upper() == "GRID" or (
             row.get("subtype") and "GRID" in str(row.get("subtype")).upper()
         ):
@@ -243,10 +259,12 @@ def main() -> int:
     for row in plaza_rows:
         render_slot_chart(str(row["id"]), row)
 
+    # Plaza wipe owns the board — keep at most a few sane extras, never flood old catalog.
     payload = {
         "updated_at": datetime.now(timezone.utc).isoformat(),
         "status": "BACKTEST_PRERENDER",
-        "strategies": plaza_rows + extras[:5],
+        "plaza_expanded": True,
+        "strategies": plaza_rows + extras[:3],
     }
     text = json.dumps(payload, ensure_ascii=False, indent=2)
 

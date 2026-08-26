@@ -516,10 +516,11 @@ body.live-page.war-cmd .wrap {
 }
 
 .radar-viewport {
-  height: 220px;
-  overflow: hidden;
+  max-height: min(420px, 55vh);
+  overflow-x: hidden;
+  overflow-y: auto;
   position: relative;
-  padding: 10px 0 8px;
+  padding: 0;
   box-sizing: border-box;
 }
 
@@ -528,6 +529,165 @@ body.live-page.war-cmd .wrap {
   flex-direction: column;
   width: 100%;
   min-width: 0;
+}
+
+.radar-item {
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.radar-item:last-child {
+  border-bottom: 0;
+}
+
+.radar-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px 14px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px 6px;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  font: inherit;
+  color: #000000;
+  box-sizing: border-box;
+}
+
+.radar-summary:hover {
+  background: transparent;
+}
+
+.radar-item.is-open .radar-summary {
+  background: transparent;
+}
+
+.radar-sym {
+  flex: 0 0 auto;
+  min-width: 5.5em;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.radar-when {
+  flex: 0 0 auto;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b6b6b;
+}
+
+.radar-pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.radar-pill {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.radar-pill.is-buy {
+  color: var(--color-up);
+}
+
+.radar-pill.is-sell {
+  color: var(--color-down);
+}
+
+.radar-total {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b6b6b;
+}
+
+.radar-detail {
+  padding: 0 14px 12px 14px;
+  background: transparent;
+  border-top: 0;
+}
+
+.radar-minutes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.radar-minute {
+  display: grid;
+  grid-template-columns: 7.5em 1fr;
+  gap: 8px 12px;
+  align-items: start;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border-subtle);
+}
+
+.radar-minute:first-child {
+  border-top: 0;
+  padding-top: 8px;
+}
+
+.radar-min-t {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b6b6b;
+  padding-top: 2px;
+}
+
+.radar-min-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.radar-side-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 10px;
+  font-size: 12px;
+}
+
+.radar-side-lab {
+  flex: 0 0 auto;
+  font-family: var(--mono);
+  font-weight: 800;
+}
+
+.radar-side-line.is-buy .radar-side-lab {
+  color: var(--color-up);
+}
+
+.radar-side-line.is-sell .radar-side-lab {
+  color: var(--color-down);
+}
+
+.radar-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  min-width: 0;
+}
+
+.radar-chips .tape-strat {
+  font-size: 12px;
 }
 
 .radar-row {
@@ -807,6 +967,16 @@ body.live-page.war-cmd .wrap {
 
   .radar-panel {
     overflow-x: hidden;
+  }
+
+  .radar-summary {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .radar-minute {
+    grid-template-columns: 1fr;
+    gap: 4px;
   }
 
   .radar-row {

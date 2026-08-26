@@ -216,6 +216,13 @@
       .replace(/[/\-\s]/g, "")
       .toUpperCase();
     if (DEAD_SYMS[sy] || /^FET/.test(sy)) return false;
+    // Drop fantasy miner rows (e.g. +549806048%) before they hit the board.
+    const m = (row.metrics && typeof row.metrics === "object" ? row.metrics : {}) || {};
+    let ret = Number(row.return_pct);
+    if (!Number.isFinite(ret)) ret = Number(m.return_pct);
+    if (Number.isFinite(ret) && Math.abs(ret) > 5) return false; // ratio > 500%
+    let apy = Number(m.backtest_apy_pct != null ? m.backtest_apy_pct : row.backtest_apy_pct);
+    if (Number.isFinite(apy) && (apy > 500 || apy < -99)) return false;
     return true;
   }
 
@@ -414,6 +421,8 @@
         row.params && row.params.leverage
       ),
       listed: row.listed,
+      plaza_slot: !!(row.plaza_slot || row.slot),
+      slot: !!(row.plaza_slot || row.slot),
       period_days: pickNum(row.period_days, row.backtest_days, m.period_days, 60),
       disclaimer: m.disclaimer || row.disclaimer || "",
       metrics_source: m.metrics_source || row.metrics_source || "",
@@ -1104,6 +1113,8 @@
       tier: "free",
       ai: isAi,
       status: status,
+      plaza_slot: !!(r.plaza_slot || row.plaza_slot || r.slot || row.slot),
+      slot: !!(r.plaza_slot || row.plaza_slot || r.slot || row.slot),
       strategy_type: stype || "GRID",
       subtype: row.subtype || r.subtype || "",
       category: cat,

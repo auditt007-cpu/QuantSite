@@ -47,6 +47,7 @@
     lastPaintAt: 0,
     pendingTicks: {},
     radarRaf: 0,
+    radarOpen: {},
     disposed: false,
     cum: loadCum(),
   };
@@ -2234,6 +2235,38 @@
         strategyId: g.strategy_id,
       });
     });
+
+    /* Keep open holds visible for radar even when exec_log display is close-heavy. */
+    const openSeen = {};
+    out.forEach((e) => {
+      if (!e || isClose(e)) return;
+      const k = [normSym(e.symbol), String(e.strategyId || e.name || ""), String(e.side || "").toUpperCase()].join("|");
+      openSeen[k] = true;
+    });
+    const active = Array.isArray(data.active_signals_3h) ? data.active_signals_3h : [];
+    active.forEach((g) => {
+      if (!g || !g.symbol) return;
+      if (String(g.event || "open").toLowerCase() === "close") return;
+      const sym = normSym(g.symbol);
+      const side = String(g.side || "").toUpperCase();
+      const k = [sym, String(g.strategy_id || g.name_zh || ""), side].join("|");
+      if (openSeen[k]) return;
+      openSeen[k] = true;
+      out.push({
+        key: ["active", g.strategy_id, sym, side, g.bar_ts || g.logged_at].join("|"),
+        ts: toSec(g.logged_at) || toSec(g.bar_ts),
+        symbol: sym,
+        price: pickPx(g.price, livePx(sym)),
+        side: g.side,
+        action: g.action,
+        event: g.event || "open",
+        pnl_pct: g.pnl_pct,
+        name: g.name_zh || g.name_en || "量化策略",
+        interval: g.interval || "1h",
+        strategyId: g.strategy_id,
+      });
+    });
+
     return pruneAndCollapseEvents(out);
   }
 
@@ -2253,87 +2286,160 @@
     });
   }
 
+  function minuteBucket(ts) {
+    const sec = Math.floor(toSec(ts) || 0);
+    if (!sec) return 0;
+    return Math.floor(sec / 60) * 60;
+  }
+
+  function fmtMinute(ts) {
+    const d = new Date(Number(ts) > 1e12 ? Number(ts) : Number(ts) * 1000);
+    if (!isFinite(d.getTime())) return "—";
+    let h = d.getHours();
+    const m = String(d.getMinutes()).padStart(2, "0");
+    const period = h < 12 ? "上午" : "下午";
+    h = h % 12;
+    if (h === 0) h = 12;
+    return period + " " + String(h).padStart(2, "0") + ":" + m;
+  }
+
+  /** Per-coin 1h open-signal summary: buy/sell suite counts by minute. */
+  function buildRadarSummaries(now) {
+    const watchSet = new Set(state.watch.map(normSym));
+    const bySym = {};
+    state.events.forEach((ev) => {
+      if (!ev || now - ev.ts > HOUR_S) return;
+      if (ev.kind === "close_agg" || isClose(ev) || isZeroValueClose(ev)) return;
+      const sym = normSym(ev.symbol);
+      if (!watchSet.has(sym)) return;
+      if (!bySym[sym]) {
+        bySym[sym] = { symbol: sym, buyN: 0, sellN: 0, minutes: {} };
+      }
+      const row = bySym[sym];
+      const mk = minuteBucket(ev.ts);
+      if (!row.minutes[mk]) row.minutes[mk] = { ts: mk, buys: [], sells: [] };
+      if (isBuy(ev)) {
+        row.buyN += 1;
+        row.minutes[mk].buys.push(ev);
+      } else {
+        row.sellN += 1;
+        row.minutes[mk].sells.push(ev);
+      }
+    });
+    return state.watch
+      .map(normSym)
+      .filter((sym) => bySym[sym] && (bySym[sym].buyN > 0 || bySym[sym].sellN > 0))
+      .map((sym) => bySym[sym]);
+  }
+
+  function radarStratChips(events) {
+    const seen = {};
+    const chips = [];
+    (events || []).forEach((ev) => {
+      const name = String((ev && ev.name) || "").trim() || "量化策略";
+      if (seen[name]) return;
+      seen[name] = true;
+      chips.push(stratAnchor(ev));
+    });
+    return chips.join("");
+  }
+
   function paintRadarNow() {
     const list = document.getElementById("radarList");
     if (!list) return;
     const now = Date.now() / 1000;
-    const watchSet = new Set(state.watch.map(normSym));
-    const rows = state.events
-      .filter((e) => {
-        if (!e || now - e.ts > HOUR_S) return false;
-        if (isZeroValueClose(e)) return false;
-        if (e.kind === "close_agg") return true;
-        return watchSet.has(normSym(e.symbol));
-      })
-      .sort((a, b) => b.ts - a.ts)
-      .slice(0, 40);
+    const summaries = buildRadarSummaries(now);
     list.textContent = "";
-    if (!rows.length) {
+    list.classList.remove("is-scrolling");
+    list.style.animation = "none";
+    if (!summaries.length) {
       const idle = document.createElement("div");
       idle.className = "radar-idle";
-      idle.textContent = t("radarIdle", " 戰情雷達全天候掃描中，各幣種策略就緒...");
+      idle.textContent = t("radarIdle", "戰情雷達全天候掃描中，各幣種策略就緒...");
       list.appendChild(idle);
-      list.style.animation = "none";
       return;
     }
     const frag = document.createDocumentFragment();
-    const buildRow = (ev) => {
-      if (ev.kind === "close_agg") {
-        const avg = Number(ev.avgPnl != null ? ev.avgPnl : ev.pnl_pct);
-        const avgTxt = Number.isFinite(avg) ? avg.toFixed(1) + "%" : "—";
-        const row = document.createElement("div");
-        row.className = "radar-row is-agg";
-        row.innerHTML =
-          '<span class="t">[' +
-          fmt12h(ev.ts) +
-          "]</span>" +
-          '<span class="side">全網資產</span>' +
-          "<span>| " +
-          escapeHtml(String(ev.aggCount || 0)) +
-          " 套" +
-          stratAnchor(ev) +
-          " (" +
-          escapeHtml(String(ev.interval || "1h").toUpperCase()) +
-          ") 策略到期平倉</span>" +
-          '<span class="pnl">| 平均盈虧: ' +
-          escapeHtml(avgTxt) +
-          "</span>";
-        return row;
-      }
-      const buy = isBuy(ev);
-      const close = isClose(ev);
-      const pnl = close ? Number(ev.pnl_pct) : pnlOf(ev);
-      const pnlCls = pnl == null || !Number.isFinite(pnl) ? "" : pnl >= 0 ? " is-up" : "is-down";
-      const act = close
-        ? "平倉 " + (Number.isFinite(pnl) ? fmtPnl(pnl) : "—")
-        : (buy ? "多頭開倉" : "空頭開倉") + " @ " + fmtPx(eventPx(ev));
-      const livePnl = !close && pnl != null ? " | 當前浮盈 " + fmtPnl(pnl) : "";
-      const row = document.createElement("div");
-      row.className =
-        "radar-row " +
-        (close ? (Number(pnl) > 0 ? "is-buy" : "is-sell") : buy ? "is-buy" : "is-sell");
-      row.innerHTML =
-        '<span class="t">[' +
-        fmt12h(ev.ts) +
-        "]</span>" +
-        '<span class="side">' +
-        escapeHtml(pairLabel(ev.symbol)) +
+    summaries.forEach((sum) => {
+      const item = document.createElement("article");
+      item.className = "radar-item is-open";
+      item.setAttribute("data-radar-sym", sum.symbol);
+
+      const buyTxt = sum.buyN
+        ? '<span class="radar-pill is-buy">' +
+          escapeHtml(t("radarBuy", "買入")) +
+          " +" +
+          escapeHtml(String(sum.buyN)) +
+          "</span>"
+        : "";
+      const sellTxt = sum.sellN
+        ? '<span class="radar-pill is-sell">' +
+          escapeHtml(t("radarSell", "賣出")) +
+          " +" +
+          escapeHtml(String(sum.sellN)) +
+          "</span>"
+        : "";
+
+      const minutes = Object.keys(sum.minutes)
+        .map(Number)
+        .sort((a, b) => b - a);
+      const latestTs = minutes.length ? minutes[0] : 0;
+      const head =
+        '<div class="radar-summary">' +
+        '<span class="radar-sym">' +
+        escapeHtml(pairLabel(sum.symbol)) +
         "</span>" +
-        "<span>| " +
-        stratAnchor(ev) +
-        " (" +
-        escapeHtml(String(ev.interval || "1h").toUpperCase()) +
-        ")</span>" +
-        "<span>| " +
-        escapeHtml(act) +
+        '<span class="radar-when">' +
+        escapeHtml(latestTs ? fmtMinute(latestTs) : "—") +
         "</span>" +
-        (livePnl ? '<span class="pnl' + pnlCls + '">' + escapeHtml(livePnl) + "</span>" : "");
-      return row;
-    };
-    rows.forEach((ev) => frag.appendChild(buildRow(ev)));
-    rows.forEach((ev) => frag.appendChild(buildRow(ev)));
+        '<span class="radar-pills">' +
+        buyTxt +
+        sellTxt +
+        "</span>" +
+        "</div>";
+
+      const detailRows = minutes
+        .map((mk) => {
+          const bucket = sum.minutes[mk];
+          const bN = bucket.buys.length;
+          const sN = bucket.sells.length;
+          if (!bN && !sN) return "";
+          const buyLine = bN
+            ? '<div class="radar-side-line is-buy"><span class="radar-side-lab">' +
+              escapeHtml(t("radarBuy", "買入")) +
+              " ×" +
+              escapeHtml(String(bN)) +
+              '</span><span class="radar-chips">' +
+              radarStratChips(bucket.buys) +
+              "</span></div>"
+            : "";
+          const sellLine = sN
+            ? '<div class="radar-side-line is-sell"><span class="radar-side-lab">' +
+              escapeHtml(t("radarSell", "賣出")) +
+              " ×" +
+              escapeHtml(String(sN)) +
+              '</span><span class="radar-chips">' +
+              radarStratChips(bucket.sells) +
+              "</span></div>"
+            : "";
+          return (
+            '<li class="radar-minute">' +
+            '<span class="radar-min-t">' +
+            escapeHtml(fmtMinute(mk)) +
+            "</span>" +
+            '<div class="radar-min-body">' +
+            buyLine +
+            sellLine +
+            "</div></li>"
+          );
+        })
+        .join("");
+
+      item.innerHTML =
+        head + '<div class="radar-detail"><ul class="radar-minutes">' + detailRows + "</ul></div>";
+      frag.appendChild(item);
+    });
     list.appendChild(frag);
-    list.style.animation = rows.length > 6 ? "radarScroll 28s linear infinite" : "none";
   }
 
   async function refreshFeed() {
@@ -2355,9 +2461,18 @@
     try {
       const flat = flattenFeed(data);
       const now = Date.now() / 1000;
-      state.events = flat.filter((e) => e.ts && now - e.ts <= HOUR_S * 6);
+      const byKey = {};
+      state.events.forEach((e) => {
+        if (e && e.key && e.ts && now - e.ts <= HOUR_S * 6) byKey[e.key] = e;
+      });
+      flat.forEach((e) => {
+        if (e && e.key && e.ts && now - e.ts <= HOUR_S * 6) byKey[e.key] = e;
+      });
+      state.events = Object.keys(byKey)
+        .map((k) => byKey[k])
+        .sort((a, b) => (b.ts || 0) - (a.ts || 0));
       if (state.seenKeys == null) {
-        state.seenKeys = new Set(flat.map((e) => e.key));
+        state.seenKeys = new Set(state.events.map((e) => e.key));
         let hydrated = false;
         try {
           hydrated = Boolean(localStorage.getItem("qa_live_cum_pnl_v1"));
@@ -2365,7 +2480,7 @@
           hydrated = false;
         }
         if (!hydrated) {
-          flat.forEach((ev) => {
+          state.events.forEach((ev) => {
             if (isClose(ev)) bumpCum(ev);
           });
         }
@@ -2524,13 +2639,6 @@
         }
       };
       window.addEventListener("pageshow", handlers.pageshow);
-    }
-    if (!document.getElementById("qa-live-radar-style")) {
-      const style = document.createElement("style");
-      style.id = "qa-live-radar-style";
-      style.textContent =
-        "@keyframes radarScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}";
-      document.head.appendChild(style);
     }
     window.QALiveDemoVoice = icebreakerVoice;
     window.QALiveDispose = disposeLiveRoom;

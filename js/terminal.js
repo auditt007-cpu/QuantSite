@@ -554,17 +554,23 @@
       ? window.QAPipeline.toCard(row)
       : { id: row.id, name: row.name, ai: true, chart: row.chart, copy: row.copy, sharpe: row.sharpe, return_pct: row.return_pct, max_drawdown: row.max_drawdown, profit_factor: row.profit_factor, symbols: row.symbols, interval: row.interval || "1h", tags: ["AI"], tier: "free", engine: row.id },
   );
-  let allList = aiList.concat(freeList.concat(masterList));
+  // When plaza prerender is live, do NOT mix legacy catalog EMA/RSI ghosts into the board.
+  const plazaHeavy =
+    aiList.filter((s) => s && (s.plaza_slot || s.slot || String(s.status || "").toUpperCase() === "BACKTEST_READY")).length >=
+    15;
+  let allList = plazaHeavy ? aiList.slice() : aiList.concat(freeList.concat(masterList));
   if (!allList.length) allList = buildFallbackList();
-  (function ensureFullCatalog() {
-    const have = new Set(allList.map((s) => s.id));
-    buildFallbackList().forEach((s) => {
-      if (!have.has(s.id)) {
-        allList.push(s);
-        have.add(s.id);
-      }
-    });
-  })();
+  if (!plazaHeavy) {
+    (function ensureFullCatalog() {
+      const have = new Set(allList.map((s) => s.id));
+      buildFallbackList().forEach((s) => {
+        if (!have.has(s.id)) {
+          allList.push(s);
+          have.add(s.id);
+        }
+      });
+    })();
+  }
   if (!allList.length) {
     const gridFail = document.getElementById("gridAll");
     if (gridFail) gridFail.innerHTML = `<p class="muted">${t("mktEmpty")}</p>`;
@@ -588,11 +594,10 @@
     const d = Number(
       s && (s.period_days != null ? s.period_days : s.backtest_days != null ? s.backtest_days : s.metrics && s.metrics.period_days)
     );
-    if (d === 7 || d === 30 || d === 60) return d;
-    const id = String((s && (s.id || s.engine)) || "");
-    let h = 0;
-    for (let i = 0; i < id.length; i += 1) h = (h + id.charCodeAt(i) * (i + 1)) % 997;
-    return [7, 30, 60][h % 3];
+    if (!Number.isFinite(d) || d < 1) return 60;
+    if (d <= 10) return 7;
+    if (d <= 40) return 30;
+    return 60;
   }
 
   function cardReturn(s) {
@@ -872,38 +877,48 @@
         ? window.QAPipeline.toCard(row)
         : { id: row.id, name: row.name || row.title, ai: true, chart: row.chart || row.chart_url, copy: row.copy, sharpe: row.sharpe, return_pct: row.return_pct, max_drawdown: row.max_drawdown, profit_factor: row.profit_factor, symbols: row.symbols, interval: row.interval || "1h", tags: ["AI"], tier: "free", engine: row.id },
     );
+    const plazaHeavyNext =
+      aiNext.filter((s) => s && (s.plaza_slot || s.slot || String(s.status || "").toUpperCase() === "BACKTEST_READY"))
+        .length >= 15;
     if (rows.length) {
       remote = rows;
       ({ free: LOCAL_FREE, master: LOCAL_MASTER } = localLists());
     }
-    allList = aiNext.concat(merge("free", LOCAL_FREE).concat(merge("master", LOCAL_MASTER)));
-    (function preferPipelineById() {
-      // strategies.json plaza wipe wins over catalog EMA names / leaderboard ghosts.
-      const byId = new Map();
-      allList.forEach((s) => byId.set(s.id, s));
-      aiNext.forEach((s) => {
-        if (!s || !s.id) return;
-        byId.set(s.id, s);
-      });
-      allList = Array.from(byId.values());
-      // Keep INITIALIZING / plaza GRID rows near top.
-      allList.sort((a, b) => {
-        const ai = (x) => (String(x.status || "").toUpperCase() === "INITIALIZING" || x.ai ? 0 : 1);
-        return ai(a) - ai(b);
-      });
-    })();
-    (function ensureFullCatalog() {
-      const have = new Set(allList.map((s) => s.id));
-      buildFallbackList().forEach((s) => {
-        if (!have.has(s.id)) {
-          allList.push(s);
-          have.add(s.id);
-        }
-      });
-    })();
+    if (plazaHeavyNext) {
+      // strategies.json plaza wipe owns the board — no legacy catalog merge.
+      allList = aiNext.slice();
+    } else {
+      allList = aiNext.concat(merge("free", LOCAL_FREE).concat(merge("master", LOCAL_MASTER)));
+      (function preferPipelineById() {
+        const byId = new Map();
+        allList.forEach((s) => byId.set(s.id, s));
+        aiNext.forEach((s) => {
+          if (!s || !s.id) return;
+          byId.set(s.id, s);
+        });
+        allList = Array.from(byId.values());
+        allList.sort((a, b) => {
+          const ai = (x) => (String(x.status || "").toUpperCase() === "INITIALIZING" || x.ai ? 0 : 1);
+          return ai(a) - ai(b);
+        });
+      })();
+      (function ensureFullCatalog() {
+        const have = new Set(allList.map((s) => s.id));
+        buildFallbackList().forEach((s) => {
+          if (!have.has(s.id)) {
+            allList.push(s);
+            have.add(s.id);
+          }
+        });
+      })();
+    }
     if (window.QAPipeline && typeof window.QAPipeline.collapseCohorts === "function") {
       allList = window.QAPipeline.collapseCohorts(allList);
     }
+    // Default tab = first lane that actually has rows (avoid empty 60-only flash).
+    const laneOrder = ["d7", "d30", "d60"];
+    const firstPopulated = laneOrder.find((f) => countLane(f) > 0) || "d60";
+    if (countLane(activeFilter) === 0) activeFilter = firstPopulated;
     renderTabs();
     paintGrid();
     paintPlazaCount();

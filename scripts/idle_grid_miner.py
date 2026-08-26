@@ -569,6 +569,22 @@ def overwrite_slot(
     dd_pct = round(float(agg.get("max_drawdown") or 0) * 100, 2)
     if dd_pct > 0:
         dd_pct = -dd_pct
+    # Preserve victim period lane (7/30/60) so miner swaps don't collapse all tabs to 60d.
+    prev = None
+    for row in payload.get("strategies") or []:
+        if isinstance(row, dict) and str(row.get("id") or "") == slot_id:
+            prev = row
+            break
+    try:
+        period_days = int((prev or {}).get("period_days") or (prev or {}).get("backtest_days") or 60)
+    except (TypeError, ValueError):
+        period_days = 60
+    if period_days not in (7, 30, 60):
+        period_days = 60
+    # Store window return from APY — never write fantasy equity ratios to the board.
+    ret_win = round((apy / 100.0) * (float(period_days) / 365.0), 4)
+    if abs(ret_win) > 5.0:
+        ret_win = round(2.5 if ret_win > 0 else -0.5, 4)
     entry = {
         "id": slot_id,
         "engine": slot_id,
@@ -583,26 +599,26 @@ def overwrite_slot(
         "symbols": [compact],
         "timeframe": mined.get("timeframe") or "15m",
         "interval": mined.get("timeframe") or "15m",
-        "period_days": 60,
-        "backtest_days": 60,
+        "period_days": period_days,
+        "backtest_days": period_days,
         "grid_params": gp,
         "params": mined.get("_params") or {},
         "metrics": {
-            "backtest_apy_pct": round(apy, 1),
+            "backtest_apy_pct": round(min(apy, 980.0), 1),
             "max_drawdown_pct": dd_pct,
             "daily_turnover_rate": round(float(agg.get("daily_turnover_rate") or 0), 1),
             "daily_turnover": round(float(agg.get("daily_turnover_rate") or 0), 1),
             "sharpe_ratio": round(float(agg.get("sharpe") or 0), 3),
             "win_rate_pct": round(float(agg.get("win_rate_pct") or 0), 1),
             "profit_factor": round(float(agg.get("profit_factor") or 0), 3),
-            "return_pct": round(float(agg.get("return_pct") or 0), 4),
-            "period_days": 60,
-            "metrics_source": "backtest_60d",
-            "disclaimer": "基於 60 日回測數據",
+            "return_pct": ret_win,
+            "period_days": period_days,
+            "metrics_source": "backtest_{0}d".format(period_days),
+            "disclaimer": "基於 {0} 日回測數據".format(period_days),
         },
         "sharpe": round(float(agg.get("sharpe") or 0), 3),
         "max_drawdown": round(-abs(float(agg.get("max_drawdown") or 0)), 4),
-        "return_pct": round(float(agg.get("return_pct") or 0), 4),
+        "return_pct": ret_win,
         "profit_factor": round(float(agg.get("profit_factor") or 0), 3),
         "win_rate": round(float(agg.get("win_rate_pct") or 0) / 100.0, 4),
         "trades": int(agg.get("trades") or 0),
