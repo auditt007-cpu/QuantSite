@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-27T12:01:22.211307+00:00",
+  "updated_at": "2026-08-27T12:26:37.628159+00:00",
   "status": "BACKTEST_PRERENDER",
   "plaza_expanded": true,
   "strategies": [
@@ -1312,9 +1312,9 @@
       "slot": true,
       "status": "BACKTEST_READY",
       "strategy_type": "GRID",
-      "subtype": "PAIRS_COINT_GRID",
-      "title": "BTC·自適應協整配對網格 V2.4",
-      "name": "BTC·自適應協整配對網格 V2.4",
+      "subtype": "FIBO_DCA_GRID",
+      "title": "BTC·高頻流動性幾何DCA網格 V3.0",
+      "name": "BTC·高頻流動性幾何DCA網格 V3.0",
       "symbol": "BTC/USDT",
       "symbols": [
         "BTCUSDT"
@@ -1324,36 +1324,45 @@
       "period_days": 7,
       "backtest_days": 7,
       "grid_params": {
-        "leverage": 5,
-        "grids_count": 60,
+        "lower_price": 58806.615,
+        "upper_price": 82344.906,
+        "grids_count": 32,
         "grid_mode": "geometric",
-        "profit_per_grid_pct": 0.55
+        "leverage": 3.0,
+        "profit_per_grid_pct": 0.45,
+        "atr_multiplier": null,
+        "geo_ratio": 1.2
+      },
+      "params": {
+        "leverage": 3,
+        "profit_per_grid_pct": 0.45,
+        "geo_ratio": 1.2
       },
       "metrics": {
-        "backtest_apy_pct": 67.8,
-        "max_drawdown_pct": -1.2,
-        "win_rate_pct": 83.4,
-        "daily_turnover_rate": 38.1,
-        "daily_turnover": 38.1,
-        "sharpe_ratio": 3.83,
-        "profit_factor": 3.83,
-        "return_pct": 0.013,
+        "backtest_apy_pct": 64.0,
+        "max_drawdown_pct": -0.02,
+        "daily_turnover_rate": 3.7,
+        "daily_turnover": 3.7,
+        "sharpe_ratio": 35.083,
+        "win_rate_pct": 88.8,
+        "profit_factor": 56.762,
+        "return_pct": 0.0123,
         "period_days": 7,
         "metrics_source": "backtest_7d",
         "disclaimer": "基於 7 日回測數據"
       },
-      "sharpe": 3.83,
-      "max_drawdown": -0.012,
-      "return_pct": 0.013,
-      "profit_factor": 3.83,
-      "win_rate": 0.8340000000000001,
-      "trades": 69,
+      "sharpe": 35.083,
+      "max_drawdown": -0.0002,
+      "return_pct": 0.0123,
+      "profit_factor": 56.762,
+      "win_rate": 0.8884,
+      "trades": 168,
       "chart": "/static/charts/strat-010.svg",
       "chart_url": "/static/charts/strat-010.svg",
-      "copy": "BTC·自適應協整配對網格 V2.4 · BTCUSDT 高頻網格 · 日換手 38.1",
-      "principle": "賽馬篩選網格 · 基於 7 日回測預渲染 · Live 掃描同步中",
       "monetization": "trading_volume_rebate",
-      "cleaned_at": "2026-08-26T06:13:14Z"
+      "backtest_engine": "legacy_formula",
+      "replaced_at": "2026-08-27T12:26:37Z",
+      "copy": "BTC·高頻流動性幾何DCA網格 V3.0 · BTCUSDT 高換手網格 · 按方法歸類展示"
     },
     {
       "id": "strat-011",
