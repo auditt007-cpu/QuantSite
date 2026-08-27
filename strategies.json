@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-26T09:10:55.180536+00:00",
+  "updated_at": "2026-08-27T06:28:01.163428+00:00",
   "status": "BACKTEST_PRERENDER",
   "plaza_expanded": true,
   "strategies": [
@@ -584,9 +584,9 @@
       "slot": true,
       "status": "BACKTEST_READY",
       "strategy_type": "GRID",
-      "subtype": "BASIS_FUNDING_GRID",
-      "title": "BTC·非對稱防守基差對沖網格 V5.1",
-      "name": "BTC·非對稱防守基差對沖網格 V5.1",
+      "subtype": "BOLLINGER_SQUEEZE_GRID",
+      "title": "BTC·非對稱防守擠壓套利網格 V3.9",
+      "name": "BTC·非對稱防守擠壓套利網格 V3.9",
       "symbol": "BTC/USDT",
       "symbols": [
         "BTCUSDT"
@@ -596,36 +596,45 @@
       "period_days": 60,
       "backtest_days": 60,
       "grid_params": {
-        "leverage": 5,
-        "grids_count": 60,
-        "grid_mode": "geometric",
-        "profit_per_grid_pct": 0.55
+        "lower_price": 77728.865702,
+        "upper_price": 79361.554298,
+        "grids_count": 48,
+        "grid_mode": "arithmetic",
+        "leverage": 3.0,
+        "profit_per_grid_pct": 0.45,
+        "atr_multiplier": null,
+        "bb_period": 20,
+        "bb_k": 2.5
+      },
+      "params": {
+        "leverage": 3,
+        "profit_per_grid_pct": 0.45
       },
       "metrics": {
-        "backtest_apy_pct": 71.3,
-        "max_drawdown_pct": -1.2,
-        "win_rate_pct": 88.1,
-        "daily_turnover_rate": 37.2,
-        "daily_turnover": 37.2,
-        "sharpe_ratio": 2.97,
-        "profit_factor": 3.22,
-        "return_pct": 0.1172,
+        "backtest_apy_pct": 209.3,
+        "max_drawdown_pct": -2.14,
+        "daily_turnover_rate": 10.3,
+        "daily_turnover": 10.3,
+        "sharpe_ratio": 13.329,
+        "win_rate_pct": 93.0,
+        "profit_factor": 1.846,
+        "return_pct": 0.3441,
         "period_days": 60,
         "metrics_source": "backtest_60d",
         "disclaimer": "基於 60 日回測數據"
       },
-      "sharpe": 2.97,
-      "max_drawdown": -0.012,
-      "return_pct": 0.1172,
-      "profit_factor": 3.22,
-      "win_rate": 0.8809999999999999,
-      "trades": 1005,
+      "sharpe": 13.329,
+      "max_drawdown": -0.0214,
+      "return_pct": 0.3441,
+      "profit_factor": 1.846,
+      "win_rate": 0.93,
+      "trades": 461,
       "chart": "/static/charts/sf.svg",
       "chart_url": "/static/charts/sf.svg",
-      "copy": "BTC·非對稱防守基差對沖網格 V5.1 · BTCUSDT 高頻網格 · 日換手 37.2",
-      "principle": "賽馬篩選網格 · 基於 60 日回測預渲染 · Live 掃描同步中",
       "monetization": "trading_volume_rebate",
-      "cleaned_at": "2026-08-26T06:13:14Z"
+      "backtest_engine": "legacy_formula",
+      "replaced_at": "2026-08-27T06:28:01Z",
+      "copy": "BTC·非對稱防守擠壓套利網格 V3.9 · BTCUSDT 高換手網格 · 按方法歸類展示"
     },
     {
       "id": "qk",
