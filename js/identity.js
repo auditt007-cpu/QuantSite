@@ -77,23 +77,22 @@
     }
   }
 
-  function openAuth() {
+  function joinTgUrl() {
+    const cfg = root.QUANT_CONFIG || {};
+    const base = String(cfg.tgBotUrl || cfg.JOIN_BOT_URL || "https://t.me/grid_quant_bot").replace(/\/$/, "");
+    const start = cfg.JOIN_BOT_START;
+    return start ? base + "?start=" + encodeURIComponent(String(start)) : base;
+  }
+
+  function openJoin() {
     closeNavIfOpen();
-    if (loggedIn()) {
-      if (!/member\.html/i.test(location.pathname)) {
-        location.href = "./member.html";
-        return;
-      }
-      const dash = document.getElementById("dashPanel");
-      if (dash) dash.hidden = false;
-      return;
-    }
-    const login = document.getElementById("loginModal");
-    if (login) {
-      login.classList.add("show");
-      return;
-    }
-    location.href = "./member.html#login";
+    const url = joinTgUrl();
+    if (url && url !== "#") root.open(url, "_blank", "noopener,noreferrer");
+  }
+
+  function openAuth() {
+    /* 转化导流：不再做网页端登录，一键直达 Telegram 免费群 */
+    openJoin();
   }
 
   function bindDock(el) {
@@ -113,9 +112,9 @@
     if (!ok) {
       if (pill) pill.hidden = true;
       if (loginBtn) {
-        loginBtn.className = "auth-btn";
+        loginBtn.className = "auth-btn btn-join-tg";
         loginBtn.hidden = false;
-        loginBtn.textContent = t("loginDock");
+        loginBtn.textContent = "免费加 Telegram 信号群";
         bindDock(loginBtn);
       }
       const onb = document.getElementById("onboardBanner");
@@ -144,21 +143,10 @@
   }
 
   function paintOnboard() {
+    /* 转化导流：废弃积分新手指引，一律隐藏 */
     const box = document.getElementById("onboardBanner");
-    if (!box || !loggedIn()) {
-      if (box) box.hidden = true;
-      return;
-    }
-    box.hidden = false;
-    const n = Number(localStorage.getItem("quant_invites") || "0");
-    const left = Math.max(0, 2 - n);
-    const kind = seat();
-    const seatLabel = kind === "vip" ? t("seatVip") : kind === "pro" ? t("seatPro") : t("seatFree");
-    const hi = document.getElementById("onboardHi");
-    if (hi) hi.textContent = t("onboardHi").replace("{seat}", seatLabel);
-    const need = document.getElementById("onboardNeed");
-    if (need) need.textContent = t("onboardNeed").replace("{n}", String(left));
-    tickCountdown();
+    if (box) box.hidden = true;
+    return;
   }
 
   function tickCountdown() {
@@ -184,7 +172,7 @@
     if (had && !loggedIn()) paint();
   }, 30000);
 
-  root.QAIdentity = { paint, seat, loggedIn, persistSession, clearSession, openAuth, LOGIN_TTL_MS };
+  root.QAIdentity = { paint, seat, loggedIn, persistSession, clearSession, openAuth, openJoin, joinTgUrl, LOGIN_TTL_MS };
   root.QAAuth = root.QAIdentity;
   function pingPresence() {
     const cfg = root.QUANT_CONFIG;

@@ -13,7 +13,7 @@
   <meta name="theme-color" content="#000000">
   <!-- [REPLACE-TAG] -->
   <!-- [PLAIN-TAG] -->
-  <title>QUANT ALPHA · 策略監控面板</title>
+  <title>主力多空雷达 · 实盘作战室</title>
   <link rel="stylesheet" href="./styles.css?v=202608251308-be4a65b" />
   <link rel="stylesheet" href="./css/mobile-global.css?v=202608251308-be4a65b" />
   <link rel="stylesheet" href="./css/bloomberg-system.css?v=202608251308-be4a65b" />
@@ -32,24 +32,20 @@
       <a class="brand" href="./index.html">
         <div class="logo"></div>
         <div class="brand-text">
-          <h1>QUANT.ALPHA</h1>
+          <h1>广州表哥量化战队</h1>
           <!-- [PLAIN-TAG] -->
-          <p class="site-slogan" data-i18n="brandSub">一個沒有感情的策略機器</p>
+          <p class="site-slogan">专为小资金打造「百 U 翻倍滚仓计划」</p>
         </div>
       </a>
       <div class="nav-end">
         <div class="auth-dock" id="authDock">
-          <button type="button" class="auth-btn" id="btnAuth">[ 請先登入 ]</button>
+          <button type="button" class="auth-btn btn-join-tg" id="btnAuth">免费加 Telegram 信号群</button>
         </div>
         <button type="button" class="nav-toggle" id="navToggle" aria-label="選單" data-i18n-aria="ariaMenu">☰</button>
       </div>
       <div class="nav-actions" id="navActions">
         <a class="nav-link" href="./strategies.html" data-i18n="navTerminal">策略榜</a>
-        <a class="nav-link nav-link-bots" href="./bots.html" data-i18n="navBots">網格機器人</a>
         <a class="nav-link nav-link-live active" href="./live.html" data-i18n="navLive">直播作戰室</a>
-        <a class="nav-link" href="./member.html" data-i18n="navMember">會員中心</a>
-        <a class="nav-link" href="./affiliate.html" data-i18n="navAff">推薦計畫</a>
-        <a class="nav-link" href="./about.html" data-i18n="navAbout">[ 關於我們 ]</a>
         <div class="lang-pills" role="group" aria-label="Language">
           <button type="button" data-lang="zh-CN">简体中文</button>
           <button type="button" data-lang="zh-Hant">繁體（台灣）</button>
@@ -71,6 +67,13 @@
     </div>
   <div class="wrap wide">
 <main class="cmd-main">
+  <div class="live-signal-strip" id="liveSignalStrip" aria-label="实盘信号流">
+    <div class="live-signal-head"><span class="ls-dot"></span>实盘信号流 · 与 Telegram 群 100% 同步</div>
+    <ol class="live-signal-list" id="liveSignalList">
+      <li class="ls-idle">正在拉取实盘战报…</li>
+    </ol>
+  </div>
+
       <div class="cmd-voice-bar" id="cmdVoiceBar">
         <div class="cmd-toolbar">
           <button type="button" class="cmd-voice-btn is-on" id="liveMuteBtn" aria-pressed="true">
@@ -81,7 +84,7 @@
         </div>
       </div>
       <div class="cmd-add-panel" id="cmdAddPanel" aria-label="Restore coins"></div>
-      <p class="cmd-lead" data-i18n="liveSub">自選戰情矩陣 · 僅播報組合內真實開平倉 · 點擊卡片放大</p>
+      <p class="cmd-lead">主力多空雷达 · 实盘作战室 —— 实时清算警报与开平仓信号流，全站跟随。</p>
       <section class="coin-grid" id="coinGrid" aria-label="Watchlist sparkline matrix"></section>
       <section class="radar-board" aria-label="1-hour signal summary">
         <header class="radar-head">
@@ -98,7 +101,7 @@
 
     <footer class="site-foot">
       <div class="foot-cta">
-        <button type="button" class="foot-cta-btn" data-community-open="1" data-get-strategy data-i18n="footSubscribe">订阅节点数据流</button>
+        <button type="button" class="foot-cta-btn btn-join-tg" data-community-open="1" target="_blank" rel="noopener">立即开启 API 一键自动跟单通道 →</button>
         <!-- [PLAIN-TAG] -->
         <p class="foot-disc" data-i18n="footDisc">QuantAlpha 是獨立的策略研究和寫程序工具，不是投資建議。幣價漲跌很兇，請自己控制好倉位。</p>
       </div>
@@ -137,7 +140,7 @@
     <span class="voice-hint-dot" aria-hidden="true"></span>
     <!-- [REPLACE-TAG] -->
     <!-- [PLAIN-TAG] -->
-    <span data-i18n="voiceHint">點擊開啟仿真語音提醒（基於歷史試算信號）</span>
+    <span data-i18n="voiceHint">点击开启实盘信号语音播报</span>
   </div>
   <div class="toast" id="toast"></div>
 
@@ -156,5 +159,19 @@
   <script src="./js/live-room.js?v=202608251308-be4a65b"></script>
 <script src="/ajax-loader.js"></script>
 <script src="/js/fb-beacon.js"></script>
+<script>
+(function(){ 
+  function el(id){ return document.getElementById(id); }
+  fetch('./quant_battles.json', {cache:'no-store'})
+    .then(function(r){ if(!r.ok) throw 0; return r.json(); })
+    .then(function(d){ 
+      var list=el('liveSignalList'); if(!list || !Array.isArray(d.recent) || !d.recent.length) return;
+      list.innerHTML = d.recent.slice(0,10).map(function(t){
+        var dir = t.direction==='LONG' ? '🟢 多单' : '🔴 空单';
+        return '<li><code>'+t.id+'</code> '+(t.symbol||'')+' '+(t.timeframe||'15m')+' '+dir+' · <b>'+t.label+'</b></li>';
+      }).join('');
+    }).catch(function(){});
+})();
+</script>
 </body>
 </html>

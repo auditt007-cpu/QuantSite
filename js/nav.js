@@ -136,17 +136,11 @@
   }
 
   function ensureBotsNavLink() {
+    /* 导流漏斗：网格机器人入口已下线，不再插入导航项 */
     const nav = document.querySelector(".nav-actions");
-    if (!nav || nav.querySelector(".nav-link-bots")) return;
-    const onBots = /(^|\/)bots\.html$/.test(location.pathname);
-    const link = document.createElement("a");
-    link.className = "nav-link nav-link-bots" + (onBots ? " active" : "");
-    link.href = "./bots.html";
-    link.setAttribute("data-i18n", "navBots");
-    link.textContent = "網格機器人";
-    const term = nav.querySelector('a[href="./strategies.html"]');
-    if (term && term.parentNode) term.insertAdjacentElement("afterend", link);
-    else nav.insertBefore(link, nav.firstChild);
+    if (!nav) return;
+    const bots = nav.querySelector('a[href="./bots.html"]');
+    if (bots && bots.parentNode) bots.remove();
   }
 
   function ensureLiveNavLink() {
@@ -165,12 +159,58 @@
     else nav.insertBefore(link, nav.firstChild);
   }
 
+
+  /* 导流漏斗：导航收敛为 实盘战报/主力雷达/免费进群 */
+  function joinTgUrl() {
+    const cfg = window.QUANT_CONFIG || {};
+    const base = String(cfg.tgBotUrl || cfg.JOIN_BOT_URL || "https://t.me/grid_quant_bot").replace(/\/$/, "");
+    const start = cfg.JOIN_BOT_START;
+    return start ? base + "?start=" + encodeURIComponent(String(start)) : base;
+  }
+
+  function ensureFunnelNav() {
+    const nav = document.querySelector(".nav-actions");
+    if (!nav || nav.getAttribute("data-funnel-bound") === "1") return;
+    nav.setAttribute("data-funnel-bound", "1");
+    /* 删除会劝退散户的入口 */
+    nav.querySelectorAll('a[href*="member.html"], a[href*="affiliate.html"], a[href*="about.html"], a[href*="bots.html"]').forEach(function (el) {
+      if (el.parentNode) el.parentNode.removeChild(el);
+    });
+    /* 主战报入口统一指向首页 */
+    const report = nav.querySelector('a[href="./strategies.html"]');
+    if (report) {
+      report.setAttribute("href", "./index.html");
+      report.className = "nav-link nav-link-funnel-report";
+      report.textContent = "实盘战报";
+    } else if (!nav.querySelector('a[href="./index.html"]')) {
+      const link = document.createElement("a");
+      link.className = "nav-link nav-link-funnel-report";
+      link.href = "./index.html";
+      link.textContent = "实盘战报";
+      const first = nav.querySelector('.nav-actions > *');
+      if (first) first.insertAdjacentElement("beforebegin", link);
+      else nav.insertBefore(link, nav.firstChild);
+    }
+    /* 免费进群高亮按钮 */
+    if (!nav.querySelector(".nav-link-funnel-join")) {
+      const join = document.createElement("a");
+      join.className = "nav-link nav-link-funnel-join btn-join-tg pulse";
+      join.href = joinTgUrl();
+      join.target = "_blank";
+      join.rel = "noopener,noreferrer";
+      join.textContent = "免费进群体验";
+      const lang = nav.querySelector(".lang-pills");
+      if (lang && lang.parentNode) lang.insertAdjacentElement("beforebegin", join);
+      else nav.appendChild(join);
+    }
+  }
   ensureBloombergCss();
   ensureUtilBar();
   ensureCryptoTicker();
   ensureTickerMarquee();
   ensureBotsNavLink();
   ensureLiveNavLink();
+  ensureFunnelNav();
 
   const toggle = document.getElementById("navToggle");
   const bar = document.querySelector(".topbar");

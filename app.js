@@ -270,7 +270,9 @@ function wire() {
     lang = detectLang();
     applyI18n();
   });
-  if ($("btnDoLogin")) $("btnDoLogin").addEventListener("click", doLogin);
+  if (window.QAAuth && typeof window.QAAuth.openJoin === 'function') {
+  if ($("btnDoLogin")) $("btnDoLogin").addEventListener("click", function (e) { e.preventDefault(); window.QAAuth.openJoin(); });
+}
   document.querySelectorAll("[data-legal]").forEach((b) => {
     b.addEventListener("click", () => openLegal(b.getAttribute("data-legal")));
   });
