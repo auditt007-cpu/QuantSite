@@ -1,5 +1,12 @@
 window.QUANT_CONFIG = {
 
+  /* 品牌：广州表哥 · GZBG QUANT（实力带单） */
+  BRAND: {
+    nameZh: "广州表哥",
+    nameEn: "GZBG QUANT",
+    slogan: "实力带单 · 百 U 翻倍滚仓",
+  },
+
   apiBase: "https://quant-saas-api.quant-alpha-desk.workers.dev",
 
   hubApiBase: "https://api.quantalpha.space",

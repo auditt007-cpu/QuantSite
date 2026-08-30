@@ -219,7 +219,7 @@ const LEGAL = {
   risk: {
     title: "風險披露聲明 (Risk Disclosure)",
     // [PLAIN-TAG]
-    body: "數位資產與槓桿交易具有極高風險，可能導致本金全部損失。歷史試算績效不代表未來結果。請僅以可承受損失之資金參與研究。QUANT ALPHA TECHNOLOGIES LTD. 不對任何交易損益負責。",
+    body: "數位資產與槓桿交易具有極高風險，可能導致本金全部損失。歷史試算績效不代表未來結果。請僅以可承受損失之資金參與研究。广州表哥 TECHNOLOGIES LTD. 不對任何交易損益負責。",
   },
   tos: {
     title: "服務條款 (Terms of Service)",

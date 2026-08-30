@@ -118,8 +118,8 @@
         "</div>" +
         '<div class="bb-foot-bottom">' +
         '<div class="bb-foot-brandline">' +
-        '<span class="bb-foot-mark">QUANT.ALPHA</span>' +
-        '<span class="bb-foot-copy" data-i18n="footCopyright">© 2026 QUANT.ALPHA. All Rights Reserved.</span>' +
+        '<span class="bb-foot-mark">GZBG QUANT</span>' +
+        '<span class="bb-foot-copy" data-i18n="footCopyright">© 2026 GZBG QUANT. All Rights Reserved.</span>' +
         "</div>" +
         "</div>" +
         "</div>";

@@ -628,7 +628,7 @@
       }
       a.onended = finish;
       a.onerror = finish;
-      touchMediaSession("QUANT ALPHA · Promo");
+      touchMediaSession("广州表哥 · Promo");
       const poll = setInterval(() => {
         if (gen != null && gen !== state.speakGen) {
           try {

@@ -1,7 +1,7 @@
 window.I18N = {
   "zh-Hant": {
     // [PLAIN-TAG]
-    title: "QUANT ALPHA · 開源策略研究站",
+    title: "广州表哥 · 開源策略研究站",
     // [PLAIN-TAG]
     brandSub: "用數學和代碼，幫獨立交易者做歷史試算和盯盤",
     bbUtilNode: "節點就緒 · 24ms",
@@ -151,7 +151,7 @@ window.I18N = {
     navAff: "推薦計畫",
     navLive: "直播作戰室",
     navBots: "網格機器人",
-    titleBots: "QUANT ALPHA · 網格機器人",
+    titleBots: "广州表哥 · 網格機器人",
     botKicker: "GRID TRADING BOTS",
     botTitle: "網格機器人",
     // [REPLACE-TAG]
@@ -224,7 +224,7 @@ window.I18N = {
     // [REPLACE-TAG]
     botModalTitle: "雲端仿真託管",
     // [REPLACE-TAG]
-    botModalCopy: "QuantAlpha 雲端節點將按您自訂的參數進行仿真執行（基於歷史數據回放，不保證實時市場表現）。",
+    botModalCopy: "广州表哥 雲端節點將按您自訂的參數進行仿真執行（基於歷史數據回放，不保證實時市場表現）。",
     // [REPLACE-TAG]
     botStep1: "使用推薦碼註冊模擬交易環境（可獲研究積分）",
     botStep2: "填寫交易所 UID 與唯讀／交易 API Key（嚴禁勾選提領權限）",
@@ -263,7 +263,7 @@ window.I18N = {
     botAiLimitFreeMsg: "已登入用戶每天可 AI 調參 10 次。開通會員後不限次數。普通歷史試算仍可隨意使用。",
     botAiLimitLogin: "去登入",
     botAiLimitPay: "開通會員",
-    titleLive: "QUANT ALPHA · 實時作戰室",
+    titleLive: "广州表哥 · 實時作戰室",
     liveKicker: "LIVE WAR ROOM",
     // [PLAIN-TAG]
     liveTitle: "直播看盤室",
@@ -722,7 +722,7 @@ window.I18N = {
     backList: "＜ 返回策略列表",
     aiGmBadge: "AI 深度驗算",
     // [PLAIN-TAG]
-    aiBtTicker: "QUANT ALPHA · AI 深度歷史試算",
+    aiBtTicker: "广州表哥 · AI 深度歷史試算",
     aiLimitTitle: "額度已用盡",
     aiLimitGuestTitle: "請先登入",
     // [PLAIN-TAG]
@@ -736,7 +736,7 @@ window.I18N = {
     aiLimitVipCta: "返回會員中心",
     aiNetErr: "網路連線不穩，請稍後再試。",
     goMember: "前往會員中心",
-    titleTerminal: "QUANT ALPHA · 策略榜",
+    titleTerminal: "广州表哥 · 策略榜",
     backHome: "＜ 返回首頁",
     // [PLAIN-TAG]
     btLoading: "正在載入 K 線與歷史試算引擎…",
@@ -746,7 +746,7 @@ window.I18N = {
     sheetHint: "輕觸背景或 ✕ 關閉，繼續查看 K 線",
     sheetDone: "收起戰績，返回 K 線",
     // [PLAIN-TAG]
-    titleAiBt: "QUANT ALPHA · AI 深度歷史試算",
+    titleAiBt: "广州表哥 · AI 深度歷史試算",
     holdHint: "範圍 1–30 天，預設 4 天",
     // [PLAIN-TAG]
     runningDeep: "深度歷史試算進行中…",
@@ -770,7 +770,7 @@ window.I18N = {
     trustStressBody: "全站策略均經過歷史極端行情壓力測試（歷史試算樣本），內建模擬風控機制。",
     footSubscribe: "免費看策略信號",
     // [PLAIN-TAG]
-    footDisc: "QuantAlpha 是獨立的策略研究和寫程序工具，不是投資建議。幣價漲跌很兇，請自己控制好倉位。",
+    footDisc: "广州表哥 是獨立的策略研究和寫程序工具，不是投資建議。幣價漲跌很兇，請自己控制好倉位。",
     footPaper: "[ 策略演算法白皮書 ]",
     footPaperClean: "策略演算法白皮書",
     footTg: "[ 免費看策略信號 ]",
@@ -782,16 +782,16 @@ window.I18N = {
     footColResearch: "研究",
     footColCommunity: "社群",
     footColLegal: "法律",
-    footCopyright: "© 2026 QUANT.ALPHA. All Rights Reserved.",
+    footCopyright: "© 2026 GZBG QUANT. All Rights Reserved.",
     footAbout: "關於我們",
-    titleAbout: "QUANT ALPHA · 關於我們",
+    titleAbout: "广州表哥 · 關於我們",
     aboutKicker: "MANIFESTO",
     // [PLAIN-TAG]
     aboutBrandSub: "用數學和代碼，幫你自己研究策略、自己盯盤",
     aboutHero: "少靠衝動下單，多用規則和數據說話",
     // [REPLACE-TAG]
     // [PLAIN-TAG]
-    aboutLead: "QuantAlpha 實驗室想把「多種指標一起算」的策略工具和歷史試算，交給每一位自己研究的人。",
+    aboutLead: "广州表哥 實驗室想把「多種指標一起算」的策略工具和歷史試算，交給每一位自己研究的人。",
     aboutTrust1: "極端行情壓力測試策略",
     // [REPLACE-TAG]
     aboutTrust2: "策略外傳延遲（100 pts 瀏覽器本地端執行）",
@@ -811,10 +811,10 @@ window.I18N = {
     aboutP3Title: "先活下來，再談賺錢",
     // [REPLACE-TAG]
     aboutP3Body: "虧太多要會自動停、買多少會自動調。我們用過去最慘的行情試過，但不保證以後不虧、更不保證一定賺。",
-    aboutLabHead: "[ 關於 QUANTALPHA 實驗室 ]",
+    aboutLabHead: "[ 關於 广州表哥 實驗室 ]",
     // [REPLACE-TAG]
     // [PLAIN-TAG]
-    aboutLabBody: "QuantAlpha 由一群寫程序、做安全、做交易系統的人於 2026 年一起發起。我們想把策略怎麼算、怎麼試，講清楚、代碼能看，方便你自己研究。",
+    aboutLabBody: "广州表哥 由一群寫程序、做安全、做交易系統的人於 2026 年一起發起。我們想把策略怎麼算、怎麼試，講清楚、代碼能看，方便你自己研究。",
     aboutTechHead: "技術透明度",
     // [PLAIN-TAG]
     aboutTechBody: "行情直連 Binance 官方公開 API。歷史試算核心採用開源 Grademark 引擎，於瀏覽器本地執行。歷史績效不代表未來收益。虛擬資產波動劇烈，請嚴格做好倉位風險控制。本站內容不構成投資建議。",
@@ -827,7 +827,7 @@ window.I18N = {
   },
   "zh-CN": {
     // [PLAIN-TAG]
-    title: "QUANT ALPHA · 开源策略研究站",
+    title: "广州表哥 · 开源策略研究站",
     // [PLAIN-TAG]
     brandSub: "用数学和代码，帮独立交易者做历史试算和盯盘",
     bbUtilNode: "节点就绪 · 24ms",
@@ -976,7 +976,7 @@ window.I18N = {
     navAff: "推荐计划",
     navLive: "直播作战室",
     navBots: "网格机器人",
-    titleBots: "QUANT ALPHA · 网格机器人",
+    titleBots: "广州表哥 · 网格机器人",
     botKicker: "GRID TRADING BOTS",
     botTitle: "网格机器人",
     // [REPLACE-TAG]
@@ -1049,7 +1049,7 @@ window.I18N = {
     // [REPLACE-TAG]
     botModalTitle: "云端仿真托管",
     // [REPLACE-TAG]
-    botModalCopy: "QuantAlpha 云端节点将按您自订的参数进行仿真执行（基于历史数据回放）。",
+    botModalCopy: "广州表哥 云端节点将按您自订的参数进行仿真执行（基于历史数据回放）。",
     // [REPLACE-TAG]
     botStep1: "使用推荐码注册模拟交易环境（可获研究积分）",
     botStep2: "填写交易所 UID 与只读/交易 API Key（严禁勾选提现权限）",
@@ -1088,7 +1088,7 @@ window.I18N = {
     botAiLimitFreeMsg: "已登录用户每天可 AI 调参 10 次。开通会员后不限次数。普通历史试算仍可随意使用。",
     botAiLimitLogin: "去登录",
     botAiLimitPay: "开通会员",
-    titleLive: "QUANT ALPHA · 实时作战室",
+    titleLive: "广州表哥 · 实时作战室",
     liveKicker: "LIVE WAR ROOM",
     // [PLAIN-TAG]
     liveTitle: "直播看盘室",
@@ -1557,7 +1557,7 @@ window.I18N = {
     sheetDone: "收起战绩，返回 K 线",
     aiGmBadge: "AI 深度验算",
     // [PLAIN-TAG]
-    aiBtTicker: "QUANT ALPHA · AI 深度历史试算",
+    aiBtTicker: "广州表哥 · AI 深度历史试算",
     aiLimitTitle: "额度已用尽",
     aiLimitGuestTitle: "请先登录",
     // [PLAIN-TAG]
@@ -1571,9 +1571,9 @@ window.I18N = {
     aiLimitVipCta: "返回会员中心",
     aiNetErr: "网络连接不稳定，请稍后再试。",
     goMember: "前往会员中心",
-    titleTerminal: "QUANT ALPHA · 策略榜",
+    titleTerminal: "广州表哥 · 策略榜",
     // [PLAIN-TAG]
-    titleAiBt: "QUANT ALPHA · AI 深度历史试算",
+    titleAiBt: "广州表哥 · AI 深度历史试算",
     holdHint: "范围 1–30 天，默认 4 天",
     // [PLAIN-TAG]
     runningDeep: "深度历史试算进行中…",
@@ -1597,7 +1597,7 @@ window.I18N = {
     trustStressBody: "全站策略均经过历史极端行情压力测试（历史试算样本），内置模拟风控机制。",
     footSubscribe: "免费看策略信号",
     // [PLAIN-TAG]
-    footDisc: "QuantAlpha 是独立的策略研究和写程序工具，不是投资建议。币价涨跌很凶，请自己控制好仓位。",
+    footDisc: "广州表哥 是独立的策略研究和写程序工具，不是投资建议。币价涨跌很凶，请自己控制好仓位。",
     footPaper: "[ 策略算法白皮书 ]",
     footPaperClean: "策略算法白皮书",
     footTg: "[ 免费看策略信号 ]",
@@ -1609,16 +1609,16 @@ window.I18N = {
     footColResearch: "研究",
     footColCommunity: "社群",
     footColLegal: "法律",
-    footCopyright: "© 2026 QUANT.ALPHA. All Rights Reserved.",
+    footCopyright: "© 2026 GZBG QUANT. All Rights Reserved.",
     footAbout: "关于我们",
-    titleAbout: "QUANT ALPHA · 关于我们",
+    titleAbout: "广州表哥 · 关于我们",
     aboutKicker: "MANIFESTO",
     // [PLAIN-TAG]
     aboutBrandSub: "用数学和代码，帮你自己研究策略、自己盯盘",
     aboutHero: "少靠冲动下单，多用规则和数据说话",
     // [REPLACE-TAG]
     // [PLAIN-TAG]
-    aboutLead: "QuantAlpha 实验室想把「多种指标一起算」的策略工具和历史试算，交给每一位自己研究的人。",
+    aboutLead: "广州表哥 实验室想把「多种指标一起算」的策略工具和历史试算，交给每一位自己研究的人。",
     aboutTrust1: "极端行情压力测试策略",
     // [REPLACE-TAG]
     aboutTrust2: "策略外传延迟（100 pts 浏览器本地端执行）",
@@ -1638,10 +1638,10 @@ window.I18N = {
     aboutP3Title: "先活下来，再谈赚钱",
     // [REPLACE-TAG]
     aboutP3Body: "亏太多要会自动停、买多少会自动调。我们用过去最惨的行情试过，但不保证以后不亏、更不保证一定赚。",
-    aboutLabHead: "[ 关于 QUANTALPHA 实验室 ]",
+    aboutLabHead: "[ 关于 广州表哥 实验室 ]",
     // [REPLACE-TAG]
     // [PLAIN-TAG]
-    aboutLabBody: "QuantAlpha 由一群写程序、做安全、做交易系统的人于 2026 年一起发起。我们想把策略怎么算、怎么试，讲清楚、代码能看，方便你自己研究。",
+    aboutLabBody: "广州表哥 由一群写程序、做安全、做交易系统的人于 2026 年一起发起。我们想把策略怎么算、怎么试，讲清楚、代码能看，方便你自己研究。",
     aboutTechHead: "技术透明度",
     // [REPLACE-TAG]
     aboutTechBody: "行情直连公开API（仅用于历史数据获取）。",
@@ -1653,7 +1653,7 @@ window.I18N = {
     aboutCtaOpen: "[ 查看 Grademark / Pine 开源核心仓库 ]"
   },
   "en": {
-    title: "QUANT ALPHA · Open Strategy Research",
+    title: "广州表哥 · Open Strategy Research",
     brandSub: "Math & code helping independent traders backtest and monitor",
     heroH1: "Open-source tools to see if strategies work",
     mktWr: "Historical Win Rate",

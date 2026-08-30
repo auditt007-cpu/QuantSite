@@ -1,22 +1,22 @@
 :root {
   /* bloomberg.com Design System tokens (light editorial finance) */
-  --bg-main: #ffffff;
-  --bg-surface: #f7f7f7;
-  --bg-pill: #000000;
-  --border-line: #e0e0e0;
-  --border-subtle: #f2f2f2;
+  --bg-main: #0a0e14;
+  --bg-surface: #11161f;
+  --bg-pill: #05070b;
+  --border-line: #1f2733;
+  --border-subtle: #161d28;
 
   /* 文字系统 */
-  --text-main: #000000;
-  --text-muted: #6b6b6b;
-  --text-body: #333333;
-  --text-inverse: #ffffff;
+  --text-main: #e6edf3;
+  --text-muted: #8b9bb4;
+  --text-body: #c0ccda;
+  --text-inverse: #0a0e14;
 
   /* 金融信号色 */
-  --color-up: #338736;
-  --color-down: #e51503;
-  --color-tag: #fb8b1e;
-  --color-accent: #fb8b1e;
+  --color-up: #00e676;
+  --color-down: #ff3b5c;
+  --color-tag: #f5c84c;
+  --color-accent: #00e676;
 
   /* 兼容旧变量名 */
   --bg: var(--bg-main);
@@ -30,7 +30,7 @@
   --text: var(--text-main);
   --muted: var(--text-muted);
   --radius: 4px;
-  --font: "Helvetica Neue", Arial, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font: "Inter", "Helvetica Neue", Arial, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
   --mono: "BWHaasMono", "JetBrains Mono", "Roboto Mono", "SF Mono", Consolas, monospace;
 
   /* Global stacking: cards < sticky/ticker/nav < modal */
@@ -76,7 +76,7 @@ html, body {
   min-height: 100dvh;
   background-color: var(--bg-main);
   color: var(--text-main);
-  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
   width: 100%;
@@ -331,7 +331,7 @@ button:active, .action-btn:active, .btn:active, .btn-cta:active, .ai-chip:active
 .pine-pre {
   margin-top: 10px; max-height: 280px; overflow: auto; white-space: pre;
   color: var(--text-main); font-size: 12px; line-height: 1.55;
-  font-family: ui-monospace, "SF Mono", Consolas, monospace;
+  font-family: "JetBrains Mono", ui-monospace, "SF Mono", Consolas, monospace;
 }
 .market-grid {
   display: grid;
@@ -1620,7 +1620,7 @@ input.is-focused, textarea.is-focused, select.is-focused {
   max-height: 320px;
   background: #ffffff;
   color: #000000;
-  font-family: ui-monospace, "SF Mono", Consolas, monospace;
+  font-family: "JetBrains Mono", ui-monospace, "SF Mono", Consolas, monospace;
 }
 .exec-grid {
   display: grid;

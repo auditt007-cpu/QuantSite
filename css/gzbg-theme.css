@@ -1,0 +1,213 @@
+/* ============================================================
+   gzbg-theme.css · 广州表哥 GZBG QUANT 暗黑量化终端主题
+   深色覆盖 + 7 大模块组件（bz- 前缀）+ 移动端优先栅格
+   ============================================================ */
+
+/* ---------- 深色主题覆盖（兜底硬编码浅色） ---------- */
+html { color-scheme: dark !important; }
+html, body, .wrap { background-color: var(--bg-main); color: var(--text-main); }
+body { background: var(--bg-main) !important; }
+
+/* 通用深色组件覆盖 */
+input, select, textarea {
+  background: var(--bg-surface); color: var(--text-main);
+  border-color: var(--border-line);
+}
+.modal, .modal-bg .modal {
+  background: var(--bg-surface); border: 1px solid var(--border-line);
+}
+.modal .modal-x { color: var(--text-muted); }
+.btn, .btn-cta, .btn-tg, .btn-ghost, .btn-cancel {
+  background: var(--bg-surface); color: var(--text-main);
+  border: 1px solid var(--border-line);
+}
+table { color: var(--text-main); }
+thead th { color: var(--text-muted); border-color: var(--border-line); }
+tr { border-color: var(--border-line); }
+td { border-color: var(--border-line); }
+
+/* 主页战报/榜单表格深色化 */
+.hb-card, .battle-table-wrap {
+  background: var(--bg-surface); border: 1px solid var(--border-line);
+}
+.hb-table tbody tr:hover { background: #151b26; }
+.hb-table td, .hb-table th { color: var(--text-main); }
+
+/* 首屏与实验室深色化 */
+.hero, .lab-paper { color: var(--text-main); }
+.kpi { color: var(--text-main); }
+.kpi span, .kpi-sub, .muted, .hb-foot-note { color: var(--text-muted); }
+
+/* ---------- 设计令牌 ---------- */
+:root {
+  /* 覆盖 bloomberg-system.css 动态注入的浅色 --bb-* 令牌 */
+  --bb-bg: #0a0e14;
+  --bb-cell: #11161f;
+  --bb-ink: #e6edf3;
+  --bb-muted: #8b9bb4;
+  --bb-meta: #8b9bb4;
+  --bb-body: #c0ccda;
+  --bb-line: #1f2733;
+  --bb-grid: #161d28;
+  --bb-font: var(--font);
+  --bb-accent: #00e676;
+
+  --bz-green: #00e676;      /* 霓虹绿（涨/主力流入/置信） */
+  --bz-red: #ff3b5c;        /* 霓虹红（跌/主力流出） */
+  --bz-gold: #f5c84c;       /* 金（VIP/补贴/达成） */
+  --bz-blue: #8b9bb4;       /* 科技蓝灰（辅助文本） */
+  --bz-bg: #0a0e14;         /* 页底 */
+  --bz-panel: #11161f;      /* 面板 */
+  --bz-panel2: #151b26;     /* 悬浮/行高亮 */
+  --bz-line: #1f2733;       /* 描边 */
+  --bz-font: "Inter", "Helvetica Neue", Arial, "Noto Sans SC", "PingFang SC", sans-serif;
+  --bz-mono: "JetBrains Mono", "SF Mono", Consolas, monospace;
+}
+
+/* ---------- 模块区块 ---------- */
+.bz-section { margin: 28px 0 6px; }
+.bz-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.bz-kicker {
+  font-family: var(--bz-mono); font-size: 11px; font-weight: 700;
+  letter-spacing: .18em; color: var(--bz-green); text-transform: uppercase;
+}
+.bz-title { font-family: var(--bz-font); font-size: clamp(17px, 1.4vw + 12px, 22px); font-weight: 700; color: var(--text-main); }
+.bz-sub { font-size: 12px; color: var(--bz-blue); }
+.bz-state-dot {
+  display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--bz-green); margin-left: 6px; vertical-align: 1px;
+  box-shadow: 0 0 6px var(--bz-green); animation: bzPulse 1.6s ease-in-out infinite;
+}
+@keyframes bzPulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+
+/* ---------- 7 模块导航卡网格（移动端 1 列 → 平板 2 列 → 桌面 3 列） ---------- */
+.bz-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+@media (min-width: 768px) { .bz-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; } }
+@media (min-width: 1024px) { .bz-grid { grid-template-columns: repeat(3, 1fr); gap: 14px; } }
+
+.bz-card {
+  position: relative; display: flex; flex-direction: column; gap: 8px;
+  background: var(--bz-panel); border: 1px solid var(--bz-line); border-radius: 10px;
+  padding: 14px 16px; transition: border-color .18s, transform .18s;
+}
+.bz-card:hover { border-color: var(--bz-green); transform: translateY(-1px); }
+.bz-no {
+  position: absolute; top: 12px; right: 14px;
+  font-family: var(--bz-mono); font-size: 11px; font-weight: 600; letter-spacing: .08em;
+  color: var(--bz-blue); opacity: .55;
+}
+.bz-card h3 { font-size: 15px; font-weight: 700; color: var(--text-main); margin: 0; padding-right: 44px; }
+.bz-card p { font-size: 12.5px; line-height: 1.6; color: var(--bz-blue); margin: 0; }
+.bz-meta { margin-top: auto; display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--bz-blue); }
+.bz-locked { color: var(--bz-gold); font-weight: 700; letter-spacing: .02em; }
+.bz-live-tag {
+  font-size: 10px; font-weight: 700; letter-spacing: .1em; padding: 2px 7px; border-radius: 3px;
+  background: rgba(0,230,118,.12); color: var(--bz-green); border: 1px solid rgba(0,230,118,.35);
+}
+.bz-soon-tag {
+  font-size: 10px; font-weight: 700; letter-spacing: .1em; padding: 2px 7px; border-radius: 3px;
+  background: rgba(139,155,180,.1); color: var(--bz-blue); border: 1px solid var(--bz-line);
+}
+.bz-cta {
+  font-size: 12px; font-weight: 600; color: var(--bz-green);
+  text-decoration: none; letter-spacing: .02em;
+}
+.bz-cta:hover { text-decoration: underline; }
+
+/* ---------- 首屏双卡（百U计划 + TP3追踪） ---------- */
+.bz-twin { display: grid; grid-template-columns: 1fr; gap: 12px; }
+@media (min-width: 900px) { .bz-twin { grid-template-columns: 1fr 1fr; gap: 14px; } }
+
+/* TP3 进度条 */
+.bz-tp { margin: 10px 0 2px; }
+.bz-tp-row { margin: 10px 0; }
+.bz-tp-top { display: flex; justify-content: space-between; align-items: baseline; font-size: 11.5px; }
+.bz-tp-sym { font-weight: 700; color: var(--text-main); font-family: var(--bz-mono); }
+.bz-tp-hit { color: var(--bz-gold); font-weight: 700; }
+.bz-tp-track {
+  position: relative; height: 6px; border-radius: 3px; margin-top: 6px;
+  background: #1a2230;
+}
+.bz-tp-fill {
+  position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px;
+  background: linear-gradient(90deg, var(--bz-green), #4ee8a0);
+  transition: width .6s ease;
+}
+.bz-tp-mark {
+  position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--bz-gold); opacity: .8;
+}
+.bz-tp-tag {
+  position: absolute; top: -16px; transform: translateX(-50%);
+  font-family: var(--bz-mono); font-size: 9px; color: var(--bz-gold);
+}
+
+/* 百U 路线图步骤 */
+.bz-steps { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 4px; }
+.bz-step { display: flex; gap: 10px; align-items: flex-start; }
+.bz-step-i {
+  flex: 0 0 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--bz-mono); font-size: 11px; font-weight: 700;
+  color: var(--bz-green); border: 1px solid var(--bz-green);
+  background: rgba(0,230,118,.08);
+}
+.bz-step.done .bz-step-i { background: var(--bz-green); color: #06281a; }
+.bz-step-body { font-size: 12.5px; color: var(--bz-blue); line-height: 1.5; }
+.bz-step-body b { color: var(--text-main); font-weight: 600; }
+
+/* ---------- 核心交互区：山寨专线卡流（移动端横向滑动） ---------- */
+.bz-carousel {
+  display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px 12px;
+  scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+}
+.bz-carousel::-webkit-scrollbar { height: 4px; }
+.bz-carousel::-webkit-scrollbar-thumb { background: var(--bz-line); border-radius: 2px; }
+.bz-signal {
+  flex: 0 0 78%; scroll-snap-align: start;
+  background: var(--bz-panel); border: 1px solid var(--bz-line); border-radius: 10px;
+  padding: 12px 14px; min-height: 128px;
+}
+@media (min-width: 768px) { .bz-signal { flex-basis: 46%; } }
+@media (min-width: 1024px) { .bz-signal { flex-basis: 30%; } }
+.bz-sig-top { display: flex; justify-content: space-between; align-items: center; }
+.bz-sym { font-family: var(--bz-mono); font-weight: 700; font-size: 14px; color: var(--text-main); }
+.bz-dir { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 3px; letter-spacing: .06em; }
+.bz-dir-long { color: var(--bz-green); background: rgba(0,230,118,.12); }
+.bz-dir-short { color: var(--bz-red); background: rgba(255,59,92,.12); }
+.bz-px { font-family: var(--bz-mono); font-size: 17px; font-weight: 700; margin: 6px 0 2px; }
+.bz-chg-up { color: var(--bz-green); } .bz-chg-down { color: var(--bz-red); }
+.bz-conf { margin-top: 8px; }
+.bz-conf-top { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--bz-blue); }
+.bz-conf-track { height: 4px; border-radius: 2px; background: #1a2230; margin-top: 4px; }
+.bz-conf-fill { height: 100%; border-radius: 2px; background: var(--bz-green); }
+.bz-vip-mask {
+  font-family: var(--bz-mono); font-size: 11px; color: var(--bz-gold);
+  letter-spacing: .14em;
+}
+
+/* ---------- 主力异动雷达：热力面板 ---------- */
+.bz-heat { background: var(--bz-panel); border: 1px solid var(--bz-line); border-radius: 10px; padding: 12px 14px; }
+.bz-heat-row {
+  display: grid; grid-template-columns: 84px 1fr 88px 60px;
+  gap: 8px; align-items: center; padding: 7px 0; border-bottom: 1px dashed var(--bz-line);
+  font-family: var(--bz-mono); font-size: 12px;
+}
+.bz-heat-row:last-child { border-bottom: 0; }
+.bz-heat-sym { font-weight: 700; color: var(--text-main); }
+.bz-heat-bar { height: 6px; border-radius: 3px; background: #1a2230; overflow: hidden; }
+.bz-heat-in { background: linear-gradient(90deg, #00a95c, var(--bz-green)); }
+.bz-heat-out { background: linear-gradient(90deg, #c22445, var(--bz-red)); }
+.bz-heat-amt { text-align: right; color: var(--bz-blue); }
+.bz-heat-side { text-align: center; font-size: 10px; font-weight: 700; }
+.bz-side-in { color: var(--bz-green); } .bz-side-out { color: var(--bz-red); }
+
+/* 降级提示 */
+.bz-empty { padding: 26px 14px; text-align: center; color: var(--bz-blue); font-size: 12.5px; }
+.bz-empty b { color: var(--text-main); }
+
+/* 移动端：区块间距收紧，避免翻页地狱 */
+@media (max-width: 767px) {
+  .bz-section { margin: 20px 0 4px; }
+  .bz-card { padding: 12px 14px; }
+  .bz-head { margin-bottom: 10px; }
+}

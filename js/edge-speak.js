@@ -62,8 +62,8 @@
     try {
       if (!("mediaSession" in root.navigator)) return;
       root.navigator.mediaSession.metadata = new root.MediaMetadata({
-        title: title || "QUANT ALPHA Live",
-        artist: "QUANT.ALPHA",
+        title: title || "广州表哥 Live",
+        artist: "GZBG QUANT",
         album: "Live War Room",
       });
       root.navigator.mediaSession.playbackState = "playing";
@@ -204,7 +204,7 @@
     const token = ++playToken;
     if (typeof isAlive === "function" && !isAlive(gen)) return false;
 
-    touchMediaSession("QUANT ALPHA · Live Voice");
+    touchMediaSession("广州表哥 · Live Voice");
     a.volume = 1;
     a.src = url;
 

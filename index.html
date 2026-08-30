@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#000000">
-  <title>QUANT ALPHA</title>
+  <title>广州表哥</title>
   <link rel="stylesheet" href="./styles.css?v=202608251308-be4a65b" />
   <link rel="stylesheet" href="./css/mobile-global.css?v=202608251308-be4a65b" />
   <link rel="stylesheet" href="./css/home-boards.css?v=202608251308-be4a65b" />
@@ -21,7 +21,8 @@
   <link rel="stylesheet" href="./css/bloomberg-dark.css?v=202608251308-be4a65b" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/gzbg-theme.css?v=20260830-gzbg" />
   <link rel="stylesheet" href="./css/chrome-lock.css?v=202608251308-be4a65b" />
 </head>
 <body class="editorial-light home-boards">
@@ -100,34 +101,94 @@
       <p class="muted kpi-note" data-i18n="kpiNote">這些數字來自歷史樣本，不代表以後還能賺這麼多</p>
     </section>
 
-    <section class="battle-modules" aria-label="实战模块">
-  <div class="battle-cards">
-    <article class="battle-card">
-      <div class="bc-badge fire">🔥</div>
-      <h3 class="bc-title">50x 山寨币极速翻倍专线</h3>
-      <p class="bc-kpi">近7日胜率 <b>91.2%</b></p>
-      <p class="bc-desc">捕捉山寨脉冲，单笔博取 300% 利润。</p>
-      <p class="bc-tag">模块1 · 山寨币 50x 翻倍</p>
-      <a class="bc-cta" href="#" data-community-open="1" target="_blank" rel="noopener">解锁实时跟单点位 →</a>
-    </article>
-    <article class="battle-card">
-      <div class="bc-badge shield">🛡</div>
-      <h3 class="bc-title">三阶止盈 · 0 风险移动保本策略</h3>
-      <p class="bc-kpi">先胜而后求战</p>
-      <p class="bc-desc">TP1 达成后自动高位移保本，告别被套与爆仓。</p>
-      <p class="bc-tag">模块2 · 三阶止盈保本</p>
-      <a class="bc-cta" href="#" data-community-open="1" target="_blank" rel="noopener">解锁实时跟单点位 →</a>
-    </article>
-    <article class="battle-card">
-      <div class="bc-badge radar">⚡</div>
-      <h3 class="bc-title">全网主力清算与防插针雷达</h3>
-      <p class="bc-kpi">实时多空挂单靶子</p>
-      <p class="bc-desc">主力清算与异动预警实时播报，先手避开插针陷阱。</p>
-      <p class="bc-tag">模块3 · 防插针 + 主力清算</p>
-      <a class="bc-cta" href="#" data-community-open="1" target="_blank" rel="noopener">解锁实时跟单点位 →</a>
-    </article>
-  </div>
-</section>
+        <section class="bz-section" id="bzTp3" aria-label="首屏战报双卡">
+      <div class="bz-twin">
+        <article class="bz-card" id="smallFundCard">
+          <span class="bz-no">06</span>
+          <h3>百 U 翻仓计划 <span class="bz-live-tag">实盘进行中</span></h3>
+          <p>小资金复利成长路线图 · 严格单笔风控纪律 · 百 U 起步可复制</p>
+          <div class="bz-steps" id="sfSteps"></div>
+          <p class="bz-meta">当前 <b class="bz-locked" id="sfMult">—</b> · 胜率 <b class="bz-locked" id="sfWin">—</b> · 已运行 <b class="bz-locked" id="sfDays">—</b></p>
+        </article>
+        <article class="bz-card" id="tp3Card">
+          <span class="bz-no">02</span>
+          <h3>TP3 极值追踪 <span class="bz-live-tag">波段战报</span></h3>
+          <p>大盘与主流币长波段目标 · TP1/TP2/TP3 实时进度与命中状态</p>
+          <div id="tp3List" class="bz-tp"></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="bz-section" aria-label="七大核心模块">
+      <div class="bz-head">
+        <span class="bz-kicker">GZBG Modules 01–07</span>
+        <h2 class="bz-title">七大核心模块 <i class="bz-state-dot"></i></h2>
+        <span class="bz-sub">展示类模块实时数据驱动 · 工具类模块二期上线</span>
+      </div>
+      <div class="bz-grid">
+        <a class="bz-card" href="#bzAlt" style="text-decoration:none">
+          <span class="bz-no">01</span>
+          <h3>山寨爆点专线 <span class="bz-live-tag">LIVE</span></h3>
+          <p>高波动山寨标的卡流 · 实时动量与突破预警，公开前 2 个，其余 VIP 锁定。</p>
+          <span class="bz-cta">进入实时专线 →</span>
+        </a>
+        <a class="bz-card" href="#bzTp3" style="text-decoration:none">
+          <span class="bz-no">02</span>
+          <h3>TP3 极值追踪 <span class="bz-live-tag">LIVE</span></h3>
+          <p>大盘与主流币长波段目标进度条 · TP1/TP2/TP3 距离与命中率可视化。</p>
+          <span class="bz-cta">查看波段战报 →</span>
+        </a>
+        <a class="bz-card" href="#bzWhale" style="text-decoration:none">
+          <span class="bz-no">03</span>
+          <h3>主力异动雷达 <span class="bz-live-tag">LIVE</span></h3>
+          <p>大单流入/流出热力图 · 资金费率异常监控面板，先手避开插针陷阱。</p>
+          <span class="bz-cta">打开雷达面板 →</span>
+        </a>
+        <div class="bz-card">
+          <span class="bz-no">04</span>
+          <h3>极简 API 跟单 <span class="bz-soon-tag">二期</span></h3>
+          <p>主流交易所 API 一键绑定 · 风险偏好滑块 · 个人持仓盈亏实时对账。</p>
+          <span class="bz-meta"><span class="bz-locked">🔒</span> 敬请期待</span>
+        </div>
+        <div class="bz-card">
+          <span class="bz-no">05</span>
+          <h3>回本解套助手 <span class="bz-soon-tag">二期</span></h3>
+          <p>被套仓位摊薄与对冲点位计算器 · 关键解套点位异动提醒订阅。</p>
+          <span class="bz-meta"><span class="bz-locked">🔒</span> 敬请期待</span>
+        </div>
+        <a class="bz-card" href="#smallFundCard" style="text-decoration:none">
+          <span class="bz-no">06</span>
+          <h3>百 U 翻仓计划 <span class="bz-live-tag">LIVE</span></h3>
+          <p>小资金复利成长打卡路线图 · 胜率收益曲线回测 · 单笔风控纪律。</p>
+          <span class="bz-cta">查看计划详情 →</span>
+        </a>
+        <div class="bz-card">
+          <span class="bz-no">07</span>
+          <h3>风控补贴权益 <span class="bz-soon-tag">二期</span></h3>
+          <p>手续费返还额度池 · 补贴规则与自动抵扣明细面板 · 每日结算通知。</p>
+          <span class="bz-meta"><span class="bz-locked">🔒</span> 敬请期待</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="bz-section" id="bzAlt" aria-label="山寨爆点专线">
+      <div class="bz-head">
+        <span class="bz-kicker">Module 01 · Alt-Signal</span>
+        <h2 class="bz-title">山寨爆点专线 <i class="bz-state-dot"></i></h2>
+        <span class="bz-sub">公开前 2 个 · 其余 VIP 锁定</span>
+      </div>
+      <div class="bz-carousel" id="altList"></div>
+    </section>
+
+    <section class="bz-section" id="bzWhale" aria-label="主力异动雷达">
+      <div class="bz-head">
+        <span class="bz-kicker">Module 03 · Whale-Radar</span>
+        <h2 class="bz-title">主力异动雷达 <i class="bz-state-dot"></i></h2>
+        <span class="bz-sub">大单流入/流出 · 资金费率异常</span>
+      </div>
+      <div class="bz-heat" id="whalePanel"></div>
+    </section>
+
 <section class="home-boards-section" aria-label="Strategy leaderboards">
       <div class="home-boards-grid">
         <article class="hb-card" id="wrBoardCard">
@@ -219,10 +280,10 @@
       <div class="foot-cta">
         <button type="button" class="foot-cta-btn" data-community-open="1" data-get-strategy data-i18n="footSubscribe">订阅节点数据流</button>
         <!-- [PLAIN-TAG] -->
-        <p class="foot-disc" data-i18n="footDisc">QuantAlpha 是獨立的策略研究和寫程序工具，不是投資建議。幣價漲跌很兇，請自己控制好倉位。</p>
+        <p class="foot-disc" data-i18n="footDisc">广州表哥 是獨立的策略研究和寫程序工具，不是投資建議。幣價漲跌很兇，請自己控制好倉位。</p>
       </div>
       <div class="foot-brand">
-        <div class="foot-logo-mark">QUANT.ALPHA</div>
+        <div class="foot-logo-mark">GZBG QUANT</div>
         <nav class="foot-links">
         <a href="./about.html" data-i18n="navAbout">[ 關於我們 ]</a>
         <span class="foot-sep">·</span>
@@ -272,6 +333,7 @@
   <script src="./js/lead-bind.js?v=202608251308-be4a65b"></script>
   <script src="./js/plaza-ai.js?v=202608251308-be4a65b"></script>
   <script src="./js/home-boards.js?v=202608251308-be4a65b"></script>
+  <script src="./js/gzbg-modules.js?v=20260830-gzbg"></script>
   <script src="./app.js?v=202608251308-be4a65b"></script>
 <script src="/ajax-loader.js"></script>
 <script src="/js/fb-beacon.js"></script>
