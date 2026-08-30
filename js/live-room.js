@@ -1230,7 +1230,7 @@
     if (!ctx) return;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, cssW, cssH);
-    ctx.fillStyle = "#f8fafc";
+    ctx.fillStyle = "#11161f";
     ctx.fillRect(0, 0, cssW, cssH);
     if (closes.length < 2) {
       const hist = synthHistory(sym, Number.isFinite(livePx) ? livePx : basePx(sym));
@@ -1261,7 +1261,7 @@
     const yAt = (px) => padT + h - ((px - min) / span) * h;
 
     const yTicks = uniqueYTicks(min, max, last);
-    ctx.strokeStyle = "#f1f5f9";
+    ctx.strokeStyle = "#1f2733";
     ctx.lineWidth = 1;
     yTicks.forEach((v) => {
       const y = yAt(v);

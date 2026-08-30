@@ -157,11 +157,92 @@
   }
 
   /* ---------- 启动 ---------- */
+
+  /* ---------- 模块 04 · 极简API跟单 ---------- */
+  function renderApiCopy(card) {
+    var box = el("apiCopyPanel");
+    if (!box) return;
+    load("data/api_copy.json").then(function (d) {
+      d = d || {};
+      var st = d.status || {};
+      var status =
+        '<div class="bz-tool-status">' +
+        '<span class="bz-live-tag">● ' + esc(st.mode || "信号同步中") + "</span>" +
+        '<span class="bz-tool-stat">跟随中 <b>' + esc(st.followers || 0) + "</b> 人</span>" +
+        '<span class="bz-tool-stat">同步胜率 <b>' + esc(st.sync_win_rate || "—") + '%</b></span></div>';
+      var steps = (d.steps || []).map(function (s) {
+        return '<div class="bz-tool-step"><span class="bz-step-i">' + (s.n || "") + "</span>" +
+          '<span class="bz-tool-step-body"><b>' + esc(s.title || "") + "</b><span>" + esc(s.desc || "") +
+          "</span></span></div>";
+      }).join("");
+      var chips = '<div class="bz-tool-chips">' + (d.exchanges || []).map(function (x) {
+        return '<span class="bz-chip">' + esc(x) + "</span>";
+      }).join("") + "</div>";
+      box.innerHTML = status + '<div class="bz-tool-steps">' + steps + "</div>" + chips +
+        '<div class="bz-tool-cta"><a class="bz-cta" href="#" data-community-open="1">联系 GZBG 开通跟单 →</a></div>';
+      if (card) card.classList.add("is-live");
+    }).catch(function () { box.innerHTML = empty("API 跟单配置加载中"); });
+  }
+
+  /* ---------- 模块 05 · 回本解套助手 ---------- */
+  function renderRecover(card) {
+    var box = el("recoverPanel");
+    if (!box) return;
+    load("data/recover_plan.json").then(function (d) {
+      d = d || {};
+      var k = d.kpi || {};
+      var kpi =
+        '<div class="bz-tool-kpi">' +
+        '<span>解套策略 <b>' + esc(k.strategies) + "</b></span>" +
+        '<span>目标降本 <b>' + esc(k.avg_cover) + "</b></span>" +
+        '<span>参考周期 <b>' + esc(k.days) + "</b></span>" +
+        '<span>实盘均盈亏 <b class="bz-chg-up">' + esc(k.live_avg_pnl || "—") + "</b></span></div>";
+      var steps = (d.plan || []).map(function (s, i) {
+        var done = s.done;
+        return '<div class="bz-step' + (done ? " done" : "") + '">' +
+          '<span class="bz-step-i">' + (done ? "✓" : (i + 1)) + "</span>" +
+          '<span class="bz-step-body">' + esc(s.label || "") +
+          (s.val ? " · <b>" + esc(s.val) + "</b>" : "") + "</span></div>";
+      }).join("");
+      box.innerHTML = kpi + '<div class="bz-steps">' + steps + "</div>" +
+        '<div class="bz-tool-cta"><a class="bz-cta" href="#" data-community-open="1">生成专属解套计划 →</a></div>';
+      if (card) card.classList.add("is-live");
+    }).catch(function () { box.innerHTML = empty("解套计划生成中"); });
+  }
+
+  /* ---------- 模块 07 · 风控补贴权益 ---------- */
+  function renderShield(card) {
+    var box = el("shieldPanel");
+    if (!box) return;
+    load("data/risk_shield.json").then(function (d) {
+      d = d || {};
+      var k = d.kpi || {};
+      var kpi =
+        '<div class="bz-tool-kpi">' +
+        '<span>首单补贴 <b class="bz-chg-up">' + esc(k.coverage) + "</b></span>" +
+        '<span>已补贴 <b>' + esc(k.applied) + "</b> 笔</span>" +
+        '<span>返还池 <b class="bz-locked">' + esc(k.pool) + "</b></span></div>";
+      var rules = (d.rules || []).map(function (r) {
+        return '<div class="bz-rule"><span class="bz-rule-i">✦</span>' +
+          '<span class="bz-rule-body"><b>' + esc(r.title || "") + "</b><span>" + esc(r.desc || "") +
+          "</span></span></div>";
+      }).join("");
+      box.innerHTML = kpi + '<div class="bz-rules">' + rules + "</div>" +
+        '<div class="bz-tool-cta"><span class="bz-invite">邀请码 <b class="bz-locked">' +
+        esc(d.invite || "pw1m") + '</b></span>' +
+        '<a class="bz-cta" href="#" data-community-open="1">领取补贴资格 →</a></div>';
+      if (card) card.classList.add("is-live");
+    }).catch(function () { box.innerHTML = empty("补贴权益加载中"); });
+  }
+
   function boot() {
     renderSmallFund(el("smallFundCard"));
     renderTp3(el("tp3Card"));
     renderAlt(el("altSection"));
     renderWhale(el("whaleSection"));
+    renderApiCopy(el("bzApiCopy"));
+    renderRecover(el("bzRecover"));
+    renderShield(el("bzShield"));
   }
   if (root.document.readyState === "loading") {
     root.document.addEventListener("DOMContentLoaded", boot);

@@ -211,3 +211,255 @@ td { border-color: var(--border-line); }
   .bz-card { padding: 12px 14px; }
   .bz-head { margin-bottom: 10px; }
 }
+/* ============================================================
+   对比度强化段：修复浅色背景残留 + 深底深字不可见
+   背景统一为深色面板，文字统一为浅色高对比
+   ============================================================ */
+
+/* CTA 按钮：bloomberg-system 曾以 !important 设 color:var(--bb-bg)
+   （深色主题下 = 黑底黑字），强制恢复白字 */
+.btn-cta, .btn-cta.pulse, .btn-cta.lg, .btn-cta.compact,
+.action-btn.exec-run, .gm-btn, .dock-run, .ai-go {
+  background: #000 !important;
+  color: #ffffff !important;
+  border-color: #2a3340 !important;
+}
+.btn-cta:hover, .btn-cta.pulse:hover, .btn-cta.compact:hover {
+  background: #1a2230 !important;
+  color: #ffffff !important;
+}
+
+/* 弹窗 / 下拉：防黑色文字继承 */
+.modal, .modal.login-modal, .modal.wide,
+.modal-bg .modal {
+  color: var(--text-main);
+}
+.modal-x {
+  color: var(--text-main) !important;
+  background: var(--bg-surface) !important;
+}
+select {
+  color: var(--text-main);
+}
+
+/* KPI 数字：bloomberg-dark 曾设黑字 */
+.kpi b {
+  color: var(--text-main);
+}
+.kpi b.is-up { color: var(--bz-green); }
+.kpi b.is-down { color: var(--bz-red); }
+
+/* ---------- 浅色背景残留 → 深色面板 ---------- */
+
+/* 首页协同席位授权横幅 */
+.newbie {
+  background: var(--bz-panel) !important;
+  border: 1px solid var(--bz-line);
+  color: var(--text-main);
+}
+
+/* 学术纸面（操盘纪律 / 策略白皮书） */
+.lab-paper, .paper-block {
+  background: var(--bz-panel) !important;
+  border-top-color: var(--bz-line);
+  border-color: var(--bz-line);
+  color: var(--text-main);
+}
+
+/* 策略广场核心指标条 / 稳健徽标 */
+.plaza-core {
+  background: var(--bz-panel);
+  border-color: var(--bz-line);
+}
+.plaza-stab {
+  background: var(--bz-panel2);
+  border-color: var(--bz-line);
+}
+.plaza-apy b, .plaza-stab b {
+  color: var(--text-main);
+}
+.plaza-apy span, .plaza-stab span {
+  color: var(--text-muted);
+}
+
+/* 实盘作战室：币种卡片 + 雷达头部 */
+.coin-card {
+  background: var(--bz-panel) !important;
+  border-color: var(--bz-line);
+}
+.radar-head {
+  background: var(--bz-panel) !important;
+  border-color: var(--bz-line);
+  color: var(--text-main);
+}
+
+/* 会员中心登录卡 */
+.member-login-card {
+  background: var(--bz-panel) !important;
+  border-color: var(--bz-line);
+  color: var(--text-main);
+}
+
+/* 关于页信任区 */
+.about-trust {
+  background: var(--bz-panel) !important;
+  border-color: var(--bz-line);
+  color: var(--text-main);
+}
+
+/* 代码块：白底绿字 → 深底浅字 */
+code, pre, .paper-math, .code-lock {
+  background: #0d1117 !important;
+  color: var(--text-main) !important;
+  border-color: var(--bz-line);
+}
+
+/* 收益标签：浅绿底 → 深底霓虹绿 */
+.bbg-pnl-tag, .bbg-tag {
+  background: rgba(0, 230, 118, 0.12) !important;
+  color: var(--bz-green) !important;
+  border-color: rgba(0, 230, 118, 0.35);
+}
+/* ============================================================
+   对比度强化段 · 补丁 v2：策略卡 / 统计格 / 雷达板 / 支柱区 / select
+   ============================================================ */
+
+/* 策略广场卡片（plaza-cards.css 硬编码白底） */
+.m-card.strategy-card.plaza-card,
+.plaza-card {
+  background: var(--bz-panel) !important;
+  border-color: var(--bz-line) !important;
+}
+.plaza-card .stat-cap {
+  background: var(--bz-panel2) !important;
+  border-color: var(--bz-line) !important;
+}
+.plaza-card .stat-cap span,
+.plaza-card .stat-cap .stat-tip {
+  color: var(--text-muted) !important;
+}
+.plaza-card .stat-cap b {
+  color: var(--text-main) !important;
+}
+.plaza-card .stat-cap b.is-up { color: var(--bz-green) !important; }
+.plaza-card .stat-cap b.is-down { color: var(--bz-red) !important; }
+
+/* 实盘作战室雷达板容器 */
+.radar-board {
+  background: var(--bz-panel) !important;
+  border-color: var(--bz-line) !important;
+}
+
+/* 关于页三大支柱卡 */
+.about-pillar {
+  background: var(--bz-panel) !important;
+  border-color: var(--bz-line) !important;
+}
+.about-pillar h2 { color: var(--text-main); }
+.about-pillar p { color: var(--text-muted); }
+
+/* select / 输入框：对抗 bloomberg-dark 的 input,textarea,select 黑字规则 */
+select,
+.engine-box select,
+.param-card select,
+.bt-param select,
+.dock-field select {
+  color: var(--text-main) !important;
+  background: var(--bg-surface) !important;
+  border-color: var(--bz-line) !important;
+}
+/* ============================================================
+   对比度强化段 · 补丁 v3：信任卡 / 币种详情弹窗
+   ============================================================ */
+
+/* 信任卡（styles.css 白底黑字） */
+.trust-card {
+  background: var(--bz-panel) !important;
+  border-color: var(--bz-line) !important;
+}
+.trust-card h4 { color: var(--text-main); }
+.trust-card p { color: var(--text-muted); }
+
+/* 币种详情弹窗（live-room.css 白底） */
+.coin-modal {
+  background: var(--bz-panel) !important;
+  border-color: var(--bz-line) !important;
+  color: var(--text-main);
+}
+/* ============================================================
+   对比度强化段 · 补丁 v4：作战室图表 / 语音条 / 按钮 / toast
+   ============================================================ */
+
+/* 图表容器（live-room.css 白底 → 深底） */
+.coin-spark-wrap,
+.coin-modal-spark-wrap {
+  background: var(--bz-panel2) !important;
+}
+
+/* 语音播报条 + 按钮 */
+.cmd-voice-bar {
+  background: linear-gradient(180deg, var(--bz-bg) 72%, transparent) !important;
+}
+.cmd-voice-btn {
+  background: var(--bz-panel) !important;
+  color: var(--text-main) !important;
+  border-color: var(--bz-line) !important;
+}
+.cmd-voice-btn.is-on {
+  color: var(--bz-green) !important;
+  border-color: var(--bz-green) !important;
+  background: rgba(0, 230, 118, 0.08) !important;
+}
+
+/* 添加币种按钮 / 筹码 */
+.cmd-add-btn,
+.cmd-add-chip {
+  background: var(--bz-panel) !important;
+  color: var(--text-main) !important;
+  border-color: var(--bz-line) !important;
+}
+
+/* 语音提示 toast（浅黄底 → 深底金字） */
+.voice-hint {
+  background: var(--bz-panel) !important;
+  border-color: var(--bz-gold);
+  color: var(--text-main);
+}
+/* ---------- 工具类模块 04/05/07 ---------- */
+.bz-tool { display: flex; flex-direction: column; gap: 12px; }
+.bz-tool-status { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.bz-tool-stat { font-size: 12px; color: var(--bz-blue); }
+.bz-tool-stat b { color: var(--text-main); font-family: var(--bz-mono); }
+.bz-tool-steps { display: flex; flex-direction: column; gap: 8px; }
+.bz-tool-step {
+  display: flex; gap: 10px; align-items: flex-start;
+  background: var(--bz-panel); border: 1px solid var(--bz-line);
+  border-radius: 10px; padding: 12px 14px;
+}
+.bz-tool-step-body {
+  display: flex; flex-direction: column; gap: 2px;
+  font-size: 12.5px; color: var(--bz-blue); line-height: 1.5;
+}
+.bz-tool-step-body b { color: var(--text-main); font-size: 13px; }
+.bz-tool-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.bz-chip {
+  font-family: var(--bz-mono); font-size: 11px; color: var(--bz-green);
+  background: rgba(0, 230, 118, 0.08); border: 1px solid rgba(0, 230, 118, 0.3);
+  border-radius: 999px; padding: 3px 10px;
+}
+.bz-tool-kpi { display: flex; gap: 18px; flex-wrap: wrap; font-size: 12px; color: var(--bz-blue); }
+.bz-tool-kpi b { color: var(--text-main); font-family: var(--bz-mono); font-size: 14px; }
+.bz-rules { display: flex; flex-direction: column; gap: 8px; }
+.bz-rule {
+  display: flex; gap: 10px; align-items: flex-start;
+  background: var(--bz-panel); border: 1px solid var(--bz-line);
+  border-radius: 10px; padding: 12px 14px;
+}
+.bz-rule-i { color: var(--bz-gold); flex: 0 0 18px; text-align: center; }
+.bz-rule-body {
+  display: flex; flex-direction: column; gap: 2px;
+  font-size: 12.5px; color: var(--bz-blue); line-height: 1.5;
+}
+.bz-rule-body b { color: var(--text-main); font-size: 13px; }
+.bz-tool-cta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 2px; }
+.bz-invite { font-size: 12px; color: var(--bz-blue); }
