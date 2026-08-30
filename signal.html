@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>实盘策略追踪看板 · OBS Browser Source</title>
+<style>
+  /* ========== OBS 透明底 · 赛博朋克磨砂玻璃卡片 ========== */
+  :root {
+    --neon:  #00ffa3;          /* 荧光绿 */
+    --cyan:  #00e5ff;          /* 青色 */
+    --fire:  #ff6a00;          /* 冲击态橙红 */
+    --red:   #ff4d6d;          /* 亏损红 */
+    --ink:   #e6fff5;
+    --muted: #7fa8a0;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: transparent; }
+  body {
+    padding: 10px;
+    font-family: "Segoe UI", "Microsoft YaHei", Consolas, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .signal-card {
+    position: relative;
+    width: 420px;
+    border-radius: 12px;
+    padding: 13px 16px 11px;
+    background: linear-gradient(160deg, rgba(10, 18, 28, 0.82), rgba(6, 10, 18, 0.78));
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(0, 255, 170, 0.40);
+    box-shadow: 0 0 22px rgba(0, 255, 163, 0.18),
+                inset 0 0 30px rgba(0, 229, 255, 0.05);
+    color: var(--ink);
+    overflow: hidden;
+  }
+
+  /* —— 周期性对角扫光（3.6s 一轮） —— */
+  .signal-card::before {
+    content: "";
+    position: absolute; top: -50%; left: -90%;
+    width: 55%; height: 200%;
+    background: linear-gradient(105deg,
+      transparent 20%, rgba(140, 255, 225, 0.07) 45%,
+      rgba(200, 255, 245, 0.14) 50%,
+      rgba(140, 255, 225, 0.07) 55%, transparent 80%);
+    transform: skewX(-20deg);
+    animation: sweep 3.6s ease-in-out infinite;
+    pointer-events: none; z-index: 5;
+  }
+  @keyframes sweep {
+    0%        { left: -90%; }
+    60%, 100% { left: 190%; }
+  }
+
+  /* —— 顶部四角霓虹饰角 —— */
+  .signal-card::after {
+    content: "";
+    position: absolute; inset: 0;
+    border-radius: 12px;
+    pointer-events: none; z-index: 4;
+    background:
+      linear-gradient(90deg, var(--cyan), transparent 30%) top left / 46px 1.5px no-repeat,
+      linear-gradient(180deg, var(--cyan), transparent 30%) top left / 1.5px 24px no-repeat,
+      linear-gradient(270deg, var(--cyan), transparent 30%) bottom right / 46px 1.5px no-repeat,
+      linear-gradient(0deg, var(--cyan), transparent 30%) bottom right / 1.5px 24px no-repeat;
+    opacity: 0.75;
+  }
+
+  .row { display: flex; align-items: center; }
+
+  /* —— 行1：TG 同步标签 + 呼吸灯 —— */
+  .row.top { margin-bottom: 8px; }
+  .live-dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--neon);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1;   transform: scale(1);    box-shadow: 0 0 6px var(--neon); }
+    50%      { opacity: 0.4; transform: scale(0.80); box-shadow: 0 0 15px var(--neon); }
+  }
+  .live-text {
+    margin-left: 8px;
+    font-size: 12px; font-weight: bold; letter-spacing: 1px;
+    color: var(--neon);
+    text-shadow: 0 0 8px rgba(0, 255, 163, 0.45);
+  }
+  .tg {
+    margin-left: auto;
+    font-size: 11px; color: var(--muted);
+    border: 1px solid rgba(0, 229, 255, 0.25);
+    border-radius: 99px; padding: 2px 10px;
+    background: rgba(0, 229, 255, 0.06);
+  }
+
+  /* —— 行2：交易对 / 方向 / 杠杆 / 建仓时间 —— */
+  .row.pair { margin-bottom: 7px; gap: 8px; }
+  .symbol { font-size: 20px; font-weight: 800; letter-spacing: 0.5px; }
+  .dir {
+    font-size: 12px; font-weight: bold; padding: 2px 9px; border-radius: 6px;
+  }
+  .dir.long  { color: var(--neon); background: rgba(0, 255, 163, 0.10);
+               border: 1px solid rgba(0, 255, 163, 0.5); text-shadow: 0 0 8px rgba(0, 255, 163, 0.6); }
+  .dir.short { color: var(--red);  background: rgba(255, 77, 109, 0.10);
+               border: 1px solid rgba(255, 77, 109, 0.5); text-shadow: 0 0 8px rgba(255, 77, 109, 0.6); }
+  .lev {
+    font-size: 12px; font-weight: bold; color: var(--cyan);
+    border: 1px solid rgba(0, 229, 255, 0.4); border-radius: 6px; padding: 2px 8px;
+    background: rgba(0, 229, 255, 0.07);
+  }
+  .entry-time { margin-left: auto; font-size: 11px; color: var(--muted); }
+
+  /* —— 行3：入场价 + 状态 —— */
+  .row.entry { margin-bottom: 12px; gap: 14px; }
+  .muted { font-size: 11px; color: var(--muted); }
+  .entry-px { font-size: 15px; font-weight: bold; color: var(--cyan);
+              text-shadow: 0 0 8px rgba(0, 229, 255, 0.35); }
+  .status-text { margin-left: auto; font-size: 11px; color: var(--muted); }
+
+  /* —— 进度轨道区（上：节点名 / 中：轨道 / 下：目标价） —— */
+  .track-wrap { padding: 0 10px; margin-bottom: 10px; }
+  .label-row, .price-row {
+    position: relative; height: 15px; font-size: 10px; color: var(--muted);
+  }
+  .label-row span, .price-row span {
+    position: absolute; transform: translateX(-50%); white-space: nowrap;
+  }
+  .label-row span.hit { color: var(--neon); }
+  .label-row span.now { color: var(--fire); font-weight: bold; }
+
+  .track {
+    position: relative; height: 10px; margin: 3px 0;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(0, 229, 255, 0.18);
+  }
+  .fill {
+    position: absolute; left: 0; top: 0; bottom: 0;
+    border-radius: 5px;
+    background: linear-gradient(90deg, var(--neon), var(--cyan));
+    box-shadow: 0 0 10px rgba(0, 255, 163, 0.5);
+    overflow: hidden;
+    transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  /* 填充内部由左向右流动的光斑 */
+  .fill::after {
+    content: "";
+    position: absolute; top: 0; left: -40%;
+    width: 40%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+    animation: flow 1.8s linear infinite;
+  }
+  @keyframes flow { 0% { left: -40%; } 100% { left: 110%; } }
+
+  /* —— 节点（入场 / TP1 / TP2 / TP3） —— */
+  .node {
+    position: absolute; top: 50%;
+    width: 20px; height: 20px; border-radius: 50%;
+    transform: translate(-50%, -50%);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: bold;
+    z-index: 3;
+  }
+  .node.done {
+    background: #0b3d2a; color: var(--neon);
+    border: 1.5px solid var(--neon);
+    box-shadow: 0 0 10px rgba(0, 255, 163, 0.65);
+    text-shadow: 0 0 6px rgba(0, 255, 163, 0.8);
+  }
+  .node.firing {
+    background: #2a1505;
+    border: 1.5px solid var(--fire);
+    animation: fireGlow 0.9s ease-in-out infinite;
+  }
+  .node.firing .flame {
+    display: inline-block; font-size: 12px; line-height: 1;
+    animation: bounce 0.7s ease-in-out infinite;
+  }
+  @keyframes fireGlow {
+    0%, 100% { box-shadow: 0 0 6px rgba(255, 106, 0, 0.6); }
+    50%      { box-shadow: 0 0 16px rgba(255, 106, 0, 1),
+                           0 0 28px rgba(255, 60, 0, 0.55); }
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50%      { transform: translateY(-3px) scale(1.12); }
+  }
+  .node.idle {
+    background: rgba(20, 28, 38, 0.92);
+    border: 1.5px solid rgba(255, 255, 255, 0.18);
+    color: #5a6a78;
+  }
+
+  /* —— 行4：进度文字 + 超大盈亏 —— */
+  .row.bottom { justify-content: space-between; align-items: flex-end; }
+  .prog { font-size: 12px; color: var(--muted); }
+  .prog b { color: var(--cyan); font-size: 14px; text-shadow: 0 0 8px rgba(0, 229, 255, 0.4); }
+  .pnl-wrap { text-align: right; }
+  .pnl-wrap .muted { display: block; margin-bottom: 1px; }
+  .pnl {
+    font-size: 34px; font-weight: 800; line-height: 1;
+    letter-spacing: 0.5px;
+    color: var(--neon);
+    animation: pnlGlow 2.4s ease-in-out infinite;
+  }
+  .pnl.neg { color: var(--red); animation-name: pnlGlowRed; }
+  @keyframes pnlGlow {
+    0%, 100% { text-shadow: 0 0 10px rgba(0, 255, 163, 0.45),
+                           0 0 26px rgba(0, 255, 163, 0.18); }
+    50%      { text-shadow: 0 0 16px rgba(0, 255, 163, 0.75),
+                           0 0 40px rgba(0, 255, 163, 0.32); }
+  }
+  @keyframes pnlGlowRed {
+    0%, 100% { text-shadow: 0 0 10px rgba(255, 77, 109, 0.45); }
+    50%      { text-shadow: 0 0 16px rgba(255, 77, 109, 0.75); }
+  }
+</style>
+</head>
+<body>
+
+<div class="signal-card">
+  <!-- 行1：TG 同步验证标签 -->
+  <div class="row top">
+    <span class="live-dot"></span>
+    <span class="live-text">TG VIP 实盘同步验证</span>
+    <span class="tg" id="tgGroup"></span>
+  </div>
+
+  <!-- 行2：交易对 / 方向 / 杠杆 / 建仓时间 -->
+  <div class="row pair">
+    <span class="symbol" id="symbol"></span>
+    <span class="dir" id="dir"></span>
+    <span class="lev" id="lev"></span>
+    <span class="entry-time" id="entryTime"></span>
+  </div>
+
+  <!-- 行3：入场价 + 状态 -->
+  <div class="row entry">
+    <span class="muted">入场价</span>
+    <span class="entry-px" id="entryPx"></span>
+    <span class="status-text" id="statusText"></span>
+  </div>
+
+  <!-- 进度轨道：入场 → TP1 → TP2 → TP3 -->
+  <div class="track-wrap">
+    <div class="label-row" id="labelRow"></div>
+    <div class="track" id="track"><div class="fill" id="fill"></div></div>
+    <div class="price-row" id="priceRow"></div>
+  </div>
+
+  <!-- 行4：进度 + 超大盈亏 -->
+  <div class="row bottom">
+    <div class="prog">当前进度 <b id="progPct"></b></div>
+    <div class="pnl-wrap">
+      <span class="muted">当前盈亏</span>
+      <div class="pnl" id="pnl"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* =========================================================================
+ * 策略数据配置（唯一数据源）
+ * 修改本对象即可更新看板；接入外部 API 时调用
+ *   window.updateSignal({ progress_pct: 80, pnl_pct: 130.2 })
+ * ========================================================================= */
+const currentSignalData = {
+  symbol:       "BTC/USDT",        // 交易对
+  direction:    "LONG",            // LONG（做多）/ SHORT（做空）
+  leverage:     10,                // 杠杆倍数
+  entry_time:   "08-30 13:48 UTC", // 建仓时间
+  entry_price:  78200,             // 入场价
+  tp1:          79100,             // 止盈 1
+  tp2:          79900,             // 止盈 2
+  tp3:          80900,             // 止盈 3
+  progress_pct: 68,                // 当前进度 0-100（入场→TP3）
+  pnl_pct:      114.6,             // 当前盈亏百分比（可负）
+  tg_group:     "@grid_quant_vip", // TG 群号
+};
+
+/* 节点在轨道上的位置（%）：入场 / TP1 / TP2 / TP3 */
+const NODE_POS = [2, 34, 66, 98];
+
+function fmtPx(v) {
+  return v >= 1000
+    ? v.toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+    : v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function render() {
+  const d = currentSignalData;
+
+  /* —— 行1/2/3 基础信息 —— */
+  document.getElementById("tgGroup").textContent = d.tg_group;
+  document.getElementById("symbol").textContent = d.symbol;
+
+  const dirEl = document.getElementById("dir");
+  const isLong = d.direction === "LONG";
+  dirEl.textContent = isLong ? "▲ LONG 做多" : "▼ SHORT 做空";
+  dirEl.className = "dir " + (isLong ? "long" : "short");
+
+  document.getElementById("lev").textContent = d.leverage + "x";
+  document.getElementById("entryTime").textContent = "建仓 " + d.entry_time;
+  document.getElementById("entryPx").textContent = "$" + fmtPx(d.entry_price);
+
+  /* —— 进度条填充 —— */
+  const pct = Math.max(0, Math.min(100, d.progress_pct));
+  document.getElementById("fill").style.width = pct + "%";
+  document.getElementById("progPct").textContent = pct.toFixed(0) + "%";
+
+  /* —— 节点状态：已达成（✓）/ 正在冲击（🔥）/ 未达成（序号） —— */
+  const names  = ["入场", "TP1", "TP2", "TP3"];
+  const prices = [d.entry_price, d.tp1, d.tp2, d.tp3];
+  const reached = NODE_POS.map((p) => pct >= p);
+  const firingIdx = reached.indexOf(false);   // 第一个未达成节点 → 冲击态
+
+  const track = document.getElementById("track");
+  const labelRow = document.getElementById("labelRow");
+  const priceRow = document.getElementById("priceRow");
+  track.querySelectorAll(".node").forEach((n) => n.remove());
+  labelRow.innerHTML = "";
+  priceRow.innerHTML = "";
+
+  for (let i = 0; i < 4; i++) {
+    const node = document.createElement("div");
+    node.className = "node";
+    node.style.left = NODE_POS[i] + "%";
+
+    const label = document.createElement("span");
+    label.style.left = NODE_POS[i] + "%";
+    label.textContent = names[i];
+
+    if (i > 0) {   /* 入场节点下方不重复显示入场价 */
+      const pr = document.createElement("span");
+      pr.style.left = NODE_POS[i] + "%";
+      pr.textContent = "$" + fmtPx(prices[i]);
+      priceRow.appendChild(pr);
+    }
+
+    if (reached[i]) {
+      node.classList.add("done");
+      node.textContent = "✓";
+      label.classList.add("hit");
+    } else if (i === firingIdx) {
+      node.classList.add("firing");
+      node.innerHTML = '<span class="flame">🔥</span>';
+      label.classList.add("now");
+    } else {
+      node.classList.add("idle");
+      node.textContent = String(i);
+    }
+    track.appendChild(node);
+    labelRow.appendChild(label);
+  }
+
+  /* —— 状态文案 —— */
+  const st = document.getElementById("statusText");
+  if (pct >= 98)      st.textContent = "🏆 TP3 全部止盈达成";
+  else if (firingIdx > 0) st.textContent = "正在冲击 " + names[firingIdx] + " …";
+  else                st.textContent = "已入场 · 运行中";
+
+  /* —— 超大盈亏（盈利荧光绿 / 亏损红） —— */
+  const pnlEl = document.getElementById("pnl");
+  const pnl = d.pnl_pct;
+  pnlEl.textContent = (pnl >= 0 ? "+" : "") + pnl.toFixed(1) + "%";
+  pnlEl.className = "pnl" + (pnl < 0 ? " neg" : "");
+}
+
+/* 外部更新接口：增量合并数据并重渲染 */
+window.updateSignal = function (patch) {
+  Object.assign(currentSignalData, patch);
+  render();
+};
+
+document.addEventListener("DOMContentLoaded", render);
+</script>
+</body>
+</html>
