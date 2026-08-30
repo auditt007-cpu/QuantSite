@@ -1,1 +1,1 @@
-"""Private-domain attribution hub (Telegram + Meta CAPI)."""
+"""Telegram hub (login assist + payment flow)."""

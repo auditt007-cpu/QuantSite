@@ -6,35 +6,17 @@ from pathlib import Path
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ContextTypes
 
-from hub import db
-from hub.notify import notify_admin
 from hub.settings import ROOT, TG_BOT_USER, USDT_WALLET
 
-TOKEN_RE = re.compile(r"^VIP[0-9A-Z]{4}$", re.I)
 WEB_OTP_RE = re.compile(r"^\d{4}$")
 WEB_OTP_WORDS = frozenset({"BIND", "LOGIN", "OTP", "CODE", "WEB"})
-JUNK_PAYLOAD = frozenset({"", "BIND", "START", "STARTBIND", "NULL", "UNDEFINED", "NONE"})
 
-LANE_META = "meta_vip"
 LANE_WEB = "web_otp"
 LANE_NONE = "none"
 
 
-def extract_token(text: str) -> str:
-    if not text:
-        return ""
-    m = re.search(r"VIP[-_ ]?[0-9A-Z]{4}", text, re.I)
-    raw = m.group(0) if m else text
-    token = db.normalize_token(raw)
-    if not TOKEN_RE.match(token):
-        return ""
-    if token.upper() in JUNK_PAYLOAD:
-        return ""
-    return token.upper() if token.startswith("VIP") else token
-
-
 def classify_entry(text: str) -> str:
-    """Exclusive bot entry lanes. Never coerce 4-digit web OTP into VIP attribution."""
+    """Exclusive bot entry lanes: web login OTP assist only."""
     raw = (text or "").strip()
     if not raw:
         return LANE_NONE
@@ -47,15 +29,12 @@ def classify_entry(text: str) -> str:
         return classify_entry(arg) if arg else LANE_NONE
     if WEB_OTP_RE.match(raw) or raw.upper() in WEB_OTP_WORDS:
         return LANE_WEB
-    if extract_token(raw):
-        return LANE_META
     return LANE_NONE
 
 
 def menu_markup() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         [
-            [InlineKeyboardButton("📊 查看今日實盤數據", callback_data="today_live")],
             [InlineKeyboardButton("💳 升級解鎖高級權限", callback_data="buy_pro")],
             [InlineKeyboardButton("📈 獲取最新量化策略", callback_data="latest_ai")],
         ]
@@ -65,18 +44,16 @@ def menu_markup() -> InlineKeyboardMarkup:
 def welcome_text() -> str:
     return (
         "歡迎來到 QUANT ALPHA 量化研究台。\n"
-        "兩條通道互不合併：\n"
-        "· 投放訂閱：從官網點「獲取策略」，帶入 VIP 開頭 7 碼（例如 VIP8921）。\n"
-        "· 網站登入：官網右上角登入，或傳送 /bind 索取 4 位驗證碼，填回網站。\n"
-        "4 位數字不是兌換碼；VIP7 碼不是網站登入碼。"
+        "網站登入：官網右上角登入，或傳送 /bind 索取 4 位驗證碼，填回網站。\n"
+        "4 位數字是網站登入碼。"
     )
 
 
 def web_otp_text() -> str:
     return (
-        "這是網站登入通道（4 位驗證碼），不是 Meta 投放兌換碼。\n"
+        "這是網站登入通道（4 位驗證碼）。\n"
         "請打開 https://quantalpha.space/ 點右上角登入，把 4 位碼填回網站。\n"
-        "傳送 /bind 可向登入服務換發新碼。請勿把 4 位碼當成 VIP 兌換碼使用。"
+        "傳送 /bind 可向登入服務換發新碼。"
     )
 
 
@@ -87,17 +64,6 @@ async def reply(update: Update, text: str) -> None:
         await update.callback_query.message.reply_text(text, reply_markup=menu_markup())
 
 
-async def greet_bound(update: Update, token: str) -> None:
-    user = update.effective_user
-    name = (user.username and "@" + user.username) or (user.first_name or "交易者")
-    text = (
-        "嗨，{0}。\n"
-        "兌換碼 {1} 已成功綁定您的帳號。\n"
-        "請點選下方選單繼續。".format(name, token)
-    )
-    await reply(update, text)
-
-
 async def handle_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not update.message:
         return
@@ -105,9 +71,6 @@ async def handle_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     lane = classify_entry("/start " + payload if payload else "/start")
     if lane == LANE_WEB:
         await reply(update, web_otp_text())
-        return
-    if lane == LANE_META:
-        await _bind_and_greet(update, extract_token(payload))
         return
     await reply(update, welcome_text())
 
@@ -127,72 +90,7 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     if lane == LANE_WEB:
         await reply(update, web_otp_text())
         return
-    if lane == LANE_META:
-        await _bind_and_greet(update, extract_token(update.message.text))
-        return
-    await reply(
-        update,
-        "無法識別。投放訂閱請傳 VIP 開頭 7 碼；網站登入請傳 /bind 或把 4 位碼填回官網。",
-    )
-
-
-async def _bind_and_greet(update: Update, token: str) -> None:
-    token = (token or "").strip().upper()
-    if not TOKEN_RE.match(token):
-        await reply(update, "無法識別投放碼。請使用 VIP 開頭 7 碼；網站登入請傳 /bind。")
-        return
-    user = update.effective_user
-    lead = db.bind_telegram(token, str(user.id), user.username or "")
-    if not lead:
-        await reply(update, "綁定失敗，請稍後再試。")
-        return
-    uname = ("@" + user.username) if user.username else (user.full_name or "user")
-    fbclid = (lead.get("fbclid") or "").strip() or "n/a"
-    fb_short = fbclid if len(fbclid) <= 24 else fbclid[:24] + "..."
-    await notify_admin(
-        "🟢 [新線索] {0} (ID:{1}) 已接入！fbclid: {2}".format(uname, user.id, fb_short)
-    )
-    await greet_bound(update, lead.get("token") or token)
-
-
-def _live_summary() -> str:
-    candidates = [
-        Path("/var/www/html/live_feed.json"),
-        ROOT / "live_feed.json",
-        ROOT / "deploy" / "quantsite" / "live_feed.json",
-    ]
-    data = None
-    for p in candidates:
-        if p.is_file():
-            try:
-                data = json.loads(p.read_text(encoding="utf-8"))
-                break
-            except (OSError, json.JSONDecodeError):
-                continue
-    if not data:
-        return "今日實盤資料尚未就緒，請稍後再試。"
-    tape = data.get("tape") or data.get("events") or data.get("items") or []
-    if isinstance(data, dict) and not tape:
-        for k in ("signals", "fills", "rows"):
-            if isinstance(data.get(k), list):
-                tape = data[k]
-                break
-    lines = ["📊 今日實盤摘要"]
-    if isinstance(tape, list) and tape:
-        for row in tape[:6]:
-            if isinstance(row, dict):
-                lines.append(
-                    "· {0} {1} {2}".format(
-                        row.get("symbol") or row.get("sym") or "",
-                        row.get("side") or row.get("action") or "",
-                        row.get("strategy") or row.get("name") or "",
-                    ).strip()
-                )
-            else:
-                lines.append("· {0}".format(row))
-    else:
-        lines.append("目前沒有新的成交紀錄。")
-    return "\n".join(lines)
+    await reply(update, "無法識別。網站登入請傳 /bind 或把 4 位碼填回官網。")
 
 
 def _latest_ai_text() -> str:
@@ -232,9 +130,6 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     if not q:
         return
     await q.answer()
-    if q.data == "today_live":
-        await q.message.reply_text(_live_summary(), reply_markup=menu_markup())
-        return
     if q.data == "latest_ai":
         await q.message.reply_text(_latest_ai_text(), reply_markup=menu_markup())
         return

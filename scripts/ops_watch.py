@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """VPS health alerts + daily ops digest to ADMIN_CHAT_ID.
 
-Intended cron: `0 * * * *` (once per hour). Thresholds below still apply
-at that cadence (e.g. live_feed older than 3 minutes when the hourly job runs).
+Intended cron: `0 * * * *` (once per hour). Checks quant-hub service,
+Hub /health and the quantalpha.space site availability only.
 """
 from __future__ import annotations
 
@@ -30,8 +30,6 @@ ADMIN = (os.environ.get("ADMIN_CHAT_ID") or "").strip()
 HUB_HEALTH = (os.environ.get("PUBLIC_BASE_URL") or "https://api.quantalpha.space").rstrip("/") + "/health"
 SITE = "https://quantalpha.space"
 ALERT_COOLDOWN = 25 * 60
-FEED_STALE_SEC = 180
-LB_STALE_SEC = 36 * 3600
 
 
 def _now():
@@ -72,13 +70,6 @@ def unit_active(name: str) -> bool:
         return False
 
 
-def file_age(path: Path) -> float:
-    try:
-        return time.time() - path.stat().st_mtime
-    except OSError:
-        return 1e12
-
-
 def http_ok(url: str) -> bool:
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "QuantOpsWatch/1"})
@@ -88,82 +79,29 @@ def http_ok(url: str) -> bool:
         return False
 
 
-def json_updated(path: Path) -> str:
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-        return str(data.get("updated_at") or data.get("hygiene_at") or "")[:19]
-    except Exception:
-        return ""
-
-
 def collect_issues() -> list[str]:
     issues = []
-    if Path("/root/quantsite").is_dir():
-        if not unit_active("tg-bot") and not unit_active("tg-bot.service"):
-            issues.append("tg-bot.service 未運行")
-        if not unit_active("quant-hub") and not unit_active("quant-hub.service"):
-            issues.append("quant-hub.service 未運行")
-    feed = Path("/var/www/html/live_feed.json")
-    if not feed.is_file():
-        feed = ROOT / "live_feed.json"
-    age = file_age(feed)
-    if age > FEED_STALE_SEC:
-        issues.append("live_feed.json 已 {0:.0f} 秒未更新".format(age))
+    if not unit_active("quant-hub") and not unit_active("quant-hub.service"):
+        issues.append("quant-hub.service 未運行")
     if not http_ok(HUB_HEALTH):
         issues.append("Hub /health 無響應 ({0})".format(HUB_HEALTH))
     if not http_ok(SITE + "/"):
         issues.append("官網 https://quantalpha.space/ 無法訪問")
-    lb = Path("/var/www/html/leaderboard.json")
-    if not lb.is_file():
-        lb = ROOT / "leaderboard.json"
-    if file_age(lb) > LB_STALE_SEC:
-        issues.append("leaderboard.json 超過 36 小時未刷新")
     return issues
 
 
 def daily_text() -> str:
-    feed = Path("/var/www/html/live_feed.json")
-    if not feed.is_file():
-        feed = ROOT / "live_feed.json"
-    lb = Path("/var/www/html/leaderboard.json")
-    if not lb.is_file():
-        lb = ROOT / "leaderboard.json"
-    stj = Path("/var/www/html/strategies.json")
-    if not stj.is_file():
-        stj = ROOT / "strategies.json"
-    n_strat = 0
-    try:
-        n_strat = len(json.loads(stj.read_text(encoding="utf-8")).get("strategies") or [])
-    except Exception:
-        pass
-    n_tape = 0
-    try:
-        n_tape = len(json.loads(feed.read_text(encoding="utf-8")).get("exec_log") or [])
-    except Exception:
-        pass
     now = _now().strftime("%Y-%m-%d %H:%M")
     return (
         "📊 QUANT.ALPHA 日報 {0} (UTC+8)\n"
         "· 官網 {1}\n"
         "· Hub {2}\n"
-        "· tg-bot {3} · hub {4}\n"
-        "· live_feed 延遲 {5:.0f}s · 成交帶 {6} 條\n"
-        "· 廣場策略 {7} 條 · 更新 {8}\n"
-        "· 排行榜年齡 {9:.1f}h · 更新 {10}\n"
-        "· 歷史回測：每日 00:00 `calc_rankings --days 60 --full --hero-scan`（多周期择优）\n"
-        "· AI 挖礦：02/08/14/20 點 pipeline"
+        "· quant-hub {3}"
     ).format(
         now,
         "OK" if http_ok(SITE + "/") else "FAIL",
         "OK" if http_ok(HUB_HEALTH) else "FAIL",
-        "active" if unit_active("tg-bot") or unit_active("tg-bot.service") else "down",
         "active" if unit_active("quant-hub") or unit_active("quant-hub.service") else "down",
-        file_age(feed),
-        n_tape,
-        n_strat,
-        json_updated(stj) or "n/a",
-        file_age(lb) / 3600.0,
-        json_updated(lb) or "n/a",
     )
 
 

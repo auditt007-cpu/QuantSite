@@ -11,33 +11,18 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#000000">
-  <!-- [REPLACE-TAG] -->
-  <!-- [PLAIN-TAG] -->
-  <title>主力多空雷达 · 实盘作战室</title>
+  <title>实时作战室</title>
   <link rel="stylesheet" href="./styles.css?v=202608251308-be4a65b" />
   <link rel="stylesheet" href="./css/mobile-global.css?v=202608251308-be4a65b" />
-  <link rel="stylesheet" href="./css/bloomberg-system.css?v=202608251308-be4a65b" />
-  <link rel="stylesheet" href="./css/bloomberg-dark.css?v=202608251308-be4a65b" />
-  <link rel="stylesheet" href="./css/live-room.css?v=202608251308-be4a65b" />
-  <link rel="stylesheet" href="./css/plaza-cards.css?v=202608251308-be4a65b" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Roboto+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./css/gzbg-theme.css?v=20260830-gzbg" />
-  <link rel="stylesheet" href="./css/chrome-lock.css?v=202608251308-be4a65b" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/alpha-theme.css?v=20260830-qa" />
 </head>
-<!-- [REPLACE-TAG] -->
-<body class="live-page monitor-dash" data-title-key="titleLive">
+<body class="live-page monitor-dash" data-title-key="titleLive" data-page="live">
   <div class="site-sticky-chrome">
     <header class="topbar">
       <a class="brand" href="./index.html">
         <div class="logo"></div>
         <div class="brand-text">
           <h1>广州表哥量化战队</h1>
-          <!-- [PLAIN-TAG] -->
           <p class="site-slogan">专为小资金打造「百 U 翻倍滚仓计划」</p>
         </div>
       </a>
@@ -48,134 +33,42 @@
         <button type="button" class="nav-toggle" id="navToggle" aria-label="選單" data-i18n-aria="ariaMenu">☰</button>
       </div>
       <div class="nav-actions" id="navActions">
-        <a class="nav-link" href="./strategies.html" data-i18n="navTerminal">策略榜</a>
-        <a class="nav-link nav-link-live active" href="./live.html" data-i18n="navLive">直播作戰室</a>
+        <a class="nav-link" href="./live.html" data-i18n="navLive">实时作战室</a>
         <div class="lang-pills" role="group" aria-label="Language">
           <button type="button" data-lang="zh-CN">简体中文</button>
           <button type="button" data-lang="zh-Hant">繁體（台灣）</button>
         </div>
       </div>
     </header>
-    <div class="ticker-bar" id="tickerBar" aria-label="Market ticker">
-      <div class="ticker-track" id="tickerTrack">
-        <span class="ticker-pill" data-sym="BTCUSDT"><span class="tp-sym">BTC</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
-        <span class="ticker-pill" data-sym="ETHUSDT"><span class="tp-sym">ETH</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
-        <span class="ticker-pill" data-sym="SOLUSDT"><span class="tp-sym">SOL</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
-        <span class="ticker-pill" data-sym="ONDOUSDT"><span class="tp-sym">ONDO</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
-        <span class="ticker-pill" data-sym="DOGEUSDT"><span class="tp-sym">DOGE</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
-        <span class="ticker-pill" data-sym="SUIUSDT"><span class="tp-sym">SUI</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
-        <span class="ticker-pill" data-sym="NEARUSDT"><span class="tp-sym">NEAR</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
-        <span class="ticker-pill" data-sym="PEPEUSDT"><span class="tp-sym">PEPE</span><span class="tp-px" data-px>—</span><span class="tp-chg" data-chg>▲ —</span></span>
-      </div>
-    </div>
-    </div>
-  <div class="wrap wide">
-<main class="cmd-main">
-  <div class="live-signal-strip" id="liveSignalStrip" aria-label="实盘信号流">
-    <div class="live-signal-head"><span class="ls-dot"></span>实盘信号流 · 与 Telegram 群 100% 同步</div>
-    <ol class="live-signal-list" id="liveSignalList">
-      <li class="ls-idle">正在拉取实盘战报…</li>
-    </ol>
   </div>
-
-      <div class="cmd-voice-bar" id="cmdVoiceBar">
-        <div class="cmd-toolbar">
-          <button type="button" class="cmd-voice-btn is-on" id="liveMuteBtn" aria-pressed="true">
-            <span class="cmd-voice-pulse" aria-hidden="true"></span>
-            <span id="liveMuteLabel" data-i18n="liveMuteOn">實況語音播報：已啟用</span>
-          </button>
-          <button type="button" class="cmd-add-btn" id="cmdAddBtn" data-i18n="watchAdd">➕ 添加幣種</button>
-        </div>
-      </div>
-      <div class="cmd-add-panel" id="cmdAddPanel" aria-label="Restore coins"></div>
-      <p class="cmd-lead">主力多空雷达 · 实盘作战室 —— 实时清算警报与开平仓信号流，全站跟随。</p>
-      <section class="coin-grid" id="coinGrid" aria-label="Watchlist sparkline matrix"></section>
-      <section class="radar-board" aria-label="1-hour signal summary">
-        <header class="radar-head">
-          <span class="radar-kicker">戰情雷達</span>
-          <span class="radar-title" data-i18n="radarTitle">近 1 小時戰情匯總（自選全幣種）</span>
-        </header>
-        <div class="radar-viewport" id="radarViewport">
-          <div class="radar-list" id="radarList">
-            <div class="radar-idle" data-i18n="radarIdle">戰情雷達全天候掃描中，各幣種策略就緒...</div>
-          </div>
-        </div>
-      </section>
+  <div class="wrap wide">
+    <main class="cmd-main">
+      <p class="cmd-lead">实时作战室已下线，实盘信号请关注 Telegram 信号群。</p>
     </main>
-
     <footer class="site-foot">
       <div class="foot-cta">
         <button type="button" class="foot-cta-btn btn-join-tg" data-community-open="1" target="_blank" rel="noopener">立即开启 API 一键自动跟单通道 →</button>
-        <!-- [PLAIN-TAG] -->
         <p class="foot-disc" data-i18n="footDisc">广州表哥 是獨立的策略研究和寫程序工具，不是投資建議。幣價漲跌很兇，請自己控制好倉位。</p>
       </div>
       <div class="foot-brand">
         <div class="foot-logo-mark">GZBG QUANT</div>
         <nav class="foot-links">
-        <a href="./about.html" data-i18n="navAbout">[ 關於我們 ]</a>
-        <span class="foot-sep">·</span>
-        <a href="./strategies.html" data-i18n="navTerminal">策略榜</a>
-        <span class="foot-sep">·</span>
-        <a href="#" data-community-open="1" target="_blank" rel="noopener" data-get-strategy data-i18n="footTg">[ Telegram 獲取策略 ]</a>
-      </nav>
+          <a href="./about.html" data-i18n="navAbout">[ 關於我們 ]</a>
+          <span class="foot-sep">·</span>
+          <a href="#" data-community-open="1" target="_blank" rel="noopener" data-get-strategy data-i18n="footTg">[ Telegram 獲取策略 ]</a>
+        </nav>
       </div>
     </footer>
   </div>
-
-  <div class="coin-modal-bg" id="coinModalBg" role="dialog" aria-modal="true" aria-labelledby="coinModalTitle">
-    <div class="coin-modal">
-      <div class="coin-modal-head">
-        <h3 id="coinModalTitle">BTC/USDT</h3>
-        <button type="button" class="coin-modal-x" id="coinModalClose" aria-label="關閉">×</button>
-      </div>
-      <div class="coin-modal-px-row">
-        <div class="coin-modal-px coin-px" id="coinModalPx" data-last="">—</div>
-        <span class="coin-chg" id="coinModalChg" data-chg>—</span>
-      </div>
-      <div class="coin-modal-meta" id="coinModalMeta"></div>
-      <div class="coin-modal-spark-wrap">
-        <canvas class="coin-modal-spark" id="coinModalSpark" width="640" height="280"></canvas>
-      </div>
-      <div class="coin-modal-marks" id="coinModalMarks"></div>
-    </div>
-  </div>
-
-  <div class="voice-hint" id="voiceHint" hidden>
-    <span class="voice-hint-dot" aria-hidden="true"></span>
-    <!-- [REPLACE-TAG] -->
-    <!-- [PLAIN-TAG] -->
-    <span data-i18n="voiceHint">点击开启实盘信号语音播报</span>
-  </div>
   <div class="toast" id="toast"></div>
 
-  <script src="./js/binance-feed.js?v=202608251308-be4a65b"></script>
   <script src="./js/nav.js?v=202608251308-be4a65b"></script>
   <script src="./config.js?v=202608251308-be4a65b"></script>
-  <script src="./js/meta-events.js?v=202608251308-be4a65b"></script>
   <script src="./i18n.js?v=202608251308-be4a65b"></script>
   <script src="./js/i18n-boot.js?v=202608251308-be4a65b"></script>
-<script src="./js/identity.js?v=202608251308-be4a65b"></script>
+  <script src="./js/identity.js?v=202608251308-be4a65b"></script>
   <script src="./js/compliance.js?v=202608251308-be4a65b"></script>
-  <script src="./js/lead-bind.js?v=202608251308-be4a65b"></script>
-  <script src="./js/plaza-ai.js?v=202608251308-be4a65b"></script>
-  <script src="./js/voice-templates.js?v=202608251308-be4a65b"></script>
-  <script src="./js/edge-speak.js?v=202608251308-be4a65b"></script>
-  <script src="./js/live-room.js?v=202608251308-be4a65b"></script>
-<script src="/ajax-loader.js"></script>
-<script src="/js/fb-beacon.js"></script>
-<script>
-(function(){ 
-  function el(id){ return document.getElementById(id); }
-  fetch('./quant_battles.json', {cache:'no-store'})
-    .then(function(r){ if(!r.ok) throw 0; return r.json(); })
-    .then(function(d){ 
-      var list=el('liveSignalList'); if(!list || !Array.isArray(d.recent) || !d.recent.length) return;
-      list.innerHTML = d.recent.slice(0,10).map(function(t){
-        var dir = t.direction==='LONG' ? '🟢 多单' : '🔴 空单';
-        return '<li><code>'+t.id+'</code> '+(t.symbol||'')+' '+(t.timeframe||'15m')+' '+dir+' · <b>'+t.label+'</b></li>';
-      }).join('');
-    }).catch(function(){});
-})();
-</script>
+  <script src="./js/community.js?v=20260831-qa"></script>
+  <script src="./js/alpha-shell.js?v=20260830-qa"></script>
 </body>
 </html>

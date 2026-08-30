@@ -24,8 +24,6 @@ def _i(key: str, default: int) -> int:
 
 TG_BOT_TOKEN = _s("TG_BOT_TOKEN")
 ADMIN_CHAT_ID = _s("ADMIN_CHAT_ID")
-META_CAPI_TOKEN = _s("META_CAPI_TOKEN")
-META_PIXEL_ID = _s("META_PIXEL_ID")
 DEEPSEEK_API_KEY = _s("DEEPSEEK_API_KEY")
 DEEPSEEK_BASE_URL = _s("DEEPSEEK_BASE_URL") or (
     "https://openrouter.ai/api/v1" if DEEPSEEK_API_KEY.startswith("sk-or-") else "https://api.deepseek.com"
