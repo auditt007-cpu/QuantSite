@@ -4,7 +4,7 @@
      data/small_fund.json   百U翻仓计划
      data/tp3_tracker.json  TP3 极值追踪
      data/alt_signals.json  山寨爆点专线
-     data/whale_radar.json  主力异动雷达
+     data/whale_radar.json  巨鲸雷达
    取数策略：同源 JSON 优先 → api.quantalpha.space 远端回退
    ============================================================ */
 (function (root) {
@@ -133,7 +133,7 @@
     });
   }
 
-  /* ---------- 模块 03 · 主力异动雷达 ---------- */
+  /* ---------- 模块 03 · 巨鲸雷达 ---------- */
   function renderWhale(card) {
     var box = el("whalePanel");
     if (!box) return;

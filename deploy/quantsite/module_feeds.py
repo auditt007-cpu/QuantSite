@@ -7,7 +7,7 @@
   /var/www/html/data/small_fund.json   百U翻仓计划  {plan:[{label,val,done}], kpi:{current_mult,win_rate,days}}
   /var/www/html/data/tp3_tracker.json  TP3 极值追踪  {signals:[{sym,tf,dir,px,prog,hit,tp3}]}
   /var/www/html/data/alt_signals.json  山寨爆点专线  {signals:[{sym,dir,px,chg,conf}]}
-  /var/www/html/data/whale_radar.json  主力异动雷达  {flows:[{sym,side,pct,amt}]}
+  /var/www/html/data/whale_radar.json  巨鲸雷达  {flows:[{sym,side,pct,amt}]}
 
 数据源（均为 tg_engine 每 5s 产出的本地文件）：
   live_feed.json           活跃信号 active_signals_3h / exec_log
@@ -36,6 +36,11 @@ EXEC = os.path.join(APP, "live_exec_log.json")
 LB = os.path.join(APP, "leaderboard.json")
 
 SCAN_TF = "1h"
+
+# 巨鲸雷达真实数据源（whale_radar.py 常驻产出，OKX 全网强平/盘口异动）
+REAL_WHALE = "/opt/gh_automation/data/whale_radar.json"
+if os.name == "nt":
+    REAL_WHALE = r"E:\git_auto\data\whale_radar.json"
 
 
 def log(msg: str) -> None:
@@ -257,9 +262,19 @@ def build_alt(feed: dict | None, pos: dict | None, exec_log: list | None) -> dic
 
 
 # ---------------------------------------------------------------------------
-# 04 · 主力异动雷达
+# 04 · 巨鲸雷达 Whale Radar（真实数据优先）
 # ---------------------------------------------------------------------------
 def build_whale(feed: dict | None, pos: dict | None, exec_log: list | None) -> dict:
+    # 优先使用巨鲸雷达真实数据：OKX 全网强平明细 + 盘口异动，每 20s 由
+    # /opt/gh_automation 的 whale_radar.py 产出（flows schema 与前端兼容）
+    real = load_json(REAL_WHALE)
+    if isinstance(real, dict) and real.get("flows"):
+        out: dict = {"flows": real["flows"][:6]}
+        if isinstance(real.get("stats"), dict):
+            out["stats"] = real["stats"]
+            out["updated_at"] = real["stats"].get("updated_at")
+        return out
+    # 回退：由跟单信号模拟主力异动（真实源缺失时兜底）
     flows = []
     if not feed:
         return {"flows": flows}
