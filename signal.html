@@ -2,150 +2,168 @@
 <html lang="zh">
 <head>
 <meta charset="utf-8">
-<title>实盘策略追踪看板 · OBS Browser Source</title>
+<title>量化执行终端 · 实盘状态监视器</title>
 <style>
-  /* ========== OBS 透明底 · 赛博朋克磨砂玻璃卡片 ========== */
+  /* ============================================================
+     量化执行终端 · OBS Browser Source
+     透明底 / 赛博朋克毛玻璃 / 等宽工程字体 / 机械化标签
+     ============================================================ */
   :root {
-    --neon:  #00ffa3;          /* 荧光绿 */
-    --cyan:  #00e5ff;          /* 青色 */
-    --fire:  #ff6a00;          /* 冲击态橙红 */
-    --red:   #ff4d6d;          /* 亏损红 */
-    --ink:   #e6fff5;
-    --muted: #7fa8a0;
+    --bg:    rgba(10, 14, 23, 0.92);   /* 终端深色毛玻璃 */
+    --neon:  #00ffa3;                  /* 荧光绿（盈利/达成） */
+    --cyan:  #00e5ff;                  /* 青色（主色） */
+    --amber: #ffb300;                  /* 琥珀（警示/强调） */
+    --fire:  #ff6a00;                  /* 冲击态橙红 */
+    --red:   #ff4d6d;                  /* 亏损红 */
+    --ink:   #d8efe9;
+    --muted: #6f8a94;
+    --line:  rgba(0, 229, 255, 0.16);
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { background: transparent; }
   body {
-    padding: 10px;
-    font-family: "Segoe UI", "Microsoft YaHei", Consolas, sans-serif;
+    padding: 8px;
+    font-family: "Roboto Mono", "Consolas", "Segoe UI", monospace;
     -webkit-font-smoothing: antialiased;
   }
 
-  .signal-card {
+  /* ---------- 终端主容器：460px 宽，高度自适应 ---------- */
+  .terminal {
     position: relative;
-    width: 420px;
-    border-radius: 12px;
-    padding: 13px 16px 11px;
-    background: linear-gradient(160deg, rgba(10, 18, 28, 0.82), rgba(6, 10, 18, 0.78));
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid rgba(0, 255, 170, 0.40);
-    box-shadow: 0 0 22px rgba(0, 255, 163, 0.18),
-                inset 0 0 30px rgba(0, 229, 255, 0.05);
+    width: 460px;
+    border-radius: 10px;
+    padding: 12px 14px 10px;
+    background: var(--bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(0, 229, 255, 0.34);
+    box-shadow: 0 0 24px rgba(0, 229, 255, 0.14),
+                0 0 46px rgba(255, 179, 0, 0.05),
+                inset 0 0 34px rgba(0, 229, 255, 0.04);
     color: var(--ink);
     overflow: hidden;
   }
-
-  /* —— 周期性对角扫光（3.6s 一轮） —— */
-  .signal-card::before {
+  /* 周期性对角扫光 */
+  .terminal::before {
     content: "";
     position: absolute; top: -50%; left: -90%;
-    width: 55%; height: 200%;
+    width: 46%; height: 200%;
     background: linear-gradient(105deg,
-      transparent 20%, rgba(140, 255, 225, 0.07) 45%,
-      rgba(200, 255, 245, 0.14) 50%,
-      rgba(140, 255, 225, 0.07) 55%, transparent 80%);
+      transparent 20%, rgba(140, 255, 225, 0.05) 45%,
+      rgba(200, 255, 245, 0.10) 50%,
+      rgba(140, 255, 225, 0.05) 55%, transparent 80%);
     transform: skewX(-20deg);
     animation: sweep 3.6s ease-in-out infinite;
-    pointer-events: none; z-index: 5;
+    pointer-events: none; z-index: 6;
   }
-  @keyframes sweep {
-    0%        { left: -90%; }
-    60%, 100% { left: 190%; }
-  }
-
-  /* —— 顶部四角霓虹饰角 —— */
-  .signal-card::after {
+  @keyframes sweep { 0% { left: -90%; } 60%, 100% { left: 200%; } }
+  /* 顶部霓虹饰线 */
+  .terminal::after {
     content: "";
-    position: absolute; inset: 0;
-    border-radius: 12px;
-    pointer-events: none; z-index: 4;
-    background:
-      linear-gradient(90deg, var(--cyan), transparent 30%) top left / 46px 1.5px no-repeat,
-      linear-gradient(180deg, var(--cyan), transparent 30%) top left / 1.5px 24px no-repeat,
-      linear-gradient(270deg, var(--cyan), transparent 30%) bottom right / 46px 1.5px no-repeat,
-      linear-gradient(0deg, var(--cyan), transparent 30%) bottom right / 1.5px 24px no-repeat;
-    opacity: 0.75;
+    position: absolute; top: 0; left: 12px; right: 12px; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--cyan) 30%, var(--amber) 70%, transparent);
+    opacity: 0.8; pointer-events: none; z-index: 5;
   }
 
-  .row { display: flex; align-items: center; }
-
-  /* —— 行1：TG 同步标签 + 呼吸灯 —— */
-  .row.top { margin-bottom: 8px; }
+  /* ---------- 顶部：系统状态栏 ---------- */
+  .sys-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
   .live-dot {
-    width: 9px; height: 9px; border-radius: 50%;
-    background: var(--neon);
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--neon); flex: none;
     animation: pulse 1.6s ease-in-out infinite;
   }
   @keyframes pulse {
-    0%, 100% { opacity: 1;   transform: scale(1);    box-shadow: 0 0 6px var(--neon); }
-    50%      { opacity: 0.4; transform: scale(0.80); box-shadow: 0 0 15px var(--neon); }
+    0%, 100% { opacity: 1;   transform: scale(1);    box-shadow: 0 0 5px var(--neon); }
+    50%      { opacity: 0.4; transform: scale(0.78); box-shadow: 0 0 13px var(--neon); }
   }
-  .live-text {
-    margin-left: 8px;
-    font-size: 12px; font-weight: bold; letter-spacing: 1px;
-    color: var(--neon);
-    text-shadow: 0 0 8px rgba(0, 255, 163, 0.45);
+  .engine {
+    font-size: 11px; font-weight: bold; letter-spacing: 1.2px;
+    color: var(--cyan); text-shadow: 0 0 8px rgba(0, 229, 255, 0.5);
+  }
+  .sys-nominal {
+    font-size: 9px; letter-spacing: 0.8px; color: var(--neon);
+    border: 1px solid rgba(0, 255, 163, 0.35); border-radius: 3px;
+    padding: 1.5px 6px; background: rgba(0, 255, 163, 0.07);
   }
   .tg {
-    margin-left: auto;
-    font-size: 11px; color: var(--muted);
-    border: 1px solid rgba(0, 229, 255, 0.25);
-    border-radius: 99px; padding: 2px 10px;
-    background: rgba(0, 229, 255, 0.06);
+    margin-left: auto; font-size: 10px; color: var(--amber);
+    border: 1px solid rgba(255, 179, 0, 0.35); border-radius: 3px;
+    padding: 1.5px 7px; background: rgba(255, 179, 0, 0.07);
+    text-shadow: 0 0 6px rgba(255, 179, 0, 0.35);
   }
 
-  /* —— 行2：交易对 / 方向 / 杠杆 / 建仓时间 —— */
-  .row.pair { margin-bottom: 7px; gap: 8px; }
-  .symbol { font-size: 20px; font-weight: 800; letter-spacing: 0.5px; }
-  .dir {
-    font-size: 12px; font-weight: bold; padding: 2px 9px; border-radius: 6px;
+  /* ---------- 24H 战报指标栏（三项横排） ---------- */
+  .metrics {
+    display: flex; gap: 8px; margin-bottom: 10px;
   }
-  .dir.long  { color: var(--neon); background: rgba(0, 255, 163, 0.10);
-               border: 1px solid rgba(0, 255, 163, 0.5); text-shadow: 0 0 8px rgba(0, 255, 163, 0.6); }
-  .dir.short { color: var(--red);  background: rgba(255, 77, 109, 0.10);
-               border: 1px solid rgba(255, 77, 109, 0.5); text-shadow: 0 0 8px rgba(255, 77, 109, 0.6); }
-  .lev {
-    font-size: 12px; font-weight: bold; color: var(--cyan);
-    border: 1px solid rgba(0, 229, 255, 0.4); border-radius: 6px; padding: 2px 8px;
-    background: rgba(0, 229, 255, 0.07);
+  .metric {
+    flex: 1; min-width: 0;
+    background: rgba(0, 229, 255, 0.045);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 5px 8px 6px;
+    text-align: center;
   }
-  .entry-time { margin-left: auto; font-size: 11px; color: var(--muted); }
+  .metric .k {
+    display: block; font-size: 8.5px; letter-spacing: 1px;
+    color: var(--muted); margin-bottom: 3px; white-space: nowrap;
+  }
+  .metric .v {
+    display: block; font-size: 13px; font-weight: bold;
+    color: var(--ink); white-space: nowrap;
+  }
+  .metric .v.win {
+    color: var(--neon);
+    text-shadow: 0 0 9px rgba(0, 255, 163, 0.55);
+    animation: metricGlow 2.4s ease-in-out infinite;
+  }
+  @keyframes metricGlow {
+    0%, 100% { text-shadow: 0 0 6px rgba(0, 255, 163, 0.4); }
+    50%      { text-shadow: 0 0 13px rgba(0, 255, 163, 0.8); }
+  }
 
-  /* —— 行3：入场价 + 状态 —— */
-  .row.entry { margin-bottom: 12px; gap: 14px; }
-  .muted { font-size: 11px; color: var(--muted); }
-  .entry-px { font-size: 15px; font-weight: bold; color: var(--cyan);
-              text-shadow: 0 0 8px rgba(0, 229, 255, 0.35); }
-  .status-text { margin-left: auto; font-size: 11px; color: var(--muted); }
-
-  /* —— 进度轨道区（上：节点名 / 中：轨道 / 下：目标价） —— */
-  .track-wrap { padding: 0 10px; margin-bottom: 10px; }
-  .label-row, .price-row {
-    position: relative; height: 15px; font-size: 10px; color: var(--muted);
+  /* ---------- 中部：活跃订单卡 ---------- */
+  .order {
+    background: rgba(0, 229, 255, 0.03);
+    border: 1px solid var(--line);
+    border-left: 2px solid var(--cyan);
+    border-radius: 7px;
+    padding: 8px 10px 7px;
+    margin-bottom: 8px;
   }
-  .label-row span, .price-row span {
-    position: absolute; transform: translateX(-50%); white-space: nowrap;
-  }
-  .label-row span.hit { color: var(--neon); }
-  .label-row span.now { color: var(--fire); font-weight: bold; }
+  .order:last-of-type { margin-bottom: 9px; }
 
+  .order-head { display: flex; align-items: center; gap: 7px; margin-bottom: 7px; }
+  .sym { font-size: 14px; font-weight: bold; letter-spacing: 0.5px; }
+  .dir { font-size: 10px; font-weight: bold; padding: 1.5px 7px; border-radius: 4px; }
+  .dir.long {
+    color: var(--neon); border: 1px solid rgba(0, 255, 163, 0.5);
+    background: rgba(0, 255, 163, 0.08); text-shadow: 0 0 6px rgba(0, 255, 163, 0.6);
+  }
+  .dir.short {
+    color: var(--red); border: 1px solid rgba(255, 77, 109, 0.5);
+    background: rgba(255, 77, 109, 0.08); text-shadow: 0 0 6px rgba(255, 77, 109, 0.6);
+  }
+  .ts { margin-left: auto; font-size: 9px; color: var(--muted); letter-spacing: 0.4px; }
+  .entry-px { font-size: 10.5px; font-weight: bold; color: var(--cyan);
+              text-shadow: 0 0 7px rgba(0, 229, 255, 0.35); }
+
+  /* 进度轨道 + 4 节点 */
   .track {
-    position: relative; height: 10px; margin: 3px 0;
-    border-radius: 5px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(0, 229, 255, 0.18);
+    position: relative; height: 8px; margin: 14px 4px 16px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(0, 229, 255, 0.16);
   }
   .fill {
     position: absolute; left: 0; top: 0; bottom: 0;
-    border-radius: 5px;
+    border-radius: 4px;
     background: linear-gradient(90deg, var(--neon), var(--cyan));
-    box-shadow: 0 0 10px rgba(0, 255, 163, 0.5);
+    box-shadow: 0 0 9px rgba(0, 255, 163, 0.5);
     overflow: hidden;
     transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
   }
-  /* 填充内部由左向右流动的光斑 */
-  .fill::after {
+  .fill::after {   /* 流动光斑 */
     content: "";
     position: absolute; top: 0; left: -40%;
     width: 40%; height: 100%;
@@ -154,109 +172,121 @@
   }
   @keyframes flow { 0% { left: -40%; } 100% { left: 110%; } }
 
-  /* —— 节点（入场 / TP1 / TP2 / TP3） —— */
   .node {
     position: absolute; top: 50%;
-    width: 20px; height: 20px; border-radius: 50%;
+    width: 17px; height: 17px; border-radius: 50%;
     transform: translate(-50%, -50%);
     display: flex; align-items: center; justify-content: center;
-    font-size: 11px; font-weight: bold;
-    z-index: 3;
+    font-size: 9.5px; font-weight: bold; z-index: 3;
   }
   .node.done {
     background: #0b3d2a; color: var(--neon);
     border: 1.5px solid var(--neon);
-    box-shadow: 0 0 10px rgba(0, 255, 163, 0.65);
-    text-shadow: 0 0 6px rgba(0, 255, 163, 0.8);
+    box-shadow: 0 0 9px rgba(0, 255, 163, 0.6);
   }
-  .node.firing {
-    background: #2a1505;
-    border: 1.5px solid var(--fire);
+  .node.active {
+    background: #2a1505; border: 1.5px solid var(--fire);
     animation: fireGlow 0.9s ease-in-out infinite;
   }
-  .node.firing .flame {
-    display: inline-block; font-size: 12px; line-height: 1;
+  .node.active .flame {
+    display: inline-block; font-size: 10px; line-height: 1;
     animation: bounce 0.7s ease-in-out infinite;
   }
   @keyframes fireGlow {
-    0%, 100% { box-shadow: 0 0 6px rgba(255, 106, 0, 0.6); }
-    50%      { box-shadow: 0 0 16px rgba(255, 106, 0, 1),
-                           0 0 28px rgba(255, 60, 0, 0.55); }
+    0%, 100% { box-shadow: 0 0 5px rgba(255, 106, 0, 0.6); }
+    50%      { box-shadow: 0 0 14px rgba(255, 106, 0, 1), 0 0 24px rgba(255, 60, 0, 0.5); }
   }
   @keyframes bounce {
     0%, 100% { transform: translateY(0) scale(1); }
-    50%      { transform: translateY(-3px) scale(1.12); }
+    50%      { transform: translateY(-2.5px) scale(1.12); }
   }
-  .node.idle {
+  .node.pending {
     background: rgba(20, 28, 38, 0.92);
-    border: 1.5px solid rgba(255, 255, 255, 0.18);
-    color: #5a6a78;
+    border: 1.5px solid rgba(255, 255, 255, 0.16);
+  }
+  .node.pending .dot { width: 4px; height: 4px; border-radius: 50%; background: #5a6a78; }
+
+  /* 节点标签（上）与价格（下） */
+  .node-label {
+    position: absolute; bottom: 100%; left: 50%;
+    transform: translateX(-50%); margin-bottom: 4px;
+    font-size: 8.5px; white-space: nowrap; color: var(--muted); letter-spacing: 0.4px;
+  }
+  .node.done  .node-label { color: var(--neon); }
+  .node.active .node-label { color: var(--fire); font-weight: bold; }
+  .node-price {
+    position: absolute; top: 100%; left: 50%;
+    transform: translateX(-50%); margin-top: 4px;
+    font-size: 8.5px; white-space: nowrap; color: #9fb8c0;
   }
 
-  /* —— 行4：进度文字 + 超大盈亏 —— */
-  .row.bottom { justify-content: space-between; align-items: flex-end; }
-  .prog { font-size: 12px; color: var(--muted); }
-  .prog b { color: var(--cyan); font-size: 14px; text-shadow: 0 0 8px rgba(0, 229, 255, 0.4); }
-  .pnl-wrap { text-align: right; }
-  .pnl-wrap .muted { display: block; margin-bottom: 1px; }
+  /* 状态 + 盈亏 */
+  .order-foot { display: flex; align-items: center; justify-content: space-between; }
+  .state { font-size: 9.5px; color: var(--amber); letter-spacing: 0.4px; }
+  .state b { color: var(--cyan); font-weight: bold; }
   .pnl {
-    font-size: 34px; font-weight: 800; line-height: 1;
-    letter-spacing: 0.5px;
+    font-size: 22px; font-weight: 800; line-height: 1;
     color: var(--neon);
     animation: pnlGlow 2.4s ease-in-out infinite;
   }
   .pnl.neg { color: var(--red); animation-name: pnlGlowRed; }
   @keyframes pnlGlow {
-    0%, 100% { text-shadow: 0 0 10px rgba(0, 255, 163, 0.45),
-                           0 0 26px rgba(0, 255, 163, 0.18); }
-    50%      { text-shadow: 0 0 16px rgba(0, 255, 163, 0.75),
-                           0 0 40px rgba(0, 255, 163, 0.32); }
+    0%, 100% { text-shadow: 0 0 8px rgba(0, 255, 163, 0.45), 0 0 20px rgba(0, 255, 163, 0.16); }
+    50%      { text-shadow: 0 0 14px rgba(0, 255, 163, 0.75), 0 0 34px rgba(0, 255, 163, 0.3); }
   }
   @keyframes pnlGlowRed {
-    0%, 100% { text-shadow: 0 0 10px rgba(255, 77, 109, 0.45); }
-    50%      { text-shadow: 0 0 16px rgba(255, 77, 109, 0.75); }
+    0%, 100% { text-shadow: 0 0 8px rgba(255, 77, 109, 0.45); }
+    50%      { text-shadow: 0 0 14px rgba(255, 77, 109, 0.75); }
   }
+
+  /* ---------- 底部：历史战绩跑马灯 ---------- */
+  .ticker {
+    display: flex; align-items: center;
+    border-top: 1px solid var(--line);
+    padding-top: 7px;
+    height: 24px; overflow: hidden;
+  }
+  .ticker-tag {
+    flex: none; font-size: 8.5px; font-weight: bold; letter-spacing: 1px;
+    color: var(--amber); margin-right: 8px;
+    text-shadow: 0 0 6px rgba(255, 179, 0, 0.4);
+  }
+  .ticker-mask { flex: 1; overflow: hidden; position: relative; }
+  .ticker-track {
+    display: inline-flex; white-space: nowrap;
+    animation: ticker 22s linear infinite;
+    will-change: transform;
+  }
+  @keyframes ticker {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .tick-item { font-size: 10px; color: #a8c4cc; margin-right: 26px; }
+  .tick-item b { color: var(--neon); font-weight: bold; }
+  .tick-item .tm { color: var(--muted); }
 </style>
 </head>
 <body>
 
-<div class="signal-card">
-  <!-- 行1：TG 同步验证标签 -->
-  <div class="row top">
+<div class="terminal" id="terminal">
+  <!-- 顶部：系统状态栏 -->
+  <div class="sys-bar">
     <span class="live-dot"></span>
-    <span class="live-text">TG VIP 实盘同步验证</span>
+    <span class="engine">QUANT_SIGNAL_ENGINE v4.2</span>
+    <span class="sys-nominal">SYSTEM STATUS: NOMINAL</span>
     <span class="tg" id="tgGroup"></span>
   </div>
 
-  <!-- 行2：交易对 / 方向 / 杠杆 / 建仓时间 -->
-  <div class="row pair">
-    <span class="symbol" id="symbol"></span>
-    <span class="dir" id="dir"></span>
-    <span class="lev" id="lev"></span>
-    <span class="entry-time" id="entryTime"></span>
-  </div>
+  <!-- 24H 战报指标栏（JS 渲染） -->
+  <div class="metrics" id="metrics"></div>
 
-  <!-- 行3：入场价 + 状态 -->
-  <div class="row entry">
-    <span class="muted">入场价</span>
-    <span class="entry-px" id="entryPx"></span>
-    <span class="status-text" id="statusText"></span>
-  </div>
+  <!-- 活跃订单区（JS 渲染） -->
+  <div id="orders"></div>
 
-  <!-- 进度轨道：入场 → TP1 → TP2 → TP3 -->
-  <div class="track-wrap">
-    <div class="label-row" id="labelRow"></div>
-    <div class="track" id="track"><div class="fill" id="fill"></div></div>
-    <div class="price-row" id="priceRow"></div>
-  </div>
-
-  <!-- 行4：进度 + 超大盈亏 -->
-  <div class="row bottom">
-    <div class="prog">当前进度 <b id="progPct"></b></div>
-    <div class="pnl-wrap">
-      <span class="muted">当前盈亏</span>
-      <div class="pnl" id="pnl"></div>
-    </div>
+  <!-- 底部：历史战绩跑马灯 -->
+  <div class="ticker">
+    <span class="ticker-tag">EXEC_LOG ▸</span>
+    <div class="ticker-mask"><div class="ticker-track" id="tickerTrack"></div></div>
   </div>
 </div>
 
@@ -264,115 +294,163 @@
 "use strict";
 
 /* =========================================================================
- * 策略数据配置（唯一数据源）
- * 修改本对象即可更新看板；接入外部 API 时调用
- *   window.updateSignal({ progress_pct: 80, pnl_pct: 130.2 })
+ * 唯一数据源：量化执行终端渲染数据
+ * 接入外部 API 时调用 window.updateQuantData(patch) 增量更新并重渲染
  * ========================================================================= */
-const currentSignalData = {
-  symbol:       "BTC/USDT",        // 交易对
-  direction:    "LONG",            // LONG（做多）/ SHORT（做空）
-  leverage:     10,                // 杠杆倍数
-  entry_time:   "08-30 13:48 UTC", // 建仓时间
-  entry_price:  78200,             // 入场价
-  tp1:          79100,             // 止盈 1
-  tp2:          79900,             // 止盈 2
-  tp3:          80900,             // 止盈 3
-  progress_pct: 68,                // 当前进度 0-100（入场→TP3）
-  pnl_pct:      114.6,             // 当前盈亏百分比（可负）
-  tg_group:     "@grid_quant_vip", // TG 群号
+window.QUANT_DATA = {
+  system: {
+    tgGroup:    "@grid_quant_vip",
+    winRate24h: "94.2%",
+    stats24h:   "17战 16胜 1损",
+    tpStats:    "16 | 11 | 6"
+  },
+  activeOrders: [
+    {
+      symbol:     "BTC/USDT",
+      direction:  "LONG 做多",
+      leverage:   "20x",
+      entryTime:  "08-30 13:48",
+      entryPrice: "78,200.0",
+      progress:   68,
+      statusText: "正在冲击 TP3",
+      pnl:        "+114.6%",
+      tpNodes: [
+        { label: "入场", price: "78200", status: "done" },
+        { label: "TP1",  price: "79100", status: "done" },
+        { label: "TP2",  price: "79900", status: "done" },
+        { label: "TP3",  price: "80900", status: "active" }
+      ]
+    },
+    {
+      symbol:     "ETH/USDT",
+      direction:  "LONG 做多",
+      leverage:   "20x",
+      entryTime:  "08-30 14:10",
+      entryPrice: "2,540.0",
+      progress:   42,
+      statusText: "正在冲击 TP2",
+      pnl:        "+56.8%",
+      tpNodes: [
+        { label: "入场", price: "2540", status: "done" },
+        { label: "TP1",  price: "2575", status: "done" },
+        { label: "TP2",  price: "2610", status: "active" },
+        { label: "TP3",  price: "2660", status: "pending" }
+      ]
+    }
+  ],
+  historyReports: [
+    { time: "13:20", text: 'SOL/USDT 做多 → TP3 已打靶 <b>(+182%)</b> ✓' },
+    { time: "11:05", text: 'BTC/USDT 做空 → TP2 已打靶 <b>(+86.4%)</b> ✓' },
+    { time: "09:40", text: 'ETH/USDT 做多 → TP1 已达标 <b>(+42.1%)</b> ✓' }
+  ]
 };
 
-/* 节点在轨道上的位置（%）：入场 / TP1 / TP2 / TP3 */
+/* 节点轨道位置（%）：入场 / TP1 / TP2 / TP3 */
 const NODE_POS = [2, 34, 66, 98];
 
-function fmtPx(v) {
-  return v >= 1000
-    ? v.toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 })
-    : v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+function el(tag, cls, html) {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (html !== undefined) n.innerHTML = html;
+  return n;
 }
 
-function render() {
-  const d = currentSignalData;
-
-  /* —— 行1/2/3 基础信息 —— */
-  document.getElementById("tgGroup").textContent = d.tg_group;
-  document.getElementById("symbol").textContent = d.symbol;
-
-  const dirEl = document.getElementById("dir");
-  const isLong = d.direction === "LONG";
-  dirEl.textContent = isLong ? "▲ LONG 做多" : "▼ SHORT 做空";
-  dirEl.className = "dir " + (isLong ? "long" : "short");
-
-  document.getElementById("lev").textContent = d.leverage + "x";
-  document.getElementById("entryTime").textContent = "建仓 " + d.entry_time;
-  document.getElementById("entryPx").textContent = "$" + fmtPx(d.entry_price);
-
-  /* —— 进度条填充 —— */
-  const pct = Math.max(0, Math.min(100, d.progress_pct));
-  document.getElementById("fill").style.width = pct + "%";
-  document.getElementById("progPct").textContent = pct.toFixed(0) + "%";
-
-  /* —— 节点状态：已达成（✓）/ 正在冲击（🔥）/ 未达成（序号） —— */
-  const names  = ["入场", "TP1", "TP2", "TP3"];
-  const prices = [d.entry_price, d.tp1, d.tp2, d.tp3];
-  const reached = NODE_POS.map((p) => pct >= p);
-  const firingIdx = reached.indexOf(false);   // 第一个未达成节点 → 冲击态
-
-  const track = document.getElementById("track");
-  const labelRow = document.getElementById("labelRow");
-  const priceRow = document.getElementById("priceRow");
-  track.querySelectorAll(".node").forEach((n) => n.remove());
-  labelRow.innerHTML = "";
-  priceRow.innerHTML = "";
-
-  for (let i = 0; i < 4; i++) {
-    const node = document.createElement("div");
-    node.className = "node";
-    node.style.left = NODE_POS[i] + "%";
-
-    const label = document.createElement("span");
-    label.style.left = NODE_POS[i] + "%";
-    label.textContent = names[i];
-
-    if (i > 0) {   /* 入场节点下方不重复显示入场价 */
-      const pr = document.createElement("span");
-      pr.style.left = NODE_POS[i] + "%";
-      pr.textContent = "$" + fmtPx(prices[i]);
-      priceRow.appendChild(pr);
-    }
-
-    if (reached[i]) {
-      node.classList.add("done");
-      node.textContent = "✓";
-      label.classList.add("hit");
-    } else if (i === firingIdx) {
-      node.classList.add("firing");
-      node.innerHTML = '<span class="flame">🔥</span>';
-      label.classList.add("now");
-    } else {
-      node.classList.add("idle");
-      node.textContent = String(i);
-    }
-    track.appendChild(node);
-    labelRow.appendChild(label);
+/* ---------- 顶部战报指标栏 ---------- */
+function renderMetrics(d) {
+  const box = document.getElementById("metrics");
+  box.innerHTML = "";
+  const items = [
+    { k: "TP1_HIT_RATE_24H", v: d.winRate24h, win: true },
+    { k: "SIGNALS_TODAY",    v: d.stats24h },
+    { k: "TP1|TP2|TP3 HITS",  v: d.tpStats }
+  ];
+  for (const it of items) {
+    const m = el("div", "metric");
+    m.appendChild(el("span", "k", it.k));
+    m.appendChild(el("b", "v" + (it.win ? " win" : ""), it.v));
+    box.appendChild(m);
   }
-
-  /* —— 状态文案 —— */
-  const st = document.getElementById("statusText");
-  if (pct >= 98)      st.textContent = "🏆 TP3 全部止盈达成";
-  else if (firingIdx > 0) st.textContent = "正在冲击 " + names[firingIdx] + " …";
-  else                st.textContent = "已入场 · 运行中";
-
-  /* —— 超大盈亏（盈利荧光绿 / 亏损红） —— */
-  const pnlEl = document.getElementById("pnl");
-  const pnl = d.pnl_pct;
-  pnlEl.textContent = (pnl >= 0 ? "+" : "") + pnl.toFixed(1) + "%";
-  pnlEl.className = "pnl" + (pnl < 0 ? " neg" : "");
 }
 
-/* 外部更新接口：增量合并数据并重渲染 */
-window.updateSignal = function (patch) {
-  Object.assign(currentSignalData, patch);
+/* ---------- 订单卡（含进度条 + 4 节点） ---------- */
+function renderOrders(orders) {
+  const box = document.getElementById("orders");
+  box.innerHTML = "";
+
+  orders.forEach((o, oi) => {
+    const card = el("div", "order");
+
+    /* 标的信息栏 */
+    const head = el("div", "order-head");
+    head.appendChild(el("span", "sym", o.symbol));
+    const isLong = /LONG|多/.test(o.direction);
+    head.appendChild(el("span", "dir " + (isLong ? "long" : "short"),
+      (isLong ? "▲ " : "▼ ") + o.direction.toUpperCase().replace("做多", "多").replace("做空", "空")
+      + " [" + String(o.leverage).toUpperCase() + "]"));
+    head.appendChild(el("span", "ts", o.entryTime + " UTC"));
+    head.appendChild(el("span", "entry-px", "@" + o.entryPrice));
+    card.appendChild(head);
+
+    /* 进度轨道 + 节点 */
+    const track = el("div", "track");
+    const fill = el("div", "fill");
+    fill.style.width = Math.max(0, Math.min(100, o.progress)) + "%";
+    track.appendChild(fill);
+
+    o.tpNodes.forEach((nd, i) => {
+      const node = el("div", "node " + nd.status);
+      node.style.left = NODE_POS[i] + "%";
+      if (nd.status === "done")         node.innerHTML = "✓";
+      else if (nd.status === "active")  node.innerHTML = '<span class="flame">🔥</span>';
+      else                              node.innerHTML = '<span class="dot"></span>';
+      node.appendChild(el("span", "node-label", nd.label));
+      if (i > 0) node.appendChild(el("span", "node-price", nd.price));
+      track.appendChild(node);
+    });
+    card.appendChild(track);
+
+    /* 状态 + 盈亏 */
+    const foot = el("div", "order-foot");
+    foot.appendChild(el("span", "state",
+      '<b>[TRACKING]</b> EXEC_ID: #' + (8942 + oi) + ' · ' + o.statusText));
+    const pnl = el("span", "pnl", o.pnl);
+    if (/^-/.test(o.pnl)) pnl.classList.add("neg");
+    foot.appendChild(pnl);
+    card.appendChild(foot);
+
+    box.appendChild(card);
+  });
+}
+
+/* ---------- 底部历史战绩跑马灯（双份内容实现无缝循环） ---------- */
+function renderTicker(reports) {
+  const track = document.getElementById("tickerTrack");
+  track.innerHTML = "";
+  const one = document.createDocumentFragment();
+  reports.forEach((r) => {
+    const item = typeof r === "string" ? { time: "", text: r } : r;
+    one.appendChild(el("span", "tick-item",
+      (item.time ? '<span class="tm">[' + item.time + ' 结单]</span> ' : "") + item.text));
+  });
+  track.appendChild(one.cloneNode(true));   /* 第 1 份 */
+  track.appendChild(one.cloneNode(true));   /* 第 2 份（无缝衔接） */
+}
+
+/* ---------- 总渲染入口 ---------- */
+function render() {
+  const d = window.QUANT_DATA;
+  document.getElementById("tgGroup").textContent = d.system.tgGroup;
+  renderMetrics(d.system);
+  renderOrders(d.activeOrders);
+  renderTicker(d.historyReports);
+}
+
+/* 外部更新接口：增量合并后重渲染（可对接 API 轮询 / WebSocket） */
+window.updateQuantData = function (patch) {
+  const d = window.QUANT_DATA;
+  if (patch.system)          Object.assign(d.system, patch.system);
+  if (patch.activeOrders)    d.activeOrders = patch.activeOrders;
+  if (patch.historyReports)  d.historyReports = patch.historyReports;
   render();
 };
 
