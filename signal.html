@@ -102,30 +102,18 @@
     50%      { box-shadow: 0 0 22px rgba(0, 180, 255, 0.9), 0 0 56px rgba(0, 160, 255, 0.42); }
   }
 
-  /* ---------- 24H 战报指标栏（三项横排） ---------- */
-  /* ---------- 核心指标：今日胜率（单项居中放大） ---------- */
-  .metrics {
-    display: flex; justify-content: center; margin-bottom: 10px;
+  /* ---------- 顶栏同排：今日胜率（左）+ Telegram 胶囊（右） ---------- */
+  .rate {
+    display: inline-flex; align-items: baseline; gap: 7px;
+    margin-left: 12px; flex: none;
   }
-  .metric {
-    flex: 0 0 auto; min-width: 220px;
-    background: rgba(0, 229, 255, 0.045);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 8px 22px 9px;
-    text-align: center;
+  .rate .rate-k {
+    font-size: 11px; letter-spacing: 1.5px;
+    color: var(--muted); white-space: nowrap;
   }
-  .metric .k {
-    display: block; font-size: 10.5px; letter-spacing: 2px;
-    color: var(--muted); margin-bottom: 4px; white-space: nowrap;
-  }
-  .metric .v {
-    display: block; font-size: 19px; font-weight: 800;
-    color: var(--ink); white-space: nowrap;
-  }
-  .metric .v.win {
-    color: #00ffb3; font-size: 22px;
-    text-shadow: 0 0 12px rgba(0, 255, 163, 0.7), 0 0 26px rgba(0, 255, 163, 0.35);
+  .rate .rate-v {
+    font-size: 23px; font-weight: 800; color: #00ffb3; white-space: nowrap;
+    text-shadow: 0 0 10px rgba(0, 255, 163, 0.7), 0 0 24px rgba(0, 255, 163, 0.35);
     animation: metricGlow 2.4s ease-in-out infinite;
   }
   @keyframes metricGlow {
@@ -283,11 +271,9 @@
   <!-- 顶部：系统状态栏 -->
   <div class="sys-bar">
     <span class="live-dot"></span>
+    <div class="rate" id="rate"></div>
     <a class="tg" id="tgGroup" href="https://t.me/weex8888" target="_blank" rel="noopener"></a>
   </div>
-
-  <!-- 24H 战报指标栏（JS 渲染） -->
-  <div class="metrics" id="metrics"></div>
 
   <!-- 活跃订单区（JS 渲染） -->
   <div id="orders"></div>
@@ -366,17 +352,10 @@ function el(tag, cls, html) {
 
 /* ---------- 顶部战报指标栏 ---------- */
 function renderMetrics(d) {
-  const box = document.getElementById("metrics");
+  const box = document.getElementById("rate");
   box.innerHTML = "";
-  const items = [
-    { k: "今日胜率", v: d.winRate24h, win: true }
-  ];
-  for (const it of items) {
-    const m = el("div", "metric");
-    m.appendChild(el("span", "k", it.k));
-    m.appendChild(el("b", "v" + (it.win ? " win" : ""), it.v));
-    box.appendChild(m);
-  }
+  box.appendChild(el("span", "rate-k", "今日胜率"));
+  box.appendChild(el("b", "rate-v win", d.winRate24h));
 }
 
 /* ---------- 订单卡（含进度条 + 4 节点） ---------- */
