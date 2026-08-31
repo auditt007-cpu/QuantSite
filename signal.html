@@ -486,10 +486,86 @@ async function refreshFeed() {
   }
 }
 
+/* =========================================================================
+ * 实时价格层：持仓卡的 progress / pnl / TP 档位状态 用 OKX 实时价每 2s 刷新
+ * 数据源：VPS nginx 反代 api.quantalpha.space/price/（OKX 公开行情，CORS 已放行）
+ * 结构数据（开/平仓、战绩）仍由 refreshFeed 低频驱动；价格高频覆盖数字。
+ * 公式与后端 quant/signal_feed.py 完全一致（ROE×杠杆 / 相对 TP3 完成度）。
+ * ========================================================================= */
+const PRICE_BASE = "https://api.quantalpha.space/price/tickers?instType=SPOT";
+const SYM_TO_INST = { "BTC/USDT": "BTC-USDT", "ETH/USDT": "ETH-USDT" };
+
+async function fetchLivePrices() {
+  const orders = window.QUANT_DATA.activeOrders || [];
+  if (!orders.length || document.hidden) return;   /* 无持仓/页面隐藏不轮询 */
+  const insts = orders
+    .map(o => SYM_TO_INST[o.symbol] || String(o.symbol).replace("/", "-"))
+    .filter(Boolean);
+  if (!insts.length) return;
+  try {
+    const resp = await fetch(PRICE_BASE, { cache: "no-store" });
+    if (!resp.ok) return;
+    const j = await resp.json();
+    if (!j || (j.code !== "0" && j.code !== 0) || !Array.isArray(j.data)) return;
+    const prices = {};
+    j.data.forEach(t => { if (insts.includes(t.instId)) prices[t.instId] = parseFloat(t.last); });
+    applyLivePrices(prices);
+  } catch (_) { /* 网络异常：静默保留当前数字 */ }
+}
+
+function applyLivePrices(prices) {
+  const orders = window.QUANT_DATA.activeOrders || [];
+  let changed = false;
+  orders.forEach(o => {
+    const inst = SYM_TO_INST[o.symbol] || String(o.symbol).replace("/", "-");
+    const px = prices[inst];
+    if (!px) return;
+    const isLong = /LONG|多/.test(o.direction);
+    const lev = parseFloat(String(o.leverage).replace(/[^\d.]/g, "")) || 1;
+    const entry = parseFloat(String(o.entryPrice).replace(/[^\d.]/g, ""));
+    const tps = (o.tpNodes || []).map(n => parseFloat(String(n.price).replace(/[^\d.]/g, "")));
+    if (!entry || tps.length < 4) return;          /* tpNodes=[入场,TP1,TP2,TP3] */
+
+    /* 触达档位：多空各自判定 */
+    let maxTp = 0;
+    for (let i = 1; i <= 3; i++) {
+      if (!tps[i]) continue;
+      if (isLong ? px >= tps[i] : px <= tps[i]) maxTp = i;
+    }
+
+    /* pnl：ROE × 杠杆（与后端同一公式） */
+    const roe = (px - entry) / entry * 100 * lev * (isLong ? 1 : -1);
+
+    /* progress：相对 TP3 完成度（SHORT 反向），clamp 0-100 */
+    let prog = o.progress;
+    if (tps[3]) {
+      prog = (px - entry) / (tps[3] - entry) * 100 * (isLong ? 1 : -1);
+      prog = Math.max(0, Math.min(100, prog));
+    }
+    if (maxTp >= 3) prog = 100;
+
+    const statusText = maxTp >= 3 ? "TP3 已全部打靶" : "正在冲击 TP" + Math.min(maxTp + 1, 3);
+
+    o.tpNodes.forEach((nd, i) => {
+      if (i === 0) nd.status = "done";
+      else if (i <= maxTp) nd.status = "done";
+      else if (i === maxTp + 1) nd.status = "active";
+      else nd.status = "pending";
+    });
+
+    o.progress = prog;
+    o.pnl = (roe >= 0 ? "+" : "") + roe.toFixed(1) + "%";
+    o.statusText = statusText;
+    changed = true;
+  });
+  if (changed) renderOrders(orders);               /* 只重渲订单区，指标/跑马灯不动 */
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   render();
   refreshFeed();
   setInterval(refreshFeed, 60000);
+  setInterval(fetchLivePrices, 2000);
 });
 </script>
 </body>
