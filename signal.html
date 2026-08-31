@@ -374,6 +374,11 @@ function renderMetrics(d) {
 function renderOrders(orders) {
   const box = document.getElementById("orders");
   box.innerHTML = "";
+  if (!orders.length) {
+    box.appendChild(el("div", "order",
+      '<span class="state" style="color: var(--muted)">当前无持仓 · 等待下一个 TP 信号</span>'));
+    return;
+  }
 
   orders.forEach((o, oi) => {
     const card = el("div", "order");
@@ -458,7 +463,34 @@ window.updateQuantData = function (patch) {
   render();
 };
 
-document.addEventListener("DOMContentLoaded", render);
+/* =========================================================================
+ * 实时数据自动刷新：每 60s 拉取 VPS 生成的 feed JSON（量化执行终端同源数据）
+ * 数据源：cron 每 5 分钟在 VPS 生成 → api.quantalpha.space/data/signal_feed.json
+ * ========================================================================= */
+const FEED_URL = "https://api.quantalpha.space/data/signal_feed.json";
+
+async function refreshFeed() {
+  try {
+    const resp = await fetch(FEED_URL, { cache: "no-store" });
+    if (!resp.ok) return;
+    const feed = await resp.json();
+    if (feed && feed.system) {
+      window.updateQuantData({
+        system: feed.system,
+        activeOrders: feed.activeOrders || [],
+        historyReports: feed.historyReports || []
+      });
+    }
+  } catch (_) {
+    /* 网络/解析失败：静默保留当前数据，等待下一轮 */
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  render();
+  refreshFeed();
+  setInterval(refreshFeed, 60000);
+});
 </script>
 </body>
 </html>
