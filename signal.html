@@ -76,44 +76,56 @@
     0%, 100% { opacity: 1;   transform: scale(1);    box-shadow: 0 0 5px var(--neon); }
     50%      { opacity: 0.4; transform: scale(0.78); box-shadow: 0 0 13px var(--neon); }
   }
-  .engine {
-    font-size: 11px; font-weight: bold; letter-spacing: 1.2px;
-    color: var(--cyan); text-shadow: 0 0 8px rgba(0, 229, 255, 0.5);
-  }
+  /* ---------- 私域引导：Telegram 大号胶囊（小屏/远距离一眼可见） ---------- */
   .tg {
-    margin-left: auto; font-size: 10px; color: var(--amber);
-    border: 1px solid rgba(255, 179, 0, 0.35); border-radius: 3px;
-    padding: 2px 7px; background: rgba(255, 179, 0, 0.07);
-    text-shadow: 0 0 6px rgba(255, 179, 0, 0.35);
-    display: inline-flex; align-items: center; gap: 5px;
+    margin-left: auto;
+    font-size: 23px; font-weight: 800; letter-spacing: 0.5px;
+    color: #ffffff;
+    background: linear-gradient(135deg, #0a8fe0 0%, #0068c8 60%, #004fa8 100%);
+    border: 1.5px solid rgba(110, 205, 255, 0.95);
+    border-radius: 999px;
+    padding: 9px 20px;
+    text-shadow: 0 1px 3px rgba(0, 30, 80, 0.55), 0 0 14px rgba(120, 220, 255, 0.7);
+    box-shadow: 0 0 16px rgba(0, 150, 255, 0.55), 0 0 44px rgba(0, 120, 255, 0.25),
+                inset 0 0 14px rgba(255, 255, 255, 0.12);
+    display: inline-flex; align-items: center; gap: 11px;
     text-decoration: none; cursor: pointer;
+    animation: tgPulse 1.8s ease-in-out infinite;
   }
-  .tg svg { flex: none; }
-  .tg:hover { background: rgba(255, 179, 0, 0.16); }
+  .tg svg {
+    flex: none; width: 26px; height: 26px;
+    filter: drop-shadow(0 0 7px rgba(255, 255, 255, 0.65));
+  }
+  .tg:hover { filter: brightness(1.12); }
+  @keyframes tgPulse {
+    0%, 100% { box-shadow: 0 0 14px rgba(0, 150, 255, 0.5), 0 0 36px rgba(0, 120, 255, 0.2); }
+    50%      { box-shadow: 0 0 22px rgba(0, 180, 255, 0.9), 0 0 56px rgba(0, 160, 255, 0.42); }
+  }
 
   /* ---------- 24H 战报指标栏（三项横排） ---------- */
+  /* ---------- 核心指标：今日胜率（单项居中放大） ---------- */
   .metrics {
-    display: flex; gap: 8px; margin-bottom: 10px;
+    display: flex; justify-content: center; margin-bottom: 10px;
   }
   .metric {
-    flex: 1; min-width: 0;
+    flex: 0 0 auto; min-width: 220px;
     background: rgba(0, 229, 255, 0.045);
     border: 1px solid var(--line);
-    border-radius: 6px;
-    padding: 5px 8px 6px;
+    border-radius: 8px;
+    padding: 8px 22px 9px;
     text-align: center;
   }
   .metric .k {
-    display: block; font-size: 8.5px; letter-spacing: 1px;
-    color: var(--muted); margin-bottom: 3px; white-space: nowrap;
+    display: block; font-size: 10.5px; letter-spacing: 2px;
+    color: var(--muted); margin-bottom: 4px; white-space: nowrap;
   }
   .metric .v {
-    display: block; font-size: 13px; font-weight: bold;
+    display: block; font-size: 19px; font-weight: 800;
     color: var(--ink); white-space: nowrap;
   }
   .metric .v.win {
-    color: #00ffb3; font-size: 15px;
-    text-shadow: 0 0 10px rgba(0, 255, 163, 0.7), 0 0 22px rgba(0, 255, 163, 0.35);
+    color: #00ffb3; font-size: 22px;
+    text-shadow: 0 0 12px rgba(0, 255, 163, 0.7), 0 0 26px rgba(0, 255, 163, 0.35);
     animation: metricGlow 2.4s ease-in-out infinite;
   }
   @keyframes metricGlow {
@@ -271,7 +283,6 @@
   <!-- 顶部：系统状态栏 -->
   <div class="sys-bar">
     <span class="live-dot"></span>
-    <span class="engine">表哥TP策略引擎 v4.2</span>
     <a class="tg" id="tgGroup" href="https://t.me/weex8888" target="_blank" rel="noopener"></a>
   </div>
 
@@ -358,9 +369,7 @@ function renderMetrics(d) {
   const box = document.getElementById("metrics");
   box.innerHTML = "";
   const items = [
-    { k: "tp1信号准确率", v: d.winRate24h, win: true },
-    { k: "今日信号",    v: d.stats24h },
-    { k: "TP1|TP2|TP3 命中", v: d.tpStats }
+    { k: "今日胜率", v: d.winRate24h, win: true }
   ];
   for (const it of items) {
     const m = el("div", "metric");
@@ -440,9 +449,9 @@ function renderTicker(reports) {
 
 /* Telegram 官方 APP logo（蓝色圆底纸飞机） */
 const TG_LOGO =
-  '<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">' +
-  '<circle cx="12" cy="12" r="12" fill="#229ED9"/>' +
-  '<path d="M5.5 11.8l12-4.6c.6-.2 1.1.2.9.9l-2.3 10.6c-.2.8-.7 1-1.2.6l-3.3-2.4-1.6 1.5c-.2.2-.4.4-.7.4l.3-3.4 6.1-5.5c.3-.2-.1-.4-.4-.2L7.7 13.6l-3.1-1c-.7-.2-.7-.7.1-.8z" fill="#fff"/>' +
+  '<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">' +
+  '<circle cx="12" cy="12" r="12" fill="#ffffff"/>' +
+  '<path d="M5.5 11.8l12-4.6c.6-.2 1.1.2.9.9l-2.3 10.6c-.2.8-.7 1-1.2.6l-3.3-2.4-1.6 1.5c-.2.2-.4.4-.7.4l.3-3.4 6.1-5.5c.3-.2-.1-.4-.4-.2L7.7 13.6l-3.1-1c-.7-.2-.7-.7.1-.8z" fill="#0088cc"/>' +
   '</svg>';
 
 /* ---------- 总渲染入口 ---------- */
