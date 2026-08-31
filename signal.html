@@ -80,17 +80,16 @@
     font-size: 11px; font-weight: bold; letter-spacing: 1.2px;
     color: var(--cyan); text-shadow: 0 0 8px rgba(0, 229, 255, 0.5);
   }
-  .sys-nominal {
-    font-size: 9px; letter-spacing: 0.8px; color: var(--neon);
-    border: 1px solid rgba(0, 255, 163, 0.35); border-radius: 3px;
-    padding: 1.5px 6px; background: rgba(0, 255, 163, 0.07);
-  }
   .tg {
     margin-left: auto; font-size: 10px; color: var(--amber);
     border: 1px solid rgba(255, 179, 0, 0.35); border-radius: 3px;
-    padding: 1.5px 7px; background: rgba(255, 179, 0, 0.07);
+    padding: 2px 7px; background: rgba(255, 179, 0, 0.07);
     text-shadow: 0 0 6px rgba(255, 179, 0, 0.35);
+    display: inline-flex; align-items: center; gap: 5px;
+    text-decoration: none; cursor: pointer;
   }
+  .tg svg { flex: none; }
+  .tg:hover { background: rgba(255, 179, 0, 0.16); }
 
   /* ---------- 24H 战报指标栏（三项横排） ---------- */
   .metrics {
@@ -113,8 +112,8 @@
     color: var(--ink); white-space: nowrap;
   }
   .metric .v.win {
-    color: var(--neon);
-    text-shadow: 0 0 9px rgba(0, 255, 163, 0.55);
+    color: #00ffb3; font-size: 15px;
+    text-shadow: 0 0 10px rgba(0, 255, 163, 0.7), 0 0 22px rgba(0, 255, 163, 0.35);
     animation: metricGlow 2.4s ease-in-out infinite;
   }
   @keyframes metricGlow {
@@ -272,9 +271,8 @@
   <!-- 顶部：系统状态栏 -->
   <div class="sys-bar">
     <span class="live-dot"></span>
-    <span class="engine">QUANT_SIGNAL_ENGINE v4.2</span>
-    <span class="sys-nominal">SYSTEM STATUS: NOMINAL</span>
-    <span class="tg" id="tgGroup"></span>
+    <span class="engine">表哥TP策略引擎 v4.2</span>
+    <a class="tg" id="tgGroup" href="https://t.me/weex8888" target="_blank" rel="noopener"></a>
   </div>
 
   <!-- 24H 战报指标栏（JS 渲染） -->
@@ -285,7 +283,7 @@
 
   <!-- 底部：历史战绩跑马灯 -->
   <div class="ticker">
-    <span class="ticker-tag">EXEC_LOG ▸</span>
+    <span class="ticker-tag">执行日志 ▸</span>
     <div class="ticker-mask"><div class="ticker-track" id="tickerTrack"></div></div>
   </div>
 </div>
@@ -299,7 +297,7 @@
  * ========================================================================= */
 window.QUANT_DATA = {
   system: {
-    tgGroup:    "@grid_quant_vip",
+    tgGroup:    "t.me/weex8888",
     winRate24h: "94.2%",
     stats24h:   "17战 16胜 1损",
     tpStats:    "16 | 11 | 6"
@@ -360,9 +358,9 @@ function renderMetrics(d) {
   const box = document.getElementById("metrics");
   box.innerHTML = "";
   const items = [
-    { k: "TP1_HIT_RATE_24H", v: d.winRate24h, win: true },
-    { k: "SIGNALS_TODAY",    v: d.stats24h },
-    { k: "TP1|TP2|TP3 HITS",  v: d.tpStats }
+    { k: "tp1信号准确率", v: d.winRate24h, win: true },
+    { k: "今日信号",    v: d.stats24h },
+    { k: "TP1|TP2|TP3 命中", v: d.tpStats }
   ];
   for (const it of items) {
     const m = el("div", "metric");
@@ -385,9 +383,8 @@ function renderOrders(orders) {
     head.appendChild(el("span", "sym", o.symbol));
     const isLong = /LONG|多/.test(o.direction);
     head.appendChild(el("span", "dir " + (isLong ? "long" : "short"),
-      (isLong ? "▲ " : "▼ ") + o.direction.toUpperCase().replace("做多", "多").replace("做空", "空")
-      + " [" + String(o.leverage).toUpperCase() + "]"));
-    head.appendChild(el("span", "ts", o.entryTime + " UTC"));
+      (isLong ? "▲ 做多" : "▼ 做空") + " [" + String(o.leverage).toUpperCase() + "]"));
+    head.appendChild(el("span", "ts", o.entryTime + " 北京时间"));
     head.appendChild(el("span", "entry-px", "@" + o.entryPrice));
     card.appendChild(head);
 
@@ -412,7 +409,7 @@ function renderOrders(orders) {
     /* 状态 + 盈亏 */
     const foot = el("div", "order-foot");
     foot.appendChild(el("span", "state",
-      '<b>[TRACKING]</b> EXEC_ID: #' + (8942 + oi) + ' · ' + o.statusText));
+      '<b>[跟踪中]</b> 执行ID: #' + (8942 + oi) + ' · ' + o.statusText));
     const pnl = el("span", "pnl", o.pnl);
     if (/^-/.test(o.pnl)) pnl.classList.add("neg");
     foot.appendChild(pnl);
@@ -436,10 +433,17 @@ function renderTicker(reports) {
   track.appendChild(one.cloneNode(true));   /* 第 2 份（无缝衔接） */
 }
 
+/* Telegram 官方 APP logo（蓝色圆底纸飞机） */
+const TG_LOGO =
+  '<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">' +
+  '<circle cx="12" cy="12" r="12" fill="#229ED9"/>' +
+  '<path d="M5.5 11.8l12-4.6c.6-.2 1.1.2.9.9l-2.3 10.6c-.2.8-.7 1-1.2.6l-3.3-2.4-1.6 1.5c-.2.2-.4.4-.7.4l.3-3.4 6.1-5.5c.3-.2-.1-.4-.4-.2L7.7 13.6l-3.1-1c-.7-.2-.7-.7.1-.8z" fill="#fff"/>' +
+  '</svg>';
+
 /* ---------- 总渲染入口 ---------- */
 function render() {
   const d = window.QUANT_DATA;
-  document.getElementById("tgGroup").textContent = d.system.tgGroup;
+  document.getElementById("tgGroup").innerHTML = TG_LOGO + "<span>" + d.system.tgGroup + "</span>";
   renderMetrics(d.system);
   renderOrders(d.activeOrders);
   renderTicker(d.historyReports);
